@@ -1,134 +1,281 @@
-// frontend/src/components/loads/LoadFilterBar.tsx
+// frontend/src/components/loads/LoadFormModal.tsx
 'use client';
 
-import React from 'react';
-import { 
-    Grid, FormControl, InputLabel, Select, MenuItem,
-    IconButton, InputAdornment, Tooltip 
+import React, { useEffect, useState, useCallback, useMemo } from 'react';
+import {
+    Dialog, DialogTitle, DialogContent, DialogActions, Button, Box, TextField,
+    FormControl, InputLabel, Select, MenuItem, FormHelperText, CircularProgress, Alert,
+    Stack, Typography, IconButton, Paper, List, ListItem, ListItemButton, ListItemText, Divider,
+    Stepper, Step, StepLabel,
+    RadioGroup
 } from '@mui/material';
-import ClearIcon from '@mui/icons-material/Clear';
-import { IClientBasicInfo, IVehicleBasicInfo, IDriver } from '@/types';
+import { useForm, Controller, SubmitHandler } from 'react-hook-form';
+import * as yup from 'yup';
+import { yupResolver } from '@hookform/resolvers/yup';
+import { LocalizationProvider, DatePicker } from '@mui/x-date-pickers';
+import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
+import dayjs from 'dayjs';
+import CloseIcon from '@mui/icons-material/Close';
 
-export interface ILoadFilters {
-    asiakasId: string;
-    kalustoNro: string;
-    kuljId: string;
+import { 
+    IClientBasicInfo, IVehicleBasicInfo, IDriver, ILoadFormData, LoadTypeEnum, 
+    ITimberStackListItem, ICreateLoadDto, ILoad, IUpdateLoadDto, IWoodEntry,
+    IBackendClient, IVehicleBackendResponse, IBackendDriver
+} from '@/types';
+import { fetchAllClients } from '@/services/clientService';
+import { fetchAllVehicles } from '@/services/vehicleService';
+import { fetchAllDrivers } from '@/services/driverService';
+import { getActiveTimberStacksByClient, fetchWoodEntriesByPuulaani } from '@/services/timberStackService';
+import { createLoad, updateLoad } from '@/services/loadService';
+
+interface LoadFormModalProps {
+    open: boolean;
+    onCloseAction: () => void;
+    onSaveSuccessAction: (message: string) => void;
+    initialData: ILoad | null;
 }
 
-interface LoadFilterBarProps {
-    filters: ILoadFilters;
-    onFilterChange: (name: keyof ILoadFilters, value: string) => void;
-    clientList: IClientBasicInfo[];
-    vehicleList: IVehicleBasicInfo[];
-    driverList: IDriver[];
-}
+const loadSchema = yup.object({
+    asiakasId: yup.string().required('Customer is required'),
+    kalustoNro: yup.string().required('Vehicle is required'),
+    kuljId: yup.string().required('Driver is required'),
+    pvm: yup.date().required('Date is required').typeError('A valid date is required'),
+    puulaaniId: yup.string().required('Origin (Puulaani) is required'),
+    puutavaraId: yup.string().required('A timber task must be selected'),
+    ajomaaraysNro: yup.string().nullable(),
+});
 
-export default function LoadFilterBar({
-    filters,
-    onFilterChange,
-    clientList,
-    vehicleList,
-    driverList,
-}: LoadFilterBarProps) {
+type FormFields = keyof ILoadFormData;
+
+const SummaryItem = ({ label, value }: { label: string, value?: string | null }) => (
+    <Box sx={{ display: 'flex', py: 1 }}><Typography variant="body2" color="text.secondary" sx={{ width: '120px', flexShrink: 0 }}>{label}:</Typography><Typography variant="body2" fontWeight="bold">{value || 'N/A'}</Typography></Box>
+);
+
+export default function LoadFormModal({ open, onCloseAction, onSaveSuccessAction, initialData }: LoadFormModalProps) {
+    const [activeStep, setActiveStep] = useState(0);
+    const isEditMode = useMemo(() => !!initialData, [initialData]);
+    const [isLoading, setIsLoading] = useState(true);
+    const [isSaving, setIsSaving] = useState(false);
+    const [error, setError] = useState<string | null>(null);
+
+    const [clientList, setClientList] = useState<IClientBasicInfo[]>([]);
+    const [vehicleList, setVehicleList] = useState<IVehicleBasicInfo[]>([]);
+    const [driverList, setDriverList] = useState<IDriver[]>([]);
+    const [puulaaniList, setPuulaaniList] = useState<ITimberStackListItem[]>([]);
+    const [isPuulaaniLoading, setIsPuulaaniLoading] = useState(false);
+    const [woodEntryList, setWoodEntryList] = useState<IWoodEntry[]>([]);
+    const [isWoodEntryLoading, setIsWoodEntryLoading] = useState(false);
+
+    const { control, handleSubmit, reset, watch, setValue, trigger, formState: { errors } } = useForm<ILoadFormData>({
+        resolver: yupResolver(loadSchema) as any,
+        mode: 'onChange',
+        defaultValues: { tyyppi: LoadTypeEnum.PUULAANI, asiakasId: '', puulaaniId: '', puutavaraId: '', kalustoNro: '', kuljId: '', pvm: dayjs().toDate(), ajomaaraysNro: '' }
+    });
+
+    const watchedValues = watch();
+    const selectedCustomerId = watch('asiakasId');
+    const selectedPuulaaniId = watch('puulaaniId');
+    const selectedPuutavaraId = watch('puutavaraId');
+
+    const loadDropdownData = useCallback(async () => {
+        if (!open) return;
+        setIsLoading(true);
+        setError(null);
+        try {
+            const [clientsData, vehiclesData, driversData] = await Promise.all([
+                fetchAllClients(), fetchAllVehicles(), fetchAllDrivers()
+            ]);
+            setClientList(clientsData.map((c: IBackendClient) => ({ id: String(c.asiakkaanId), name: c.asiakkaanNimi, clientId: String(c.asiakkaanId), clientName: c.asiakkaanNimi, targetColor: c.kohteenVari })));
+            setVehicleList(vehiclesData.map((v: IVehicleBackendResponse) => ({ id: String(v.kalustoNro), name: v.rekNro, vehicleNo: String(v.kalustoNro), registrationNo: v.rekNro })));
+            setDriverList(driversData.map((d: IBackendDriver) => ({ driverId: d.kuljId, name: d.nimi, phoneNo: d.puhelinNro, email: d.email, hasAlerts: d.halytys })));
+        } catch (err) { setError("Failed to load necessary data.");
+        } finally { setIsLoading(false); }
+    }, [open]);
+
+    useEffect(() => { loadDropdownData(); }, [loadDropdownData]);
+
+    useEffect(() => {
+        if (open) {
+            setActiveStep(0);
+            if (isEditMode && initialData) {
+                reset({
+                    tyyppi: initialData.tyyppi,
+                    asiakasId: String(initialData.asiakasId ?? ''),
+                    puulaaniId: String(initialData.puulaaniId ?? ''),
+                    puutavaraId: String(initialData.puutavaraId ?? ''),
+                    kalustoNro: String(initialData.kalustoNro ?? ''),
+                    kuljId: String(initialData.kuljId ?? ''),
+                    pvm: initialData.pvm ? new Date(initialData.pvm) : new Date(),
+                    ajomaaraysNro: initialData.ajomaaraysNro || '',
+                });
+            } else {
+                reset({ tyyppi: LoadTypeEnum.PUULAANI, asiakasId: '', puulaaniId: '', puutavaraId: '', kalustoNro: '', kuljId: '', pvm: dayjs().toDate(), ajomaaraysNro: '' });
+            }
+        }
+    }, [open, isEditMode, initialData, reset]);
+
+    useEffect(() => {
+        const fetchPuulaanis = async () => {
+            if (selectedCustomerId) {
+                setIsPuulaaniLoading(true);
+                if (!isEditMode || (isEditMode && initialData?.asiakasId !== Number(selectedCustomerId))) {
+                    setValue('puulaaniId', '');
+                    setValue('puutavaraId', '');
+                }
+                setWoodEntryList([]);
+                try {
+                    const puulaanis = await getActiveTimberStacksByClient(Number(selectedCustomerId));
+                    setPuulaaniList(puulaanis);
+                } catch (error) { setPuulaaniList([]);
+                } finally { setIsPuulaaniLoading(false); }
+            } else {
+                setPuulaaniList([]); setWoodEntryList([]);
+            }
+        };
+        fetchPuulaanis();
+    }, [selectedCustomerId, setValue, isEditMode, initialData]);
     
-    const handleSelectChange = (event: any) => {
-        const { name, value } = event.target;
-        onFilterChange(name as keyof ILoadFilters, value);
+    useEffect(() => {
+        const fetchWoodEntries = async () => {
+            if (selectedPuulaaniId) {
+                setIsWoodEntryLoading(true);
+                if (!isEditMode || (isEditMode && initialData?.puulaaniId !== Number(selectedPuulaaniId))) {
+                    setValue('puutavaraId', '');
+                }
+                try {
+                    const entries = await fetchWoodEntriesByPuulaani(Number(selectedPuulaaniId));
+                    setWoodEntryList(entries.filter(e => e.jaljella > 0));
+                } catch (error) { setWoodEntryList([]);
+                } finally { setIsWoodEntryLoading(false); }
+            } else { setWoodEntryList([]); }
+        };
+        fetchWoodEntries();
+    }, [selectedPuulaaniId, setValue, isEditMode, initialData]);
+
+    const handleNext = async () => {
+        let fieldsToValidate: FormFields[] = [];
+        if (activeStep === 0) fieldsToValidate = ['asiakasId', 'kalustoNro', 'kuljId', 'pvm'];
+        if (activeStep === 1) fieldsToValidate = ['puulaaniId', 'puutavaraId'];
+        
+        const isValid = await trigger(fieldsToValidate);
+        if (isValid) setActiveStep((prev) => prev + 1);
     };
 
-    const handleClearFilter = (e: React.MouseEvent, name: keyof ILoadFilters) => {
-        e.stopPropagation();
-        onFilterChange(name, '');
+    const handleBack = () => setActiveStep((prev) => prev - 1);
+
+    const onSubmit: SubmitHandler<ILoadFormData> = async (formData) => {
+        setIsSaving(true);
+        setError(null);
+        const selectedPuulaani = puulaaniList.find(p => p.puulaaniId === Number(formData.puulaaniId));
+        const selectedWoodEntry = woodEntryList.find(w => w.puutavaraId === Number(formData.puutavaraId));
+        const payload: ICreateLoadDto | IUpdateLoadDto = {
+            tyyppi: LoadTypeEnum.PUULAANI,
+            asiakasId: Number(formData.asiakasId),
+            puulaaniId: Number(formData.puulaaniId),
+            puutavaraId: Number(formData.puutavaraId),
+            kalustoNro: Number(formData.kalustoNro),
+            kuljId: Number(formData.kuljId),
+            pvm: formData.pvm!,
+            ajomaaraysNro: formData.ajomaaraysNro,
+            lahto: selectedPuulaani?.nimi,
+            kohde: selectedWoodEntry?.purkupaikkaName,
+        };
+        try {
+            if (isEditMode) {
+                await updateLoad(initialData!.kuormaId, payload);
+                onSaveSuccessAction('Load updated successfully!');
+            } else {
+                await createLoad(payload as ICreateLoadDto);
+                onSaveSuccessAction('Load created successfully!');
+            }
+        } catch (err: any) { setError(err.response?.data?.message || "An error occurred.");
+        } finally { setIsSaving(false); }
+    };
+
+    const steps = ['Basic Details', 'Trip Details', 'Summary'];
+    
+    const isStepValid = () => {
+        if (activeStep === 0) return !errors.asiakasId && !errors.kalustoNro && !errors.kuljId && !errors.pvm && watchedValues.asiakasId && watchedValues.kalustoNro && watchedValues.kuljId && watchedValues.pvm;
+        if (activeStep === 1) return !errors.puulaaniId && !errors.puutavaraId && watchedValues.puulaaniId && watchedValues.puutavaraId;
+        return true;
     };
 
     return (
-        <Grid container spacing={2} alignItems="center">
-            {/* --- FIX: Updated Grid item props for better responsiveness --- */}
-            <Grid item xs={12} sm={6} md={4}>
-                <FormControl fullWidth size="small" sx={{ minWidth: 240 }}>
-                    <InputLabel>Customer</InputLabel>
-                    <Select
-                        name="asiakasId"
-                        value={filters.asiakasId}
-                        label="Customer"
-                        onChange={handleSelectChange}
-                        endAdornment={
-                            filters.asiakasId && (
-                                <InputAdornment position="end" sx={{ marginRight: '24px' }}>
-                                    <Tooltip title="Clear Customer">
-                                        <IconButton size="small" onClick={(e) => handleClearFilter(e, 'asiakasId')}>
-                                            <ClearIcon fontSize="small" />
-                                        </IconButton>
-                                    </Tooltip>
-                                </InputAdornment>
-                            )
-                        }
-                    >
-                        <MenuItem value=""><em>All Customers</em></MenuItem>
-                        {clientList.map((client) => (
-                            <MenuItem key={client.id} value={client.id}>{client.name}</MenuItem>
-                        ))}
-                    </Select>
-                </FormControl>
-            </Grid>
-
-            {/* --- FIX: Updated Grid item props for better responsiveness --- */}
-            <Grid item xs={12} sm={6} md={4}>
-                <FormControl fullWidth size="small" sx={{ minWidth: 240 }}>
-                    <InputLabel>Vehicle</InputLabel>
-                    <Select
-                        name="kalustoNro"
-                        value={filters.kalustoNro}
-                        label="Vehicle"
-                        onChange={handleSelectChange}
-                        endAdornment={
-                            filters.kalustoNro && (
-                                <InputAdornment position="end" sx={{ marginRight: '24px' }}>
-                                    <Tooltip title="Clear Vehicle">
-                                        <IconButton size="small" onClick={(e) => handleClearFilter(e, 'kalustoNro')}>
-                                            <ClearIcon fontSize="small" />
-                                        </IconButton>
-                                    </Tooltip>
-                                </InputAdornment>
-                            )
-                        }
-                    >
-                        <MenuItem value=""><em>All Vehicles</em></MenuItem>
-                        {vehicleList.map((vehicle) => (
-                            <MenuItem key={vehicle.id} value={vehicle.id}>{vehicle.registrationNo}</MenuItem>
-                        ))}
-                    </Select>
-                </FormControl>
-            </Grid>
-
-            {/* --- FIX: Updated Grid item props for better responsiveness --- */}
-            <Grid item xs={12} sm={6} md={4}>
-                <FormControl fullWidth size="small" sx={{ minWidth: 240 }}>
-                    <InputLabel>Driver</InputLabel>
-                    <Select
-                        name="kuljId"
-                        value={filters.kuljId}
-                        label="Driver"
-                        onChange={handleSelectChange}
-                        endAdornment={
-                            filters.kuljId && (
-                                <InputAdornment position="end" sx={{ marginRight: '24px' }}>
-                                    <Tooltip title="Clear Driver">
-                                        <IconButton size="small" onClick={(e) => handleClearFilter(e, 'kuljId')}>
-                                            <ClearIcon fontSize="small" />
-                                        </IconButton>
-                                    </Tooltip>
-                                </InputAdornment>
-                            )
-                        }
-                    >
-                        <MenuItem value=""><em>All Drivers</em></MenuItem>
-                        {driverList.map((driver) => (
-                            <MenuItem key={driver.driverId} value={driver.driverId}>{driver.name}</MenuItem>
-                        ))}
-                    </Select>
-                </FormControl>
-            </Grid>
-        </Grid>
+        <LocalizationProvider dateAdapter={AdapterDayjs}>
+            <Dialog open={open} onClose={onCloseAction} maxWidth="sm" fullWidth>
+                <DialogTitle sx={{ m: 0, p: 2, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <Typography variant="h6" component="div">{isEditMode ? 'Edit Load' : 'Create New Load'}</Typography>
+                    <IconButton aria-label="close" onClick={onCloseAction} sx={{ color: (theme) => theme.palette.grey[500] }}><CloseIcon /></IconButton>
+                </DialogTitle>
+                <Box component="form" id="load-form" onSubmit={handleSubmit(onSubmit)}>
+                    <DialogContent dividers sx={{ p: { xs: 2, sm: 3 } }}>
+                        {isLoading ? <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '400px' }}><CircularProgress /></Box>
+                        : (
+                            <>
+                                {error && <Alert severity="error" sx={{mb: 2}}>{error}</Alert>}
+                                <Stepper activeStep={activeStep} sx={{ mb: 3 }}>
+                                    {steps.map((label) => (<Step key={label}><StepLabel>{label}</StepLabel></Step>))}
+                                </Stepper>
+                                <Box sx={{ mt: 2, minHeight: 350 }}>
+                                    {activeStep === 0 && (
+                                        <Stack spacing={2.5}>
+                                            <FormControl fullWidth required error={!!errors.asiakasId}><InputLabel>Customer</InputLabel><Controller name="asiakasId" control={control} render={({ field }) => (<Select {...field} label="Customer" value={field.value || ''}>{clientList.map((c) => (<MenuItem key={c.id} value={c.id}>{c.name}</MenuItem>))}</Select>)}/>{errors.asiakasId && <FormHelperText>{errors.asiakasId.message}</FormHelperText>}</FormControl>
+                                            <FormControl fullWidth required error={!!errors.kalustoNro}><InputLabel>Vehicle</InputLabel><Controller name="kalustoNro" control={control} render={({ field }) => (<Select {...field} label="Vehicle" value={field.value || ''}>{vehicleList.map((v) => (<MenuItem key={v.id} value={v.id}>{v.registrationNo}</MenuItem>))}</Select>)}/>{errors.kalustoNro && <FormHelperText>{errors.kalustoNro.message}</FormHelperText>}</FormControl>
+                                            <FormControl fullWidth required error={!!errors.kuljId}><InputLabel>Driver</InputLabel><Controller name="kuljId" control={control} render={({ field }) => (<Select {...field} label="Driver" value={field.value || ''}>{driverList.map((d) => (<MenuItem key={d.driverId} value={d.driverId}>{d.name}</MenuItem>))}</Select>)}/>{errors.kuljId && <FormHelperText>{errors.kuljId.message}</FormHelperText>}</FormControl>
+                                            <Controller name="pvm" control={control} render={({ field }) => (<DatePicker label="Date *" value={field.value ? dayjs(field.value) : null} onChange={(date) => field.onChange(date?.toDate() ?? null)} slotProps={{ textField: { fullWidth: true, error: !!errors.pvm, helperText: errors.pvm?.message } }}/>)}/>
+                                            <Controller name="ajomaaraysNro" control={control} render={({ field }) => <TextField {...field} value={field.value || ''} label="Driving Order No." fullWidth />}/>
+                                        </Stack>
+                                    )}
+                                    {activeStep === 1 && (
+                                        <Stack spacing={2.5}>
+                                            <FormControl fullWidth required error={!!errors.puulaaniId} disabled={!selectedCustomerId || isPuulaaniLoading}><InputLabel>Origin (Puulaani)</InputLabel><Controller name="puulaaniId" control={control} render={({ field }) => (<Select {...field} label="Origin (Puulaani)" value={field.value || ''}>{isPuulaaniLoading ? <MenuItem disabled><em>Loading...</em></MenuItem> : puulaaniList.map((p) => (<MenuItem key={p.puulaaniId} value={p.puulaaniId}>{p.nimi}</MenuItem>))}</Select>)}/>{errors.puulaaniId && <FormHelperText>{errors.puulaaniId.message}</FormHelperText>}</FormControl>
+                                            <Paper variant="outlined" sx={{ p: 2, opacity: selectedPuulaaniId ? 1 : 0.5 }}>
+                                                <Typography variant="overline" color="text.secondary">Select Timber Task</Typography>
+                                                {isWoodEntryLoading ? <Box sx={{my: 2, display: 'flex', justifyContent: 'center'}}><CircularProgress size={24}/></Box>
+                                                 : woodEntryList.length > 0 ? (
+                                                    <FormControl component="fieldset" fullWidth error={!!errors.puutavaraId}>
+                                                        <Controller name="puutavaraId" control={control} render={({ field }) => (
+                                                            <RadioGroup {...field}><List dense sx={{ width: '100%', maxHeight: 200, overflowY: 'auto', bgcolor: 'background.paper' }}>{woodEntryList.map(entry => (<ListItemButton key={entry.puutavaraId} selected={field.value === String(entry.puutavaraId)} onClick={() => field.onChange(String(entry.puutavaraId))}><ListItemText primary={<Typography variant="body2" fontWeight="bold">{entry.puutavaraName || 'Unknown'}</Typography>} secondary={`To: ${entry.purkupaikkaName || 'Unknown'} | Remaining: ${entry.jaljella} m³`} /></ListItemButton>))}</List></RadioGroup>
+                                                        )}/>
+                                                        {errors.puutavaraId && <FormHelperText error sx={{ml: 2}}>{errors.puutavaraId.message}</FormHelperText>}
+                                                    </FormControl>
+                                                 ) : <Typography sx={{mt: 1, p: 1}} color="text.secondary">{ selectedPuulaaniId ? "No available timber entries." : "Select a Puulaani to see tasks."}</Typography>
+                                                }
+                                            </Paper>
+                                        </Stack>
+                                    )}
+                                    {activeStep === 2 && (
+                                        <Paper variant="outlined" sx={{ p: 2.5 }}>
+                                            <Typography variant="h6" gutterBottom>Summary</Typography>
+                                            <Stack spacing={1} divider={<Divider />}>
+                                                <SummaryItem label="Customer" value={clientList.find(c => c.id === watchedValues.asiakasId)?.name} />
+                                                <SummaryItem label="Vehicle" value={vehicleList.find(v => v.id === watchedValues.kalustoNro)?.registrationNo} />
+                                                <SummaryItem label="Driver" value={driverList.find(d => String(d.driverId) === watchedValues.kuljId)?.name} />
+                                                <SummaryItem label="Date" value={dayjs(watchedValues.pvm).format('DD/MM/YYYY')} />
+                                                <SummaryItem label="Origin" value={puulaaniList.find(p => String(p.puulaaniId) === watchedValues.puulaaniId)?.nimi} />
+                                                <SummaryItem label="Task" value={`${woodEntryList.find(w => String(w.puutavaraId) === watchedValues.puutavaraId)?.puutavaraName} to ${woodEntryList.find(w => String(w.puutavaraId) === watchedValues.puutavaraId)?.purkupaikkaName}`} />
+                                                <SummaryItem label="Volume" value={`${woodEntryList.find(w => String(w.puutavaraId) === watchedValues.puutavaraId)?.jaljella} m³`} />
+                                                {watchedValues.ajomaaraysNro && <SummaryItem label="Driving Order #" value={watchedValues.ajomaaraysNro} />}
+                                            </Stack>
+                                        </Paper>
+                                    )}
+                                </Box>
+                            </>
+                        )}
+                    </DialogContent>
+                    <DialogActions sx={{ p: 2, borderTop: '1px solid', borderColor: 'divider' }}>
+                         <Button onClick={onCloseAction} disabled={isSaving}>Cancel</Button>
+                         <Box sx={{ flex: '1 1 auto' }} />
+                         {activeStep > 0 && <Button onClick={handleBack} disabled={isSaving}>Back</Button>}
+                         {activeStep < steps.length - 1 && <Button variant="contained" onClick={handleNext} disabled={!isStepValid()}>Next</Button>}
+                         {activeStep === steps.length - 1 && (
+                            <Button type="submit" form="load-form" variant="contained" disabled={isSaving}>
+                                {isSaving ? <CircularProgress size={24} /> : (isEditMode ? 'Update Load' : 'Create Load')}
+                            </Button>
+                         )}
+                    </DialogActions>
+                </Box>
+            </Dialog>
+        </LocalizationProvider>
     );
 }
