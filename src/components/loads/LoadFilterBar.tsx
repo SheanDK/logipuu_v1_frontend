@@ -4,9 +4,10 @@
 import React from 'react';
 import { 
     Grid, FormControl, InputLabel, Select, MenuItem,
-    IconButton, InputAdornment, Tooltip, 
-    SelectChangeEvent
+    IconButton, InputAdornment, Tooltip 
 } from '@mui/material';
+// --- THIS IS THE FIX (PART 1): Import the correct event type ---
+import { SelectChangeEvent } from '@mui/material/Select';
 import ClearIcon from '@mui/icons-material/Clear';
 import { IClientBasicInfo, IVehicleBasicInfo, IDriver } from '@/types';
 
@@ -18,7 +19,6 @@ export interface ILoadFilters {
 
 interface LoadFilterBarProps {
     filters: ILoadFilters;
-    // --- THIS IS THE FIX ---
     onFilterChangeAction: (name: keyof ILoadFilters, value: string) => void;
     clientList: IClientBasicInfo[];
     vehicleList: IVehicleBasicInfo[];
@@ -27,13 +27,14 @@ interface LoadFilterBarProps {
 
 export default function LoadFilterBar({
     filters,
-    onFilterChangeAction, // Use the corrected prop name
+    onFilterChangeAction,
     clientList,
     vehicleList,
     driverList,
 }: LoadFilterBarProps) {
     
-     const handleSelectChange = (event: SelectChangeEvent<string>) => {
+    // --- THIS IS THE FIX (PART 2): Use the imported SelectChangeEvent type ---
+    const handleSelectChange = (event: SelectChangeEvent<string>) => {
         const name = event.target.name as keyof ILoadFilters;
         const value = event.target.value;
         onFilterChangeAction(name, value);

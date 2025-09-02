@@ -1,6 +1,8 @@
 // frontend/src/services/timberStackService.ts
 
 import apiClient from './apiClient';
+// --- THIS IS THE FIX ---
+import camelcaseKeys from 'camelcase-keys'; 
 import { 
     IBackendPuulaani, 
     ICreateTimberStackDto, 
@@ -8,41 +10,29 @@ import {
     IUpdateTimberStackFullDto, 
     IPuulaaniFullDetails,
     IPuutavaraItem,
-    IMapFilterState, // Use IMapFilterState for filtering
+    IMapFilterState,
     ITimberStackListFilters,
     ITimberStackListItem,
     IWoodEntry,
 } from '../types';
 
 const API_ENDPOINT = '/timber-stacks';
-const WOOD_TYPES_ENDPOINT = '/wood-types'; // Assuming this is the correct endpoint
+const WOOD_TYPES_ENDPOINT = '/wood-types';
 
-// --- Timber Stack CRUD Operations ---
 
 export const fetchAllTimberStacks = async (filters: IMapFilterState): Promise<IBackendPuulaani[]> => {
     try {
-        // --- CORRECTION: Clean the filter object before sending ---
         const params: Partial<IMapFilterState> = {};
-
-        if (filters.status) {
-            params.status = filters.status;
-        }
-        if (filters.clientId) { // Only add if clientId is not null/undefined
-            params.clientId = filters.clientId;
-        }
-        if (filters.vehicleId) { // Only add if vehicleId is not null/undefined
-            params.vehicleId = filters.vehicleId;
-        }
-        // Now 'params' object only contains properties with actual values.
-
-        const response = await apiClient.get<IBackendPuulaani[]>(API_ENDPOINT, { params }); // Pass the cleaned params
+        if (filters.status) params.status = filters.status;
+        if (filters.clientId) params.clientId = filters.clientId;
+        if (filters.vehicleId) params.vehicleId = filters.vehicleId;
+        const response = await apiClient.get<IBackendPuulaani[]>(API_ENDPOINT, { params });
         return response.data;
     } catch (error) {
         console.error("SERVICE ERROR: Failed to fetch all timber stacks", error);
         throw error;
     }
 };
-
 
 export const createTimberStack = async (data: ICreateTimberStackDto): Promise<IBackendPuulaani> => {
     try {
@@ -73,9 +63,6 @@ export const deleteTimberStack = async (id: number): Promise<void> => {
     }
 };
 
-
-// --- Functions for Full Details (from former mapService) ---
-
 export const fetchTimberStackFullDetails = async (id: number): Promise<IPuulaaniFullDetails> => {
     try {
         const response = await apiClient.get<IPuulaaniFullDetails>(`${API_ENDPOINT}/${id}/full`);
@@ -95,11 +82,8 @@ export const updateTimberStackFull = async (id: number, data: IUpdateTimberStack
     }
 };
 
-// --- Function for Wood Types (from former puutavaraService) ---
-
 export const fetchAllWoodTypes = async (): Promise<IPuutavaraItem[]> => {
     try {
-        // Assuming the wood types endpoint returns an array of IPuutavaraItem
         const response = await apiClient.get<IPuutavaraItem[]>(WOOD_TYPES_ENDPOINT);
         return response.data;
     } catch (error) {
@@ -118,26 +102,13 @@ export const updateTimberStackLocation = async (id: number, location: { latitude
     }
 };
 
-// --- THIS IS THE NEW FUNCTION FOR THE PUULAANI LIST VIEW ---
 export const fetchTimberStackList = async (filters: ITimberStackListFilters): Promise<ITimberStackListItem[]> => {
     try {
         const params = new URLSearchParams();
-
-        if (filters.status && filters.status !== 'all') {
-            params.append('status', filters.status);
-        }
-        if (filters.clientId) {
-            params.append('clientId', filters.clientId);
-        }
-        if (filters.vehicleId) {
-            params.append('vehicleId', filters.vehicleId);
-        }
-        if (filters.timberTypeId) {
-            params.append('timberTypeId', filters.timberTypeId);
-        }
-
-        // --- THIS IS THE FIX ---
-        // Use the correct '/list' endpoint that we created in the backend.
+        if (filters.status && filters.status !== 'all') params.append('status', filters.status);
+        if (filters.clientId) params.append('clientId', filters.clientId);
+        if (filters.vehicleId) params.append('vehicleId', filters.vehicleId);
+        if (filters.timberTypeId) params.append('timberTypeId', filters.timberTypeId);
         const response = await apiClient.get<ITimberStackListItem[]>(`/timber-stacks/list?${params.toString()}`);
         return response.data;
     } catch (error) {
@@ -158,8 +129,9 @@ export const getActiveTimberStacksByClient = async (clientId: number): Promise<I
 
 export const fetchWoodEntriesByPuulaani = async (puulaaniId: number): Promise<IWoodEntry[]> => {
     try {
-        const response = await apiClient.get<IWoodEntry[]>(`${API_ENDPOINT}/${puulaaniId}/wood-entries`);
-        return response.data;
+        const response = await apiClient.get<any[]>(`${API_ENDPOINT}/${puulaaniId}/wood-entries`);
+        const camelCasedData = camelcaseKeys(response.data, { deep: true });
+        return camelCasedData as IWoodEntry[];
     } catch (error) {
         console.error(`Failed to fetch wood entries for puulaani ${puulaaniId}`, error);
         throw error;

@@ -5,9 +5,8 @@ import React, { useEffect, useState, useCallback, useMemo } from 'react';
 import {
     Dialog, DialogTitle, DialogContent, DialogActions, Button, Box, TextField,
     FormControl, InputLabel, Select, MenuItem, FormHelperText, CircularProgress, Alert,
-    Stack, Typography, IconButton, Paper, List, ListItem, ListItemButton, ListItemText, Divider,
-    Stepper, Step, StepLabel,
-    RadioGroup
+    Stack, Typography, IconButton, Paper, List, ListItemButton, ListItemText, Divider,
+    Stepper, Step, StepLabel
 } from '@mui/material';
 import { useForm, Controller, SubmitHandler } from 'react-hook-form';
 import * as yup from 'yup';
@@ -16,6 +15,7 @@ import { LocalizationProvider, DatePicker } from '@mui/x-date-pickers';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import dayjs from 'dayjs';
 import CloseIcon from '@mui/icons-material/Close';
+import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
 
 import { 
     IClientBasicInfo, IVehicleBasicInfo, IDriver, ILoadFormData, LoadTypeEnum, 
@@ -76,6 +76,11 @@ export default function LoadFormModal({ open, onCloseAction, onSaveSuccessAction
     const selectedCustomerId = watch('asiakasId');
     const selectedPuulaaniId = watch('puulaaniId');
     const selectedPuutavaraId = watch('puutavaraId');
+
+    // Find the full object for the selected timber task
+    const selectedWoodEntry = useMemo(() => {
+        return woodEntryList.find(w => String(w.puutavaraId) === selectedPuutavaraId);
+    }, [selectedPuutavaraId, woodEntryList]);
 
     const loadDropdownData = useCallback(async () => {
         if (!open) return;
@@ -228,20 +233,57 @@ export default function LoadFormModal({ open, onCloseAction, onSaveSuccessAction
                                     )}
                                     {activeStep === 1 && (
                                         <Stack spacing={2.5}>
-                                            <FormControl fullWidth required error={!!errors.puulaaniId} disabled={!selectedCustomerId || isPuulaaniLoading}><InputLabel>Origin (Puulaani)</InputLabel><Controller name="puulaaniId" control={control} render={({ field }) => (<Select {...field} label="Origin (Puulaani)" value={field.value || ''}>{isPuulaaniLoading ? <MenuItem disabled><em>Loading...</em></MenuItem> : puulaaniList.map((p) => (<MenuItem key={p.puulaaniId} value={p.puulaaniId}>{p.nimi}</MenuItem>))}</Select>)}/>{errors.puulaaniId && <FormHelperText>{errors.puulaaniId.message}</FormHelperText>}</FormControl>
+                                            <FormControl fullWidth required error={!!errors.puulaaniId} disabled={!selectedCustomerId || isPuulaaniLoading}>
+                                                <InputLabel>Origin (Puulaani)</InputLabel>
+                                                <Controller name="puulaaniId" control={control} render={({ field }) => (
+                                                    <Select {...field} label="Origin (Puulaani)" value={field.value || ''}>
+                                                        {isPuulaaniLoading ? <MenuItem disabled><em>Loading...</em></MenuItem> : puulaaniList.map((p) => (<MenuItem key={p.puulaaniId} value={p.puulaaniId}>{p.nimi}</MenuItem>))}
+                                                    </Select>
+                                                )}/>
+                                                {errors.puulaaniId && <FormHelperText>{errors.puulaaniId.message}</FormHelperText>}
+                                            </FormControl>
+                                            
                                             <Paper variant="outlined" sx={{ p: 2, opacity: selectedPuulaaniId ? 1 : 0.5 }}>
                                                 <Typography variant="overline" color="text.secondary">Select Timber Task</Typography>
                                                 {isWoodEntryLoading ? <Box sx={{my: 2, display: 'flex', justifyContent: 'center'}}><CircularProgress size={24}/></Box>
                                                  : woodEntryList.length > 0 ? (
-                                                    <FormControl component="fieldset" fullWidth error={!!errors.puutavaraId}>
-                                                        <Controller name="puutavaraId" control={control} render={({ field }) => (
-                                                            <RadioGroup {...field}><List dense sx={{ width: '100%', maxHeight: 200, overflowY: 'auto', bgcolor: 'background.paper' }}>{woodEntryList.map(entry => (<ListItemButton key={entry.puutavaraId} selected={field.value === String(entry.puutavaraId)} onClick={() => field.onChange(String(entry.puutavaraId))}><ListItemText primary={<Typography variant="body2" fontWeight="bold">{entry.puutavaraName || 'Unknown'}</Typography>} secondary={`To: ${entry.purkupaikkaName || 'Unknown'} | Remaining: ${entry.jaljella} m³`} /></ListItemButton>))}</List></RadioGroup>
-                                                        )}/>
-                                                        {errors.puutavaraId && <FormHelperText error sx={{ml: 2}}>{errors.puutavaraId.message}</FormHelperText>}
-                                                    </FormControl>
+                                                    <List dense sx={{ width: '100%', maxHeight: 200, overflowY: 'auto', bgcolor: 'background.paper' }}>
+                                                        {woodEntryList.map(entry => (
+                                                            <ListItemButton key={entry.puutavaraId} selected={String(entry.puutavaraId) === selectedPuutavaraId} onClick={() => setValue('puutavaraId', String(entry.puutavaraId), { shouldValidate: true })}>
+                                                                <ListItemText
+                                                                    primary={<Typography variant="body2" fontWeight="bold">{entry.puutavaraName || 'Timber Type'}</Typography>}
+                                                                    secondary={`To: ${entry.purkupaikkaName || 'Destination'} | Remaining: ${entry.jaljella} m³`}
+                                                                />
+                                                            </ListItemButton>
+                                                        ))}
+                                                    </List>
                                                  ) : <Typography sx={{mt: 1, p: 1}} color="text.secondary">{ selectedPuulaaniId ? "No available timber entries." : "Select a Puulaani to see tasks."}</Typography>
                                                 }
+                                                {errors.puutavaraId && <FormHelperText error sx={{ml: 2}}>{errors.puutavaraId.message}</FormHelperText>}
                                             </Paper>
+
+                                            {/* --- THIS IS THE NEW UI ELEMENT --- */}
+                                            {selectedWoodEntry && (
+                                                <Paper variant="outlined" sx={{ p: 2, mt: 2, backgroundColor: '#eff6ff' }}>
+                                                    <Typography variant="overline" color="primary.main">Selected Trip Details</Typography>
+                                                    <Stack direction="row" alignItems="center" spacing={1} sx={{mt: 1}}>
+                                                        <Box textAlign="center">
+                                                            <Typography variant="caption" color="text.secondary">Origin</Typography>
+                                                            <Typography fontWeight="bold">{puulaaniList.find(p => String(p.puulaaniId) === selectedPuulaaniId)?.nimi}</Typography>
+                                                        </Box>
+                                                        <ArrowForwardIcon color="disabled" />
+                                                        <Box textAlign="center">
+                                                            <Typography variant="caption" color="text.secondary">Destination</Typography>
+                                                            <Typography fontWeight="bold">{selectedWoodEntry.purkupaikkaName}</Typography>
+                                                        </Box>
+                                                        <Box sx={{flexGrow: 1}} />
+                                                        <Box textAlign="right">
+                                                            <Typography variant="caption" color="text.secondary">Volume to Load</Typography>
+                                                            <Typography fontWeight="bold" variant="h6">{selectedWoodEntry.jaljella} m³</Typography>
+                                                        </Box>
+                                                    </Stack>
+                                                </Paper>
+                                            )}
                                         </Stack>
                                     )}
                                     {activeStep === 2 && (
@@ -250,7 +292,7 @@ export default function LoadFormModal({ open, onCloseAction, onSaveSuccessAction
                                             <Stack spacing={1} divider={<Divider />}>
                                                 <SummaryItem label="Customer" value={clientList.find(c => c.id === watchedValues.asiakasId)?.name} />
                                                 <SummaryItem label="Vehicle" value={vehicleList.find(v => v.id === watchedValues.kalustoNro)?.registrationNo} />
-                                                <SummaryItem label="Driver" value={driverList.find(d => String(d.driverId) === watchedValues.kuljId)?.name} />
+                                                <SummaryItem label="Driver" value={driverList.find(d => String(d.driverId) === String(watchedValues.kuljId))?.name} />
                                                 <SummaryItem label="Date" value={dayjs(watchedValues.pvm).format('DD/MM/YYYY')} />
                                                 <SummaryItem label="Origin" value={puulaaniList.find(p => String(p.puulaaniId) === watchedValues.puulaaniId)?.nimi} />
                                                 <SummaryItem label="Task" value={`${woodEntryList.find(w => String(w.puutavaraId) === watchedValues.puutavaraId)?.puutavaraName} to ${woodEntryList.find(w => String(w.puutavaraId) === watchedValues.puutavaraId)?.purkupaikkaName}`} />
