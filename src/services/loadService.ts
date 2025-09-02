@@ -63,3 +63,15 @@ export const deleteLoad = async (id: number): Promise<any> => {
         throw error;
     }
 };
+
+
+// --- THIS IS THE FUNCTION FOR THE DRIVER'S PORTAL ---
+export const fetchMyLoads = async (): Promise<ILoadListItem[]> => {
+    try {
+        const response = await apiClient.get<ILoadListItem[]>(`${API_ENDPOINT}/my-loads`);
+        return response.data;
+    } catch (error) {
+        console.error("SERVICE ERROR: Failed to fetch my loads", error);
+        throw error;
+    }
+};

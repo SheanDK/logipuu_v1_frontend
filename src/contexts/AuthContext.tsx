@@ -25,7 +25,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         if (token) {
             try {
                 const decodedPayload = jwtDecode<IUser & { exp: number }>(token);
-
                 if (decodedPayload.exp * 1000 > Date.now()) {
                     setAuthState({
                         isAuthenticated: true,
@@ -35,11 +34,12 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
                     });
                     apiClient.defaults.headers.common['Authorization'] = `Bearer ${token}`;
                 } else {
+                    // Token expired, log out silently
                     localStorage.removeItem('authToken');
                     setAuthState({ isAuthenticated: false, user: null, token: null, isLoading: false });
                 }
             } catch (error) {
-                console.error("Invalid token during initial load:", error);
+                console.error("Invalid token on initial load:", error);
                 localStorage.removeItem('authToken');
                 setAuthState({ isAuthenticated: false, user: null, token: null, isLoading: false });
             }
@@ -75,8 +75,23 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
                 isLoading: false,
             });
             apiClient.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+
+            // --- THIS IS THE FIX: Role-based redirection logic ---
+            // After setting the state, decide where to redirect the user.
+            if (userData.roles.includes('Kuljettaja')) {
+                // If the user has the 'Kuljettaja' (Driver) role, redirect to their dedicated page.
+                console.log("Redirecting driver to /my-loads");
+                router.push('/my-loads');
+            } else {
+                // For all other roles (Admin, Office, etc.), redirect to the main map/timber stacks page.
+                console.log("Redirecting office staff/admin to /timber-stacks");
+                router.push('/timber-stacks');
+            }
+            // --- END OF FIX ---
+
         } catch (error) {
             console.error("Failed to process API response on login:", error);
+            // In case of an error during login processing, ensure the user is logged out.
             logout();
         }
     };
@@ -88,17 +103,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         router.push('/login');
     };
 
-    // --- NEW FUNCTION TO UPDATE USER CONTEXT ---
     const updateUserContext = (updatedProfile: UserProfileResponseDto) => {
         setAuthState(prevState => {
             if (!prevState.user) return prevState;
-            
-            const updatedUser: IUser = {
-                ...prevState.user,
-                fullName: updatedProfile.fullName,
-                driverEmail: updatedProfile.driverEmail,
-            };
-
+            const updatedUser: IUser = { ...prevState.user, fullName: updatedProfile.fullName, driverEmail: updatedProfile.driverEmail };
             return { ...prevState, user: updatedUser };
         });
     };
