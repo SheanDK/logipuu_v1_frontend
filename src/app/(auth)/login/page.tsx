@@ -1,8 +1,8 @@
-// frontend/src/app/(auth)/login/page.tsx (නිවැරදි කරන ලද / CORRECTED)
+// frontend/src/app/(auth)/login/page.tsx
 'use client';
 
 import React, { useState, FormEvent } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter } from 'next/navigation'; // Keep useRouter if you have other navigation needs
 import { useAuth } from '../../../contexts/AuthContext';
 import { loginUserApi } from '../../../services/authService';
 import { UserLoginCredentials } from '../../../types/auth';
@@ -19,14 +19,13 @@ import { alpha, useTheme } from '@mui/material/styles';
 import Image from 'next/image';
 
 export default function LoginPage() {
-    // State for form fields, errors, and loading status
     const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
     const [error, setError] = useState<string | null>(null);
     const [loading, setLoading] = useState(false);
 
-    // Get the login function from AuthContext and router from Next.js
     const { login } = useAuth();
+    // useRouter is no longer strictly needed for this function, but it's fine to keep it
     const router = useRouter(); 
     const theme = useTheme();
 
@@ -37,24 +36,21 @@ export default function LoginPage() {
         const credentials: UserLoginCredentials = { username, password };
         
         try {
-            // Step 1: Call the API to get the token and user data.
+            // Step 1: Call API
             const apiResponse = await loginUserApi(credentials);
             
-            // Step 2: Update the global authentication context with the response.
-            // The login function in the context will handle setting state and localStorage.
+            // --- THIS IS THE FIX ---
+            // Step 2: Update the context. The `login` function inside AuthContext
+            // now handles ALL redirection logic itself. We don't need to do anything else here.
             await login(apiResponse); 
             
-            // Step 3: AFTER the context is updated, navigate to the dashboard.
-            // This is the correct place for navigation logic.
-            router.push('/dashboard'); 
+            // Step 3: REMOVED the router.push('/dashboard') call from here.
 
         } catch (err: any) {
-            // Handle login errors (e.g., wrong password, user not found).
             console.error("Login failed:", err);
             const message = err.response?.data?.message || err.message || 'Login failed. Please try again.';
             setError(message);
         } finally {
-            // Ensure loading state is turned off regardless of success or failure.
             setLoading(false);
         }
     };
