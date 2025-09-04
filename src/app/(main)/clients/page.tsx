@@ -1,5 +1,5 @@
 // src/app/(main)/clients/page.tsx
-'use client'; 
+'use client';
 
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import {
@@ -11,7 +11,7 @@ import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
 
 import { useAuth } from '../../../contexts/AuthContext';
-import { IClient, IBackendClient, ICreateClientDto, IUpdateClientDto, ClientTypeEnum } from '../../../types'; 
+import { IClient, IBackendClient, ICreateClientDto, IUpdateClientDto, ClientTypeEnum } from '../../../types';
 import { fetchAllClients, createClient, updateClient, deleteClient } from '../../../services/clientService';
 import ClientFormModal from '../../../components/clients/ClientFormModal';
 import ConfirmationDialog from '../../../components/common/ConfirmationDialog';
@@ -31,7 +31,7 @@ export default function ClientsPage() {
 
     const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
     const [clientToDelete, setClientToDelete] = useState<IClient | null>(null);
-    
+
     // This state is not needed here anymore as it's passed from the page to the modal
     // const [usedColors, setUsedColors] = useState<string[]>([]);
     // const [currentClientColor, setCurrentClientColor] = useState<string | null>(null);
@@ -49,7 +49,7 @@ export default function ClientsPage() {
         setIsLoading(true);
         try {
             const rawData: IBackendClient[] = await fetchAllClients();
-            
+
             // --- KEY CORRECTION 1: Ensure transformation is robust ---
             const transformedClients: IClient[] = rawData.map(c => ({
                 id: String(c.asiakkaanId),
@@ -66,7 +66,7 @@ export default function ClientsPage() {
                 isActive: c.aktiivinen,
                 contactPerson: c.yhteyshenkilo,
                 email: c.sahkoposti,
-                additionalInfo: c.lisatiedot,
+                additionalInfo: c.lisatietoja,
             }));
             setClients(transformedClients);
 
@@ -104,13 +104,13 @@ export default function ClientsPage() {
         try {
             if (clientId) {
                 await updateClient(clientId, data as IUpdateClientDto);
-                setFeedback({ type: 'success', message: 'Client updated successfully.' }); 
+                setFeedback({ type: 'success', message: 'Client updated successfully.' });
             } else {
                 await createClient(data as ICreateClientDto);
-                setFeedback({ type: 'success', message: `Client created successfully.` }); 
+                setFeedback({ type: 'success', message: `Client created successfully.` });
             }
             handleCloseModal();
-            await loadClients(); 
+            await loadClients();
         } catch (err: any) {
             setModalError(err.response?.data?.message || "An error occurred while saving.");
         } finally {
@@ -128,12 +128,14 @@ export default function ClientsPage() {
         setIsSaving(true);
         try {
             await deleteClient(clientToDelete.clientId);
-            setFeedback({ type: 'success', message: `Client "${clientToDelete.clientName}" deleted successfully.` }); 
+            setFeedback({ type: 'success', message: `Client "${clientToDelete.clientName}" deleted successfully.` });
             setDeleteConfirmOpen(false);
             setClientToDelete(null);
-            await loadClients(); 
+            await loadClients();
         } catch (err: any) {
-            setFeedback({ type: 'error', message: err.response?.data?.message || "Failed to delete client." }); 
+            setFeedback({ type: 'error', message: err.response?.data?.message || "Failed to delete client." });
+            setDeleteConfirmOpen(false);
+            setClientToDelete(null);
         } finally {
             setIsSaving(false);
         }
@@ -156,10 +158,7 @@ export default function ClientsPage() {
             sortable: false, // Colors are not easily sortable
             renderCell: (params: GridRenderCellParams<IClient, string | null>) => {
                 const colorValue = params.value;
-
-                if (!colorValue || (params.row.type !== ClientTypeEnum.PUULAANI && params.row.type !== ClientTypeEnum.BOTH)) {
-                    return '–';
-                }
+                if (!colorValue ) return '–';
                 
                 // Return only a colored box, making it wider for better visibility
                 return (
@@ -192,7 +191,7 @@ export default function ClientsPage() {
             },
         },
     ], [canEdit, canDelete]);
-    
+
     if (isLoading || authLoadingState) {
         return <Box sx={{ display: 'flex', justifyContent: 'center', p: 4 }}><CircularProgress /></Box>;
     }
@@ -213,7 +212,7 @@ export default function ClientsPage() {
             </Box>
 
             {feedback && <Alert severity={feedback.type} onClose={() => setFeedback(null)} sx={{ mb: 2 }}>{feedback.message}</Alert>}
-            
+
             <Box sx={{ height: `calc(100% - ${feedback ? '112px' : '56px'})`, width: '100%' }}>
                 <DataGrid
                     rows={clients}
