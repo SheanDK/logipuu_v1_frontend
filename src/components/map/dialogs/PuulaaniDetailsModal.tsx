@@ -10,6 +10,7 @@ import { yupResolver } from '@hookform/resolvers/yup';
 import { LocalizationProvider, DatePicker } from '@mui/x-date-pickers';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import dayjs, { Dayjs } from 'dayjs';
+import { useWatch } from "react-hook-form";
 
 // --- 1. Import LocationPicker ---
 import LocationPicker from '@/components/common/LocationPicker';
@@ -51,16 +52,16 @@ const getValidationSchema = (isEditMode: boolean) => yup.object({
     autoNro: yup.string().nullable(),
 });
 
-export default function PuulaaniDetailsModal({ 
-    open, 
-    onCloseAction, 
-    onSaveSuccessAction, 
-    initialData, 
+export default function PuulaaniDetailsModal({
+    open,
+    onCloseAction,
+    onSaveSuccessAction,
+    initialData,
     clientList,
     showMap = false
 }: PuulaaniDetailsModalProps) {
     const isEditMode = useMemo(() => !!(initialData && 'id' in initialData), [initialData]);
-    
+
     const [isLoading, setIsLoading] = useState(true);
     const [isSaving, setIsSaving] = useState(false);
     const [error, setError] = useState<string | null>(null);
@@ -77,6 +78,9 @@ export default function PuulaaniDetailsModal({
 
     const latValue = watch('latitude');
     const lngValue = watch('longitude');
+
+    const isActive = useWatch({ control, name: "isActive" });
+    const isCompleted = useWatch({ control, name: "isCompleted" });
 
     const { fields: woodEntryFields, append, remove, update, replace } = useFieldArray({ control, name: "woodEntries", keyName: "keyId" });
 
@@ -95,18 +99,18 @@ export default function PuulaaniDetailsModal({
         if (!open) return;
         setIsLoading(true); setError(null);
         try {
-            const [woodTypes, dropoffs, vehicles] = await Promise.all([ fetchAllWoodTypes(), fetchAllDropoffLocations(), fetchVehiclesListApi() ]);
+            const [woodTypes, dropoffs, vehicles] = await Promise.all([fetchAllWoodTypes(), fetchAllDropoffLocations(), fetchVehiclesListApi()]);
             setWoodTypeList(woodTypes); setVehicleList(vehicles);
-            setDropoffLocationList(dropoffs.map(d => ({ 
-                id: d.purkupaikkaId, 
-                name: d.purkupaikka, 
-                clientId: d.asiakasId, 
+            setDropoffLocationList(dropoffs.map(d => ({
+                id: d.purkupaikkaId,
+                name: d.purkupaikka,
+                clientId: d.asiakasId,
                 clientName: d.clientName || 'N/A', // Corrected property name
-                latitude: d.sijaintiLat!, 
+                latitude: d.sijaintiLat!,
                 longitude: d.sijaintiLong!,
                 isVisibleOnMap: d.isVisibleOnMap // Added the missing required property
             })));
-            
+
             if (isEditMode && initialData && 'id' in initialData) {
                 const details = await fetchTimberStackFullDetails(initialData.id);
                 reset({
@@ -119,7 +123,7 @@ export default function PuulaaniDetailsModal({
                     additionalInfo: details.puulaani.lisatiedot,
                     autoNro: details.puulaani.autoNro || '',
                     selectedAutoIds: details.autot.map((a: any) => a.kalustoId),
-                     latitude: Number(details.puulaani.sijaintiLat),
+                    latitude: Number(details.puulaani.sijaintiLat),
                     longitude: Number(details.puulaani.sijaintiLong),
                 });
                 const fetchedWoodEntries = details.puutavarat.map((p: any) => ({
@@ -130,7 +134,7 @@ export default function PuulaaniDetailsModal({
                 }));
                 replace(fetchedWoodEntries);
             } else if (!isEditMode && initialData) {
-                 reset({
+                reset({
                     name: initialData.name || '',
                     isActive: (initialData as Partial<PendingPuulaaniData>)?.isActive ?? true,
                     isCompleted: (initialData as Partial<PendingPuulaaniData>)?.isCompleted ?? false,
@@ -138,9 +142,9 @@ export default function PuulaaniDetailsModal({
                     selectedAutoIds: [], woodEntries: [],
                     latitude: initialData.latitude,
                     longitude: initialData.longitude,
-                 });
+                });
             }
-        } catch (err: any) { setError(err.response?.data?.message || "Failed to load data."); } 
+        } catch (err: any) { setError(err.response?.data?.message || "Failed to load data."); }
         finally { setIsLoading(false); }
     }, [open, initialData, isEditMode, reset, replace]);
 
@@ -152,69 +156,69 @@ export default function PuulaaniDetailsModal({
     };
 
     const handleAddWoodEntry = (data: IAddTimberStackWoodEntryFormData) => {
-    setErrorMessage(''); // Clear any previous error messages
+        setErrorMessage(''); // Clear any previous error messages
 
-    const newWoodTypeId = Number(data.woodTypeId!);
-    const newDropoffLocationId = Number(data.dropoffLocationId!);
-    const volumeToAdd = Number(data.volume);
+        const newWoodTypeId = Number(data.woodTypeId!);
+        const newDropoffLocationId = Number(data.dropoffLocationId!);
+        const volumeToAdd = Number(data.volume);
 
-    // Find the index of an existing entry with the same combination
-    const existingEntryIndex = woodEntryFields.findIndex(item =>
-        Number(item.woodTypeId) === newWoodTypeId &&
-        Number(item.dropoffLocationId) === newDropoffLocationId
-    );
+        // Find the index of an existing entry with the same combination
+        const existingEntryIndex = woodEntryFields.findIndex(item =>
+            Number(item.woodTypeId) === newWoodTypeId &&
+            Number(item.dropoffLocationId) === newDropoffLocationId
+        );
 
-    if (existingEntryIndex !== -1) {
-        // --- ENTRY EXISTS: UPDATE THE EXISTING ROW ---
-        const existingEntry = woodEntryFields[existingEntryIndex];
+        if (existingEntryIndex !== -1) {
+            // --- ENTRY EXISTS: UPDATE THE EXISTING ROW ---
+            const existingEntry = woodEntryFields[existingEntryIndex];
 
-        const newTotalVolume = (Number(existingEntry.totalVolume) || 0) + volumeToAdd;
-        const existingFetchedVolume = Number(existingEntry.fetchedVolume) || 0;
-        
-        // Create the updated entry object
-        const updatedEntry = {
-            ...existingEntry, // Keep all other properties like id, puutavaraId etc.
-            totalVolume: newTotalVolume,
-            fetchedVolume: existingFetchedVolume, // Fetched volume doesn't change when adding more total volume
-            remainingVolume: newTotalVolume - existingFetchedVolume
-        };
+            const newTotalVolume = (Number(existingEntry.totalVolume) || 0) + volumeToAdd;
+            const existingFetchedVolume = Number(existingEntry.fetchedVolume) || 0;
 
-        // Use the 'update' function from useFieldArray to replace the entry at the found index
-        update(existingEntryIndex, updatedEntry);
+            // Create the updated entry object
+            const updatedEntry = {
+                ...existingEntry, // Keep all other properties like id, puutavaraId etc.
+                totalVolume: newTotalVolume,
+                fetchedVolume: existingFetchedVolume, // Fetched volume doesn't change when adding more total volume
+                remainingVolume: newTotalVolume - existingFetchedVolume
+            };
 
-    } else {
-        // --- ENTRY DOES NOT EXIST: ADD A NEW ROW ---
-        append({
-            id: Date.now(), // Temporary unique ID for React key
-            puutavaraId: 0, // This is a new item, not yet in DB
-            woodTypeId: newWoodTypeId,
-            dropoffLocationId: newDropoffLocationId,
-            totalVolume: volumeToAdd,
-            fetchedVolume: 0, // A new entry always starts with 0 fetched
-            remainingVolume: volumeToAdd
-        });
-    }
-};
-    
+            // Use the 'update' function from useFieldArray to replace the entry at the found index
+            update(existingEntryIndex, updatedEntry);
+
+        } else {
+            // --- ENTRY DOES NOT EXIST: ADD A NEW ROW ---
+            append({
+                id: Date.now(), // Temporary unique ID for React key
+                puutavaraId: 0, // This is a new item, not yet in DB
+                woodTypeId: newWoodTypeId,
+                dropoffLocationId: newDropoffLocationId,
+                totalVolume: volumeToAdd,
+                fetchedVolume: 0, // A new entry always starts with 0 fetched
+                remainingVolume: volumeToAdd
+            });
+        }
+    };
+
     const handleUpdateWoodEntry = (index: number, newValues: { totalVolume: number, fetchedVolume: number }) => {
-    const currentEntry = woodEntryFields[index];
-    const { totalVolume, fetchedVolume } = newValues;
+        const currentEntry = woodEntryFields[index];
+        const { totalVolume, fetchedVolume } = newValues;
 
-    // Server-side validation is primary, but a client-side check is good UX.
-    if (fetchedVolume > totalVolume) {
-        setErrorMessage("Retrieved value cannot be greater than Cubes value.");
-        return;
-    }
-    setErrorMessage(''); // Clear error if validation passes
+        // Server-side validation is primary, but a client-side check is good UX.
+        if (fetchedVolume > totalVolume) {
+            setErrorMessage("Retrieved value cannot be greater than Cubes value.");
+            return;
+        }
+        setErrorMessage(''); // Clear error if validation passes
 
-    // Perform a single, atomic update using the 'update' function from useFieldArray
-    update(index, {
-        ...currentEntry,
-        totalVolume: totalVolume,
-        fetchedVolume: fetchedVolume,
-        remainingVolume: totalVolume - fetchedVolume // Recalculate remaining volume
-    });
-};
+        // Perform a single, atomic update using the 'update' function from useFieldArray
+        update(index, {
+            ...currentEntry,
+            totalVolume: totalVolume,
+            fetchedVolume: fetchedVolume,
+            remainingVolume: totalVolume - fetchedVolume // Recalculate remaining volume
+        });
+    };
 
     const watchedWoodEntries = watch('woodEntries');
     const { totalVolume, remainingVolume } = useMemo(() => {
@@ -277,8 +281,9 @@ export default function PuulaaniDetailsModal({
             setIsSaving(false);
         }
     };
-    
+
     return (
+
         <LocalizationProvider dateAdapter={AdapterDayjs}>
             <Dialog open={open} onClose={onCloseAction} fullWidth maxWidth="md">
                 <DialogTitle sx={{ m: 0, p: 2, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -293,7 +298,7 @@ export default function PuulaaniDetailsModal({
                     <Box component="form" id="details-form" onSubmit={handleSubmit(onSave as SubmitHandler<FieldValues>)}>
                         <DialogContent dividers sx={{ p: { xs: 2, sm: 3 }, backgroundColor: '#f7f7f7' }}>
                             {isLoading ? (
-                                <Box sx={{display: 'flex', justifyContent: 'center', p: 5}}><CircularProgress /></Box>
+                                <Box sx={{ display: 'flex', justifyContent: 'center', p: 5 }}><CircularProgress /></Box>
                             ) : error ? (
                                 <Alert severity="error">{error}</Alert>
                             ) : (
@@ -302,7 +307,7 @@ export default function PuulaaniDetailsModal({
                                     {/* Section 1: Primary Details */}
                                     <Paper variant="outlined" sx={{ p: 2.5 }}>
                                         <Typography variant="overline" color="text.secondary" gutterBottom>Primary Details</Typography>
-                                        
+
                                         {isEditMode ? (
                                             <Stack spacing={2} sx={{ mt: 1 }}>
                                                 <Controller name="name" control={control} render={({ field }) => <TextField {...field} label="Name of the property" fullWidth size="small" />} />
@@ -324,7 +329,7 @@ export default function PuulaaniDetailsModal({
                                         <Paper variant="outlined" sx={{ p: 2.5 }}>
                                             <Typography variant="overline" color="text.secondary" gutterBottom>Location</Typography>
                                             <Box sx={{ mt: 1 }}>
-                                                <LocationPicker 
+                                                <LocationPicker
                                                     initialLat={latValue}
                                                     initialLng={lngValue}
                                                     onLocationChange={handleLocationChange}
@@ -333,7 +338,7 @@ export default function PuulaaniDetailsModal({
                                             </Box>
                                         </Paper>
                                     )}
-                                    
+
                                     {/* Section 3: Vehicle Assignment (Only in Edit Mode) */}
                                     {isEditMode && (
                                         <Paper variant="outlined" sx={{ p: 2.5 }}>
@@ -348,17 +353,41 @@ export default function PuulaaniDetailsModal({
                                         <AddWoodEntry onAddAction={handleAddWoodEntry} woodTypeList={woodTypeList} dropoffLocationList={dropoffLocationList} />
                                         <WoodEntryList entries={woodEntryFields} onFieldChangeAction={handleUpdateWoodEntry} onDeleteAction={(index) => remove(index)} woodTypeList={woodTypeList} dropoffLocationList={dropoffLocationList} isEditMode={true} />
                                     </Paper>
-                                    
+
                                     {/* Section 5: Status & Info */}
                                     <Paper variant="outlined" sx={{ p: 2.5 }}>
-                                         <Typography variant="overline" color="text.secondary" gutterBottom>Status & Info</Typography>
-                                         <Stack spacing={2}>
-                                             <Box>
-                                                <FormControlLabel control={<Controller name="isActive" control={control} render={({ field }) => <Checkbox {...field} checked={!!field.value} />}/>} label="Active" />
-                                                <FormControlLabel control={<Controller name="isCompleted" control={control} render={({ field }) => <Checkbox {...field} checked={!!field.value} />}/>} label="Ready" />
-                                             </Box>
-                                             <Controller name="additionalInfo" control={control} render={({ field }) => <TextField {...field} value={field.value ?? ''} label="Additional Information" multiline rows={3} fullWidth size="small" />} />
-                                         </Stack>
+                                        <Typography variant="overline" color="text.secondary" gutterBottom>Status & Info</Typography>
+                                        <Stack spacing={2}>
+                                            <Box>
+                                                <FormControlLabel control={<Controller name="isActive" control={control} render={({ field }) =>
+                                                    <Checkbox
+                                                        {...field}
+                                                        checked={!!field.value}
+                                                        onChange={(e) => {
+                                                            const checked = e.target.checked;
+                                                            if (checked) {
+                                                                setValue("isCompleted", false);
+
+                                                            }
+                                                            field.onChange(checked);
+                                                        }}
+                                                    />} />} label="Active" />
+                                                <FormControlLabel control={<Controller name="isCompleted" control={control} render={({ field }) =>
+                                                    <Checkbox
+                                                        {...field}
+                                                        checked={!!field.value}
+                                                        onChange={(e) => {
+                                                            const checked = e.target.checked;
+                                                            
+                                                            if (checked) {
+                                                                setValue("isActive", false);
+                                                            }
+                                                            field.onChange(checked);
+                                                        }}
+                                                    />} />} label="Ready" />
+                                            </Box>
+                                            <Controller name="additionalInfo" control={control} render={({ field }) => <TextField {...field} value={field.value ?? ''} label="Additional Information" multiline rows={3} fullWidth size="small" />} />
+                                        </Stack>
                                     </Paper>
                                 </Stack>
                             )}
@@ -367,7 +396,7 @@ export default function PuulaaniDetailsModal({
                         <DialogActions sx={{ p: 2, borderTop: '1px solid', borderColor: 'divider' }}>
                             <Button onClick={onCloseAction}>Cancel</Button>
                             <Button type="submit" form="details-form" variant="contained" disabled={isSaving || isLoading || (isEditMode && !isDirty)}>
-                                {isSaving ? <CircularProgress size={24} color="inherit"/> : (isEditMode ? 'Update Puulaani' : 'Create Puulaani')}
+                                {isSaving ? <CircularProgress size={24} color="inherit" /> : (isEditMode ? 'Update Puulaani' : 'Create Puulaani')}
                             </Button>
                         </DialogActions>
                     </Box>

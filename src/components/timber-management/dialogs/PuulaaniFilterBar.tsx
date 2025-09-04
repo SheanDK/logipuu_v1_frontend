@@ -34,7 +34,7 @@ export default function PuulaaniFilterBar({
         <Paper sx={{ p: 2, mb: 2 }} variant="outlined">
             <Grid container spacing={2} alignItems="center">
                 {/* Status Filter */}
-                <Grid item xs={12} sm="auto">
+                <Grid item xs={12} sm={12} md={3}>
                     <ToggleButtonGroup
                         color="error"
                         value={filters.status || 'active'}
@@ -50,7 +50,7 @@ export default function PuulaaniFilterBar({
                 </Grid>
 
                 {/* Customer Filter */}
-                <Grid item xs={12} sm={3}>
+                <Grid item xs={12} sm={12} md={3} sx={{ minWidth: 120 }}>
                     <Autocomplete
                         options={clientList}
                         getOptionLabel={(option) => option.name}
@@ -61,7 +61,7 @@ export default function PuulaaniFilterBar({
                 </Grid>
 
                 {/* Vehicle Filter */}
-                <Grid item xs={12} sm={3}>
+                <Grid item xs={12} sm={12} md={3} sx={{ minWidth: 120 }}>
                      <Autocomplete
                         options={vehicleList}
                         // --- FIX 3: Use the correct property 'registrationNo' from IVehicleBasicInfo ---
@@ -73,7 +73,7 @@ export default function PuulaaniFilterBar({
                 </Grid>
 
                 {/* Timber Type Filter */}
-                <Grid item xs={12} sm={3}>
+                <Grid item xs={12} sm={12} md={3} sx={{ minWidth: 150 }}>
                     <Autocomplete
                         options={timberTypeList}
                         // --- FIX 4: Use the correct properties from IPuutavaraItem ---
