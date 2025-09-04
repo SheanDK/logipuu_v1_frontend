@@ -196,10 +196,10 @@ export default function PurkupaikkaFormModal({
                 <DialogContent dividers sx={{ p: 3, backgroundColor: '#f7f7f7' }}>
                     <Stack spacing={3}>
                         <Box>
-                            <Typography variant="overline" color="text.secondary">Step 1: Select a Customer</Typography>
-                            <FormControl fullWidth>
+                            <Typography variant="overline" color="text.secondary">Select a Customer</Typography>
+                            <FormControl fullWidth sx={{mt:2}}>
                                 <InputLabel>Customer</InputLabel>
-                                <Select value={selectedClientId || ''} label="Customer" onChange={(e) => setSelectedClientId(e.target.value as string)} disabled={isEditMode} sx={{ backgroundColor: 'background.paper' }}>
+                                <Select value={selectedClientId || ''} label="Customer" onChange={(e) => setSelectedClientId(e.target.value as string)} sx={{ backgroundColor: 'background.paper' }}>
                                     {(clientList || []).map(c => (<MenuItem key={c.id} value={c.id}>{c.name}</MenuItem>))}
                                 </Select>
                             </FormControl>
@@ -209,7 +209,7 @@ export default function PurkupaikkaFormModal({
                             <>
                                 <Divider />
                                 <Box>
-                                    <Typography variant="overline" color="text.secondary">Step 2: Manage Sites</Typography>
+                                    <Typography variant="overline" color="text.secondary">Manage Sites</Typography>
                                     <Paper variant="outlined" sx={{ mt: 1, maxHeight: 200, overflowY: 'auto' }}>
                                         {isListLoading ? ( <Box sx={{ p: 4, display: 'flex', justifyContent: 'center' }}><CircularProgress /></Box>
                                         ) : sitesForClient.length > 0 ? (
