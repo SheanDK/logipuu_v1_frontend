@@ -20,6 +20,7 @@ export interface ILoadFilters {
 interface LoadFilterBarProps {
     filters: ILoadFilters;
     onFilterChangeAction: (name: keyof ILoadFilters, value: string) => void;
+    onResetFilters: () => void;
     clientList: IClientBasicInfo[];
     vehicleList: IVehicleBasicInfo[];
     driverList: IDriver[];

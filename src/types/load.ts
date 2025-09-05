@@ -21,6 +21,7 @@ export interface ILoad {
     lisatiedot: string | null;
     kalustoNro: number | null;
     isActive: boolean;
+    status: string;
 }
 
 export interface ILoadListItem {
@@ -33,6 +34,7 @@ export interface ILoadListItem {
     kuljettajanNimi: string;
     tyyppi: string;
     isActive: boolean;
+    status: string;
 }
 
 // DTO for creating a new load
@@ -70,6 +72,57 @@ export interface ILoadFormData {
     m3?: number;
     km?: number;
     lisatiedot?: string;
+    
 }
 
+// --- THIS IS THE NEW INTERFACE FOR THE LOAD DETAILS VIEW ---
+export interface ILoadDetails {
+    // Core Load Info (from 'kuorma' table)
+    kuormaId: number;
+    pvm: Date;
+    ajomaaraysNro: string | null;
+    status: string;
+    lisatiedot: string | null;
+    kuljId: number;
+    
+    // --- THIS IS THE FIX ---
+    // Add the raw ID fields needed by the form
+    tyyppi: LoadTypeEnum;
+    asiakasId: number;
+    puulaaniId: number | null;
+    puutavaraId: number | null;
+    kalustoNro: number | null;
+    m3: number; // This should be taskVolume, let's align
+    // ----------------------
+
+    // Customer Info
+    asiakkaanNimi: string;
+
+    // Vehicle Info
+    rekNro: string;
+
+    // Driver Info
+    kuljettajanNimi: string;
+
+    // Origin (Puulaani) Info
+    originName: string;
+    originAddress: string | null;
+    originLat: number | null;
+    originLng: number | null;
+    originInstructions: string | null;
+
+    // Timber Task Info (from puutavaralaji)
+    taskTimberTypeName: string;
+    taskVolume: number;
+    taskRemainingVolumeBeforeThisTrip: number;
+
+    // Destination (Purkupaikka) Info
+    destinationName: string;
+    destinationAddress: string | null;
+    destinationLat: number | null;
+    destinationLng: number | null;
+}
+export interface ILoadStatusUpdateDto {
+    status: string;
+}
 export type IUpdateLoadDto = Partial<ICreateLoadDto>;

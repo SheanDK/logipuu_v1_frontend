@@ -1,15 +1,15 @@
-// src/components/layout/AppSidebar.tsx
+// frontend/src/components/layout/AppSidebar.tsx
 'use client';
 
-import React, { useState, useEffect, useMemo, useCallback } from 'react'; // Import useMemo and useCallback
-import { Drawer, List, ListItem, ListItemButton, ListItemIcon, ListItemText, Divider, Toolbar, Box, Collapse, Typography } from '@mui/material';
+import React, { useState, useEffect, useMemo } from 'react';
+import { Drawer, List, ListItem, ListItemButton, ListItemIcon, ListItemText, Divider, Toolbar, Box, Collapse } from '@mui/material';
 import { usePathname } from 'next/navigation';
 import Link from 'next/link';
 import { ExpandLess, ExpandMore } from '@mui/icons-material';
 
 import { useAuth } from '../../contexts/AuthContext';
 import { useLayout } from '../../contexts/LayoutContext';
-import { navigationItems, NavItemConfig } from '../../config/navConfig';
+import { officeNavigationItems, driverNavigationItems, NavItemConfig } from '../../config/navConfig';
 
 const drawerWidth = 240;
 
@@ -19,12 +19,12 @@ export default function AppSidebar() {
     const { mobileDrawerOpen, toggleMobileDrawer } = useLayout();
     const [openCategories, setOpenCategories] = useState<Record<string, boolean>>({});
 
-    // --- FIX 1: Memoize the filtered navigation items ---
-    // This ensures that `sidebarNavLinks` is not recreated on every single render,
-    // only when the `user` object changes.
     const sidebarNavLinks = useMemo(() => {
         if (!user) return [];
         
+        const isDriver = user.roles.includes('Kuljettaja');
+        const navigationItems = isDriver ? driverNavigationItems : officeNavigationItems;
+
         const filterItems = (items: NavItemConfig[]): NavItemConfig[] => {
             return items.map(item => {
                 if (item.children) {
@@ -41,21 +41,18 @@ export default function AppSidebar() {
         };
 
         return filterItems(navigationItems);
-    }, [user]); // Dependency is only `user`
+    }, [user]);
 
-    // --- FIX 2: Correct the dependency array of useEffect ---
-    // This effect now only runs when the path or the (stable) nav links change.
     useEffect(() => {
         const activeParent = sidebarNavLinks.find(item => 
             item.children?.some(child => child.path && pathname.startsWith(child.path))
         );
         if (activeParent) {
-            // Check if it's not already open to prevent unnecessary re-renders
             if (!openCategories[activeParent.text]) {
                 setOpenCategories(prev => ({ ...prev, [activeParent.text]: true }));
             }
         }
-    }, [pathname, sidebarNavLinks]); // `openCategories` is removed from dependency array
+    }, [pathname, sidebarNavLinks, openCategories]);
 
     const handleCategoryClick = (itemText: string) => {
         setOpenCategories(prev => ({ ...prev, [itemText]: !prev[itemText] }));
@@ -96,7 +93,6 @@ export default function AppSidebar() {
                             </React.Fragment>
                         );
                     }
-                    // This is a single link
                     return (
                          <ListItem key={item.path} disablePadding sx={{ mb: 0.5 }}>
                             <ListItemButton component={Link} href={item.path!} selected={pathname === item.path} sx={{ borderRadius: 1.5 }} onClick={() => { if (mobileDrawerOpen) toggleMobileDrawer(); }}>
