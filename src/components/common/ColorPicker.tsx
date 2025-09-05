@@ -70,6 +70,7 @@ const NativeColorPicker: React.FC<ColorPickerProps> = ({
         value={value || ''}
         onChange={handleTextChange}
         disabled={disabled}
+        label={label}
         sx={{
           '& .MuiOutlinedInput-input': {
             paddingRight: '40px', // Adjust padding for the clear button

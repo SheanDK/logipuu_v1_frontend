@@ -43,7 +43,7 @@ export function AddWoodEntry({ onAddAction, woodTypeList, dropoffLocationList }:
     <Paper elevation={0} sx={{ backgroundColor: 'transparent', mt: 1 }}>
         <Box sx={{ width: '100%', border: '1px solid #ccc', p: 1.5, borderRadius: 1 }}>
             <Grid container spacing={2} alignItems="center">
-                <Grid item xs={12} sm={4}>
+                <Grid item xs={12} sm={4} sx={{ minWidth: 150 }}>
                     <FormControl fullWidth size="small" error={!!errors.woodTypeId}>
                         <InputLabel>Type of timber</InputLabel>
                         <Controller name="woodTypeId" control={control} render={({ field }) => (
@@ -55,7 +55,7 @@ export function AddWoodEntry({ onAddAction, woodTypeList, dropoffLocationList }:
                         {errors.woodTypeId && <FormHelperText>{errors.woodTypeId.message}</FormHelperText>}
                     </FormControl>
                 </Grid>
-                <Grid item xs={12} sm={4}>
+                <Grid item xs={12} sm={4} sx={{ minWidth: 150 }}>
                     <FormControl fullWidth size="small" error={!!errors.dropoffLocationId}>
                         <InputLabel>Unloading site</InputLabel>
                         <Controller name="dropoffLocationId" control={control} render={({ field }) => (

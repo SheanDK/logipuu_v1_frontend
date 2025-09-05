@@ -14,6 +14,7 @@ import { yupResolver } from '@hookform/resolvers/yup';
 import { LocalizationProvider, DatePicker } from '@mui/x-date-pickers';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import dayjs from 'dayjs';
+import "dayjs/locale/fi"; 
 import CloseIcon from '@mui/icons-material/Close';
 import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
 
@@ -207,7 +208,7 @@ export default function LoadFormModal({ open, onCloseAction, onSaveSuccessAction
     };
 
     return (
-        <LocalizationProvider dateAdapter={AdapterDayjs}>
+        <LocalizationProvider dateAdapter={AdapterDayjs} adapterLocale='fi'>
             <Dialog open={open} onClose={onCloseAction} maxWidth="sm" fullWidth>
                 <DialogTitle sx={{ m: 0, p: 2, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                     <Typography variant="h6" component="div">{isEditMode ? 'Edit Load' : 'Create New Load'}</Typography>

@@ -24,7 +24,7 @@ export interface IBackendClient {
     aktiivinen: boolean;
     yhteyshenkilo: string | null;
     sahkoposti: string | null;
-    lisatiedot: string | null;
+    lisatietoja: string | null;
 }
 
 /**
