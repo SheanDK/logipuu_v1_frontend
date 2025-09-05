@@ -5,7 +5,9 @@ import {
     ICreateLoadDto, 
     ILoad,
     // --- STEP 1: Import the new type ---
-    IUpdateLoadDto 
+    IUpdateLoadDto, 
+    ILoadStatusUpdateDto,
+    ILoadDetails 
 } from '../types';
 import { ILoadFilters } from '@/components/loads/LoadFilterBar';
 
@@ -23,9 +25,9 @@ export const fetchAllLoads = async (filters: ILoadFilters): Promise<ILoadListIte
 };
 
 // This function is needed for the Edit functionality
-export const getLoadById = async (id: number): Promise<ILoad> => {
+export const getLoadById = async (id: number): Promise<ILoadDetails> => {
     try {
-        const response = await apiClient.get<ILoad>(`${API_ENDPOINT}/${id}`);
+        const response = await apiClient.get<ILoadDetails>(`${API_ENDPOINT}/${id}`);
         return response.data;
     } catch (error) {
         console.error(`SERVICE ERROR: Failed to fetch load with ID ${id}`, error);
@@ -72,6 +74,17 @@ export const fetchMyLoads = async (): Promise<ILoadListItem[]> => {
         return response.data;
     } catch (error) {
         console.error("SERVICE ERROR: Failed to fetch my loads", error);
+        throw error;
+    }
+};
+
+// --- THIS IS THE NEW FUNCTION FOR STATUS UPDATES ---
+export const updateLoadStatus = async (id: number, data: ILoadStatusUpdateDto): Promise<ILoad> => {
+    try {
+        const response = await apiClient.patch<ILoad>(`${API_ENDPOINT}/${id}/status`, data);
+        return response.data;
+    } catch (error) {
+        console.error(`SERVICE ERROR: Failed to update status for load ${id}`, error);
         throw error;
     }
 };

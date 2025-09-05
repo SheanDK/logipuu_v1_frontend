@@ -1,4 +1,4 @@
-// src/config/navConfig.ts
+// frontend/src/config/navConfig.ts
 import React from 'react';
 
 // Import all necessary icons
@@ -13,54 +13,46 @@ import GroupIcon from '@mui/icons-material/Group';
 import SettingsIcon from '@mui/icons-material/Settings';
 import AccountCircleIcon from '@mui/icons-material/AccountCircle';
 import ReceiptLongIcon from '@mui/icons-material/ReceiptLong';
-import WorkspacesIcon from '@mui/icons-material/Workspaces'; // For Arrangement
-import TuneIcon from '@mui/icons-material/Tune'; // For Control
-import AdminPanelSettingsIcon from '@mui/icons-material/AdminPanelSettings'; // For App Settings
+import WorkspacesIcon from '@mui/icons-material/Workspaces';
+import TuneIcon from '@mui/icons-material/Tune';
+import AdminPanelSettingsIcon from '@mui/icons-material/AdminPanelSettings';
 import BarChartIcon from '@mui/icons-material/BarChart';
 import LocalShippingIcon from '@mui/icons-material/LocalShipping';
+import HistoryIcon from '@mui/icons-material/History';
 
-// --- 1. Update the interface to support nested children ---
 export interface NavItemConfig {
     text: string;
     icon: React.ReactElement;
-    path?: string; // Optional: A category might not have a path
+    path?: string;
     isTopNav?: boolean;
     permission?: string;
     roles?: string[];
-    children?: NavItemConfig[]; // Array of sub-items
+    children?: NavItemConfig[];
 }
 
-// --- 2. Restructure the navigation items with parent-child relationships ---
-export const navigationItems: NavItemConfig[] = [
+// --- NAVIGATION FOR OFFICE STAFF, ADMINS, ETC. ---
+export const officeNavigationItems: NavItemConfig[] = [
     { text: 'Dashboard', icon: <DashboardIcon />, path: '/dashboard', isTopNav: true },
-
-    // --- OFFICE Category ---
-    {
-        text: 'Office',
-        icon: <ReceiptLongIcon />,
-        isTopNav: true, // This will be a dropdown in the top nav
-        children: [
-            { text: 'Driven/Inspection', icon: <AssignmentIcon />, path: '/driven-inspection', permission: 'driven_inspection_view' },
-            // Add placeholder paths for new items
-            { text: 'Driven & Inspection', icon: <ReceiptLongIcon />, path: '/driven-inspection' },
-            { text: 'Puulaani Invoicing', icon: <ReceiptLongIcon />, path: '/invoicing/puulaani' },
-            { text: 'Consignment Invoicing', icon: <ReceiptLongIcon />, path: '/invoicing/consignment' },
-        ]
-    },
-
-    // --- ARRANGEMENT Category ---
     {
         text: 'Arrangement',
         icon: <WorkspacesIcon />,
         isTopNav: true,
         children: [
-            { text: 'Timber Management', icon: <ViewListIcon />, path: '/timber-management', permission: 'timber_stack_view' },
             { text: 'Timber Map', icon: <MapIcon />, path: '/timber-stacks', permission: 'timber_stack_view' },
-            { text: 'Load Management', icon: <LocalShippingIcon />, path: '/loads', permission: 'load_view' },
+            { text: 'Load Management', icon: <LocalShippingIcon />, path: '/loads', permission: 'load_view' }, // Assuming a 'load_view' permission
+            { text: 'Timber Management', icon: <ViewListIcon />, path: '/timber-management', permission: 'timber_stack_view' },
         ]
     },
-    
-    // --- CONTROL Category ---
+    {
+        text: 'Office',
+        icon: <ReceiptLongIcon />,
+        isTopNav: true,
+        children: [
+            { text: 'Driven/Inspection', icon: <AssignmentIcon />, path: '/driven-inspection', permission: 'driven_inspection_view' },
+            { text: 'Puulaani Invoicing', icon: <ReceiptLongIcon />, path: '/invoicing/puulaani' },
+            { text: 'Consignment Invoicing', icon: <ReceiptLongIcon />, path: '/invoicing/consignment' },
+        ]
+    },
     {
         text: 'Control',
         icon: <TuneIcon />,
@@ -72,16 +64,46 @@ export const navigationItems: NavItemConfig[] = [
             { text: 'Reports', icon: <BarChartIcon />, path: '/reports', permission: 'report_view' },
         ]
     },
-
-    // --- APP SETTINGS Category ---
     {
         text: 'App Settings',
         icon: <AdminPanelSettingsIcon />,
-        isTopNav: false, // Keep this group in sidebar only for a cleaner look
+        isTopNav: false,
         children: [
             { text: 'Users', icon: <GroupIcon />, path: '/users', permission: 'user_view' },
             { text: 'Application Settings', icon: <SettingsIcon />, path: '/admin/settings', roles: ['Superuser'] },
             { text: 'My Profile', icon: <AccountCircleIcon />, path: '/settings/user' },
+        ]
+    },
+];
+
+// --- NAVIGATION FOR DRIVERS ---
+export const driverNavigationItems: NavItemConfig[] = [
+    { 
+        text: 'My Dashboard', 
+        icon: <DashboardIcon />, 
+        path: '/my-loads',
+        isTopNav: true,
+        roles: ['Kuljettaja'] 
+    },
+    { 
+        text: 'Completed Trips', 
+        icon: <HistoryIcon />, 
+        path: '/my-loads/completed',
+        isTopNav: true,
+        roles: ['Kuljettaja']
+    },
+    {
+        text: 'App Settings',
+        icon: <AdminPanelSettingsIcon />,
+        isTopNav: false,
+        roles: ['Kuljettaja'],
+        children: [
+            { 
+                text: 'My Profile', 
+                icon: <AccountCircleIcon />, 
+                path: '/settings/user',
+                roles: ['Kuljettaja']
+            },
         ]
     },
 ];
