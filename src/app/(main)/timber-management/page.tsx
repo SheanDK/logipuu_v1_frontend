@@ -52,9 +52,9 @@ function CustomFooter({ rows }: { rows: ITimberStackListItem[] }) {
 
 export default function PuulaaniListPage() {
     const { user } = useAuth();
-    const canCreate = useMemo(() => user?.permissions?.includes('timber_stack_create'), [user]);
-    const canEdit = useMemo(() => user?.permissions?.includes('timber_stack_edit'), [user]);
-    const canDelete = useMemo(() => user?.permissions?.includes('timber_stack_delete'), [user]);
+    const canCreate = useMemo(() => user?.permissions?.includes('timber_management_create'), [user]);
+    const canEdit = useMemo(() => user?.permissions?.includes('timber_management_edit'), [user]);
+    const canDelete = useMemo(() => user?.permissions?.includes('timber_management_delete'), [user]);
 
     const [rows, setRows] = useState<ITimberStackListItem[]>([]);
     const [isLoading, setIsLoading] = useState(true);

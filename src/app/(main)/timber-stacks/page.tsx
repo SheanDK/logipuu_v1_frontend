@@ -82,8 +82,8 @@ export default function TimberStacksPage() {
     const [moveConfirmation, setMoveConfirmation] = useState<IMapTimberStack | null>(null);
     const [markerToEnableMove, setMarkerToEnableMove] = useState<number | null>(null);
 
-    const canView = useMemo(() => user?.permissions?.includes('timber_stack_view'), [user]);
-    const canCreate = useMemo(() => user?.permissions?.includes('timber_stack_create'), [user]);
+    const canView = useMemo(() => user?.permissions?.includes('timber map_view'), [user]);
+    const canCreate = useMemo(() => user?.permissions?.includes('timber map_create'), [user]);
 
     const handleLocationChange = async (id: number, newLocation: { latitude: number, longitude: number }) => {
         const originalStacks = [...(timberStacks || [])];

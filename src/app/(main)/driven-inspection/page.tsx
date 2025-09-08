@@ -46,9 +46,9 @@ export default function DrivenInspectionPage() {
 
     const [editingRow, setEditingRow] = useState<IDrivenInspectionListItem | null>(null);
 
-    const canAccept = useMemo(() => user?.permissions?.includes('driven_inspection_accept'), [user]);
-    const canEdit = useMemo(() => user?.permissions?.includes('driven_inspection_edit'), [user]);
-    const canDelete = useMemo(() => user?.permissions?.includes('driven_inspection_delete'), [user]);
+    const canAccept = useMemo(() => user?.permissions?.includes('driven & inspection_accept'), [user]);
+    const canEdit = useMemo(() => user?.permissions?.includes('driven & inspection_edit'), [user]);
+    const canDelete = useMemo(() => user?.permissions?.includes('driven & inspection_delete'), [user]);
 
     const loadData = useCallback(async () => {
         setIsLoading(true);

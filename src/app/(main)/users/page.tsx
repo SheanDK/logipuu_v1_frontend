@@ -33,10 +33,10 @@ export default function UserManagementPage() {
     const [editingUser, setEditingUser] = useState<IUser | null>(null);
     const [deleteTarget, setDeleteTarget] = useState<IUser | null>(null); // For Confirmation Dialog
 
-    const hasViewPermission = useMemo(() => currentUser?.permissions?.includes('user_view'), [currentUser]);
-    const canCreate = useMemo(() => currentUser?.permissions?.includes('user_create'), [currentUser]);
-    const canEdit = useMemo(() => currentUser?.permissions?.includes('user_edit'), [currentUser]);
-    const canDelete = useMemo(() => currentUser?.permissions?.includes('user_delete'), [currentUser]);
+    const hasViewPermission = useMemo(() => currentUser?.permissions?.includes('users_view'), [currentUser]);
+    const canCreate = useMemo(() => currentUser?.permissions?.includes('users_create'), [currentUser]);
+    const canEdit = useMemo(() => currentUser?.permissions?.includes('users_edit'), [currentUser]);
+    const canDelete = useMemo(() => currentUser?.permissions?.includes('users_delete'), [currentUser]);
     const isCurrentUserSuperUser = useMemo(() => currentUser?.roles.includes('Superuser'), [currentUser]);
 
     const loadUsers = useCallback(async () => {
