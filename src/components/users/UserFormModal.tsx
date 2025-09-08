@@ -13,6 +13,7 @@ import { yupResolver } from '@hookform/resolvers/yup';
 
 import { IUser, IRole, CreateUserPayload, UpdateUserPayload } from '../../types';
 import { fetchAllRolesApi } from '../../services/roleService';
+import { minLength } from 'zod';
 
 // Props Interface remains the same.
 interface UserFormModalProps {
@@ -160,7 +161,7 @@ export default function UserFormModal({ open, onCloseAction, onSaveAction, user,
                 <DialogContent dividers>
                     {apiError && <Alert severity="error" sx={{ mb: 2 }}>{apiError}</Alert>}
                     <Grid container spacing={2} sx={{ pt: 1 }}>
-                        <Grid item xs={12}><Controller name="username" control={control} render={({ field }) => <TextField {...field} label="Username" fullWidth required disabled={isEditMode} error={!!errors.username} helperText={errors.username?.message} />}/></Grid>
+                        <Grid item xs={12} sm={6}><Controller name="username" control={control} render={({ field }) => <TextField {...field} label="Username" fullWidth required disabled={isEditMode} error={!!errors.username} helperText={errors.username?.message} />}/></Grid>
                         <Grid item xs={12}><Controller name="fullName" control={control} render={({ field }) => <TextField {...field} label="Full Name" fullWidth required error={!!errors.fullName} helperText={errors.fullName?.message} />}/></Grid>
                         {!isEditMode && (
                             <>
@@ -168,7 +169,7 @@ export default function UserFormModal({ open, onCloseAction, onSaveAction, user,
                                 <Grid item xs={12} sm={6}><Controller name="confirmPassword" control={control} render={({ field }) => <TextField {...field} type="password" label="Confirm Password" fullWidth required={!isEditMode} error={!!errors.confirmPassword} helperText={errors.confirmPassword?.message} />}/></Grid>
                             </>
                         )}
-                        <Grid item xs={12}><FormControl fullWidth required error={!!errors.roleId}><InputLabel id="role-select-label">Role</InputLabel><Controller name="roleId" control={control} render={({ field }) => (<Select {...field} labelId="role-select-label" label="Role">{availableRoles.map((role) => (<MenuItem key={role.rooliId} value={role.rooliId}>{role.roolinNimi}</MenuItem>))}</Select>)}/>{errors.roleId && <FormHelperText>{errors.roleId.message}</FormHelperText>}</FormControl></Grid>
+                        <Grid item xs={12}><FormControl fullWidth required error={!!errors.roleId}><InputLabel id="role-select-label">Role</InputLabel><Controller name="roleId" control={control} render={({ field }) => (<Select {...field} labelId="role-select-label" label="Role" sx={{ width: 150 }}>{availableRoles.map((role) => (<MenuItem key={role.rooliId} value={role.rooliId}>{role.roolinNimi}</MenuItem>))}</Select>)}/>{errors.roleId && <FormHelperText>{errors.roleId.message}</FormHelperText>}</FormControl></Grid>
                         <Grid item xs={12}><FormControlLabel control={<Controller name="isActive" control={control} render={({ field }) => <Switch {...field} checked={field.value} />}/>} label={<Typography>Status: <b>{watch('isActive') ? 'Active' : 'Inactive'}</b></Typography>}/></Grid>
                     </Grid>
                 </DialogContent>
