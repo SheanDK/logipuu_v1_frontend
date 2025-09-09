@@ -153,6 +153,7 @@ export default function LoginPage() {
                     >
                         {loading ? 'Signing In...' : 'Sign In'}
                     </Button>
+                    {/* TODO if needed
                     <Grid container justifyContent="flex-end">
                         <Box sx={{ mt: 2, textAlign: 'center' }}>
                             <LinkMaterial href="#" variant="body2" color="primary.dark">
@@ -160,6 +161,7 @@ export default function LoginPage() {
                             </LinkMaterial>
                         </Box>
                     </Grid>
+                    */}
                 </Box>
             </Paper>
 

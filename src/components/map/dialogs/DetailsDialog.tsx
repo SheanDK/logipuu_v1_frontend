@@ -30,8 +30,8 @@ const detailsSchema = yup.object({
 });
 
 export default function DetailsDialog({ open, onCancelAction, onNextAction, clientList }: DetailsDialogProps) {
-    
-    const { control, handleSubmit, reset, formState: { errors, isValid } } = useForm<PuulaaniBasicDetailsFormData>({
+
+    const { control, handleSubmit, setValue, reset, formState: { errors, isValid } } = useForm<PuulaaniBasicDetailsFormData>({
         resolver: yupResolver(detailsSchema) as any,
         defaultValues: { name: '', clientId: null, dispatchOrderNo: '', isActive: true, isCompleted: false, additionalInfo: '' }
     });
@@ -58,30 +58,53 @@ export default function DetailsDialog({ open, onCancelAction, onNextAction, clie
                     <Stack spacing={2.5}>
                         <Controller name="name" control={control} render={({ field }) => (
                             <TextField {...field} label="Object Name" fullWidth required autoFocus error={!!errors.name} helperText={errors.name?.message} />
-                        )}/>
-                        
+                        )} />
+
                         <FormControl fullWidth required error={!!errors.clientId}>
                             <InputLabel>Customer</InputLabel>
                             <Controller name="clientId" control={control} render={({ field }) => (
                                 <Select {...field} label="Customer" value={field.value || ''}>
-                                    {clientList.map((c) => ( <MenuItem key={c.id} value={c.id}>{c.name}</MenuItem> ))}
+                                    {clientList.map((c) => (<MenuItem key={c.id} value={c.id}>{c.name}</MenuItem>))}
                                 </Select>
-                            )}/>
+                            )} />
                             {errors.clientId && <FormHelperText>{errors.clientId.message}</FormHelperText>}
                         </FormControl>
 
                         <Controller name="dispatchOrderNo" control={control} render={({ field }) => (
                             <TextField {...field} value={field.value ?? ''} label="Driving Order No." fullWidth />
-                        )}/>
-                        
+                        )} />
+
                         <Controller name="additionalInfo" control={control} render={({ field }) => (
                             <TextField {...field} value={field.value ?? ''} label="Additional Information" multiline rows={3} fullWidth />
-                        )}/>
+                        )} />
 
                         <Box>
                             <Typography variant="body2" color="text.secondary" gutterBottom>Status</Typography>
-                            <FormControlLabel control={<Controller name="isActive" control={control} render={({ field }) => <Checkbox {...field} checked={!!field.value} />}/>} label="Active" />
-                            <FormControlLabel control={<Controller name="isCompleted" control={control} render={({ field }) => <Checkbox {...field} checked={!!field.value} />}/>} label="Ready" />
+                            <FormControlLabel control={<Controller name="isActive" control={control} render={({ field }) =>
+                                <Checkbox
+                                    {...field}
+                                    checked={!!field.value}
+                                    onChange={(e) => {
+                                        const checked = e.target.checked;
+                                        if (checked) {
+                                            setValue("isCompleted", false);
+
+                                        }
+                                        field.onChange(checked);
+                                    }}
+                                />} />} label="Active" />
+                            <FormControlLabel control={<Controller name="isCompleted" control={control} render={({ field }) =>
+                                <Checkbox {...field}
+                                    checked={!!field.value}
+                                    onChange={(e) => {
+                                        const checked = e.target.checked;
+
+                                        if (checked) {
+                                            setValue("isActive", false);
+                                        }
+                                        field.onChange(checked);
+                                    }}
+                                />} />} label="Ready" />
                         </Box>
 
                     </Stack>
