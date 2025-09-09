@@ -1,5 +1,5 @@
 // frontend/src/app/(main)/users/page.tsx
-'use client'; 
+'use client';
 
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import {
@@ -16,8 +16,8 @@ import AdminPanelSettingsIcon from '@mui/icons-material/AdminPanelSettings';
 import PersonIcon from '@mui/icons-material/Person';
 
 import { useAuth } from '../../../contexts/AuthContext';
-import { IUser, IBackendUser, CreateUserPayload, UpdateUserPayload } from '../../../types'; 
-import { getAllUsersApi, deleteUserApi, createUserApi, updateUserApi } from '../../../services/userService';
+import { IUser, IBackendUser, CreateUserPayload, UpdateUserPayload } from '../../../types';
+import { getAllUsersApi, fetchUserByTunnusApi, deleteUserApi, createUserApi, updateUserApi } from '../../../services/userService';
 import UserFormModal from '../../../components/users/UserFormModal';
 import ConfirmationDialog from '../../../components/common/ConfirmationDialog'; // Import ConfirmationDialog
 
@@ -31,6 +31,7 @@ export default function UserManagementPage() {
 
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [editingUser, setEditingUser] = useState<IUser | null>(null);
+    const [isFetchingUser, setIsFetchingUser] = useState(false);
     const [deleteTarget, setDeleteTarget] = useState<IUser | null>(null); // For Confirmation Dialog
 
     const hasViewPermission = useMemo(() => currentUser?.permissions?.includes('users_view'), [currentUser]);
@@ -38,6 +39,19 @@ export default function UserManagementPage() {
     const canEdit = useMemo(() => currentUser?.permissions?.includes('users_edit'), [currentUser]);
     const canDelete = useMemo(() => currentUser?.permissions?.includes('users_delete'), [currentUser]);
     const isCurrentUserSuperUser = useMemo(() => currentUser?.roles.includes('Superuser'), [currentUser]);
+
+    const backendToUser = (b: IBackendUser): IUser => ({
+        id: b.tunnus,
+        username: b.tunnus,
+        fullName: b.nimi,
+        roles: b.roles,
+        isActive: b.aktiivinen,
+        roleIds: b.roleIds || [],
+        userId: b.tunnus,
+        driverNumericId: b.kuljId ?? null,
+        driverEmail: null,
+        userLevel: b.taso ?? 4,
+    });
 
     const loadUsers = useCallback(async () => {
         if (!hasViewPermission) { setIsLoading(false); return; }
@@ -72,7 +86,25 @@ export default function UserManagementPage() {
     useEffect(() => { if (!isAuthLoading && hasViewPermission) { loadUsers(); } else if (!isAuthLoading && !hasViewPermission) { setIsLoading(false); } }, [isAuthLoading, hasViewPermission, loadUsers]);
 
     const handleOpenModalForCreate = () => { setEditingUser(null); setModalError(null); setIsModalOpen(true); };
-    const handleOpenModalForEdit = (userToEdit: IUser) => { setEditingUser(userToEdit); setModalError(null); setIsModalOpen(true); };
+
+    const handleOpenModalForEdit = async (userToEdit: IUser) => {
+        setModalError(null);
+        setIsFetchingUser(true);
+        try {
+            const fullBackendUser = await fetchUserByTunnusApi(userToEdit.username); // tunnus = username
+            const fullUser = backendToUser(fullBackendUser);
+            setEditingUser(fullUser);
+        } catch (e: any) {
+            console.error('[handleOpenModalForEdit] fetchUserByTunnusApi failed:', e?.response?.data || e);
+            // fallback: avataan vähillä tiedoilla
+            setEditingUser(userToEdit);
+            setModalError(e?.response?.data?.message ?? 'Failed to fetch user details.');
+        } finally {
+            setIsFetchingUser(false);
+            setIsModalOpen(true);
+        }
+    };
+
     const handleDeleteClick = (userToDelete: IUser) => { setDeleteTarget(userToDelete); };
     const handleModalClose = () => { setIsModalOpen(false); setEditingUser(null); };
 
@@ -113,7 +145,7 @@ export default function UserManagementPage() {
             setIsSaving(false);
         }
     };
-    
+
     const columns: GridColDef<IUser>[] = useMemo(() => [
         { field: 'username', headerName: 'Username', width: 180 },
         { field: 'fullName', headerName: 'Full Name', flex: 1, minWidth: 200 },
@@ -122,7 +154,7 @@ export default function UserManagementPage() {
             renderCell: ({ value }) => {
                 const rolesArray = Array.isArray(value) ? value : [];
                 const role = rolesArray.length > 0 ? rolesArray[0] : 'N/A';
-                return (<Chip label={role} size="small" color={role === 'Superuser' ? 'error' : role === 'Admin' ? 'warning' : 'primary'} icon={role === 'Superuser' ? <SupervisorAccountIcon fontSize="small"/> : role === 'Admin' ? <AdminPanelSettingsIcon fontSize="small"/> : <PersonIcon fontSize="small"/>} variant="outlined" />);
+                return (<Chip label={role} size="small" color={role === 'Superuser' ? 'error' : role === 'Admin' ? 'warning' : 'primary'} icon={role === 'Superuser' ? <SupervisorAccountIcon fontSize="small" /> : role === 'Admin' ? <AdminPanelSettingsIcon fontSize="small" /> : <PersonIcon fontSize="small" />} variant="outlined" />);
             }
         },
         { field: 'isActive', headerName: 'Status', width: 120, type: 'boolean', renderCell: (params) => (<Chip icon={params.value ? <CheckCircleIcon /> : <CancelIcon />} label={params.value ? 'Active' : 'Inactive'} color={params.value ? 'success' : 'default'} size="small" variant="outlined" />) },
@@ -165,10 +197,11 @@ export default function UserManagementPage() {
                     onCloseAction={handleModalClose}
                     onSaveAction={handleSave}
                     user={editingUser}
-                    isSaving={isSaving}
+                    isSaving={isSaving || isFetchingUser}
                     apiError={modalError}
                     currentUser={currentUser}
                 />
+
             )}
 
             {deleteTarget && (
