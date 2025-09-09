@@ -47,7 +47,7 @@ export function AddWoodEntry({ onAddAction, woodTypeList, dropoffLocationList }:
                     <FormControl fullWidth size="small" error={!!errors.woodTypeId}>
                         <InputLabel>Type of timber</InputLabel>
                         <Controller name="woodTypeId" control={control} render={({ field }) => (
-                            <Select {...field} label="Type of timber" value={field.value ?? ''} sx={{ backgroundColor: 'white' }}>
+                            <Select {...field} label="Type of timber" value={field.value ?? ''} >
                                 <MenuItem value="" disabled><em>Select Type</em></MenuItem>
                                 {woodTypeList.map((p) => (<MenuItem key={p.puutavaraNro} value={p.puutavaraNro}>{p.puutavara}</MenuItem>))}
                             </Select>
@@ -59,7 +59,7 @@ export function AddWoodEntry({ onAddAction, woodTypeList, dropoffLocationList }:
                     <FormControl fullWidth size="small" error={!!errors.dropoffLocationId}>
                         <InputLabel>Unloading site</InputLabel>
                         <Controller name="dropoffLocationId" control={control} render={({ field }) => (
-                            <Select {...field} label="Unloading site" value={field.value ?? ''} sx={{ backgroundColor: 'white' }}>
+                            <Select {...field} label="Unloading site" value={field.value ?? ''} >
                                 <MenuItem value="" disabled><em>Select Site</em></MenuItem>
                                 {dropoffLocationList.map((p) => (<MenuItem key={p.id} value={p.id}>{p.name}</MenuItem>))}
                             </Select>
@@ -74,7 +74,7 @@ export function AddWoodEntry({ onAddAction, woodTypeList, dropoffLocationList }:
                             value={field.value ?? ''}
                             onChange={(e) => field.onChange(e.target.value === '' ? null : Number(e.target.value))}
                             error={!!errors.volume} helperText={errors.volume?.message}
-                            sx={{ backgroundColor: 'white' }}
+                            
                         />
                     )}/>
                 </Grid>

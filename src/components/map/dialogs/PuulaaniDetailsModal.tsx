@@ -296,7 +296,7 @@ export default function PuulaaniDetailsModal({
                 </DialogTitle>
                 <FormProvider {...methods}>
                     <Box component="form" id="details-form" onSubmit={handleSubmit(onSave as SubmitHandler<FieldValues>)}>
-                        <DialogContent dividers sx={{ p: { xs: 2, sm: 3 }, backgroundColor: '#f7f7f7' }}>
+                        <DialogContent dividers sx={{ p: { xs: 2, sm: 3 } }}>
                             {isLoading ? (
                                 <Box sx={{ display: 'flex', justifyContent: 'center', p: 5 }}><CircularProgress /></Box>
                             ) : error ? (

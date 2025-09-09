@@ -39,7 +39,16 @@ function CustomFooter({ rows }: { rows: ITimberStackListItem[] }) {
 
     return (
         <Box sx={{ width: '100%' }}>
-            <GridFooterContainer sx={{ borderTop: '1px solid rgba(224, 224, 224, 1)', backgroundColor: '#f9f9f9', display: 'flex', justifyContent: 'flex-end', alignItems: 'center', px: 2 }}>
+            <GridFooterContainer 
+            sx={(theme) => ({ 
+                 position: 'sticky',
+                borderTop: '1px solid rgba(224, 224, 224, 1)', 
+                display: 'flex', 
+                justifyContent: 'flex-end', 
+                alignItems: 'center', 
+                px: 2, 
+                bgcolor: 'background.paper',
+               })}>
                 <Typography variant="body2" sx={{ fontWeight: 'bold', mr: 4 }}>Altogether</Typography>
                 <Box sx={{ width: 120, textAlign: 'right' }}><Typography variant="body2" sx={{ fontWeight: 'bold' }}>{totalKok.toFixed(2)}</Typography></Box>
                 <Box sx={{ width: 120, textAlign: 'right' }}><Typography variant="body2" sx={{ fontWeight: 'bold' }}>{totalJaljella.toFixed(2)}</Typography></Box>
@@ -202,7 +211,7 @@ export default function PuulaaniListPage() {
                 headerName: 'Date', 
                 width: 120, 
                 renderCell: (params) => (
-                    <Typography variant="body2">
+                    <Typography variant="body2" sx={{height: '100%', width: '100%', display: 'flex', alignItems: 'center' }}>
                         {params.value ? dayjs(params.value).format('DD.MM.YYYY') : ''}
                     </Typography>
                 )
@@ -220,7 +229,7 @@ export default function PuulaaniListPage() {
                 renderCell: (params) => {
                     const numValue = parseFloat(params.value); // Value can be a string from the API
                     return (
-                        <Typography variant="body2">
+                        <Typography variant="body2" sx={{height: '100%', width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'flex-end' }}>
                             {!isNaN(numValue) ? numValue.toFixed(2) : '0.00'}
                         </Typography>
                     );
@@ -237,7 +246,7 @@ export default function PuulaaniListPage() {
                 renderCell: (params) => {
                     const numValue = parseFloat(params.value); // Value can be a string from the API
                     return (
-                        <Typography variant="body2">
+                        <Typography variant="body2" sx={{height: '100%', width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'flex-end' }}>
                             {!isNaN(numValue) ? numValue.toFixed(2) : '0.00'}
                         </Typography>
                     );
@@ -274,7 +283,7 @@ export default function PuulaaniListPage() {
     }, [canEdit, canDelete, handleEditClick, handleDeleteClick]);
 
     return (
-        <Box sx={{ p: 3, m: -3, height: 'calc(100vh - 64px)', display: 'flex', flexDirection: 'column', gap: 2, backgroundColor: '#f4f6f8' }}>
+        <Box sx={{ p: 3, m: -3, height: 'calc(100vh - 64px)', display: 'flex', flexDirection: 'column', gap: 2}}>
             <Paper sx={{ p: 2, flexShrink: 0 }}>
                 <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
                     <Typography variant="h5" component="h1" sx={{ fontWeight: 'bold' }}>Timber Management</Typography>
@@ -323,6 +332,7 @@ export default function PuulaaniListPage() {
     '& .MuiDataGrid-cell': {
         borderBottom: '1px solid',
         borderColor: 'grey.200', // A light border for rows
+        alignItems: 'center'
     },
     // Hover effect for rows
     '& .MuiDataGrid-row:hover': {
