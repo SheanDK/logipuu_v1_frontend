@@ -42,6 +42,7 @@ const passwordSchema = yup.object().shape({
         .oneOf([yup.ref('newPassword')], 'Passwords do not match'),
 });
 
+
 export default function UserSettingsPage() {
     const { user, isLoading, updateUserContext } = useAuth();
     const [isSavingProfile, setIsSavingProfile] = useState(false);
@@ -62,11 +63,33 @@ export default function UserSettingsPage() {
         control: passwordControl,
         handleSubmit: handlePasswordSubmit,
         reset: resetPasswordForm,
-        formState: { errors: passwordErrors }
+        watch,
+        trigger,
+        formState: {
+            errors: passwordErrors,
+            isValid: isPasswordValid,
+            isDirty: isPasswordDirty,
+            touchedFields: passwordTouched,
+            dirtyFields: passwordDirty,
+        },
     } = useForm<ChangePasswordFormData>({
         resolver: yupResolver(passwordSchema),
         defaultValues: { currentPassword: '', newPassword: '', confirmNewPassword: '' },
+        mode: 'onChange',
+        reValidateMode: 'onChange',
     });
+
+    const newPw = watch('newPassword');
+    const confirmPw = watch('confirmNewPassword');
+
+    useEffect(() => {
+        if (passwordTouched.confirmNewPassword || passwordDirty.confirmNewPassword || !!confirmPw) {
+            trigger('confirmNewPassword');
+        }
+    }, [newPw, confirmPw, trigger, passwordTouched.confirmNewPassword, passwordDirty.confirmNewPassword]);
+
+    const showPwError = (name: keyof ChangePasswordFormData) =>
+        !!passwordErrors[name] && (passwordTouched[name] || passwordDirty[name]);
 
     useEffect(() => {
         if (user) {
@@ -125,7 +148,7 @@ export default function UserSettingsPage() {
     if (isLoading) {
         return <Box sx={{ display: 'flex', justifyContent: 'center', p: 4 }}><CircularProgress /></Box>;
     }
-    
+
     if (!user) {
         return <Paper sx={{ p: 3, m: 2 }}><Alert severity="warning">Please log in to view user settings.</Alert></Paper>;
     }
@@ -209,7 +232,11 @@ export default function UserSettingsPage() {
                                     )}
                                 />
                                 <Box sx={{ mt: 2, display: 'flex', justifyContent: 'flex-end' }}>
-                                    <Button type="submit" variant="contained" disabled={isSavingPassword}>
+                                    <Button
+                                        type="submit"
+                                        variant="contained"
+                                        disabled={!isPasswordValid || isSavingPassword}
+                                    >
                                         {isSavingPassword ? <CircularProgress size={24} color="inherit" /> : 'Change Password'}
                                     </Button>
                                 </Box>

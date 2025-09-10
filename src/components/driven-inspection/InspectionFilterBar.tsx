@@ -26,7 +26,7 @@ export default function InspectionFilterBar({
     timberTypeList
 }: InspectionFilterBarProps) {
 
-     // --- NEW: Handler for the multi-select component ---
+    // --- NEW: Handler for the multi-select component ---
     const handleTimberTypeChange = (event: React.SyntheticEvent, newValue: IPuutavaraItem[]) => {
         // Extract just the IDs from the selected objects
         const selectedIds = newValue.map(item => item.puutavaraNro);
@@ -44,7 +44,7 @@ export default function InspectionFilterBar({
             <Grid container spacing={2} alignItems="center">
                 <Grid item xs={12} sm={6} md={2}>
                     <LocalizationProvider dateAdapter={AdapterDayjs}>
-                        <DatePicker 
+                        <DatePicker
                             label="Start date"
                             value={filters.startDate || null}
                             onChange={(newValue) => onFilterChangeAction('startDate', newValue)}
@@ -54,7 +54,7 @@ export default function InspectionFilterBar({
                 </Grid>
                 <Grid item xs={12} sm={6} md={2}>
                     <LocalizationProvider dateAdapter={AdapterDayjs}>
-                        <DatePicker 
+                        <DatePicker
                             label="End date"
                             value={filters.endDate || null}
                             onChange={(newValue) => onFilterChangeAction('endDate', newValue)}
@@ -64,6 +64,7 @@ export default function InspectionFilterBar({
                 </Grid>
                 <Grid item xs={12} sm={6} md={3}>
                     <Autocomplete
+                        sx={{ width: 150 }}
                         options={clientList}
                         getOptionLabel={(option: IClientBasicInfo) => option.name}
                         value={clientList.find(c => c.id === filters.customerId) || null}
@@ -74,16 +75,16 @@ export default function InspectionFilterBar({
                 <Grid item xs={12} sm={6} md={3}>
                     <Autocomplete
                         options={vehicleList}
-                        // --- THIS IS THE FIX for showing the registration number ---
-                        getOptionLabel={(option: IVehicleBasicInfo) => option.registrationNo} 
+                        sx={{ width: 150 }}
+                        getOptionLabel={(option: IVehicleBasicInfo) => option.registrationNo}
                         value={vehicleList.find(v => v.id === filters.vehicleId) || null}
                         onChange={(event, newValue) => onFilterChangeAction('vehicleId', newValue ? newValue.id : null)}
                         renderInput={(params) => <TextField {...params} label="Car" size="small" />}
                     />
                 </Grid>
-                {/* Add Timber Grades filter later if needed */}
                 <Grid item xs={12} md={6}>
                     <Autocomplete
+                        sx={{ width: 150 }}
                         multiple
                         id="timber-grades-filter"
                         options={timberTypeList}

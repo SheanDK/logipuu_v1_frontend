@@ -53,17 +53,45 @@ export const getDesignTokens = (mode: PaletteMode) => ({
         MuiDrawer: {
             styleOverrides: {
                 paper: ({ theme }: { theme: Theme }) => ({
-                     backgroundColor: theme.palette.mode === 'dark' ? grey[800] : grey[50], // Example for Drawer
+                    backgroundColor: theme.palette.mode === 'dark' ? grey[800] : grey[50], // Example for Drawer
                 }),
             }
         },
         MuiButton: {
             styleOverrides: {
                 // Example: contained primary button style
-                containedPrimary: ({theme}: {theme: Theme}) => ({
+                containedPrimary: ({ theme }: { theme: Theme }) => ({
                     color: theme.palette.primary.contrastText, // Ensure contrast
                 })
             }
-        }
-    },
+        },
+        MuiCssBaseline: {
+            styleOverrides: (theme: Theme) => {
+                const isDark = theme.palette.mode === 'dark';
+                const bg = isDark ? 'rgba(18,18,18,0.92)' : 'rgba(255,255,255,0.92)';
+                const bgExp = isDark ? 'rgba(18,18,18,0.95)' : 'rgba(255,255,255,0.98)';
+                const text = isDark ? '#e0e0e0' : '#111';
+                const border = isDark ? 'rgba(255,255,255,0.16)' : 'rgba(0,0,0,0.12)';
+                const link = isDark ? theme.palette.primary.light : theme.palette.primary.main;
+
+                return {
+                    '.leaflet-dark .leaflet-control-layers, .leaflet-dark .leaflet-control-attribution': {
+                        background: bg,
+                        color: text,
+                        border: `1px solid ${border}`,
+                        boxShadow: '0 2px 8px rgba(0,0,0,0.5)',
+                    },
+                    '.leaflet-dark .leaflet-control-layers-expanded': { background: bgExp },
+                    '.leaflet-dark .leaflet-control-layers label': { color: text },
+                    '.leaflet-dark .leaflet-control-layers-separator': { borderTopColor: border },
+                    '.leaflet-dark .leaflet-control-layers-toggle': {
+                        filter: isDark ? 'invert(1)' : 'none',
+                        backgroundColor: 'transparent',
+                        borderColor: border,
+                    },
+                    '.leaflet-dark .leaflet-control-attribution a': { color: link },
+                }
+            }
+        },
+    }
 });

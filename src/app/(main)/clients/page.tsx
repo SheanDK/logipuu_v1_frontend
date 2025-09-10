@@ -36,10 +36,10 @@ export default function ClientsPage() {
     // const [usedColors, setUsedColors] = useState<string[]>([]);
     // const [currentClientColor, setCurrentClientColor] = useState<string | null>(null);
 
-    const canView = useMemo(() => user?.permissions?.includes('client_view'), [user]);
-    const canCreate = useMemo(() => user?.permissions?.includes('client_create'), [user]);
-    const canEdit = useMemo(() => user?.permissions?.includes('client_edit'), [user]);
-    const canDelete = useMemo(() => user?.permissions?.includes('client_delete'), [user]);
+    const canView = useMemo(() => user?.permissions?.includes('clients_view'), [user]);
+    const canCreate = useMemo(() => user?.permissions?.includes('clients_create'), [user]);
+    const canEdit = useMemo(() => user?.permissions?.includes('clients_edit'), [user]);
+    const canDelete = useMemo(() => user?.permissions?.includes('clients_delete'), [user]);
 
     const loadClients = useCallback(async () => {
         if (!canView) {

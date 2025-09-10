@@ -67,7 +67,7 @@ export default function AppSettingsPage() {
 
     const [tabIndex, setTabIndex] = useState(0);
     const [feedback, setFeedback] = useState<{ type: AlertColor; message: string } | null>(null);
-    const hasAccess = useMemo(() => user?.permissions?.includes('settings_manage') || user?.roles?.includes('Superuser'), [user]);
+    const hasAccess = useMemo(() => user?.permissions?.includes('application settings_manage') || user?.roles?.includes('Superuser'), [user]);
 
     const handleTabChange = (event: React.SyntheticEvent, newValue: number) => setTabIndex(newValue);
     

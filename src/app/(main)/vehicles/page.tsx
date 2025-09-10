@@ -51,10 +51,10 @@ export default function VehiclesPage() {
     
     const [feedback, setFeedback] = useState<{ type: AlertColor; message: string } | null>(null);
 
-    const canView = useMemo(() => user?.permissions?.includes('vehicle_view'), [user]);
-    const canCreate = useMemo(() => user?.permissions?.includes('vehicle_create'), [user]);
-    const canEdit = useMemo(() => user?.permissions?.includes('vehicle_edit'), [user]);
-    const canDelete = useMemo(() => user?.permissions?.includes('vehicle_delete'), [user]);
+    const canView = useMemo(() => user?.permissions?.includes('vehicles_view'), [user]);
+    const canCreate = useMemo(() => user?.permissions?.includes('vehicles_create'), [user]);
+    const canEdit = useMemo(() => user?.permissions?.includes('vehicles_edit'), [user]);
+    const canDelete = useMemo(() => user?.permissions?.includes('vehicles_delete'), [user]);
 
     const loadVehicles = useCallback(async () => {
         if (!canView) {

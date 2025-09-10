@@ -29,10 +29,10 @@ export default function DriversPage() {
     const [editingDriver, setEditingDriver] = useState<IDriver | null>(null);
     const [deleteTarget, setDeleteTarget] = useState<IDriver | null>(null);
 
-    const canView = useMemo(() => user?.permissions?.includes('driver_view'), [user]);
-    const canCreate = useMemo(() => user?.permissions?.includes('driver_create'), [user]);
-    const canEdit = useMemo(() => user?.permissions?.includes('driver_edit'), [user]);
-    const canDelete = useMemo(() => user?.permissions?.includes('driver_delete'), [user]);
+    const canView = useMemo(() => user?.permissions?.includes('drivers_view'), [user]);
+    const canCreate = useMemo(() => user?.permissions?.includes('drivers_create'), [user]);
+    const canEdit = useMemo(() => user?.permissions?.includes('drivers_edit'), [user]);
+    const canDelete = useMemo(() => user?.permissions?.includes('drivers_delete'), [user]);
 
     const loadDrivers = useCallback(async () => {
         if (!canView) {

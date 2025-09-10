@@ -48,7 +48,7 @@ const TimberStackFilterBar: React.FC<TimberStackFilterBarProps> = ({
                         </RadioGroup>
                     </FormControl>
                 </Grid>
-                <Grid item sx={{ minWidth: 120 }}>
+                <Grid item sx={{ flexGrow: 0.2 }}>
                     {/* --- CORRECTION FOR CUSTOMER FILTER --- */}
                     <Autocomplete
                         fullWidth
@@ -67,10 +67,10 @@ const TimberStackFilterBar: React.FC<TimberStackFilterBarProps> = ({
                         renderInput={(params) => <TextField {...params} label="Customer" variant="outlined" fullWidth />}
                     />
                 </Grid>
-                <Grid item sx={{ minWidth: 120 }}>
+                <Grid item sx={{flexGrow: 0.1 }}>
                     {/* --- CORRECTION FOR VEHICLE FILTER --- */}
                     <Autocomplete
-                    fullWidth
+                        fullWidth
                         size="small"
                         options={vehicleList}
                         getOptionLabel={(option) => option.name || ''}
@@ -80,7 +80,7 @@ const TimberStackFilterBar: React.FC<TimberStackFilterBarProps> = ({
                         }}
                         isOptionEqualToValue={(option, value) => option.id === value.id}
                         disabled={isLoading}
-                        renderInput={(params) => <TextField {...params} label="Car" variant="outlined" fullWidth/>}
+                        renderInput={(params) => <TextField {...params} label="Car" variant="outlined" fullWidth />}
                     />
                 </Grid>
             </Grid>

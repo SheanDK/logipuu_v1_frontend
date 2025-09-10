@@ -3,7 +3,7 @@
 
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import dynamic from 'next/dynamic';
-import { Box, Typography, Paper, CircularProgress, Alert, Chip, Snackbar, AlertColor } from '@mui/material';
+import { Box, Typography, Paper, CircularProgress, Alert, Chip, Snackbar, AlertColor, useTheme } from '@mui/material';
 import ForestIcon from '@mui/icons-material/Forest';
 import dayjs from 'dayjs';
 import 'leaflet/dist/leaflet.css';
@@ -82,8 +82,10 @@ export default function TimberStacksPage() {
     const [moveConfirmation, setMoveConfirmation] = useState<IMapTimberStack | null>(null);
     const [markerToEnableMove, setMarkerToEnableMove] = useState<number | null>(null);
 
-    const canView = useMemo(() => user?.permissions?.includes('timber_stack_view'), [user]);
-    const canCreate = useMemo(() => user?.permissions?.includes('timber_stack_create'), [user]);
+    const canView = useMemo(() => user?.permissions?.includes('timber map_view'), [user]);
+    const canCreate = useMemo(() => user?.permissions?.includes('timber map_create'), [user]);
+
+    const theme = useTheme();
 
     const handleLocationChange = async (id: number, newLocation: { latitude: number, longitude: number }) => {
         const originalStacks = [...(timberStacks || [])];
@@ -254,7 +256,12 @@ export default function TimberStacksPage() {
             <Box sx={{ height: '100%', width: '100%' }}>
                 {isLoading && <CircularProgress sx={{ position: 'absolute', top: '50%', left: '50%', zIndex: 5 }} />}
                 
-                <MapContainer center={[62.2426, 25.7473]} zoom={6} scrollWheelZoom={true} style={{ height: '100%', width: '100%' }}>
+                <MapContainer 
+                className={theme.palette.mode === 'dark' ? 'leaflet-dark' : undefined} 
+                center={[62.2426, 25.7473]} 
+                zoom={6} 
+                scrollWheelZoom={true} 
+                style={{ height: '100%', width: '100%' }}>
                     {/* The ChangeView component will handle updates when mapSettings change */}
                     <ChangeView center={mapSettings.center} zoom={mapSettings.zoom} />
                     <LayersControl position="bottomleft">

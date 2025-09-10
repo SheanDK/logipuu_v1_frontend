@@ -25,7 +25,6 @@ const MuuMerkkiMarker: React.FC<MuuMerkkiMarkerProps> = ({ marker, onEdit, onDel
                 <Box>
                     <Typography variant="h6" gutterBottom>{marker.name}</Typography>
                     <Divider sx={{ my: 1 }} />
-                    <Typography variant="body2"><strong>Type:</strong> {marker.iconType}</Typography>
                     {marker.additionalInfo && (
                         <Typography variant="body2"><strong>Info:</strong> {marker.additionalInfo}</Typography>
                     )}

@@ -24,6 +24,16 @@ export const getAllUsersApi = async (): Promise<IBackendUser[]> => {
     return response.data;
 };
 
+// Fetch single user profile (tunnus = username)
+export const fetchUserByTunnusApi = async (tunnus: string): Promise<IBackendUser> => {
+  const response = await apiClient.get<IBackendUser>(
+    `${ADMIN_API_ENDPOINT}/${encodeURIComponent(tunnus)}`
+  );
+  console.log('[fetchUserByTunnusApi] status:', response.status, 'data:', response.data);
+  return response.data;
+};
+
+
 /**
  * Creates a new user. Requires admin privileges.
  * @param userData The payload containing the new user's details.

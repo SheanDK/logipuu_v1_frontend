@@ -38,9 +38,9 @@ export const officeNavigationItems: NavItemConfig[] = [
         icon: <WorkspacesIcon />,
         isTopNav: true,
         children: [
-            { text: 'Timber Map', icon: <MapIcon />, path: '/timber-stacks', permission: 'timber_stack_view' },
-            { text: 'Load Management', icon: <LocalShippingIcon />, path: '/loads', permission: 'load_view' }, // Assuming a 'load_view' permission
-            { text: 'Timber Management', icon: <ViewListIcon />, path: '/timber-management', permission: 'timber_stack_view' },
+            { text: 'Timber Map', icon: <MapIcon />, path: '/timber-stacks', permission: 'timber map_view' },
+            { text: 'Load Management', icon: <LocalShippingIcon />, path: '/loads', permission: 'load management_view' }, // Assuming a 'load_view' permission
+            { text: 'Timber Management', icon: <ViewListIcon />, path: '/timber-management', permission: 'timber management_view' },
         ]
     },
     {
@@ -48,7 +48,7 @@ export const officeNavigationItems: NavItemConfig[] = [
         icon: <ReceiptLongIcon />,
         isTopNav: true,
         children: [
-            { text: 'Driven/Inspection', icon: <AssignmentIcon />, path: '/driven-inspection', permission: 'driven_inspection_view' },
+            { text: 'Driven/Inspection', icon: <AssignmentIcon />, path: '/driven-inspection' },
             { text: 'Puulaani Invoicing', icon: <ReceiptLongIcon />, path: '/invoicing/puulaani' },
             { text: 'Consignment Invoicing', icon: <ReceiptLongIcon />, path: '/invoicing/consignment' },
         ]
@@ -58,10 +58,10 @@ export const officeNavigationItems: NavItemConfig[] = [
         icon: <TuneIcon />,
         isTopNav: true,
         children: [
-            { text: 'Clients', icon: <BusinessIcon />, path: '/clients', permission: 'client_view' },
-            { text: 'Drivers', icon: <PeopleIcon />, path: '/drivers', permission: 'driver_view' },
-            { text: 'Vehicles', icon: <DirectionsCarIcon />, path: '/vehicles', permission: 'vehicle_view' },
-            { text: 'Reports', icon: <BarChartIcon />, path: '/reports', permission: 'report_view' },
+            { text: 'Clients', icon: <BusinessIcon />, path: '/clients', permission: 'clients_view' },
+            { text: 'Drivers', icon: <PeopleIcon />, path: '/drivers', permission: 'drivers_view' },
+            { text: 'Vehicles', icon: <DirectionsCarIcon />, path: '/vehicles', permission: 'vehicles_view' },
+            { text: 'Reports', icon: <BarChartIcon />, path: '/reports', permission: 'reports_view' },
         ]
     },
     {
@@ -69,7 +69,7 @@ export const officeNavigationItems: NavItemConfig[] = [
         icon: <AdminPanelSettingsIcon />,
         isTopNav: false,
         children: [
-            { text: 'Users', icon: <GroupIcon />, path: '/users', permission: 'user_view' },
+            { text: 'Users', icon: <GroupIcon />, path: '/users', permission: 'users_view' },
             { text: 'Application Settings', icon: <SettingsIcon />, path: '/admin/settings', roles: ['Superuser'] },
             { text: 'My Profile', icon: <AccountCircleIcon />, path: '/settings/user' },
         ]
