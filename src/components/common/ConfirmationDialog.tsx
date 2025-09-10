@@ -13,8 +13,11 @@ interface ConfirmationDialogProps {
   onConfirm: () => void;
   title: string;
   message: string;
-  isConfirming?: boolean; // Optional prop to show loading state on confirm button
+  isConfirming?: boolean;
   confirmButtonText?: string;
+  // --- THIS IS THE FIX ---
+  // Add the missing optional prop to the interface.
+  confirmButtonColor?: 'inherit' | 'primary' | 'secondary' | 'success' | 'error' | 'info' | 'warning';
   cancelButtonText?: string;
 }
 
@@ -26,6 +29,9 @@ const ConfirmationDialog: React.FC<ConfirmationDialogProps> = ({
   message,
   isConfirming = false,
   confirmButtonText = 'Confirm',
+  // --- THIS IS THE FIX ---
+  // Accept the prop and provide a default value.
+  confirmButtonColor = 'primary',
   cancelButtonText = 'Cancel',
 }) => {
   return (
@@ -38,10 +44,7 @@ const ConfirmationDialog: React.FC<ConfirmationDialogProps> = ({
       fullWidth
     >
       <DialogTitle id="confirmation-dialog-title">
-        {/* --- KEY CORRECTION IS HERE --- */}
-        {/* Render the title directly as h2 (default for DialogTitle) or customize component prop. */}
-        {/* No nested Typography that renders another heading tag. */}
-        <Typography variant="h6" component="span"> {/* Use component="span" to wrap the text if variant is h6 to avoid nested headings */}
+        <Typography variant="h6" component="span">
           {title}
         </Typography>
       </DialogTitle>
@@ -56,7 +59,9 @@ const ConfirmationDialog: React.FC<ConfirmationDialogProps> = ({
         </Button>
         <Button
           onClick={onConfirm}
-          color="primary"
+          // --- THIS IS THE FIX ---
+          // Use the `confirmButtonColor` prop to set the button's color.
+          color={confirmButtonColor}
           variant="contained"
           disabled={isConfirming}
           startIcon={isConfirming && <CircularProgress size={20} color="inherit" />}

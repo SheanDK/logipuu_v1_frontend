@@ -4,18 +4,25 @@ import {
     ILoadListItem, 
     ICreateLoadDto, 
     ILoad,
-    // --- STEP 1: Import the new type ---
     IUpdateLoadDto, 
     ILoadStatusUpdateDto,
-    ILoadDetails 
+    ILoadDetails,
+    // --- STEP 1: Import the new type ---
+    ICompleteLoadDto 
 } from '../types';
-import { ILoadFilters } from '@/components/loads/LoadFilterBar';
 
 const API_ENDPOINT = '/loads';
 
-export const fetchAllLoads = async (filters: ILoadFilters): Promise<ILoadListItem[]> => {
+export interface ILoadListApiFilters {
+    status?: 'active' | 'all';
+    asiakasId?: string;
+    kalustoNro?: string;
+    kuljId?: string;
+}
+
+// Update the function to use the new, more specific type for its parameter.
+export const fetchAllLoads = async (filters: ILoadListApiFilters): Promise<ILoadListItem[]> => {
     try {
-        // The filters object will be automatically converted to query parameters by axios
         const response = await apiClient.get<ILoadListItem[]>(API_ENDPOINT, { params: filters });
         return response.data;
     } catch (error) {
@@ -24,7 +31,7 @@ export const fetchAllLoads = async (filters: ILoadFilters): Promise<ILoadListIte
     }
 };
 
-// This function is needed for the Edit functionality
+
 export const getLoadById = async (id: number): Promise<ILoadDetails> => {
     try {
         const response = await apiClient.get<ILoadDetails>(`${API_ENDPOINT}/${id}`);
@@ -45,7 +52,6 @@ export const createLoad = async (data: ICreateLoadDto): Promise<ILoad> => {
     }
 };
 
-// --- STEP 2: Add the new updateLoad function ---
 export const updateLoad = async (id: number, data: IUpdateLoadDto): Promise<ILoad> => {
     try {
         const response = await apiClient.put<ILoad>(`${API_ENDPOINT}/${id}`, data);
@@ -66,8 +72,6 @@ export const deleteLoad = async (id: number): Promise<any> => {
     }
 };
 
-
-// --- THIS IS THE FUNCTION FOR THE DRIVER'S PORTAL ---
 export const fetchMyLoads = async (): Promise<ILoadListItem[]> => {
     try {
         const response = await apiClient.get<ILoadListItem[]>(`${API_ENDPOINT}/my-loads`);
@@ -78,13 +82,43 @@ export const fetchMyLoads = async (): Promise<ILoadListItem[]> => {
     }
 };
 
-// --- THIS IS THE NEW FUNCTION FOR STATUS UPDATES ---
 export const updateLoadStatus = async (id: number, data: ILoadStatusUpdateDto): Promise<ILoad> => {
     try {
         const response = await apiClient.patch<ILoad>(`${API_ENDPOINT}/${id}/status`, data);
         return response.data;
     } catch (error) {
         console.error(`SERVICE ERROR: Failed to update status for load ${id}`, error);
+        throw error;
+    }
+};
+
+// --- STEP 2: Add the new completeLoad function ---
+export const completeLoad = async (id: number, data: ICompleteLoadDto): Promise<ILoad> => {
+    try {
+        const response = await apiClient.patch<ILoad>(`${API_ENDPOINT}/${id}/complete`, data);
+        return response.data;
+    } catch (error) {
+        console.error(`SERVICE ERROR: Failed to complete load ${id}`, error);
+        throw error;
+    }
+};
+
+export const fetchLoadsForInspection = async (): Promise<ILoadListItem[]> => {
+    try {
+        const response = await apiClient.get<ILoadListItem[]>('/loads/for-inspection');
+        return response.data;
+    } catch (error) {
+        console.error("SERVICE ERROR: Failed to fetch loads for inspection", error);
+        throw error;
+    }
+};
+
+export const acceptLoadsForInvoicing = async (loadIds: (string | number)[]): Promise<{ count: number }> => {
+    try {
+        const response = await apiClient.post<{ count: number }>('/loads/accept-for-invoicing', { loadIds });
+        return response.data;
+    } catch (error) {
+        console.error("SERVICE ERROR: Failed to accept loads for invoicing", error);
         throw error;
     }
 };

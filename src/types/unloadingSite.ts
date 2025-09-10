@@ -107,6 +107,7 @@ export interface IBackendPurkupaikkaResponse {
   sijaintiLat: number | null;
   sijaintiLong: number | null;
   isVisibleOnMap: boolean;
+  asiakkaanNimi: string;
   clientName: string | null; // This is the actual property from the camelCased SQL alias
   // We can remove asiakkaanNimi as it's not part of this specific API response
 }
