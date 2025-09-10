@@ -107,6 +107,7 @@ export default function UserFormModal({ open, onCloseAction, onSaveAction, user,
             getRoles();
         }
     }, [open]);
+    
 
     useEffect(() => {
         if (open) {
