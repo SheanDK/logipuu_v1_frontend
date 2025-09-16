@@ -3,6 +3,7 @@
 export enum LoadTypeEnum {
     PUULAANI = 0,
     POLE_TRANSPORT = 1,
+    RAHTIKIRJA = 1,
 }
 
 export interface ILoad {
@@ -37,6 +38,8 @@ export interface ILoadListItem {
     kuljettajanNimi: string;
     puulaaniNimi: string | null;
     asiakkaanNimi: string;
+    lahto: string | null;
+    kohde: string | null;
     timberType: string | null;
     reitti: string | null;
     m3: number;
@@ -49,41 +52,50 @@ export interface ILoadListItem {
 }
 
 export interface ILoadDetails {
+    // Core Load Info (from 'kuorma' table)
     kuormaId: number;
     pvm: Date;
     ajomaaraysNro: string | null;
     status: string;
     lisatiedot: string | null;
     kuljId: number;
+    
+    // --- THIS IS THE FIX ---
+    // Add the raw ID fields needed by the form
     tyyppi: LoadTypeEnum;
     asiakasId: number;
     puulaaniId: number | null;
     puutavaraId: number | null;
     kalustoNro: number | null;
+    // NOTE: m3 is now represented by taskVolume
+    // ----------------------
+
+    // Customer Info
     asiakkaanNimi: string;
+
+    // Vehicle Info
     rekNro: string;
+
+    // Driver Info
     kuljettajanNimi: string;
+
+    // Origin (Puulaani) Info
     originName: string;
     originAddress: string | null;
     originLat: number | null;
     originLng: number | null;
     originInstructions: string | null;
+
+    // Timber Task Info (from puutavaralaji)
     taskTimberTypeName: string;
     taskVolume: number;
     taskRemainingVolumeBeforeThisTrip: number;
+
+    // Destination (Purkupaikka) Info
     destinationName: string;
     destinationAddress: string | null;
     destinationLat: number | null;
     destinationLng: number | null;
-    
-    // --- THIS IS THE FIX (PART 1) ---
-    // Add all other fields from 'kuorma' table that are needed for editing
-    vastaanottoNro: string | null;
-    reitti: string | null;
-    m3: number;
-    km: number;
-    tunnit: number;
-    kpl: number;
 }
 
 // --- THIS IS THE FIX (PART 2) ---
@@ -142,4 +154,15 @@ export interface ILoadFilters {
     asiakasId?: string;
     kalustoNro?: string;
     kuljId?: string;
+}
+
+export interface IMapTrip {
+    tripId: number;
+    driverName: string;
+    vehicleRegNo: string;
+    originName: string;
+    destinationName: string;
+    status: string;
+    originCoords: { lat: number, lng: number };
+    destinationCoords: { lat: number, lng: number };
 }

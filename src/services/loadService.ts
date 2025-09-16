@@ -8,7 +8,8 @@ import {
     ILoadStatusUpdateDto,
     ILoadDetails,
     // --- STEP 1: Import the new type ---
-    ICompleteLoadDto 
+    ICompleteLoadDto,
+    IMapTrip, 
 } from '../types';
 
 const API_ENDPOINT = '/loads';
@@ -119,6 +120,36 @@ export const acceptLoadsForInvoicing = async (loadIds: (string | number)[]): Pro
         return response.data;
     } catch (error) {
         console.error("SERVICE ERROR: Failed to accept loads for invoicing", error);
+        throw error;
+    }
+};
+
+export const fetchMyCompletedLoads = async (): Promise<ILoadListItem[]> => {
+    try {
+        const response = await apiClient.get<ILoadListItem[]>('/loads/my-loads/completed');
+        return response.data;
+    } catch (error) {
+        console.error("SERVICE ERROR: Failed to fetch driver's completed loads", error);
+        throw error;
+    }
+}; 
+
+export const fetchMyLastCompletedLoad = async (): Promise<ILoadListItem | null> => {
+    try {
+        const response = await apiClient.get<ILoadListItem | null>('/loads/my-loads/last-completed');
+        return response.data;
+    } catch (error) {
+        console.error("SERVICE ERROR: Failed to fetch driver's last completed load", error);
+        throw error;
+    }
+};
+
+export const fetchActiveTripsForMap = async (): Promise<IMapTrip[]> => {
+    try {
+        const response = await apiClient.get<IMapTrip[]>('/loads/active-trips');
+        return response.data;
+    } catch (error) {
+        console.error("SERVICE ERROR: Failed to fetch active trips for map", error);
         throw error;
     }
 };

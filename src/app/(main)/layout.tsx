@@ -1,41 +1,73 @@
-// frontend/src/app/(main)/layout.tsx (UPDATED for DEBUGGING)
+// frontend/src/app/(main)/layout.tsx
 'use client';
-import React, { ReactNode, useEffect } from 'react';
+import React, { ReactNode, useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { useAuth } from '../../contexts/AuthContext';
-import { useLayout } from '../../contexts/LayoutContext';
+import { AuthProvider, useAuth } from '../../contexts/AuthContext';
+import { LayoutProvider, useLayout } from '../../contexts/LayoutContext';
+import { DriverSessionProvider, useDriverSession } from '../../contexts/DriverSessionContext';
+import { fetchAllVehicles } from '@/services/vehicleService';
+import { IVehicleBasicInfo, IVehicleBackendResponse } from '@/types';
+
 import Box from '@mui/material/Box';
 import CircularProgress from '@mui/material/CircularProgress';
 import Toolbar from '@mui/material/Toolbar';
 
 import AppNavbar from '../../components/layout/AppNavbar';
 import AppSidebar from '../../components/layout/AppSidebar';
+import SelectVehicleModal from '@/components/drivers/SelectVehicleModal';
+import ThemeProvider from '@/theme/ThemeProvider'; // Import the new ThemeProvider
 
 const drawerWidth = 240;
 
-export default function MainLayout({ children }: { children: ReactNode }) {
-    const { isAuthenticated, isLoading, user } = useAuth(); // Get 'user' as well for debugging
+function LayoutRenderer({ children }: { children: ReactNode }) {
     const { navLayout } = useLayout();
-    const router = useRouter();
+    const { isVehicleSelectionRequired, selectVehicle } = useDriverSession();
+    const [vehicleList, setVehicleList] = useState<IVehicleBasicInfo[]>([]);
+    
+    useEffect(() => {
+        if (isVehicleSelectionRequired) {
+            fetchAllVehicles()
+                .then((data: IVehicleBackendResponse[]) => {
+                    const mappedVehicles = data.map(v => ({
+                        id: String(v.kalustoNro),
+                        registrationNo: v.rekNro,
+                        name: v.rekNro,
+                        vehicleNo: String(v.kalustoNro)
+                    }));
+                    setVehicleList(mappedVehicles);
+                })
+                .catch(err => console.error("Failed to fetch vehicles for selection modal:", err));
+        }
+    }, [isVehicleSelectionRequired]);
 
-    // --- FOR DEBUGGING: Log the state from contexts ---
-    console.log('--- MainLayout Render ---');
-    console.log('Auth Is Loading:', isLoading);
-    console.log('Is Authenticated:', isAuthenticated);
-    console.log('Navigation Layout:', navLayout);
-    console.log('User Object:', user); // See if user object with roles/permissions is available
-    // --- END DEBUGGING ---
+    return (
+        <Box sx={{ display: 'flex' }}>
+            <AppNavbar />
+            {navLayout === 'left' && <AppSidebar />}
+            <Box component="main" sx={{ flexGrow: 1, p: 3, width: { md: navLayout === 'left' ? `calc(100% - ${drawerWidth}px)` : '100%' } }}>
+                <Toolbar /> 
+                {children}
+            </Box>
+            <SelectVehicleModal
+                open={isVehicleSelectionRequired}
+                vehicles={vehicleList}
+                onVehicleSelectAction={selectVehicle}
+            />
+        </Box>
+    );
+}
+
+function AuthWrapper({ children }: { children: ReactNode }) {
+    const { isAuthenticated, isLoading } = useAuth();
+    const router = useRouter();
 
     useEffect(() => {
         if (!isLoading && !isAuthenticated) {
-            console.log("MainLayout: Redirecting to /login because user is not authenticated.");
             router.replace('/login');
         }
     }, [isAuthenticated, isLoading, router]);
 
-    // Show a full-page loader while checking authentication state
     if (isLoading) {
-        console.log("MainLayout: Showing loading spinner.");
         return (
             <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
                 <CircularProgress />
@@ -43,34 +75,26 @@ export default function MainLayout({ children }: { children: ReactNode }) {
         );
     }
 
-    // Don't render anything if not authenticated (will be redirected by useEffect)
     if (!isAuthenticated) {
-        console.log("MainLayout: Not rendering layout because user is not authenticated.");
-        return null; 
+        return null;
     }
+    return <LayoutRenderer>{children}</LayoutRenderer>;
+}
 
-    // If authenticated, render the full layout
-    console.log("MainLayout: Rendering full layout with Navbar and Sidebar.");
+export default function MainLayout({ children }: { children: ReactNode }) {
     return (
-        <Box sx={{ display: 'flex' }}>
-            <AppNavbar />
-
-            {/* Conditionally render the sidebar based on the navLayout setting */}
-            {navLayout === 'left' && (
-                <AppSidebar />
-            )}
-
-            <Box
-                component="main"
-                sx={{
-                    flexGrow: 1,
-                    p: 3,
-                    width: { md: navLayout === 'left' ? `calc(100% - ${drawerWidth}px)` : '100%' },
-                }}
-            >
-                <Toolbar /> 
-                {children}
-            </Box>
-        </Box>
+        <AuthProvider>
+            <LayoutProvider>
+                {/* --- THIS IS THE FIX --- */}
+                {/* ThemeProvider goes inside LayoutProvider so it can access the themeMode state */}
+                <ThemeProvider>
+                    <DriverSessionProvider>
+                        <AuthWrapper>
+                            {children}
+                        </AuthWrapper>
+                    </DriverSessionProvider>
+                </ThemeProvider>
+            </LayoutProvider>
+        </AuthProvider>
     );
 }

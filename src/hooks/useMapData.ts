@@ -4,19 +4,22 @@
 import { useState, useEffect, useCallback } from 'react';
 import {
     IMapFilterState, IMapTimberStack, IMapDropoffLocation, IMapOtherMarker,
-    IClientBasicInfo, IVehicleBasicInfo, IBackendPuulaani, IBackendPurkupaikkaResponse, IBackendOtherMarker
+    IClientBasicInfo, IVehicleBasicInfo, IBackendPuulaani, IBackendPurkupaikkaResponse, 
+    IBackendOtherMarker, IMapTrip // Import the new IMapTrip type
 } from '../types';
 import { fetchAllTimberStacks } from '../services/timberStackService';
 import { fetchAllDropoffLocations } from '../services/unloadingSiteService';
 import { fetchAllOtherMarkers } from '../services/otherInfoService';
 import { fetchClientsListApi } from '../services/clientService';
 import { fetchVehiclesListApi } from '../services/vehicleService';
+import { fetchActiveTripsForMap } from '../services/loadService'; // Import the new service function
 
 // Define the shape of the data state object
 interface IDataState {
     timberStacks: IMapTimberStack[];
     dropoffLocations: IMapDropoffLocation[];
     otherMarkers: IMapOtherMarker[];
+    activeTrips: IMapTrip[]; // Add activeTrips to the state
 }
 
 interface MapDataResult {
@@ -40,6 +43,7 @@ export const useMapData = (filters: IMapFilterState): MapDataResult => {
         timberStacks: [],
         dropoffLocations: [],
         otherMarkers: [],
+        activeTrips: [], // Initialize activeTrips as an empty array
     });
     
     const [clientList, setClientList] = useState<IClientBasicInfo[]>([]);
@@ -49,12 +53,15 @@ export const useMapData = (filters: IMapFilterState): MapDataResult => {
         setIsLoading(true);
         setMapError(null);
         try {
-            const [stackData, clientData, vehicleData, dropoffData, otherMarkerData] = await Promise.all([
+            // --- THIS IS THE FIX (PART 1) ---
+            // Add the new fetchActiveTripsForMap call to Promise.all
+            const [stackData, clientData, vehicleData, dropoffData, otherMarkerData, tripData] = await Promise.all([
                 fetchAllTimberStacks(filters),
                 fetchClientsListApi(),
                 fetchVehiclesListApi(),
                 fetchAllDropoffLocations(),
                 fetchAllOtherMarkers(),
+                fetchActiveTripsForMap(), // Fetch active trips
             ]);
             
             setClientList(clientData);
@@ -93,10 +100,11 @@ export const useMapData = (filters: IMapFilterState): MapDataResult => {
             }));
 
             // Set the entire data object at once
-            setData({
+             setData({
                 timberStacks: transformedStacks,
                 dropoffLocations: transformedDropoffs,
                 otherMarkers: transformedOtherMarkers,
+                activeTrips: tripData, // Add the fetched trip data to the state
             });
 
         } catch (err: any) {
@@ -117,11 +125,8 @@ export const useMapData = (filters: IMapFilterState): MapDataResult => {
     return {
         isLoading,
         mapError,
-        data, // Return the single data object
-        lists: {
-            clientList,
-            vehicleList,
-        },
+        data,
+        lists: { clientList, vehicleList },
         reloadData: fetchData,
         setLocalData,
     };
