@@ -96,14 +96,6 @@ export default function UserFormModal({ open, onCloseAction, onSaveAction, user,
     }, [initialFormState, currentValues]);
     // --- END CORRECTION ---
 
-    const availableRoles = useMemo(() => {
-        if (!currentUser) return [];
-        if (!currentUser.roles.includes('Superuser')) {
-            return allRoles.filter(role => role.roolinNimi !== 'Superuser');
-        }
-        return allRoles;
-    }, [allRoles, currentUser]);
-
     useEffect(() => {
         if (open) {
             const getRoles = async () => {
@@ -115,6 +107,7 @@ export default function UserFormModal({ open, onCloseAction, onSaveAction, user,
             getRoles();
         }
     }, [open]);
+    
 
     useEffect(() => {
         if (open) {
@@ -123,7 +116,7 @@ export default function UserFormModal({ open, onCloseAction, onSaveAction, user,
                 fullName: user?.fullName || '',
                 password: '',
                 confirmPassword: '',
-                roles: user?.roleIds?.[0] ?? '',
+                roleId: (user?.roleIds?.[0] ?? ('') ) as '' | number,
                 isActive: user ? user.isActive : true,
             };
 
@@ -174,7 +167,7 @@ export default function UserFormModal({ open, onCloseAction, onSaveAction, user,
                                 <Grid item xs={12} sm={6}><Controller name="confirmPassword" control={control} render={({ field }) => <TextField {...field} type="password" label="Confirm Password" fullWidth required={!isEditMode} error={!!errors.confirmPassword} helperText={errors.confirmPassword?.message} />} /></Grid>
                             </>
                         )}
-                        <Grid item xs={12}><FormControl fullWidth required error={!!errors.roleId}><InputLabel id="role-select-label">Role</InputLabel><Controller name="roleId" control={control} render={({ field }) => (<Select {...field} labelId="role-select-label" label="Role" sx={{ width: 150 }} value={field.value === '' ? '' : Number(field.value)} onChange={(e) => field.onChange(Number(e.target.value))} >{availableRoles.map((role) => (<MenuItem key={role.rooliId} value={role.rooliId}>{role.roolinNimi}</MenuItem>))}</Select>)} />{errors.roleId && <FormHelperText>{errors.roleId.message}</FormHelperText>}</FormControl></Grid>
+                        <Grid item xs={12}><FormControl fullWidth required error={!!errors.roleId}><InputLabel id="role-select-label">Role</InputLabel><Controller name="roleId" control={control} render={({ field }) => (<Select {...field} labelId="role-select-label" label="Role" sx={{ width: 150 }} value={field.value === '' ? '' : Number(field.value)} onChange={(e) => field.onChange(Number(e.target.value))} >{allRoles.map((role) => (<MenuItem key={role.rooliId} value={role.rooliId}>{role.roolinNimi}</MenuItem>))}</Select>)} />{errors.roleId && <FormHelperText>{errors.roleId.message}</FormHelperText>}</FormControl></Grid>
                         <Grid item xs={12}><FormControlLabel control={<Controller name="isActive" control={control} render={({ field }) => <Switch {...field} checked={field.value} />} />} label={<Typography>Status: <b>{watch('isActive') ? 'Active' : 'Inactive'}</b></Typography>} /></Grid>
                     </Grid>
                 </DialogContent>
