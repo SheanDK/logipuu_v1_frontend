@@ -38,8 +38,6 @@ export interface ILoadListItem {
     kuljettajanNimi: string;
     puulaaniNimi: string | null;
     asiakkaanNimi: string;
-    lahto: string | null;
-    kohde: string | null;
     timberType: string | null;
     reitti: string | null;
     m3: number;
@@ -49,9 +47,23 @@ export interface ILoadListItem {
     lisatiedot: string | null;
     status: string;
     isActive: boolean;
+    lahto?: string;
+    kohde?: string;
+
+    // --- THIS IS FIX 2 ---
+    // Add the optional origin coordinate properties.
+    // They are optional (?) because some old data or different load types might not have them.
+    originLat?: number | null;
+    originLng?: number | null;
 }
 
 export interface ILoadDetails {
+    vastaanottoNro: string;
+    reitti: string;
+    tunnit: number;
+    m3: number;
+    km: number;
+    kpl: number;
     // Core Load Info (from 'kuorma' table)
     kuormaId: number;
     pvm: Date;
@@ -165,4 +177,30 @@ export interface IMapTrip {
     status: string;
     originCoords: { lat: number, lng: number };
     destinationCoords: { lat: number, lng: number };
+}
+
+export interface ITripLeg {
+    kuormaId: number;
+    pvm: Date;
+    status: string;
+    m3: number;
+    originName: string;
+    destinationName: string;
+    originLat: number | null;
+    originLng: number | null;
+    destinationLat: number | null;
+    destinationLng: number | null;
+    taskTimberTypeName: string;
+    puulaaniId: number | null;
+    puutavaraId: number | null;
+    lisatiedot: string | null;
+}
+
+export interface ITripDetails {
+    tripId: string;
+    asiakasId: number;
+    asiakkaanNimi: string;
+    rekNro: string; // This is the vehicle registration number
+    kuljettajanNimi: string;
+    legs: ITripLeg[];
 }

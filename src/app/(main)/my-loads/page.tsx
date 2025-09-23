@@ -1,227 +1,245 @@
 // frontend/src/app/(main)/my-loads/page.tsx
+
 'use client';
 
 import React, { useEffect, useState, useCallback, useMemo } from 'react';
-import { 
-    Box, Typography, Paper, Alert, CircularProgress, Button, Card, CardContent, 
-    Divider, Stack, Grid, CardHeader, Tooltip, CardActionArea, IconButton, Chip
+import dynamic from 'next/dynamic';
+import {
+    Box,
+    Button,
+    CircularProgress,
+    Alert,
+    Paper,
+    Snackbar,
+    IconButton,
+    Stack
 } from '@mui/material';
-import type { AlertColor } from '@mui/material';
-import { useRouter } from 'next/navigation';
-import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline';
-import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
-import ChevronRightIcon from '@mui/icons-material/ChevronRight';
-import InboxOutlinedIcon from '@mui/icons-material/InboxOutlined';
-import PlayCircleOutlineIcon from '@mui/icons-material/PlayCircleOutline';
-import CheckCircleIcon from '@mui/icons-material/CheckCircle';
-import EditIcon from '@mui/icons-material/Edit';
-import Snackbar from '@mui/material/Snackbar';
-import dayjs from 'dayjs';
-import 'dayjs/locale/fi';
+import AddIcon from '@mui/icons-material/Add';
+import ListIcon from '@mui/icons-material/List';
 
-import LoadFormModal from '../../../components/loads/LoadFormModal';
-import { ILoadListItem, ILoadDetails } from '../../../types';
-import { fetchMyLoads, fetchMyLastCompletedLoad, getLoadById } from '../../../services/loadService';
-import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline';
+import { ILoadListItem, ITripDetails } from '../../../types';
+import { fetchMyLoads, getTripById } from '../../../services/loadService';
+import { TripLegForMap, TripMapProps } from '../../../components/loads/TripMap';
+import { TripLeg } from '../../../components/loads/TripCreatorPanel';
 
-dayjs.locale('fi');
-
-// A compact card for the "Upcoming" list
-const UpcomingLoadRow = ({ load, onViewDetails }: { load: ILoadListItem, onViewDetails: (id: number) => void }) => (
-    <Paper 
-        variant="outlined" 
-        onClick={() => onViewDetails(load.kuormaId)}
-        sx={{ 
-            p: 1.5, 
-            display: 'flex', 
-            alignItems: 'center', 
-            justifyContent: 'space-between',
-            cursor: 'pointer',
-            transition: 'all 0.2s ease-in-out',
-            '&:hover': {
-                borderColor: 'primary.main',
-                boxShadow: (theme) => theme.shadows[2]
-            }
-        }}
-    >
-        <Box>
-            <Typography variant="body2" fontWeight="bold">{load.lahto} &#8594; {load.kohde}</Typography>
-            <Typography variant="caption" color="text.secondary">{dayjs(load.pvm).format('dddd, DD MMMM YYYY')}</Typography>
-        </Box>
-        <ChevronRightIcon color="action" />
-    </Paper>
-);
-
-// A card to display the last completed trip
-const LastCompletedCard = ({ load }: { load: ILoadListItem }) => (
-    <Paper variant="outlined" sx={{ p: 2, backgroundColor: '#f5f5f5', borderStyle: 'dashed' }}>
-        <Stack spacing={1}>
-            <Box sx={{display: 'flex', alignItems: 'center', gap: 1, color: 'success.main'}}>
-                <CheckCircleOutlineIcon />
-                <Typography variant="h6" sx={{fontSize: '1rem', fontWeight: 'bold'}}>Last Completed Trip</Typography>
-            </Box>
-            <Typography variant="body2" fontWeight="bold">{load.lahto} &#8594; {load.kohde}</Typography>
-            <Typography variant="caption" color="text.secondary">
-                On {dayjs(load.pvm).format('dddd, DD MMMM YYYY')}
-            </Typography>
-        </Stack>
-    </Paper>
-);
+// --- DYNAMIC IMPORTS ---
+// Dynamically import components that are not needed for the initial server-side render.
+// This improves initial page load performance.
+const TripMap = dynamic<TripMapProps>(() => import('../../../components/loads/TripMap'), {
+    ssr: false,
+    loading: () => <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100%' }}><CircularProgress /></Box>
+});
+const TripCreatorPanel = dynamic(() => import('../../../components/loads/TripCreatorPanel'), { ssr: false });
+const ActiveTripsSheet = dynamic(() => import('../../../components/loads/ActiveTripsSheet'), { ssr: false });
+const TripDetailsPanel = dynamic(() => import('../../../components/loads/TripDetailsPanel'), { ssr: false });
 
 
-export default function DriverDashboardPage() {
-    const router = useRouter();
-    const [myLoads, setMyLoads] = useState<ILoadListItem[]>([]);
-    const [lastCompletedLoad, setLastCompletedLoad] = useState<ILoadListItem | null>(null);
+/**
+ * The main map-centric dashboard for the driver. This page serves as the central hub
+ * for viewing active trips, creating new trips, and managing trip details.
+ */
+export default function DriverMapDashboard() {
+    // --- STATE MANAGEMENT ---
+
+    // Data states
+    const [activeTrips, setActiveTrips] = useState<ILoadListItem[]>([]);
+    const [currentLocation, setCurrentLocation] = useState<{ lat: number; lng: number } | null>(null);
+    const [previewMarkers, setPreviewMarkers] = useState<TripLegForMap[]>([]);
+
+    // UI Control States
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
-    const [isModalOpen, setIsModalOpen] = useState(false);
-    const [snackbar, setSnackbar] = useState<{ open: boolean; message: string; severity: AlertColor }>({ open: false, message: '', severity: 'info' });
-    const [selectedLoadForEditing, setSelectedLoadForEditing] = useState<ILoadDetails | null>(null);
+    const [snackbarMessage, setSnackbarMessage] = useState<string | null>(null);
+
+    // Panel & Sheet Visibility States
+    const [isCreatorPanelOpen, setIsCreatorPanelOpen] = useState(false);
+    const [isTripSheetOpen, setIsTripSheetOpen] = useState(false);
+    const [isDetailsPanelOpen, setIsDetailsPanelOpen] = useState(false);
+
+    // Contextual States for Panels
+    const [focusedTripId, setFocusedTripId] = useState<number | null>(null);
+    const [selectedTripIdForView, setSelectedTripIdForView] = useState<number | null>(null);
+    const [tripDataForEdit, setTripDataForEdit] = useState<ITripDetails | null>(null);
+
+
+    // --- DATA FETCHING ---
 
     const loadData = useCallback(async () => {
+        // Only show the main loader on the very first fetch.
+        if (activeTrips.length === 0) setIsLoading(true);
+        setError(null);
         try {
-            setIsLoading(true);
-            setError(null);
-            const [activeData, lastCompletedData] = await Promise.all([
-                fetchMyLoads(),
-                fetchMyLastCompletedLoad()
-            ]);
-            setMyLoads(activeData);
-            setLastCompletedLoad(lastCompletedData);
+            const data = await fetchMyLoads();
+            setActiveTrips(data);
         } catch (err: any) {
-            setError(err.response?.data?.message || "Failed to fetch dashboard data.");
+            setError(err.response?.data?.message || "Failed to fetch active trips.");
         } finally {
             setIsLoading(false);
         }
+    }, [activeTrips.length]);
+
+    useEffect(() => {
+        loadData();
+    }, [loadData]);
+
+    useEffect(() => {
+        let watchId: number | null = null;
+        if (navigator.geolocation) {
+            watchId = navigator.geolocation.watchPosition(
+                (position) => setCurrentLocation({ lat: position.coords.latitude, lng: position.coords.longitude }),
+                (err) => console.error("Geolocation error:", err),
+                { enableHighAccuracy: true }
+            );
+        }
+        return () => { if (watchId) navigator.geolocation.clearWatch(watchId); };
     }, []);
 
-    useEffect(() => { loadData(); }, [loadData]);
 
-    const handleOpenCreateModal = () => {
-        setSelectedLoadForEditing(null);
-        setIsModalOpen(true);
-    };
+    // --- MEMOIZED COMPUTATIONS ---
 
-    const handleOpenEditModal = async (loadItem: ILoadListItem) => {
+    const mapMarkers = useMemo((): TripLegForMap[] =>
+        activeTrips
+            .filter(trip => trip.originLat && trip.originLng)
+            .map(trip => ({
+                kuormaId: trip.kuormaId,
+                originName: trip.lahto || 'Unknown Origin',
+                originCoords: { lat: trip.originLat!, lng: trip.originLng! }
+            })),
+        [activeTrips]
+    );
+
+
+    // --- HANDLERS ---
+    // Wrapped in useCallback to prevent re-creation on re-renders, breaking child component memoization.
+
+    const handleMapFocus = useCallback((tripId: number | null) => {
+        setFocusedTripId(tripId);
+        setIsTripSheetOpen(false);
+    }, []);
+
+    const handleFocusCompleteAction = useCallback(() => {
+        setFocusedTripId(null);
+    }, []);
+
+    const handleViewDetails = useCallback((tripId: number | null) => {
+        setSelectedTripIdForView(tripId);
+        setIsDetailsPanelOpen(true);
+        setIsTripSheetOpen(false);
+    }, []);
+
+     const handleEditTrip = useCallback(async (tripId: number) => {
+        // 1. Close the list sheet
+        setIsTripSheetOpen(false);
+        setIsLoading(true); // Show a loading indicator
+        setError(null);
+
         try {
-            const fullLoadData = await getLoadById(loadItem.kuormaId);
-            setSelectedLoadForEditing(fullLoadData);
-            setIsModalOpen(true);
+            // 2. Fetch the FULL trip details using the provided ID
+            const tripDetailsToEdit = await getTripById(tripId);
+
+            if (tripDetailsToEdit) {
+                // 3. Set the fetched data into state
+                setTripDataForEdit(tripDetailsToEdit);
+                // 4. Open the creator panel in edit mode
+                setIsCreatorPanelOpen(true);
+            } else {
+                setError("Could not find the trip details to edit.");
+            }
         } catch (err) {
-            setSnackbar({ open: true, message: 'Failed to fetch load details for editing.', severity: 'error' });
+            setError("Failed to fetch trip details for editing.");
+        } finally {
+            setIsLoading(false); // Hide loading indicator
         }
-    };
-    
-    const handleCloseModal = () => {
-        setIsModalOpen(false);
-        setSelectedLoadForEditing(null);
-    };
+    }, []);
 
-    const handleSaveSuccess = (message: string) => {
-        handleCloseModal();
+     const handleLegsChange = useCallback((legs: TripLeg[]) => {
+        const markers = legs
+            .filter(leg => leg.originCoords || leg.destinationCoords)
+            .map((leg, index) => ({
+                // Using a temporary negative ID to avoid conflicts with real trip IDs
+                kuormaId: -(index + 1), 
+                originName: leg.lahto || leg.puulaaniName || 'Pickup',
+                originCoords: leg.originCoords!,
+                destinationName: leg.kohde || leg.purkupaikkaName || 'Drop-off',
+                destinationCoords: leg.destinationCoords,
+            }));
+        setPreviewMarkers(markers);
+    }, []);
+
+    const handleCreatorPanelClose = useCallback(() => {
+        setIsCreatorPanelOpen(false);
+        setPreviewMarkers([]); // Clear markers when panel is closed
+        setTripDataForEdit(null);
+    }, []);
+    
+    const handleSaveSuccess = useCallback((message: string) => {
+        setIsCreatorPanelOpen(false);
+        setPreviewMarkers([]); // Clear markers on successful save
+        setSnackbarMessage(message);
         loadData();
-        setSnackbar({ open: true, message, severity: 'success' });
-    };
+    }, [loadData]);
 
-    const handleViewDetailsClick = (loadId: number) => {
-        router.push(`/my-loads/${loadId}`);
-    };
     
-    const { nextLoad, upcomingLoads } = useMemo(() => {
-        if (!myLoads || myLoads.length === 0) return { nextLoad: null, upcomingLoads: [] };
-        const [firstLoad, ...rest] = myLoads;
-        return { nextLoad: firstLoad, upcomingLoads: rest };
-    }, [myLoads]);
+    // --- RENDER LOGIC ---
 
-    if (isLoading) { return <Box sx={{ display: 'flex', justifyContent: 'center', p: 4 }}><CircularProgress /></Box>; }
-    if (error) { return <Alert severity="error" sx={{ m: 3 }}>{error}</Alert>; }
+    if (isLoading) {
+        return <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}><CircularProgress /></Box>;
+    }
 
     return (
-        <Box sx={{ p: { xs: 2, sm: 3 }, width: '100%' }}>
-            <Typography variant="h4" component="h1" sx={{ fontWeight: 'bold', mb: 3 }}>
-                Driver Dashboard
-            </Typography>
-            
-            {nextLoad ? (
-                <Grid container spacing={3}>
-                    <Grid item xs={12} md={5}>
-                        <Paper variant="outlined" sx={{ p: 2, height: '100%' }}>
-                             {/* <Typography variant="h6" gutterBottom>Upcoming Queue</Typography> */}
-                             {upcomingLoads.length > 0 ? (
-                                <Stack spacing={1.5}>
-                                    {upcomingLoads.map(load => (
-                                        <UpcomingLoadRow key={load.kuormaId} load={load} onViewDetails={handleViewDetailsClick} />
-                                    ))}
-                                </Stack>
-                             ) : lastCompletedLoad ? (
-                                <LastCompletedCard load={lastCompletedLoad} />
-                             ) : (
-                                <Box sx={{display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '80%', color: 'text.secondary', textAlign: 'center'}}>
-                                    <CheckCircleIcon sx={{fontSize: 40, mb: 1}} color="success" />
-                                    <Typography>Your queue is clear!</Typography>
-                                    <Typography variant="caption">No other trips after the current one.</Typography>
-                                </Box>
-                             )}
-                        </Paper>
-                    </Grid>
+        <Box sx={{ height: '100%', width: '100%', position: 'relative', overflow: 'hidden' }}>
+            {error && (<Alert severity="error" sx={{ position: 'absolute', top: 16, left: '50%', transform: 'translateX(-50%)', zIndex: 1200 }}>{error}</Alert>)}
 
-                    <Grid item xs={12} md={7}>
-                        <Paper sx={{ p: 3, border: 2, borderColor: 'primary.main', height: '100%' }}>
-                            <Typography variant="h5" gutterBottom>Your Next Trip</Typography>
-                            <Divider sx={{mb: 2}}/>
-                            <Stack direction="row" alignItems="center" spacing={2} sx={{mb: 2}}>
-                                <Box>
-                                    <Typography variant="caption">Origin</Typography>
-                                    <Typography fontWeight="bold" variant="h5">{nextLoad.lahto}</Typography>
-                                </Box>
-                                <ArrowForwardIcon fontSize="large" sx={{ color: 'grey.400' }} />
-                                <Box>
-                                    <Typography variant="caption">Destination</Typography>
-                                    <Typography fontWeight="bold" variant="h5">{nextLoad.kohde}</Typography>
-                                </Box>
-                            </Stack>
-                             <Typography variant="body2" color="text.secondary">
-                                For customer <strong>{nextLoad.asiakkaanNimi}</strong> on <strong>{dayjs(nextLoad.pvm).format('dddd, DD MMMM')}</strong> with vehicle <strong>{nextLoad.rekNro}</strong>.
-                            </Typography>
-                            <Button
-                                variant="contained"
-                                size="large"
-                                fullWidth
-                                startIcon={<PlayCircleOutlineIcon />}
-                                onClick={() => handleViewDetailsClick(nextLoad.kuormaId)}
-                                sx={{ mt: 3 }}
-                            >
-                                View Details & Start Trip
-                            </Button>
-                        </Paper>
-                    </Grid>
-                    
-                </Grid>
-            ) : (
-                <Paper variant="outlined" sx={{ p: 4, mt: 4, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', textAlign: 'center', backgroundColor: 'grey.50', minHeight: 300 }}>
-                    <InboxOutlinedIcon sx={{ fontSize: 60, color: 'grey.400', mb: 2 }} />
-                    <Typography variant="h6" gutterBottom>No Active Loads Assigned</Typography>
-                    <Typography color="text.secondary" sx={{ mb: 3, maxWidth: '400px' }}>
-                        You have no pending tasks. You can start a new trip yourself if one is available.
-                    </Typography>
-                    <Button variant="contained" size="large" startIcon={<AddCircleOutlineIcon />} onClick={handleOpenCreateModal}>
-                        Create New Load
-                    </Button>
-                </Paper>
-            )}
+            <TripMap 
+                // --- FIX: Pass the preview markers to the 'legs' prop for detailed display ---
+                legs={previewMarkers} 
+                // The 'otherTrips' prop will show the already saved trips
+                otherTrips={mapMarkers} 
+                driverLocation={currentLocation} 
+                focusedTripId={focusedTripId} 
+                onFocusCompleteAction={handleFocusCompleteAction}
+            />
 
-            {isModalOpen && (
-                <LoadFormModal 
-                   open={isModalOpen} 
-                   onCloseAction={handleCloseModal} 
-                   onSaveSuccessAction={handleSaveSuccess}
-                   initialData={selectedLoadForEditing}
-               />
-           )}
-           <Snackbar open={snackbar.open} autoHideDuration={6000} onClose={() => setSnackbar({ ...snackbar, open: false })} anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}>
-               <Box sx={{ width: '100%', p: 2 }}><Alert onClose={() => setSnackbar({ ...snackbar, open: false })} severity={snackbar.severity} sx={{ width: '100%', boxShadow: 6 }}>{snackbar.message}</Alert></Box>
-           </Snackbar>
+            <Paper elevation={4} sx={{ position: 'absolute', top: 16, left: 16, zIndex: 1000, p: 1, backgroundColor: 'rgba(255, 255, 255, 0.9)', backdropFilter: 'blur(5px)', borderRadius: 2 }}>
+                <Stack direction="row" spacing={1}>
+                    <Button variant="contained" startIcon={<AddIcon />} onClick={() => setIsCreatorPanelOpen(true)}>Create Trip</Button>
+                    <IconButton onClick={() => setIsTripSheetOpen(true)} title="Show Active Trips List"><ListIcon /></IconButton>
+                </Stack>
+            </Paper>
+
+            <TripCreatorPanel 
+                open={isCreatorPanelOpen} 
+                onCloseAction={handleCreatorPanelClose} 
+                onSaveSuccessAction={handleSaveSuccess}
+                // --- FIX: Pass the new handler to receive leg updates ---
+                onLegsChangeAction={handleLegsChange} 
+                initialData={tripDataForEdit}
+            />
+
+            <ActiveTripsSheet
+                open={isTripSheetOpen}
+                onCloseAction={() => setIsTripSheetOpen(false)} // Corrected
+                trips={activeTrips}
+                onTripSelectAction={handleMapFocus} // Corrected
+                onViewDetailsAction={handleViewDetails} // Corrected
+                onEditTripAction={handleEditTrip} // Corrected
+            />
+
+            <TripDetailsPanel
+                open={isDetailsPanelOpen}
+                onCloseAction={() => setIsDetailsPanelOpen(false)}
+                tripId={selectedTripIdForView}
+                onTripUpdateAction={loadData}
+                onEditTripAction={handleEditTrip}
+            />
+
+            <Snackbar
+                open={!!snackbarMessage}
+                autoHideDuration={5000}
+                onClose={() => setSnackbarMessage(null)}
+                message={snackbarMessage}
+                anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+            />
         </Box>
     );
 }

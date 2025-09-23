@@ -7,9 +7,10 @@ import {
     IUpdateLoadDto, 
     ILoadStatusUpdateDto,
     ILoadDetails,
+    ITripDetails,
     // --- STEP 1: Import the new type ---
     ICompleteLoadDto,
-    IMapTrip, 
+    IMapTrip,
 } from '../types';
 
 const API_ENDPOINT = '/loads';
@@ -150,6 +151,28 @@ export const fetchActiveTripsForMap = async (): Promise<IMapTrip[]> => {
         return response.data;
     } catch (error) {
         console.error("SERVICE ERROR: Failed to fetch active trips for map", error);
+        throw error;
+    }
+};
+
+export const getTripById = async (initialLoadId: number): Promise<ITripDetails> => {
+    try {
+        // The backend route is still /:id, but it returns the full ITripDetails object
+        const response = await apiClient.get<ITripDetails>(`${API_ENDPOINT}/${initialLoadId}`);
+        return response.data;
+    } catch (error) {
+        console.error(`SERVICE ERROR: Failed to fetch trip details for load ${initialLoadId}`, error);
+        throw error;
+    }
+};
+
+export const updateTrip = async (initialLoadId: number, data: any): Promise<{ message: string }> => {
+    try {
+        // The backend route is PUT /loads/trip/:initialLoadId
+        const response = await apiClient.put<{ message: string }>(`/loads/trip/${initialLoadId}`, data);
+        return response.data;
+    } catch (error) {
+        console.error(`SERVICE ERROR: Failed to update trip with initial load ID ${initialLoadId}`, error);
         throw error;
     }
 };

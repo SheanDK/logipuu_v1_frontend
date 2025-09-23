@@ -180,6 +180,8 @@ export interface ITimberStackListItem {
   pvm: string; // Comes as a string from backend, will be formatted
   kok: number;
   jaljella: number;
+  sijaintiLat: number | null;
+  sijaintiLong: number | null;
 }
 
 export type IEditablePuulaani = IMapTimberStack & {
@@ -189,3 +191,20 @@ export type IEditablePuulaani = IMapTimberStack & {
   km?: number | null;
   autoNro?: string | null;
 };
+
+export interface IWoodEntry {
+    puutavaraId: number;
+    puulaaniId: number;
+    puutavaraNro: number;
+    purkupaikkaId: number;
+    kuutiot: number;
+    haettu: number;
+    jaljella: number;
+    valmis: boolean;
+    puutavaraName: string; // From a JOIN
+    purkupaikkaName: string; // From a JOIN
+    // --- THIS IS THE FIX ---
+    // Add the missing destination coordinate properties
+    purkupaikkaLat?: number | null;
+    purkupaikkaLng?: number | null;
+}

@@ -71,7 +71,7 @@ export default function CompletedTripsPage() {
     if (error) { return <Alert severity="error" sx={{ m: 3 }}>{error}</Alert>; }
 
     return (
-        <Box sx={{ p: { xs: 2, sm: 3 }, width: '100%' }}>
+        <Box sx={{ p: 3 }}>
              <Button 
                 startIcon={<ArrowBackIcon />} 
                 onClick={() => router.push('/my-loads')} 

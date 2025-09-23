@@ -16,7 +16,7 @@ export * from './timberStack';
 export * from './unloadingSite';
 export * from './otherInfo';
 export * from './load';
-export * from './woodEntry';
+//export * from './woodEntry';
 
 // A common type for real-time vehicle locations
 export interface IVehicleLocation {

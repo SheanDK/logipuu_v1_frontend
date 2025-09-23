@@ -41,11 +41,20 @@ function LayoutRenderer({ children }: { children: ReactNode }) {
     }, [isVehicleSelectionRequired]);
 
     return (
-        <Box sx={{ display: 'flex' }}>
+         <Box sx={{ display: 'flex', height: '100vh', overflow: 'hidden' }}>
             <AppNavbar />
             {navLayout === 'left' && <AppSidebar />}
-            <Box component="main" sx={{ flexGrow: 1, p: 3, width: { md: navLayout === 'left' ? `calc(100% - ${drawerWidth}px)` : '100%' } }}>
-                <Toolbar /> 
+            <Box 
+                component="main" 
+                sx={{ 
+                    flexGrow: 1, 
+                    width: { md: navLayout === 'left' ? `calc(100% - ${drawerWidth}px)` : '100%' },
+                    // It needs its own scrollbar for content-heavy pages
+                    overflow: 'auto', 
+                    // Add padding top to account for the fixed AppBar
+                    pt: (theme) => `${theme.mixins.toolbar.minHeight}px`
+                }}
+            >
                 {children}
             </Box>
             <SelectVehicleModal
