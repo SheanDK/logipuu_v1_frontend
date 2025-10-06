@@ -1,4 +1,5 @@
 // frontend/src/components/loads/CompleteLoadModal.tsx
+
 'use client';
 
 import React from 'react';

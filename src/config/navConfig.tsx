@@ -88,7 +88,7 @@ export const driverNavigationItems: NavItemConfig[] = [
     { 
         text: 'Completed Trips', 
         icon: <HistoryIcon />, 
-        path: '/my-loads/completed',
+        path: '/my-loads/completed-trips',
         isTopNav: true,
         roles: ['Kuljettaja']
     },

@@ -96,57 +96,80 @@ export default function PuulaaniDetailsModal({
     }, [selectedAutoIds, vehicleList, setValue, isEditMode]);
 
     const loadData = useCallback(async () => {
-        if (!open) return;
-        setIsLoading(true); setError(null);
-        try {
-            const [woodTypes, dropoffs, vehicles] = await Promise.all([fetchAllWoodTypes(), fetchAllDropoffLocations(), fetchVehiclesListApi()]);
-            setWoodTypeList(woodTypes); setVehicleList(vehicles);
-            setDropoffLocationList(dropoffs.map(d => ({
-                id: d.purkupaikkaId,
-                name: d.purkupaikka,
-                clientId: d.asiakasId,
-                clientName: d.clientName || 'N/A', // Corrected property name
-                latitude: d.sijaintiLat!,
-                longitude: d.sijaintiLong!,
-                isVisibleOnMap: d.isVisibleOnMap // Added the missing required property
-            })));
+    if (!open) return;
+    setIsLoading(true);
+    setError(null);
+    try {
+        // Fetch common dropdown data
+        const [woodTypes, dropoffs, vehicles] = await Promise.all([
+            fetchAllWoodTypes(),
+            fetchAllDropoffLocations(),
+            fetchVehiclesListApi()
+        ]);
+        setWoodTypeList(woodTypes);
+        setVehicleList(vehicles);
+        setDropoffLocationList(dropoffs.map(d => ({
+            id: d.purkupaikkaId,
+            name: d.purkupaikka,
+            clientId: d.asiakasId,
+            clientName: d.clientName || 'N/A',
+            latitude: d.sijaintiLat!,
+            longitude: d.sijaintiLong!,
+            isVisibleOnMap: d.isVisibleOnMap
+        })));
 
-            if (isEditMode && initialData && 'id' in initialData) {
-                const details = await fetchTimberStackFullDetails(initialData.id);
-                reset({
-                    name: details.puulaani.nimi,
-                    date: details.puulaani.pvm ? dayjs(details.puulaani.pvm) : null,
-                    dispatchOrderNo: details.puulaani.ajomaaraysnro,
-                    kilometers: details.puulaani.km,
-                    isActive: details.puulaani.aktiivinen,
-                    isCompleted: details.puulaani.valmis,
-                    additionalInfo: details.puulaani.lisatiedot,
-                    autoNro: details.puulaani.autoNro || '',
-                    selectedAutoIds: details.autot.map((a: any) => a.kalustoId),
-                    latitude: Number(details.puulaani.sijaintiLat),
-                    longitude: Number(details.puulaani.sijaintiLong),
-                });
-                const fetchedWoodEntries = details.puutavarat.map((p: any) => ({
-                    id: p.puutavaraId, puutavaraId: p.puutavaraId,
-                    woodTypeId: Number(p.puutavaraNro), dropoffLocationId: Number(p.purkupaikkaId),
-                    totalVolume: Number(p.kuutiot), fetchedVolume: Number(p.haettu),
+        // Handle Edit Mode
+        if (isEditMode && initialData && 'id' in initialData) {
+            const details = await fetchTimberStackFullDetails(initialData.id);
+            
+            // --- THIS IS THE FIX ---
+            // Prepare the data structure that the 'reset' function expects.
+            const formDataForReset = {
+                name: details.puulaani.nimi,
+                date: details.puulaani.pvm ? dayjs(details.puulaani.pvm) : null,
+                dispatchOrderNo: details.puulaani.ajomaaraysnro,
+                kilometers: details.puulaani.km,
+                isActive: details.puulaani.aktiivinen,
+                isCompleted: details.puulaani.valmis,
+                additionalInfo: details.puulaani.lisatiedot,
+                autoNro: details.puulaani.autoNro || '',
+                // `details.autot` is already an array of numbers [101, 102] from the backend fix
+                selectedAutoIds: details.autot,
+                latitude: Number(details.puulaani.sijaintiLat),
+                longitude: Number(details.puulaani.sijaintiLong),
+                // Use 'timberEntries' from the backend response
+                woodEntries: details.timberEntries.map((p: any) => ({
+                    id: p.puutavaraId,
+                    puutavaraId: p.puutavaraId,
+                    woodTypeId: Number(p.puutavaraNro),
+                    dropoffLocationId: Number(p.purkupaikkaId),
+                    totalVolume: Number(p.kuutiot),
+                    fetchedVolume: Number(p.haettu),
                     remainingVolume: Number(p.jaljella)
-                }));
-                replace(fetchedWoodEntries);
-            } else if (!isEditMode && initialData) {
-                reset({
-                    name: initialData.name || '',
-                    isActive: (initialData as Partial<PendingPuulaaniData>)?.isActive ?? true,
-                    isCompleted: (initialData as Partial<PendingPuulaaniData>)?.isCompleted ?? false,
-                    additionalInfo: (initialData as Partial<PendingPuulaaniData>)?.additionalInfo || null,
-                    selectedAutoIds: [], woodEntries: [],
-                    latitude: initialData.latitude,
-                    longitude: initialData.longitude,
-                });
-            }
-        } catch (err: any) { setError(err.response?.data?.message || "Failed to load data."); }
-        finally { setIsLoading(false); }
-    }, [open, initialData, isEditMode, reset, replace]);
+                }))
+            };
+            
+            reset(formDataForReset);
+
+        // Handle Create Mode (from a map click with pending data)
+        } else if (!isEditMode && initialData) {
+            reset({
+                name: initialData.name || '',
+                isActive: (initialData as Partial<PendingPuulaaniData>)?.isActive ?? true,
+                isCompleted: (initialData as Partial<PendingPuulaaniData>)?.isCompleted ?? false,
+                additionalInfo: (initialData as Partial<PendingPuulaaniData>)?.additionalInfo || null,
+                selectedAutoIds: [],
+                woodEntries: [],
+                latitude: initialData.latitude,
+                longitude: initialData.longitude,
+            });
+        }
+    } catch (err: any) {
+        setError(err.response?.data?.message || "Failed to load data.");
+    } finally {
+        setIsLoading(false);
+    }
+}, [open, initialData, isEditMode, reset]);
 
     useEffect(() => { loadData(); }, [open]);
 

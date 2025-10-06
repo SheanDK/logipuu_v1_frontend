@@ -196,11 +196,14 @@ export interface ITripLeg {
     lisatiedot: string | null;
 }
 
+
 export interface ITripDetails {
     tripId: string;
+    ajomaaraysNro: string | null; 
     asiakasId: number;
     asiakkaanNimi: string;
-    rekNro: string; // This is the vehicle registration number
+    rekNro: string;
+    kalustoNro: number | null;
     kuljettajanNimi: string;
     legs: ITripLeg[];
 }

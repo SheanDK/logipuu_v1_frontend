@@ -15,6 +15,7 @@ import {
     ITimberStackListItem,
     IWoodEntry,
 } from '../types';
+import { PuulaaniDetails } from '@/types';
 
 const API_ENDPOINT = '/timber-stacks';
 const WOOD_TYPES_ENDPOINT = '/wood-types';
@@ -134,6 +135,16 @@ export const fetchWoodEntriesByPuulaani = async (puulaaniId: number): Promise<IW
         return camelCasedData as IWoodEntry[];
     } catch (error) {
         console.error(`Failed to fetch wood entries for puulaani ${puulaaniId}`, error);
+        throw error;
+    }
+};
+
+export const getTimberStackFullDetails = async (id: number): Promise<PuulaaniDetails> => {
+    try {
+        const response = await apiClient.get<PuulaaniDetails>(`${API_ENDPOINT}/${id}/full`);
+        return response.data;
+    } catch (error) {
+        console.error(`SERVICE ERROR: Failed to fetch full details for timber stack ${id}`, error);
         throw error;
     }
 };

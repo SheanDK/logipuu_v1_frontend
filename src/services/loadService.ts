@@ -127,7 +127,7 @@ export const acceptLoadsForInvoicing = async (loadIds: (string | number)[]): Pro
 
 export const fetchMyCompletedLoads = async (): Promise<ILoadListItem[]> => {
     try {
-        const response = await apiClient.get<ILoadListItem[]>('/loads/my-loads/completed');
+        const response = await apiClient.get<ILoadListItem[]>('/loads/my-loads/completed-trips');
         return response.data;
     } catch (error) {
         console.error("SERVICE ERROR: Failed to fetch driver's completed loads", error);
@@ -173,6 +173,17 @@ export const updateTrip = async (initialLoadId: number, data: any): Promise<{ me
         return response.data;
     } catch (error) {
         console.error(`SERVICE ERROR: Failed to update trip with initial load ID ${initialLoadId}`, error);
+        throw error;
+    }
+};
+
+export const getLoadForEdit = async (id: number): Promise<any> => {
+    try {
+        // The CORRECT URL is /api/driver/load-for-edit/:id
+        const response = await apiClient.get(`/driver/load-for-edit/${id}`);
+        return response.data;
+    } catch (error) {
+        console.error(`SERVICE ERROR: Failed to fetch load for edit with ID ${id}`, error);
         throw error;
     }
 };

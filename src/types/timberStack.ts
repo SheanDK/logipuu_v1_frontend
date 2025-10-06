@@ -38,10 +38,17 @@ export interface IBackendAutot {
     puulaaniId: number;
     kalustoId: number;
 }
+// export interface IPuulaaniFullDetails {
+//     puulaani: IBackendPuulaani;
+//     autot: IBackendAutot[];
+//     puutavarat: IBackendPuutavaralaji[];
+// }
+
 export interface IPuulaaniFullDetails {
-    puulaani: IBackendPuulaani;
-    autot: IBackendAutot[];
-    puutavarat: IBackendPuutavaralaji[];
+    puulaani: any; // Or a more specific type for puulaani details
+    autot: number[]; // <-- FIX 1: This should be an array of numbers
+    timberEntries: any[]; // <-- FIX 2: Rename 'puutavarat' to 'timberEntries'
+    relatedLoads: any[];
 }
 
 // --- Frontend UI Interfaces ---
@@ -94,6 +101,7 @@ export interface ITimberStackWoodEntry {
     fetchedVolume: number;
     remainingVolume: number;
 }
+
 export interface IAddTimberStackWoodEntryFormData {
     woodTypeId: number | null;
     dropoffLocationId: number | null;
@@ -195,16 +203,50 @@ export type IEditablePuulaani = IMapTimberStack & {
 export interface IWoodEntry {
     puutavaraId: number;
     puulaaniId: number;
+    asiakasId: number;
     puutavaraNro: number;
     purkupaikkaId: number;
-    kuutiot: number;
-    haettu: number;
-    jaljella: number;
+    kuutiot: string; // Comes as string
+    haettu: string;  // Comes as string
+    jaljella: string; // Comes as string
     valmis: boolean;
-    puutavaraName: string; // From a JOIN
-    purkupaikkaName: string; // From a JOIN
-    // --- THIS IS THE FIX ---
-    // Add the missing destination coordinate properties
+    laji: string; 
+    purkupaikkaName: string;
     purkupaikkaLat?: number | null;
     purkupaikkaLng?: number | null;
+}
+export interface PuulaaniDetails {
+    puulaani: {
+        // Properties we already had
+        puulaaniId: number;
+        nimi: string;
+        asiakasId: number;
+        pvm: string;
+        lisatiedot: string | null;
+        kok: string;
+        jaljella: string;
+        aktiivinen: boolean;
+        valmis: boolean;
+        sijaintiLat: string | null;
+        sijaintiLong: string | null;
+
+        // --- THIS IS THE FIX ---
+        // Add all other properties coming from the backend's 'puulaani' table
+        km: string | null;
+        ajomaaraysnro: string | null;
+        autoNro: string | null;
+        clientId: number; // This comes as an alias from our backend query
+        asiakkaanNimi: string; // This comes from a JOIN
+    };
+    autot: number[];
+    timberEntries: IWoodEntry[];
+    relatedLoads: {
+        kuormaId: number;
+        kuljId: number;
+        kuljettajanNimi: string;
+        puutavaralaji: string | null;
+        pvm: string;
+        haettu: string;
+        jaljella(jaljella: any): unknown;
+    }[];
 }
