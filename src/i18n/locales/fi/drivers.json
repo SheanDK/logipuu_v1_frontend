@@ -1,0 +1,34 @@
+{
+  "title": "Kuljettajien hallinta",
+  "noPermission": "Sinulla ei ole oikeutta tarkastella kuljettajia.",
+  "buttons": {
+    "addDriver": "Lisää kuljettaja"
+  },
+  "columns": {
+    "id": "ID",
+    "name": "Nimi",
+    "phoneNo": "Puhelin",
+    "email": "Sähköposti",
+    "status": "Tila",
+    "actions": "Toiminnot"
+  },
+  "status": {
+    "active": "Aktiivinen",
+    "inactive": "Ei aktiivinen"
+  },
+  "actions": {
+    "edit": "Muokkaa",
+    "delete": "Poista"
+  },
+  "feedback": {
+    "createSuccess": "Kuljettaja luotiin onnistuneesti.",
+    "updateSuccess": "Kuljettaja päivitettiin onnistuneesti.",
+    "deleteSuccess": "Kuljettaja \"{{name}}\" poistettiin onnistuneesti.",
+    "loadFailed": "Kuljettajien lataus epäonnistui.",
+    "saveFailed": "Kuljettajan tallennus epäonnistui."
+  },
+  "confirmDelete": {
+    "title": "Poista kuljettaja",
+    "message": "Haluatko varmasti poistaa kuljettajan \"{{name}}\"? Toimintoa ei voi perua."
+  }
+}

@@ -1,0 +1,48 @@
+{
+    "title": "My Profile & Settings",
+    "notLoggedIn": "Please log in to view user settings.",
+    "feedback": {
+        "profileSaved": "Profile updated successfully.",
+        "passwordChanged": "Password changed successfully."
+    },
+    "errors": {
+        "profileSaveFailed": "Failed to update profile.",
+        "passwordChangeFailed": "Failed to change password.",
+        "fullNameRequired": "Full name is required",
+        "nameTooShort": "Name is too short",
+        "emailRequired": "Email is required",
+        "emailInvalid": "Enter a valid email",
+        "currentPasswordRequired": "Current password is required",
+        "newPasswordRequired": "New password is required",
+        "newPasswordMin": "New password must be at least 8 characters long",
+        "confirmNewPasswordRequired": "Please confirm your new password",
+        "passwordsDoNotMatch": "Passwords do not match"
+    },
+    "profileCard": {
+        "title": "Profile Details",
+        "buttons": {
+            "saveProfile": "Save Profile"
+        }
+    },
+    "passwordCard": {
+        "title": "Change Password",
+        "currentPassword": "Current Password",
+        "newPassword": "New Password",
+        "confirmNewPassword": "Confirm New Password",
+        "buttons": {
+            "changePassword": "Change Password"
+        }
+    },
+    "fields": {
+        "fullName": "Full Name",
+        "email": "Email Address",
+        "usernameId": "Username",
+        "roles": "Roles",
+        "noRoles": "No roles assigned",
+        "status": "Status"
+    },
+    "status": {
+        "active": "Active",
+        "inactive": "Inactive"
+    }
+}

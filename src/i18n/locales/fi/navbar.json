@@ -1,0 +1,43 @@
+{
+    "tooltips": {
+        "toggleTheme": "Vaihda teema: {{mode}}",
+        "switchNavLayout": "Vaihda navigoinnin asettelu: {{layout}}",
+        "openSettings": "Avaa asetukset",
+        "language": "Vaihda kieltä"
+    },
+    "modes": {
+        "dark": "Tumma",
+        "light": "Vaalea"
+    },
+    "layouts": {
+        "top": "ylä",
+        "left": "vasen"
+    },
+    "menu": {
+        "profileSettings": "Profiiliasetukset",
+        "logout": "Kirjaudu ulos"
+    },
+    "navbar": {
+        "dashboard": "Yhteenveto",
+        "arrangement": "Järjestely",
+        "timberMap": "Kartta",
+        "loadManagement": "Kuormanhallinta",
+        "timberManagement": "Puuhallinta",
+        "office": "Toimisto",
+        "drivenInspection": "Ajot & Tarkastukset",
+        "puulaaniInvoicing": "Puulaanin laskutus",
+        "consignmentInvoicing": "Rahtikirjalaskutus",
+        "control": "Hallinta",
+        "clients": "Asiakkaat",
+        "drivers": "Kuljettajat",
+        "vehicles": "Ajoneuvot",
+        "reports": "Raportit",
+        "appSettings": "Sovellusasetukset",
+        "users": "Käyttäjät",
+        "applicationSettings": "Asetukset",
+        "myProfile": "Oma profiili",
+        "myDashboard": "Oma näkymä",
+        "completedTrips": "Päätetyt ajot",
+        "woodCategories": "Puutavaralajit"
+    }
+}

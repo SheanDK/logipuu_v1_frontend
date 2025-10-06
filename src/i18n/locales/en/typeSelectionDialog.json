@@ -1,0 +1,15 @@
+{
+    "title": "Select Marker Type",
+    "puulaani": {
+        "title": "New Puulaani",
+        "description": "Create a new timber collection point on the map."
+    },
+    "purkupaikka": {
+        "title": "New Unloading Site",
+        "description": "Add a new drop-off location for timber."
+    },
+    "other": {
+        "title": "New Other Marker",
+        "description": "Place a generic marker on the map."
+    }
+}

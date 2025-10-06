@@ -11,6 +11,7 @@ import EditIcon from '@mui/icons-material/Edit';
 import SaveIcon from '@mui/icons-material/Save';
 import CancelIcon from '@mui/icons-material/Cancel';
 import { ITimberStackWoodEntry, IPuutavaraItem, IMapDropoffLocation } from '@/types';
+import { useTranslation } from '@/i18n/useTranslation';
 
 interface WoodEntryListProps {
     entries: any[];
@@ -25,6 +26,7 @@ export function WoodEntryList({
     entries, onFieldChangeAction, onDeleteAction, woodTypeList, dropoffLocationList, isEditMode
 }: WoodEntryListProps) {
     
+    const { t } = useTranslation(['woodEntryList', 'common'])
     const [editingIndex, setEditingIndex] = useState<number | null>(null);
     const [tempValues, setTempValues] = useState<{ totalVolume: number, fetchedVolume: number } | null>(null);
 
@@ -44,7 +46,6 @@ export function WoodEntryList({
         setTempValues(null);
     };
 
-    // --- THIS IS THE CORRECTED FUNCTION ---
     const handleSaveClick = (index: number) => {
         if (tempValues) {
             // Call the action only ONCE with the complete object of new values.
@@ -59,7 +60,7 @@ export function WoodEntryList({
         return (
             <Box sx={{ mt: 2, p: 2, border: '1px dashed #bdbdbd', borderRadius: 1, textAlign: 'center' }}>
                 <Typography variant="body2" color="text.secondary">
-                    No timber types have been added to this Puulaani yet.
+                    {t('empty')}
                 </Typography>
             </Box>
         );
@@ -71,12 +72,12 @@ export function WoodEntryList({
                 <Table size="small">
                     <TableHead sx={{ backgroundColor: '#004d40', '& .MuiTableCell-root': { color: 'white', fontWeight: 'bold', border: '1px solid #4db6ac' } }}>
                         <TableRow>
-                            <TableCell>Type of timber</TableCell>
-                            <TableCell>Unloading site</TableCell>
-                            <TableCell align="right">Cubes</TableCell>
-                            <TableCell align="right">Retrieved</TableCell>
-                            <TableCell align="right">Left</TableCell>
-                            <TableCell align="center">Action</TableCell>
+                            <TableCell>{t('columns.woodType')}</TableCell>
+                            <TableCell>{t('columns.dropoffSite')}</TableCell>
+                            <TableCell align="right">{t('columns.total')}</TableCell>
+                            <TableCell align="right">{t('columns.fetched')}</TableCell>
+                            <TableCell align="right">{t('columns.remaining')}</TableCell>
+                            <TableCell align="center">{t('columns.actions')}</TableCell>
                         </TableRow>
                     </TableHead>
                     <TableBody>
@@ -119,13 +120,13 @@ export function WoodEntryList({
                                     <TableCell align="center" sx={{backgroundColor: '#e0f2f1'}}>
                                         {isEditing ? (
                                             <>
-                                                <Tooltip title="Save"><IconButton size="small" color="primary" onClick={() => handleSaveClick(index)}><SaveIcon fontSize="small" /></IconButton></Tooltip>
-                                                <Tooltip title="Cancel"><IconButton size="small" onClick={handleCancelClick}><CancelIcon fontSize="small" /></IconButton></Tooltip>
+                                                <Tooltip title={t('tooltips.save')}><IconButton size="small" color="primary" onClick={() => handleSaveClick(index)}><SaveIcon fontSize="small" /></IconButton></Tooltip>
+                                                <Tooltip title={t('tooltips.calcel')}><IconButton size="small" onClick={handleCancelClick}><CancelIcon fontSize="small" /></IconButton></Tooltip>
                                             </>
                                         ) : (
                                             <>
-                                                <Tooltip title="Update"><IconButton size="small" onClick={() => handleEditClick(index, item)}><EditIcon fontSize="small" /></IconButton></Tooltip>
-                                                <Tooltip title="Delete"><IconButton size="small" color="error" onClick={() => onDeleteAction(index)}><DeleteIcon fontSize="small" /></IconButton></Tooltip>
+                                                <Tooltip title={t('tooltips.update')}><IconButton size="small" onClick={() => handleEditClick(index, item)}><EditIcon fontSize="small" /></IconButton></Tooltip>
+                                                <Tooltip title={t('tooltips.delete')}><IconButton size="small" color="error" onClick={() => onDeleteAction(index)}><DeleteIcon fontSize="small" /></IconButton></Tooltip>
                                             </>
                                         )}
                                     </TableCell>

@@ -1,0 +1,62 @@
+{
+  "title": "Application Settings",
+  "noPermission": "You do not have permission to access this page.",
+  "tabs": {
+    "rolesPermissions": "Roles & Permissions",
+    "mapSettings": "Map Settings",
+    "ariaLabel": "settings tabs"
+  },
+  "alerts": {
+    "defaultMapUpdated": "Default map view updated.",
+    "puulaaniIconChanged": "Puulaani marker icon changed.",
+    "dropoffIconChanged": "Drop-off marker icon changed."
+  },
+  "map": {
+    "defaultView": {
+      "title": "Default Map View",
+      "subheader": "Set the default country for the map page."
+    },
+    "defaultCountry": {
+      "label": "Default Country"
+    },
+    "countries": {
+      "finland": "Finland",
+      "sweden": "Sweden"
+    }
+  },
+  "puulaani": {
+    "title": "Puulaani Marker Icon",
+    "subheader": "Select the default icon and size for Timber Stacks.",
+    "iconPreview": "Icon Preview",
+    "selectIcon": "Select Icon",
+    "iconSize": "Icon Size",
+    "icons": {
+      "locationOn": "Location On",
+      "forest": "Forest",
+      "room": "Room Pin",
+      "fmdGood": "Simple Pin",
+      "pinDrop": "Drop Pin"
+    },
+    "aria": {
+      "group": "puulaani icon selection",
+      "sizeSlider": "icon-size-slider"
+    }
+  },
+  "dropoff": {
+    "title": "Drop-off Marker Icon",
+    "subheader": "Select the default icon and size for Unloading Sites.",
+    "iconPreview": "Icon Preview",
+    "selectIcon": "Select Icon",
+    "iconSize": "Icon Size",
+    "icons": {
+      "warehouse": "Warehouse",
+      "factory": "Factory",
+      "localShipping": "Shipping Truck",
+      "business": "Business"
+    },
+    "aria": {
+      "group": "dropoff icon selection",
+      "sizeSlider": "dropoff-icon-size-slider"
+    }
+  }
+}

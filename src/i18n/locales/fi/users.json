@@ -1,0 +1,49 @@
+{
+    "title": "Käyttäjähallinta",
+    "noPermission": "Sinulla ei ole oikeutta tarkastella tätä sivua.",
+    "buttons": {
+        "addUser": "Lisää käyttäjä"
+    },
+    "columns": {
+        "username": "Käyttäjätunnus",
+        "fullName": "Nimi",
+        "role": "Rooli",
+        "status": "Tila",
+        "actions": "Toiminnot"
+    },
+    "status": {
+        "active": "Aktiivinen",
+        "inactive": "Ei aktiivinen"
+    },
+    "actions": {
+        "edit": "Muokkaa",
+        "delete": "Poista"
+    },
+    "feedback": {
+        "createSuccess": "Käyttäjä \"{{username}}\" luotiin onnistuneesti.",
+        "updateSuccess": "Käyttäjä \"{{username}}\" päivitettiin onnistuneesti.",
+        "deleteSuccess": "Käyttäjä \"{{username}}\" poistettiin onnistuneesti."
+    },
+    "errors": {
+        "fetchUsers": "Käyttäjien haku epäonnistui.",
+        "deleteFailed": "Käyttäjän poistaminen epäonnistui.",
+        "saveFailed": "Tallennus epäonnistui."
+    },
+    "confirmDelete": {
+        "title": "Poista käyttäjä",
+        "message": "Haluatko varmasti poistaa käyttäjän \"{{username}}\"? Toimintoa ei voi perua."
+    },
+    "roleLabels": {
+        "superuser": "Superkäyttäjä",
+        "admin": "Ylläpitäjä",
+        "office": "Toimisto",
+        "dispatch": "Ajojärjestely",
+        "driver": "Kuljettaja",
+        "subcontractor": "Alihankkija"
+    },
+    
+    "grid": {
+        "rowsPerPage": "Rivejä sivulla:",
+        "displayedRows": "{{from}}–{{to}} / {{count}}"
+    }
+}

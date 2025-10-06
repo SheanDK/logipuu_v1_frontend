@@ -1,0 +1,42 @@
+{
+  "title": "Rahtikirja Laskutus",
+  "buttons": {
+    "invoice": "Laskuta valitut",
+    "report": "Raportti"
+  },
+  "messages": {
+    "noResults": "Ei tuloksia valituilla ehdoilla",
+    "searchFailed": "Haku epäonnistui",
+    "updateFailed": "Rivin päivitys epäonnistui",
+    "invoiceFailed": "Laskutus epäonnistui",
+    "noRowsForReport": "Ei rivejä raportille",
+    "saveOk": "Tallennettu."
+  },
+  "feedback": {
+    "invoiced": "{{count}} rivi laskutettu",
+    "invoiced_one": "{{count}} rivi laskutettu",
+    "invoiced_other": "{{count}} riviä laskutettu",
+    "already": "{{count}} oli jo laskutettu",
+    "already_one": "{{count}} oli jo laskutettu",
+    "already_other": "{{count}} oli jo laskutettu",
+    "deleted": "Poistettu {{count}} rivi",
+    "deleted_one": "Poistettu {{count}} rivi",
+    "deleted_other": "Poistettu {{count}} riviä",
+    "cannotDeleteBilled": "Jo laskutettua riviä ei voitu poistaa ({{count}})",
+    "cannotDeleteBilled_one": "Jo laskutettua riviä ei voitu poistaa ({{count}})",
+    "cannotDeleteBilled_other": "Jo laskutettuja rivejä ei voitu poistaa ({{count}})",
+    "notFound": "Osa riveistä ei löytynyt enää ({{count}})",
+    "notFound_one": "Osa riveistä ei löytynyt enää ({{count}})",
+    "notFound_other": "Osa riveistä ei löytynyt enää ({{count}})"
+  },
+  "confirm": {
+    "deleteTitle": "Poista rivit",
+    "deleteOne": "Haluatko varmasti poistaa valitun rivin? Tätä toimintoa ei voi perua.",
+    "deleteMany": "Haluatko varmasti poistaa {{count}} riviä? Tätä toimintoa ei voi perua.",
+    "confirm": "Poista",
+    "cancel": "Peruuta",
+    "discardTitle": "Hylätäänkö muutokset?",
+    "discardMessage": "Sinulla on tallentamattomia muutoksia. Suljetaanko ilman tallennusta?",
+    "discardConfirm": "Hylkää muutokset"
+  }
+}

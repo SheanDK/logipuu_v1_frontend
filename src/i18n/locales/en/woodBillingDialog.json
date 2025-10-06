@@ -1,0 +1,26 @@
+{
+  "title": "Billing details",
+  "fields": {
+    "date": "Date",
+    "billingDate": "Billing date",
+    "waybillNumber": "Waybill No",
+    "timberStack": "Timber stack",
+    "receiptNumber": "Receipt No",
+    "woodType": "Wood type",
+    "customer": "Customer",
+    "vehicle": "Vehicle",
+    "driver": "Driver",
+    "route": "Route",
+    "notes": "Notes"
+  },
+  "lines": {
+    "title": "Line items",
+    "amount": "Amount",
+    "unitPrice": "Unit price",
+    "cubicMeters": "Cubic meters (m³)",
+    "freightKm": "Freight (km)",
+    "hours": "Hours",
+    "pieces": "Pieces",
+    "total": "Total"
+  }
+}

@@ -1,0 +1,27 @@
+{
+  "title": "Create New Puulaani (Step 1)",
+  "sections": {
+    "primaryDetails": "Primary Details",
+    "mapLocation": "Location on Map"
+  },
+  "fields": {
+    "name": "Object Name",
+    "client": "Customer",
+    "date": "Date",
+    "latitude": "Latitude",
+    "longitude": "Longitude"
+  },
+  "actions": {
+    "cancel": "Cancel",
+    "saveContinue": "Save & Continue",
+    "closeAria": "Close"
+  },
+  "validation": {
+    "name": { "required": "Object Name is required" },
+    "client": { "required": "Customer is required" },
+    "date": { "required": "Date is required" },
+    "location": { "selectOnMap": "Select a location from the map" },
+    "latitude": { "required": "Latitude is required" },
+    "longitude": { "required": "Longitude is required" }
+  }
+}

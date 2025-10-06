@@ -1,0 +1,29 @@
+{
+  "title": {
+    "create": "Create New Other Marker",
+    "edit": "Edit Other Marker"
+  },
+  "fields": {
+    "name": "Marker Name",
+    "icon": "Icon",
+    "color": "Color",
+    "additionalInfo": "Additional Information"
+  },
+  "labels": {
+    "preview": "Preview",
+    "color": "Color",
+    "custom": "Custom"
+  },
+  "buttons": {
+    "changeIcon": "Change Icon",
+    "cancel": "Cancel",
+    "create": "Create Marker",
+    "update": "Update Marker"
+  },
+  "validation": {
+    "nameRequired": "Marker Name is required",
+    "iconRequired": "An icon must be selected",
+    "colorRequired": "Color is required",
+    "hexInvalid": "Must be a valid hex color"
+  }
+}

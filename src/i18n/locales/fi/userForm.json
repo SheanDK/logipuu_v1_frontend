@@ -1,0 +1,36 @@
+{
+  "titles": {
+    "add": "Lisää käyttäjä",
+    "edit": "Muokkaa käyttäjää"
+  },
+  "fields": {
+    "username": "Käyttäjätunnus",
+    "fullName": "Nimi",
+    "password": "Salasana",
+    "confirmPassword": "Vahvista salasana",
+    "role": "Rooli",
+    "status": "Tila"
+  },
+  "status": {
+    "active": "Aktiivinen",
+    "inactive": "Ei aktiivinen"
+  },
+  "validation": {
+    "usernameRequired": "Käyttäjätunnus on pakollinen.",
+    "fullNameRequired": "Nimi on pakollinen.",
+    "passwordRequired": "Salasana on pakollinen.",
+    "passwordMin": "Salasanan on oltava vähintään {{count}} merkkiä.",
+    "confirmRequired": "Vahvista salasana.",
+    "passwordsNoMatch": "Salasanat eivät täsmää.",
+    "roleRequired": "Rooli on pakollinen.",
+    "roleTypeError": "Valitse rooli."
+  },
+  "errors": {
+    "generic": "Tapahtui virhe.",
+    "api": "Toiminto epäonnistui."
+  },
+  "buttons": {
+    "save": "Tallenna",
+    "cancel": "Peruuta"
+  }
+}

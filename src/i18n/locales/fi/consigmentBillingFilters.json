@@ -1,0 +1,17 @@
+{
+  "fields": {
+    "dateFrom": "Alkupäivämäärä",
+    "dateTo": "Loppupäivämäärä",
+    "customer": "Asiakas",
+    "vehicle": "Auto",
+    "billingStatus": "Laskutustila"
+  },
+  "labels": { "unbilled": "Laskuttamattomat", "billed": "Laskutetut" },
+  "errors": {
+    "dateFromRequired": "Alkupäivämäärä on pakollinen",
+    "dateToRequired": "Loppupäivämäärä on pakollinen",
+    "dateFormat": "Päiväys muodossa VVVV-KK-PP",
+    "dateRange": "Loppupäivä ei voi olla ennen alkupäivää",
+    "statusRequired": "Valitse vähintään yksi laskutustila"
+  }
+}

@@ -29,6 +29,8 @@ import AutoSelect from '../lists/AutoSelect';
 import { AddWoodEntry } from '../lists/AddWoodEntry';
 import { WoodEntryList } from '../lists/WoodEntryList';
 
+import { useTranslation } from '@/i18n/useTranslation';
+
 interface PuulaaniDetailsModalProps {
     open: boolean;
     onCloseAction: () => void;
@@ -38,19 +40,6 @@ interface PuulaaniDetailsModalProps {
     // --- 2. Add the new prop ---
     showMap?: boolean;
 }
-
-const getValidationSchema = (isEditMode: boolean) => yup.object({
-    name: yup.string().required('Name is required'),
-    isActive: yup.boolean().required(),
-    isCompleted: yup.boolean().required(),
-    additionalInfo: yup.string().nullable(),
-    selectedAutoIds: yup.array().of(yup.number().required()).default([]),
-    woodEntries: yup.array().of(yup.object()).default([]),
-    date: isEditMode ? yup.mixed<Dayjs>().nullable().required('Date is required') : yup.mixed().notRequired(),
-    dispatchOrderNo: yup.string().nullable(),
-    kilometers: yup.number().typeError('Must be a valid number').nullable().min(0),
-    autoNro: yup.string().nullable(),
-});
 
 export default function PuulaaniDetailsModal({
     open,
@@ -70,6 +59,24 @@ export default function PuulaaniDetailsModal({
     const [woodTypeList, setWoodTypeList] = useState<IPuutavaraItem[]>([]);
     const [dropoffLocationList, setDropoffLocationList] = useState<IMapDropoffLocation[]>([]);
     const { errorMessage, setErrorMessage } = useMessage();
+
+    const { t } = useTranslation(['puulaaniDetailsModal', 'common']);
+
+    const getValidationSchema = useMemo(
+    () => (isEdit: boolean) => yup.object({
+      name: yup.string().required(t('errors.nameRequired')),
+      isActive: yup.boolean().required(),
+      isCompleted: yup.boolean().required(),
+      additionalInfo: yup.string().nullable(),
+      selectedAutoIds: yup.array().of(yup.number().required()).default([]),
+      woodEntries: yup.array().of(yup.object()).default([]),
+      date: isEdit ? yup.mixed<Dayjs>().nullable().required(t('errors.dateRequired')) : yup.mixed().notRequired(),
+      dispatchOrderNo: yup.string().nullable(),
+      kilometers: yup.number().typeError(t('errors.mustBeNumber')).nullable().min(0),
+      autoNro: yup.string().nullable(),
+    }),
+    [t]
+  );
 
     const methods = useForm<PuulaaniFormData>({
         resolver: yupResolver(getValidationSchema(isEditMode)) as any,
@@ -165,11 +172,11 @@ export default function PuulaaniDetailsModal({
             });
         }
     } catch (err: any) {
-        setError(err.response?.data?.message || "Failed to load data.");
+        setError(err.response?.data?.message || t('errors.loadFailed'));
     } finally {
         setIsLoading(false);
     }
-}, [open, initialData, isEditMode, reset]);
+}, [open, initialData, isEditMode, reset, t]);
 
     useEffect(() => { loadData(); }, [open]);
 
@@ -229,7 +236,7 @@ export default function PuulaaniDetailsModal({
 
         // Server-side validation is primary, but a client-side check is good UX.
         if (fetchedVolume > totalVolume) {
-            setErrorMessage("Retrieved value cannot be greater than Cubes value.");
+            setErrorMessage(t('errors.retrievedGtCubes'));
             return;
         }
         setErrorMessage(''); // Clear error if validation passes
@@ -299,7 +306,7 @@ export default function PuulaaniDetailsModal({
             }
             onSaveSuccessAction();
         } catch (err: any) {
-            setError(err.response?.data?.message || "Failed to save data.");
+            setError(err.response?.data?.message || t('errors.saveFailed'));
         } finally {
             setIsSaving(false);
         }
@@ -311,7 +318,7 @@ export default function PuulaaniDetailsModal({
             <Dialog open={open} onClose={onCloseAction} fullWidth maxWidth="md">
                 <DialogTitle sx={{ m: 0, p: 2, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                     <Typography variant="h6" component="div">
-                        {isEditMode ? "Edit Puulaani Information" : "Finalize New Puulaani (Step 2)"}
+                        {isEditMode ? t('title.edit') : t('title.create')}
                     </Typography>
                     <IconButton aria-label="close" onClick={onCloseAction} sx={{ color: (theme) => theme.palette.grey[500] }}>
                         <CloseIcon />
@@ -329,20 +336,20 @@ export default function PuulaaniDetailsModal({
                                 <Stack spacing={3}>
                                     {/* Section 1: Primary Details */}
                                     <Paper variant="outlined" sx={{ p: 2.5 }}>
-                                        <Typography variant="overline" color="text.secondary" gutterBottom>Primary Details</Typography>
+                                        <Typography variant="overline" color="text.secondary" gutterBottom>{t('sections.primaryDetails')}</Typography>
 
                                         {isEditMode ? (
                                             <Stack spacing={2} sx={{ mt: 1 }}>
-                                                <Controller name="name" control={control} render={({ field }) => <TextField {...field} label="Name of the property" fullWidth size="small" />} />
-                                                <TextField label="Customer" value={(initialData as IMapTimberStack)?.clientName || ''} fullWidth size="small" disabled variant="filled" />
-                                                <Controller name="date" control={control} render={({ field }) => <DatePicker {...field} label="Date" value={field.value || null} format="DD.MM.YYYY" slotProps={{ textField: { size: 'small', fullWidth: true } }} />} />
-                                                <Controller name="dispatchOrderNo" control={control} render={({ field }) => <TextField {...field} value={field.value ?? ''} label="Driving order number" fullWidth size="small" />} />
-                                                <Controller name="kilometers" control={control} render={({ field }) => <TextField {...field} value={field.value ?? ''} type="number" label="Trip total (km)" fullWidth size="small" />} />
+                                                <Controller name="name" control={control} render={({ field }) => <TextField {...field} label={t('fields.nameOfProperty')} fullWidth size="small" />} />
+                                                <TextField label={t('fields.customer')} value={(initialData as IMapTimberStack)?.clientName || ''} fullWidth size="small" disabled variant="filled" />
+                                                <Controller name="date" control={control} render={({ field }) => <DatePicker {...field} label={t('fields.date')}  value={field.value || null} format="DD.MM.YYYY" slotProps={{ textField: { size: 'small', fullWidth: true } }} />} />
+                                                <Controller name="dispatchOrderNo" control={control} render={({ field }) => <TextField {...field} value={field.value ?? ''} label={t('fields.drivingOrderNo')} fullWidth size="small" />} />
+                                                <Controller name="kilometers" control={control} render={({ field }) => <TextField {...field} value={field.value ?? ''} type="number" label={t('fields.tripTotalKm')} fullWidth size="small" />} />
                                             </Stack>
                                         ) : (
                                             <Stack spacing={2} sx={{ mt: 1 }}>
-                                                <TextField label="Object Name" value={initialData?.name || ''} fullWidth size="small" disabled variant="filled" />
-                                                <TextField label="Customer" value={clientList.find(c => String(c.id) === String(initialData?.clientId))?.name || ''} fullWidth size="small" disabled variant="filled" />
+                                                <TextField label={t('fields.objectName')} value={initialData?.name || ''} fullWidth size="small" disabled variant="filled" />
+                                                <TextField label={t('fields.customer')} value={clientList.find(c => String(c.id) === String(initialData?.clientId))?.name || ''} fullWidth size="small" disabled variant="filled" />
                                             </Stack>
                                         )}
                                     </Paper>
@@ -350,13 +357,13 @@ export default function PuulaaniDetailsModal({
                                     {/* Section 2: Location Map (Conditionally Rendered) */}
                                     {showMap && (
                                         <Paper variant="outlined" sx={{ p: 2.5 }}>
-                                            <Typography variant="overline" color="text.secondary" gutterBottom>Location</Typography>
+                                            <Typography variant="overline" color="text.secondary" gutterBottom>{t('sections.location')}</Typography>
                                             <Box sx={{ mt: 1 }}>
                                                 <LocationPicker
                                                     initialLat={latValue}
                                                     initialLng={lngValue}
                                                     onLocationChange={handleLocationChange}
-                                                    label="Update location by clicking or dragging the marker"
+                                                    label={t('fields.updateLocationHint')}
                                                 />
                                             </Box>
                                         </Paper>
@@ -365,21 +372,21 @@ export default function PuulaaniDetailsModal({
                                     {/* Section 3: Vehicle Assignment (Only in Edit Mode) */}
                                     {isEditMode && (
                                         <Paper variant="outlined" sx={{ p: 2.5 }}>
-                                            <Typography variant="overline" color="text.secondary" gutterBottom>Vehicle Assignment</Typography>
+                                            <Typography variant="overline" color="text.secondary" gutterBottom>{t('sections.vehicleAssignment')}</Typography>
                                             <Controller name="selectedAutoIds" control={control} render={({ field }) => <AutoSelect selectedAutoIds={field.value} onSelectionChangeAction={field.onChange} vehicleList={vehicleList} />} />
                                         </Paper>
                                     )}
 
                                     {/* Section 4: Timber Logs */}
                                     <Paper variant="outlined" sx={{ p: 2.5 }}>
-                                        <Typography variant="overline" color="text.secondary" gutterBottom>Timber Logs</Typography>
+                                        <Typography variant="overline" color="text.secondary" gutterBottom>{t('sections.timberLogs')}</Typography>
                                         <AddWoodEntry onAddAction={handleAddWoodEntry} woodTypeList={woodTypeList} dropoffLocationList={dropoffLocationList} />
                                         <WoodEntryList entries={woodEntryFields} onFieldChangeAction={handleUpdateWoodEntry} onDeleteAction={(index) => remove(index)} woodTypeList={woodTypeList} dropoffLocationList={dropoffLocationList} isEditMode={true} />
                                     </Paper>
 
                                     {/* Section 5: Status & Info */}
                                     <Paper variant="outlined" sx={{ p: 2.5 }}>
-                                        <Typography variant="overline" color="text.secondary" gutterBottom>Status & Info</Typography>
+                                        <Typography variant="overline" color="text.secondary" gutterBottom>{t('sections.statusInfo')}</Typography>
                                         <Stack spacing={2}>
                                             <Box>
                                                 <FormControlLabel control={<Controller name="isActive" control={control} render={({ field }) =>
@@ -394,7 +401,7 @@ export default function PuulaaniDetailsModal({
                                                             }
                                                             field.onChange(checked);
                                                         }}
-                                                    />} />} label="Active" />
+                                                    />} />} label={t('fields.active')} />
                                                 <FormControlLabel control={<Controller name="isCompleted" control={control} render={({ field }) =>
                                                     <Checkbox
                                                         {...field}
@@ -407,9 +414,9 @@ export default function PuulaaniDetailsModal({
                                                             }
                                                             field.onChange(checked);
                                                         }}
-                                                    />} />} label="Ready" />
+                                                    />} />} label={t('fields.ready')} />
                                             </Box>
-                                            <Controller name="additionalInfo" control={control} render={({ field }) => <TextField {...field} value={field.value ?? ''} label="Additional Information" multiline rows={3} fullWidth size="small" />} />
+                                            <Controller name="additionalInfo" control={control} render={({ field }) => <TextField {...field} value={field.value ?? ''} label={t('fields.additionalInfo')} multiline rows={3} fullWidth size="small" />} />
                                         </Stack>
                                     </Paper>
                                 </Stack>
@@ -417,9 +424,9 @@ export default function PuulaaniDetailsModal({
                             {errorMessage && <Alert severity="error" sx={{ mt: 2 }}>{errorMessage}</Alert>}
                         </DialogContent>
                         <DialogActions sx={{ p: 2, borderTop: '1px solid', borderColor: 'divider' }}>
-                            <Button onClick={onCloseAction}>Cancel</Button>
+                            <Button onClick={onCloseAction}>{t('common:buttons.cancel')}</Button>
                             <Button type="submit" form="details-form" variant="contained" disabled={isSaving || isLoading || (isEditMode && !isDirty)}>
-                                {isSaving ? <CircularProgress size={24} color="inherit" /> : (isEditMode ? 'Update Puulaani' : 'Create Puulaani')}
+                                {isSaving ? <CircularProgress size={24} color="inherit" /> : (isEditMode ? t('actions.update') : t('actions.create'))}
                             </Button>
                         </DialogActions>
                     </Box>

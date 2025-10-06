@@ -1,0 +1,37 @@
+{
+  "header": {
+    "company": "Yrityksen nimi",
+    "title": "Rahtikirjalaskun raportti",
+    "period": "Ajanjakso: {{start}} – {{end}}"
+  },
+    "section": {
+    "customer": "Asiakas: {{name}}",
+    "vehicle": "Auto: {{name}}"
+  },
+  "columns": {
+    "date": "Pvm",
+    "waybillNumber": "Rahtikirjan nro",
+    "customer": "Asiakas",
+    "vehicle": "Ajoneuvo",
+    "route": "Reitti",
+    "notes": "Lisätiedot",
+    "m3": "m³",
+    "m3Price": "m³ hinta",
+    "km": "Km",
+    "kmPrice": "Km hinta",
+    "pieces": "Kpl",
+    "piecePrice": "Kpl hinta",
+    "hours": "Tunnit",
+    "hourPrice": "Tunnit hinta",
+    "roadTax": "Tievero",
+    "total": "Yhteensä"
+  },
+  "totals": "Yhteensä",
+  "errors": {
+    "noData": "Ei dataa"
+  },
+  "buttons": {
+    "print": "Tulosta"
+  },
+  "page": "Sivu {{current}} / {{total}}"
+}

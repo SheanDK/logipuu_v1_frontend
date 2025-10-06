@@ -1,4 +1,4 @@
-// frontend/src/components/timber-stacks/TimberStackFilterBar.tsx
+// frontend/src/app/components/timber-stacks/TimberStackFilterBar.tsx
 'use client';
 
 import React from 'react';
@@ -7,6 +7,7 @@ import {
     RadioGroup, FormControlLabel, Radio, Typography
 } from '@mui/material';
 import { IMapFilterState, IClientBasicInfo, IVehicleBasicInfo } from '../../types';
+import { useTranslation } from '@/i18n/useTranslation';
 
 interface TimberStackFilterBarProps {
     filters: IMapFilterState;
@@ -19,6 +20,8 @@ interface TimberStackFilterBarProps {
 const TimberStackFilterBar: React.FC<TimberStackFilterBarProps> = ({
     filters, onFilterChange, clientList, vehicleList, isLoading,
 }) => {
+
+    const { t } = useTranslation('mapFilterBar');
 
     const handleCustomerChange = (_event: any, newValue: IClientBasicInfo | null) => {
         console.log("FilterBar: Customer changed to:", newValue);
@@ -35,7 +38,7 @@ const TimberStackFilterBar: React.FC<TimberStackFilterBarProps> = ({
             <Grid container spacing={2} alignItems="center">
                 <Grid item xs={12}>
                     <Typography variant="body2" sx={{ fontWeight: 'medium', color: 'text.secondary' }}>
-                        Filter options:
+                        {t('filters.title')}
                     </Typography>
                 </Grid>
                 <Grid item xs={12}>
@@ -43,8 +46,8 @@ const TimberStackFilterBar: React.FC<TimberStackFilterBarProps> = ({
                         <RadioGroup row name="status" value={filters.status}
                             onChange={(e) => onFilterChange('status', e.target.value as 'all' | 'active')}
                         >
-                            <FormControlLabel value="all" control={<Radio size="small" />} label="All" disabled={isLoading} />
-                            <FormControlLabel value="active" control={<Radio size="small" />} label="Active" disabled={isLoading} />
+                            <FormControlLabel value="all" control={<Radio size="small" />} label={t('filters.status.all')} disabled={isLoading} />
+                            <FormControlLabel value="active" control={<Radio size="small" />} label={t('filters.status.active')} disabled={isLoading} />
                         </RadioGroup>
                     </FormControl>
                 </Grid>
@@ -64,10 +67,10 @@ const TimberStackFilterBar: React.FC<TimberStackFilterBarProps> = ({
                         }}
                         isOptionEqualToValue={(option, value) => option.id === value.id}
                         disabled={isLoading}
-                        renderInput={(params) => <TextField {...params} label="Customer" variant="outlined" fullWidth />}
+                        renderInput={(params) => <TextField {...params} label={t('filters.client')} variant="outlined" fullWidth />}
                     />
                 </Grid>
-                <Grid item sx={{flexGrow: 0.1 }}>
+                <Grid item sx={{flexGrow: 0.2 }}>
                     {/* --- CORRECTION FOR VEHICLE FILTER --- */}
                     <Autocomplete
                         fullWidth
@@ -80,7 +83,7 @@ const TimberStackFilterBar: React.FC<TimberStackFilterBarProps> = ({
                         }}
                         isOptionEqualToValue={(option, value) => option.id === value.id}
                         disabled={isLoading}
-                        renderInput={(params) => <TextField {...params} label="Car" variant="outlined" fullWidth />}
+                        renderInput={(params) => <TextField {...params} label={t('filters.vehicle')} variant="outlined" fullWidth />}
                     />
                 </Grid>
             </Grid>

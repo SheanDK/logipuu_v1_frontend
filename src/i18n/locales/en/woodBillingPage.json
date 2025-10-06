@@ -1,0 +1,18 @@
+{
+  "title": "Timber Stack Invoicing",
+  "buttons": {
+    "invoice": "Invoice selected",
+    "report": "Report"
+  },
+  "messages": {
+    "noResults": "No results for the selected filters.",
+    "searchFailed": "Search failed.",
+    "updateFailed": "Update failed.",
+    "invoiceFailed": "Invoicing failed."
+  },
+  "feedback": {
+    "invoiced": "Invoiced count: {{count}}",
+    "already": "Already invoiced (ignored): {{count}}",
+    "notFound": "Not found: {{count}}"
+  }
+}

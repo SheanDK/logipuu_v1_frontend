@@ -1,0 +1,27 @@
+{
+  "buttons": {
+    "cancel": "Peruuta",
+    "confirm": "Vahvista",
+    "ok": "OK",
+    "save": "Tallenna",
+    "delete": "Poista",
+    "close": "Sulje",
+    "continue": "Jatka",
+    "yes": "Kyllä",
+    "no": "Ei",
+    "apply": "Käytä",
+    "back": "Takaisin",
+    "edit": "Muokkaa",
+    "add": "Lisää",
+    "done": "Valmis",
+    "update": "Päivitä",
+    "search": "Hae",
+    "report": "Raportti"
+  },
+  "loading": {
+    "searching": "Haetaan..."
+  },
+  "messages": {
+    "noPermission": "Sinulla ei ole oikeuksia katsoa tätä sivua."
+  }
+}

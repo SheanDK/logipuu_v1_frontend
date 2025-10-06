@@ -1,0 +1,35 @@
+{
+  "fields": {
+    "dateFrom": "Alkaen",
+    "dateTo": "Päättyen",
+    "customer": "Asiakas",
+    "vehicle": "Ajoneuvo",
+    "billingStatus": "Laskutustila",
+    "woodTypes": "Puutavaralajit"
+  },
+  "labels": {
+    "unbilled": "Laskuttamaton",
+    "billed": "Laskutettu"
+  },
+  "buttons": {
+    "selectAll": "Valitse kaikki",
+    "clearAll": "Tyhjennä",
+    "search": "Hae",
+    "searching": "Haetaan…"
+  },
+  "tooltips": {
+    "selectAll": "Valitse kaikki puutavaralajit",
+    "clearAll": "Tyhjennä valinnat"
+  },
+  "messages": {
+    "noWoodTypes": "Ei puutavaralajeja"
+  },
+  "errors": {
+    "dateFromRequired": "Alkupäivä on pakollinen",
+    "dateToRequired": "Loppupäivä on pakollinen",
+    "dateFormat": "Päivämäärä oltava muodossa VVVV-KK-PP",
+    "dateRange": "Loppupäivän tulee olla sama tai myöhäisempi kuin alkupäivä",
+    "woodTypesRequired": "Valitse vähintään yksi puutavaralaji",
+    "statusRequired": "Valitse vähintään yksi laskutustila"
+  }
+}

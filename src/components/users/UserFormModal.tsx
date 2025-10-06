@@ -15,6 +15,8 @@ import { IUser, IRole, CreateUserPayload, UpdateUserPayload } from '../../types'
 import { fetchAllRolesApi } from '../../services/roleService';
 import { minLength } from 'zod';
 
+import { useTranslation } from '@/i18n/useTranslation';
+
 // Props Interface remains the same.
 interface UserFormModalProps {
     open: boolean;
@@ -53,9 +55,12 @@ const getValidationSchema = (isEditMode: boolean) => yup.object({
 });
 
 
+
+
 export default function UserFormModal({ open, onCloseAction, onSaveAction, user, isSaving, apiError, currentUser }: UserFormModalProps) {
     const isEditMode = Boolean(user);
     const [allRoles, setAllRoles] = useState<IRole[]>([]);
+    const { t } = useTranslation(['userForm', 'common']);
 
     const {
         control,
@@ -107,7 +112,7 @@ export default function UserFormModal({ open, onCloseAction, onSaveAction, user,
             getRoles();
         }
     }, [open]);
-    
+
 
     useEffect(() => {
         if (open) {
@@ -116,7 +121,7 @@ export default function UserFormModal({ open, onCloseAction, onSaveAction, user,
                 fullName: user?.fullName || '',
                 password: '',
                 confirmPassword: '',
-                roleId: (user?.roleIds?.[0] ?? ('') ) as '' | number,
+                roleId: (user?.roleIds?.[0] ?? ('')) as '' | number,
                 isActive: user ? user.isActive : true,
             };
 
@@ -154,32 +159,32 @@ export default function UserFormModal({ open, onCloseAction, onSaveAction, user,
 
     return (
         <Dialog open={open} onClose={onCloseAction} fullWidth maxWidth="sm">
-            <DialogTitle>{user ? 'Edit User' : 'Add New User'}</DialogTitle>
+            <DialogTitle>{user ? t('titles.edit') : t('titles.add')}</DialogTitle>
             <form id="user-form" onSubmit={handleSubmit(onSubmitHandler)}>
                 <DialogContent dividers>
-                    {apiError && <Alert severity="error" sx={{ mb: 2 }}>{apiError}</Alert>}
+                    {apiError && <Alert severity="error" sx={{ mb: 2 }}>{apiError || t('errors.api')}</Alert>}
                     <Grid container spacing={2} sx={{ pt: 1 }}>
-                        <Grid item xs={12} sm={6}><Controller name="username" control={control} render={({ field }) => <TextField {...field} label="Username" fullWidth required disabled={isEditMode} error={!!errors.username} helperText={errors.username?.message} />} /></Grid>
-                        <Grid item xs={12}><Controller name="fullName" control={control} render={({ field }) => <TextField {...field} label="Full Name" fullWidth required error={!!errors.fullName} helperText={errors.fullName?.message} />} /></Grid>
+                        <Grid item xs={12} sm={6}><Controller name="username" control={control} render={({ field }) => <TextField {...field} label={t('fields.username')} fullWidth required disabled={isEditMode} error={!!errors.username} helperText={errors.username?.message} />} /></Grid>
+                        <Grid item xs={12}><Controller name="fullName" control={control} render={({ field }) => <TextField {...field} label={t('fields.fullName')} fullWidth required error={!!errors.fullName} helperText={errors.fullName?.message} />} /></Grid>
                         {!isEditMode && (
                             <>
-                                <Grid item xs={12} sm={6}><Controller name="password" control={control} render={({ field }) => <TextField {...field} type="password" label="Password" fullWidth required={!isEditMode} error={!!errors.password} helperText={errors.password?.message} />} /></Grid>
-                                <Grid item xs={12} sm={6}><Controller name="confirmPassword" control={control} render={({ field }) => <TextField {...field} type="password" label="Confirm Password" fullWidth required={!isEditMode} error={!!errors.confirmPassword} helperText={errors.confirmPassword?.message} />} /></Grid>
+                                <Grid item xs={12} sm={6}><Controller name="password" control={control} render={({ field }) => <TextField {...field} type="password" label={t('fields.password')} fullWidth required={!isEditMode} error={!!errors.password} helperText={errors.password?.message} />} /></Grid>
+                                <Grid item xs={12} sm={6}><Controller name="confirmPassword" control={control} render={({ field }) => <TextField {...field} type="password" label={t('fields.confirmPassword')} fullWidth required={!isEditMode} error={!!errors.confirmPassword} helperText={errors.confirmPassword?.message} />} /></Grid>
                             </>
                         )}
-                        <Grid item xs={12}><FormControl fullWidth required error={!!errors.roleId}><InputLabel id="role-select-label">Role</InputLabel><Controller name="roleId" control={control} render={({ field }) => (<Select {...field} labelId="role-select-label" label="Role" sx={{ width: 150 }} value={field.value === '' ? '' : Number(field.value)} onChange={(e) => field.onChange(Number(e.target.value))} >{allRoles.map((role) => (<MenuItem key={role.rooliId} value={role.rooliId}>{role.roolinNimi}</MenuItem>))}</Select>)} />{errors.roleId && <FormHelperText>{errors.roleId.message}</FormHelperText>}</FormControl></Grid>
-                        <Grid item xs={12}><FormControlLabel control={<Controller name="isActive" control={control} render={({ field }) => <Switch {...field} checked={field.value} />} />} label={<Typography>Status: <b>{watch('isActive') ? 'Active' : 'Inactive'}</b></Typography>} /></Grid>
+                        <Grid item xs={12}><FormControl fullWidth required error={!!errors.roleId}><InputLabel id="role-select-label">{t('fields.role')}</InputLabel><Controller name="roleId" control={control} render={({ field }) => (<Select {...field} labelId="role-select-label" label={t('fields.role')} sx={{ width: 150 }} value={field.value === '' ? '' : Number(field.value)} onChange={(e) => field.onChange(Number(e.target.value))} >{allRoles.map((role) => (<MenuItem key={role.rooliId} value={role.rooliId}>{role.roolinNimi}</MenuItem>))}</Select>)} />{errors.roleId && <FormHelperText>{errors.roleId.message}</FormHelperText>}</FormControl></Grid>
+                        <Grid item xs={12}><FormControlLabel control={<Controller name="isActive" control={control} render={({ field }) => <Switch {...field} checked={field.value} />} />} label={<Typography>{t('fields.status')} <b>{watch('isActive') ? t('status.active') : t('status.inactive')}</b></Typography>} /></Grid>
                     </Grid>
                 </DialogContent>
                 <DialogActions sx={{ p: 2 }}>
-                    <Button onClick={onCloseAction} disabled={isSaving}>Cancel</Button>
+                    <Button onClick={onCloseAction} disabled={isSaving}>{t('common:buttons.cancel')}</Button>
                     <Button
                         type="submit"
                         form="user-form"
                         variant="contained"
                         disabled={isSaveButtonDisabled()}
                     >
-                        {isSaving ? <CircularProgress size={24} color="inherit" /> : 'Save'}
+                        {isSaving ? <CircularProgress size={24} color="inherit" /> : t('common:buttons.save')}
                     </Button>
                 </DialogActions>
             </form>

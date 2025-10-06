@@ -1,0 +1,12 @@
+{
+  "filters": {
+    "title": "Filter options:",
+    "status": {
+      "aria": "Status filter",
+      "all": "All",
+      "active": "Active"
+    },
+    "client": "Customer",
+    "vehicle": "Vehicle"
+  }
+}

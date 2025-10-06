@@ -1,0 +1,22 @@
+{
+  "columns": {
+    "status": "Status",
+    "date": "Date",
+    "customer": "Customer",
+    "timberStacks": "Timber stacks",
+    "waybillNumber": "Waybill No.",
+    "woodType": "Wood type",
+    "vastaanottoNro": "Receiving No.",
+    "vehicle": "Vehicle",
+    "driverName": "Driver",
+    "route": "Route",
+    "notes": "Notes",
+    "actions": "Actions"
+  },
+  "labels": {
+    "billed": "Billed",
+    "unbilled": "Unbilled",
+    "changed": "Changed",
+    "noPrice": "No price"
+  }
+}

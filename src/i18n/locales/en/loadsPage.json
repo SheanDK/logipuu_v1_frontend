@@ -1,0 +1,69 @@
+{
+  "title": "Driven managements / Inspection",
+  "buttons": {
+    "accept": "Accept ({{count}})",
+    "report": "Report ({{count}})"
+  },
+  "columns": {
+    "select": "Select",
+    "date": "Date",
+    "drivingOrder": "Driving Order No.",
+    "receptionNo": "Reception No.",
+    "vehicleNo": "Vehicle No",
+    "driver": "Driver",
+    "puulaani": "Puulaani",
+    "customer": "Customer",
+    "timber": "Timber",
+    "route": "Driving route",
+    "cubicMetres": "Cubic metres (m³)",
+    "freightKm": "Freight (km)",
+    "hours": "Hours",
+    "pcs": "Pcs",
+    "additionalInfo": "Additional information",
+    "status": "Status",
+    "action": "Action"
+  },
+  "tooltips": {
+    "addToSelection": "Add to selection",
+    "removeFromSelection": "Remove from selection",
+    "editLoad": "Edit Load",
+    "deleteLoad": "Delete Load"
+  },
+  "confirm": {
+    "delete": {
+      "title": "Confirm Load Deletion",
+      "message": "Are you sure you want to delete Load #{{id}}?"
+    },
+    "accept": {
+      "title": "Confirm Acceptance",
+      "message": "Are you sure you want to accept these {{count}} loads for invoicing?",
+      "confirmButtonText": "Yes, Accept"
+    }
+  },
+  "snackbar": {
+    "deleted": "Load #{{id}} deleted.",
+    "updated": "Load #{{id}} updated.",
+    "updateFailed": "Update failed.",
+    "acceptedForInvoicing": "{{count}} loads accepted for invoicing."
+  },
+  "warnings": {
+    "selectRowsForReport": "Please select rows to generate a report."
+  },
+  "errors": {
+    "fetchLoads": "Failed to fetch loads.",
+    "fetchLoadDetails": "Failed to fetch load details for editing.",
+    "deleteFailed": "Failed to delete load.",
+    "acceptFailed": "Failed to accept loads.",
+    "loadFilterOptions": "Could not load all filter options."
+  },
+  "status": {
+    "completed": "Completed",
+    "in_progress": "In Progress",
+    "en_route_to_destination": "En Route to Destination",
+    "assigned": "Assigned",
+    "at_origin": "At Origin",
+    "at_destination": "At Destination",
+    "paused": "Paused",
+    "na": "N/A"
+  }
+}

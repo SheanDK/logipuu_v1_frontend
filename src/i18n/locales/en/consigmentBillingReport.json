@@ -1,0 +1,37 @@
+{
+  "header": {
+    "company": "Company name",
+    "title": "Consignment billing report",
+    "period": "Period: {{start}} – {{end}}"
+  },
+    "section": {
+    "customer": "Customer: {{name}}",
+    "vehicle": "Vehicle: {{name}}"
+  },
+  "columns": {
+    "date": "Date",
+    "waybillNumber": "Waybill no.",
+    "customer": "Customer",
+    "vehicle": "Vehicle",
+    "route": "Route",
+    "notes": "Notes",
+    "m3": "m³",
+    "m3Price": "m³ Price",
+    "km": "Km",
+    "kmPrice": "Km Price",
+    "pieces": "Pcs",
+    "piecePrice": "Pcs Price",
+    "hours": "Hours",
+    "hourPrice": "Hours Price",
+    "roadTax": "Road tax",
+    "total": "Total"
+  },
+  "totals": "Totals",
+  "errors": {
+    "noData": "No data"
+  },
+  "buttons": {
+    "print": "Print"
+  },
+  "page": "Page {{current}} / {{total}}"
+}

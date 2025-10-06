@@ -1,0 +1,43 @@
+{
+    "tooltips": {
+        "toggleTheme": "Toggle {{mode}} Theme",
+        "switchNavLayout": "Switch to {{layout}} Navigation",
+        "openSettings": "Open settings",
+        "language": "Change language"
+    },
+    "modes": {
+        "dark": "Dark",
+        "light": "Light"
+    },
+    "layouts": {
+        "top": "Top",
+        "left": "Left"
+    },
+    "menu": {
+        "profileSettings": "Profile Settings",
+        "logout": "Logout"
+    },
+    "navbar": {
+        "dashboard": "Dashboard",
+        "arrangement": "Arrangement",
+        "timberMap": "Timber Map",
+        "loadManagement": "Load Management",
+        "timberManagement": "Timber Management",
+        "office": "Office",
+        "drivenInspection": "Driven & Inspection",
+        "puulaaniInvoicing": "Timber Stack Invoicing",
+        "consignmentInvoicing": "Consignment Invoicing",
+        "control": "Control",
+        "clients": "Clients",
+        "drivers": "Drivers",
+        "vehicles": "Vehicles",
+        "reports": "Reports",
+        "appSettings": "App Settings",
+        "users": "Users",
+        "applicationSettings": "Application Settings",
+        "myProfile": "My Profile",
+        "myDashboard": "My Dashboard",
+        "completedTrips": "Completed Trips",
+        "woodCategories": "Wood Categories"
+    }
+}

@@ -1,0 +1,16 @@
+{
+  "title": "Päättyneet ajot",
+  "buttons": {
+    "backToMap": "Takaisin kartalle"
+  },
+  "errors": {
+    "loadFailed": "Päättyneiden ajojen lataus epäonnistui."
+  },
+  "empty": "Päättyneitä ajoja ei löytynyt.",
+  "item": {
+    "primary": "Ajo: {{label}}",
+    "fallbackLabel": "Kuorma #{{id}}",
+    "secondary": "Valmistui: {{date}} | Asiakas: {{customer}}"
+  },
+  "dateFormat": "DD.MM.YYYY"
+}

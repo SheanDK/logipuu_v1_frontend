@@ -8,6 +8,7 @@ import { getPuulaaniIcon } from '../../../utils/mapUtils';
 import { IMapTimberStack, IClientBasicInfo } from '../../../types';
 import { useLayout } from '../../../contexts/LayoutContext';
 import L from 'leaflet';
+import { useTranslation } from '@/i18n/useTranslation';
 
 interface PuulaaniMarkerProps {
     marker: IMapTimberStack;
@@ -22,10 +23,11 @@ interface PuulaaniMarkerProps {
 const PuulaaniMarker: React.FC<PuulaaniMarkerProps> = ({
     marker, customer, isDraggable, onEdit, onDelete, onLocationChange, onDoubleClick
 }) => {
-    
+
     const { puulaaniIcon, puulaaniIconSize } = useLayout();
     const icon = getPuulaaniIcon(marker.clientColor, puulaaniIcon, puulaaniIconSize);
     const markerRef = useRef<L.Marker>(null);
+    const { t } = useTranslation('puulaaniMarker');
 
     useEffect(() => {
         if (markerRef.current) {
@@ -50,11 +52,17 @@ const PuulaaniMarker: React.FC<PuulaaniMarkerProps> = ({
         }
     }), [marker, isDraggable, onLocationChange, onDoubleClick]);
 
+    const fmt = (n: number) =>
+        n.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
+    const statusText = marker.isActive ? t('status.active') : t('status.inactive');
+    const completedSuffix = marker.isCompleted ? ` ${t('status.completed')}` : '';
+
     return (
-        <Marker 
-            position={[marker.latitude, marker.longitude]} 
+        <Marker
+            position={[marker.latitude, marker.longitude]}
             icon={icon}
-            draggable={isDraggable} 
+            draggable={isDraggable}
             eventHandlers={eventHandlers}
             ref={markerRef}
         >
@@ -62,14 +70,13 @@ const PuulaaniMarker: React.FC<PuulaaniMarkerProps> = ({
                 <Box>
                     <Typography variant="h6" gutterBottom>{marker.name}</Typography>
                     <Divider sx={{ my: 1 }} />
-                    <Typography variant="body2"><strong>Client:</strong> {customer.name}</Typography>
-                    <Typography variant="body2"><strong>Total:</strong> {marker.totalVolume.toFixed(2)} m³</Typography>
-                    {/* --- CORRECTION: Use the 'remainingVolume' property from the marker object --- */}
-                    <Typography variant="body2"><strong>Remaining:</strong> {marker.remainingVolume.toFixed(2)} m³</Typography>
-                    <Typography variant="body2"><strong>Status:</strong> {marker.isActive ? 'Active' : 'Inactive'} {marker.isCompleted ? '(Completed)' : ''}</Typography>
+                    <Typography variant="body2"><strong>{t('popup.client')}:</strong> {customer?.name ?? '–'}</Typography>
+                    <Typography variant="body2"><strong>{t('popup.total')}:</strong> {fmt(marker.totalVolume)} m³</Typography>
+                    <Typography variant="body2"><strong>{t('popup.remaining')}:</strong> {fmt(marker.remainingVolume)} m³</Typography>
+                    <Typography variant="body2"><strong>{t('popup.status')}:</strong> {statusText} {completedSuffix}</Typography>
                     <Box sx={{ mt: 2, display: 'flex', justifyContent: 'space-between' }}>
-                        <Button size="small" variant="outlined" onClick={() => onEdit(marker)}>Details / Edit</Button>
-                        <Button size="small" color="error" onClick={() => onDelete(marker)}>DELETE</Button>
+                        <Button size="small" variant="outlined" onClick={() => onEdit(marker)}> {t('buttons.detailsEdit')}</Button>
+                        <Button size="small" color="error" onClick={() => onDelete(marker)}> {t('buttons.delete')}</Button>
                     </Box>
                 </Box>
             </Popup>

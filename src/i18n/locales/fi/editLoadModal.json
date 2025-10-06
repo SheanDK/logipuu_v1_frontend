@@ -1,0 +1,32 @@
+{
+  "title": "Muokkaa kuormaa #{{id}}",
+  "fields": {
+    "date": "Päivämäärä",
+    "receptionNo": "Vastaanotto nro",
+    "route": "Ajoreitti",
+    "cubicMetres": "Kuutiot (m³)",
+    "freightKm": "Kuljetus (km)",
+    "hours": "Tunnit",
+    "pcs": "Kpl",
+    "additionalInfo": "Lisätiedot"
+  },
+  "actions": {
+    "cancel": "Peruuta",
+    "update": "Päivitä kuorma",
+    "closeAria": "Sulje"
+  },
+  "snackbar": {
+    "updated": "Kuorma #{{id}} päivitetty."
+  },
+  "errors": {
+    "updateFailed": "Virhe päivitettäessä kuormaa."
+  },
+  "validation": {
+    "date": {
+      "required": "Päivämäärä on pakollinen",
+      "invalid": "Syötä kelvollinen päivämäärä"
+    },
+    "number": "Arvon tulee olla numero",
+    "min": "Arvon tulee olla vähintään {{min}}"
+  }
+}

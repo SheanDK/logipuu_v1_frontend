@@ -1,0 +1,12 @@
+{
+  "status": {
+    "aria": "Tila",
+    "active": "Aktiiviset",
+    "completed": "Valmiit",
+    "all": "Kaikki"
+  },
+  "customer": "Asiakas",
+  "vehicle": "Ajoneuvo",
+  "timberType": "Puutavaran laji",
+  "noOptions": "Ei vaihtoehtoja"
+}

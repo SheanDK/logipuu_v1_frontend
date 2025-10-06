@@ -1,0 +1,11 @@
+{
+  "title": "Kirjaudu sisään",
+  "subtitle": "Tervetuloa takaisin! Syötä tunnuksesi päästäksesi tilillesi.",
+  "username": "Käyttäjätunnus",
+  "password": "Salasana",
+  "signIn": "Kirjaudu",
+  "signingIn": "Kirjaudutaan...",
+  "errorGeneric": "Kirjautuminen epäonnistui. Yritä uudelleen.",
+  "forgotPassword": "Unohditko salasanasi?",
+  "copyright": "Tekijänoikeus © WoodMaster LogiApp by Softrain {{year}}."
+}

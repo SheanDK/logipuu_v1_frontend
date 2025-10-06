@@ -1,0 +1,15 @@
+{
+    "title": "Valitse merkintätyyppi",
+    "puulaani": {
+        "title": "Uusi puulaani",
+        "description": "Luo uusi puutavaran keräyspiste kartalle."
+    },
+    "purkupaikka": {
+        "title": "Uusi purkupaikka",
+        "description": "Lisää uusi purkupaikka puutavaralle."
+    },
+    "other": {
+        "title": "Uusi muu merkki",
+        "description": "Lisää yleinen merkki kartalle."
+    }
+}

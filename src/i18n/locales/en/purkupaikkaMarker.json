@@ -1,0 +1,8 @@
+{
+  "popup": {
+    "title": "Drop-off",
+    "client": "Client",
+    "remaining": "Remaining",
+    "status": "Status"
+  }
+}

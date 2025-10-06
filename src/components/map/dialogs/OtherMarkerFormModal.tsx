@@ -14,6 +14,8 @@ import IconPickerModal from './IconPickerModal';
 import * as MuiIcons from '@mui/icons-material';
 import CloseIcon from '@mui/icons-material/Close';
 import CheckIcon from '@mui/icons-material/Check';
+import { useTranslation } from '@/i18n/useTranslation';
+
 
 interface OtherMarkerFormModalProps {
     open: boolean;
@@ -24,18 +26,23 @@ interface OtherMarkerFormModalProps {
     initialData: IMapOtherMarker | null;
 }
 
-const schema = yup.object({
-    name: yup.string().required('Marker Name is required'),
-    iconType: yup.string().nullable().required('An Icon must be selected'),
-    color: yup.string().required('Color is required').matches(/^#([0-9A-Fa-f]{6})$/i, 'Must be a valid hex color'),
-    additionalInfo: yup.string().ensure(),
-});
-
 const PRESET_COLORS = ['#D32F2F', '#388E3C', '#1976D2', '#FBC02D', '#E64A19', '#7B1FA2', '#00796B', '#5D4037', '#424242'];
 
 export default function OtherMarkerFormModal({ open, onCloseAction, onSaveAction, isSaving, error, initialData }: OtherMarkerFormModalProps) {
     const isEditMode = useMemo(() => !!initialData, [initialData]);
     const [isIconPickerOpen, setIsIconPickerOpen] = useState(false);
+    const { t } = useTranslation(['otherMarkerFormModal', 'common']);
+
+    const schema = useMemo(() => yup.object({
+    name: yup.string().required(t('otherMarker:validation.nameRequired')),
+    iconType: yup.string().nullable().required(t('otherMarker:validation.iconRequired')),
+    color: yup
+      .string()
+      .required(t('otherMarker:validation.colorRequired'))
+      .matches(/^#([0-9A-Fa-f]{6})$/i, t('otherMarker:validation.hexInvalid')),
+    additionalInfo: yup.string().ensure(),
+  }), [t]);
+
     
     const { control, handleSubmit, reset, setValue, watch, formState: { errors, isValid, isDirty } } = useForm<OtherMarkerFormData>({
         resolver: yupResolver(schema) as any,
@@ -75,15 +82,15 @@ export default function OtherMarkerFormModal({ open, onCloseAction, onSaveAction
         <>
             <Dialog open={open} onClose={onCloseAction} maxWidth="sm" fullWidth>
                  <DialogTitle sx={{ m: 0, p: 2, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <Typography variant="h6" component="div">{isEditMode ? 'Edit Other Marker' : 'Create New Other Marker'}</Typography>
-                    <IconButton aria-label="close" onClick={onCloseAction} sx={{ color: (theme) => theme.palette.grey[500] }}><CloseIcon /></IconButton>
+                    <Typography variant="h6" component="div">{isEditMode ? t('title.edit') : t('title.create')}</Typography>
+                    <IconButton aria-label={t('common:buttons.close')} onClick={onCloseAction} sx={{ color: (theme) => theme.palette.grey[500] }}><CloseIcon /></IconButton>
                 </DialogTitle>
                 <Box component="form" id="other-marker-form" onSubmit={handleSubmit(onSubmit as SubmitHandler<FieldValues>)}>
                     <DialogContent dividers sx={{ p: { xs: 2, sm: 3 } }}>
                         {error && <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>}
                         <Stack spacing={2.5}>
                             <Controller name="name" control={control} render={({ field }) => (
-                                <TextField {...field} label="Marker Name" fullWidth required autoFocus error={!!errors.name} helperText={errors.name?.message} />
+                                <TextField {...field} label={t('fields.name')} fullWidth required autoFocus error={!!errors.name} helperText={errors.name?.message} />
                             )}/>
                             
                             <Paper variant="outlined" sx={{ p: 2, borderColor: 'divider' }}>
@@ -91,17 +98,17 @@ export default function OtherMarkerFormModal({ open, onCloseAction, onSaveAction
                                     
                                     {/* --- FIX: Removed 'item', 'xs', and 'sm' props --- */}
                                     <Stack sx={{ textAlign: 'center', alignItems: 'center' }} spacing={1}>
-                                        <Typography variant="overline" color="text.secondary">PREVIEW</Typography>
+                                        <Typography variant="overline" color="text.secondary">{t('labels.preview').toUpperCase()}</Typography>
                                         <Box sx={{ width: 80, height: 80, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', backgroundColor: '#f0f0f0', border: `2px solid ${selectedColor}` }}>
                                             <IconComponent sx={{ fontSize: 40, color: selectedColor, transition: 'color 0.3s' }} />
                                         </Box>
-                                        <Button size="small" onClick={() => setIsIconPickerOpen(true)}>Change Icon</Button>
+                                        <Button size="small" onClick={() => setIsIconPickerOpen(true)}>{t('buttons.changeIcon')}</Button>
                                         {errors.iconType && <Typography variant="caption" display="block" color="error">{errors.iconType.message}</Typography>}
                                     </Stack>
 
                                     {/* --- FIX: Removed 'item', 'xs', and 'sm' props --- */}
                                     <Stack spacing={1.5} sx={{ width: '100%' }}>
-                                        <Typography variant="overline" color="text.secondary">COLOR</Typography>
+                                        <Typography variant="overline" color="text.secondary">{t('labels.color').toUpperCase()}</Typography>
                                         <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
                                             {PRESET_COLORS.map(color => (
                                                 <Tooltip title={color} key={color}>
@@ -113,7 +120,7 @@ export default function OtherMarkerFormModal({ open, onCloseAction, onSaveAction
                                         </Box>
                                         
                                         <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, pt: 1 }}>
-                                            <Typography variant="body2" color="text.secondary">Custom:</Typography>
+                                            <Typography variant="body2" color="text.secondary">{t('labels.custom')}:</Typography>
                                             <Controller name="color" control={control} render={({ field }) => (
                                                 <Box sx={{ position: 'relative', width: 80, height: 28, borderRadius: 1, overflow: 'hidden', border: '1px solid', borderColor: 'divider' }}>
                                                     <Box sx={{ width: '100%', height: '100%', backgroundColor: field.value }} />
@@ -127,14 +134,14 @@ export default function OtherMarkerFormModal({ open, onCloseAction, onSaveAction
                             </Paper>
                             
                             <Controller name="additionalInfo" control={control} render={({ field }) => (
-                                <TextField {...field} label="Additional Information" multiline rows={3} fullWidth />
+                                <TextField {...field} label={t('fields.additionalInfo')} multiline rows={3} fullWidth />
                             )}/>
                         </Stack>
                     </DialogContent>
                     <DialogActions sx={{ p: 2, borderTop: '1px solid', borderColor: 'divider' }}>
-                         <Button onClick={onCloseAction}>Cancel</Button>
+                         <Button onClick={onCloseAction}>{t('common:buttons.cancel')}</Button>
                          <Button type="submit" form="other-marker-form" variant="contained" disabled={isSaving || (isEditMode && !isDirty) || !isValid}>
-                            {isSaving ? <CircularProgress size={24} /> : (isEditMode ? 'Update Marker' : 'Create Marker')}
+                            {isSaving ? <CircularProgress size={24} /> : (isEditMode ?  t('buttons.update') : t('buttons.create'))}
                         </Button>
                     </DialogActions>
                 </Box>

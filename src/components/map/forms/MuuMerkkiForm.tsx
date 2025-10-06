@@ -1,4 +1,8 @@
 // src/components/map/forms/MuuMerkkiForm.tsx
+
+// not used on anywhere
+
+
 'use client';
 import { Box, TextField, IconButton, Typography, FormHelperText } from '@mui/material';
 import * as Icons from '@mui/icons-material';

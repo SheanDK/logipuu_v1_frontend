@@ -1,0 +1,51 @@
+{
+  "titles": {
+    "add": "Lisää asiakas",
+    "edit": "Muokkaa asiakasta"
+  },
+  "fields": {
+    "clientName": "Asiakkaan nimi",
+    "vatId": "Y-tunnus",
+    "address": "Osoite",
+    "postalCode": "Postinumero",
+    "city": "Paikkakunta",
+    "phoneNo": "Puhelinnumero",
+    "contactPerson": "Yhteyshenkilö",
+    "email": "Sähköposti",
+    "additionalInfo": "Lisätiedot",
+    "typeSectionLabel": "Tyyppi",
+    "isPuulaani": "Puulaani",
+    "isRahtikirja": "Rahtikirja",
+    "targetColor": "Kohteen väri",
+    "isActive": "Aktiivinen"
+  },
+  "buttons": {
+    "cancel": "Peruuta",
+    "saveChanges": "Tallenna muutokset",
+    "addClient": "Lisää asiakas"
+  },
+  "errors": {
+    "nameRequired": "Asiakkaan nimi on pakollinen",
+    "nameMax": "Nimi ei saa ylittää 50 merkkiä",
+    "emailInvalid": "Anna kelvollinen sähköpostiosoite.",
+    "emailMax": "Sähköposti ei saa ylittää 100 merkkiä.",
+    "colorRequired": "Kohteen väri vaaditaan Puulaani-asiakkaille.",
+    "colorInvalid": "Värin on oltava kelvollinen 6-merkkinen heksakoodi.",
+    "colorExists": "Tämä väri on jo käytössä.",
+    "oneTypeRequired": "Valitse vähintään yksi asiakastyyppi.",
+    "postalNoLetters": "Postinumero ei voi sisältää kirjaimia.",
+    "postalInvalid": "Syötä kelvollinen postinumero (3–5 numeroa; myös ruotsalainen muoto \"NNN NN\" sallittu).",
+    "postalMax": "Postinumerossa on liikaa merkkejä.",
+    "phoneInvalidChars": "Puhelinnumero voi sisältää vain numeroita, välilyöntejä, +, -, ja sulkuja.",
+    "phoneInvalid": "Syötä kelvollinen puhelinnumero (6–20 numeroa).",
+    "phoneMax": "Puhelinnumerossa on liikaa merkkejä.",
+    "addressMax": "Osoite ei saa ylittää 100 merkkiä.",
+    "cityMax": "Paikkakunta ei saa ylittää 20 merkkiä.",
+    "contactMax": "Yhteyshenkilö ei saa ylittää 60 merkkiä.",
+    "vatMax": "Y-tunnus ei saa ylittää 10 merkkiä.",
+    "additionalInfoMax": "Lisätiedot eivät saa ylittää 1000 merkkiä.",
+    "vatInvalidChars": "Y-tunnus voi sisältää vain numeroita ja väliviivan.",
+    "vatInvalidFormat": "Anna Y-tunnus muodossa NNNNNNN-N."
+
+  }
+}

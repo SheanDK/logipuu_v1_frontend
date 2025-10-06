@@ -1,0 +1,32 @@
+{
+  "title": "Edit Load #{{id}}",
+  "fields": {
+    "date": "Date",
+    "receptionNo": "Reception No.",
+    "route": "Driving Route",
+    "cubicMetres": "Cubic Metres (m³)",
+    "freightKm": "Freight (km)",
+    "hours": "Hours",
+    "pcs": "Pcs",
+    "additionalInfo": "Additional Information"
+  },
+  "actions": {
+    "cancel": "Cancel",
+    "update": "Update Load",
+    "closeAria": "Close"
+  },
+  "snackbar": {
+    "updated": "Load #{{id}} updated successfully."
+  },
+  "errors": {
+    "updateFailed": "An error occurred while updating the load."
+  },
+  "validation": {
+    "date": {
+      "required": "Date is required",
+      "invalid": "A valid date is required"
+    },
+    "number": "Must be a number",
+    "min": "Must be at least {{min}}"
+  }
+}

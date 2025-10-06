@@ -1,0 +1,16 @@
+{
+  "title": "Completed Trips",
+  "buttons": {
+    "backToMap": "Back to Map"
+  },
+  "errors": {
+    "loadFailed": "Failed to load completed trips."
+  },
+  "empty": "No completed trips found.",
+  "item": {
+    "primary": "Trip: {{label}}",
+    "fallbackLabel": "Load #{{id}}",
+    "secondary": "Completed on: {{date}} | Customer: {{customer}}"
+  },
+  "dateFormat": "DD MMM YYYY"
+}

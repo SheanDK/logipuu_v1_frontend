@@ -1,0 +1,41 @@
+{
+  "title": "Puulaanien hallinta",
+  "buttons": {
+    "new": "Uusi puulaani"
+  },
+  "footer": {
+    "altogether": "Yhteensä"
+  },
+  "columns": {
+    "id": "Puulaani ID",
+    "date": "Päivämäärä",
+    "customer": "Asiakas",
+    "objectName": "Kohteen nimi",
+    "size": "Koko (m³)",
+    "left": "Jäljellä (m³)",
+    "actions": "Toiminnot"
+  },
+  "tooltips": {
+    "edit": "Muokkaa puulaania",
+    "delete": "Poista puulaani"
+  },
+  "labels": {
+    "unknownClient": "Tuntematon asiakas"
+  },
+  "confirm": {
+    "deleteTitle": "Vahvista puulaanin poisto",
+    "deleteMessage": "Haluatko varmasti poistaa puulaanin \"{{name}}\"?"
+  },
+  "snackbar": {
+    "saved": "Puulaani tallennettu!",
+    "deleted": "Puulaani '{{name}}' poistettu."
+  },
+  "warnings": {
+    "detailsNotFound": "Tämän puulaanin tarkkoja tietoja ei löytynyt."
+  },
+  "errors": {
+    "loadDetails": "Puulaanin tietojen lataus muokkausta varten epäonnistui.",
+    "deleteFailed": "Puulaanin poistaminen epäonnistui.",
+    "loadPage": "Sivun tietojen lataus epäonnistui. Yritä uudelleen."
+  }
+}

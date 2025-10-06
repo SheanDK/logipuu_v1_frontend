@@ -1,0 +1,37 @@
+{
+  "title": {
+    "edit": "Edit Puulaani Information",
+    "create": "Finalize New Puulaani (Step 2)"
+  },
+  "sections": {
+    "primaryDetails": "Primary Details",
+    "location": "Location",
+    "vehicleAssignment": "Vehicle Assignment",
+    "timberLogs": "Timber Logs",
+    "statusInfo": "Status & Info"
+  },
+  "fields": {
+    "nameOfProperty": "Name of the property",
+    "objectName": "Object Name",
+    "customer": "Customer",
+    "date": "Date",
+    "drivingOrderNo": "Driving order number",
+    "tripTotalKm": "Trip total (km)",
+    "updateLocationHint": "Update location by clicking or dragging the marker",
+    "additionalInfo": "Additional Information",
+    "active": "Active",
+    "ready": "Ready"
+  },
+  "actions": {
+    "update": "Update Puulaani",
+    "create": "Create Puulaani"
+  },
+  "errors": {
+    "nameRequired": "Name is required",
+    "dateRequired": "Date is required",
+    "mustBeNumber": "Must be a valid number",
+    "loadFailed": "Failed to load data.",
+    "saveFailed": "Failed to save data.",
+    "retrievedGtCubes": "Retrieved value cannot be greater than Cubes value."
+  }
+}

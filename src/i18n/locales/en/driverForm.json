@@ -1,0 +1,27 @@
+{
+  "titles": {
+    "add": "Add New Driver",
+    "edit": "Edit Driver"
+  },
+  "fields": {
+    "name": "Name",
+    "phoneNo": "Phone Number",
+    "email": "Email",
+    "isActive": "Active"
+  },
+  "buttons": {
+    "cancel": "Cancel",
+    "save": "Save Changes",
+    "add": "Add Driver"
+  },
+  "errors": {
+    "nameRequired": "Name is required",
+    "nameMin": "Name must be at least 2 characters",
+    "nameMax": "Name must not exceed 50 characters",
+    "phoneRequired": "Phone Number is required",
+    "phoneMax": "Phone Number must not exceed 20 characters",
+    "emailRequired": "Email is required",
+    "emailInvalid": "Enter a valid email",
+    "emailMax": "Email must not exceed 100 characters"
+  }
+}

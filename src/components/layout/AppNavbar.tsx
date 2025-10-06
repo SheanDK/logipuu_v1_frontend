@@ -26,43 +26,114 @@ import { useLayout } from '../../contexts/LayoutContext';
 import { useDriverSession } from '../../contexts/DriverSessionContext';
 import { officeNavigationItems, driverNavigationItems, NavItemConfig } from '../../config/navConfig';
 
+// i18n
+import LanguageSwitcher from '@/components/i18n/LanguageSwitcher';
+import { withLng } from '@/utils/withLng';
+import { fallbackLng } from '@/i18n/settings';
+import { useTranslation } from '@/i18n/useTranslation';
+
 // --- Helper Component for the main Top Navigation Menu ---
-const TopNavMenu = ({ navLinks, pathname }: { navLinks: NavItemConfig[], pathname: string }) => {
-    const [openMenu, setOpenMenu] = useState<{ name: string, anchor: HTMLElement } | null>(null);
-    const handleCategoryMenuOpen = (event: React.MouseEvent<HTMLElement>, menuName: string) => setOpenMenu({ name: menuName, anchor: event.currentTarget });
-    const handleCategoryMenuClose = () => setOpenMenu(null);
-    
-    return (
-        <Box sx={{ flexGrow: 1, display: { xs: 'none', md: 'flex' }, justifyContent: 'center', gap: 1 }}>
-            {navLinks.map((item) => {
-                if (item.children) {
-                    const isParentActive = item.children.some(child => child.path && pathname.startsWith(child.path));
-                    return (
-                        <Box key={item.text}>
-                            <Button startIcon={item.icon} onClick={(e) => handleCategoryMenuOpen(e, item.text)} endIcon={<ArrowDropDownIcon />} sx={{ color: isParentActive ? 'primary.main' : 'inherit', fontWeight: isParentActive ? 'bold' : 'normal' }}>
-                                {item.text}
-                            </Button>
-                            <Menu anchorEl={openMenu?.anchor} open={openMenu?.name === item.text} onClose={handleCategoryMenuClose} MenuListProps={{ onMouseLeave: handleCategoryMenuClose }} /* ...other props */ >
-                                {item.children.map((child) => (
-                                    <MenuItem key={child.path} component={Link} href={child.path!} onClick={handleCategoryMenuClose} selected={pathname.startsWith(child.path!)}>
-                                        <ListItemIcon>{child.icon}</ListItemIcon>
-                                        <ListItemText>{child.text}</ListItemText>
-                                    </MenuItem>
-                                ))}
-                            </Menu>
-                        </Box>
-                    );
-                }
-                const isActive = item.path && pathname.startsWith(item.path);
-                return (
-                    <Button component={Link} href={item.path!} key={item.path} startIcon={item.icon} sx={{ color: isActive ? 'primary.main' : 'inherit', fontWeight: isActive ? 'bold' : 'normal' }}>
-                        {item.text}
-                    </Button>
-                );
-            })}
-        </Box>
-    );
+const TopNavMenu = ({
+  navLinks,
+  pathname,
+  currentLng,
+}: {
+  navLinks: NavItemConfig[];
+  pathname: string;
+  currentLng: string;
+}) => {
+  const { t } = useTranslation(['navbar']);
+  const [openMenu, setOpenMenu] =
+    useState<{ name: string; anchor: HTMLElement } | null>(null);
+
+  const handleCategoryMenuOpen = (
+    event: React.MouseEvent<HTMLElement>,
+    menuName: string
+  ) => setOpenMenu({ name: menuName, anchor: event.currentTarget });
+  const handleCategoryMenuClose = () => setOpenMenu(null);
+
+  const labelFor = (item: NavItemConfig) => {
+    const key = item.tKey ? `navbar.${item.tKey}` : undefined;
+    return key ? t(key, { defaultValue: item.text }) : item.text;
+  };
+
+  return (
+    <Box sx={{ flexGrow: 1, display: { xs: 'none', md: 'flex' }, justifyContent: 'center', gap: 1 }}>
+      {navLinks.map((item) => {
+        const label = labelFor(item);
+        const itemPathWithLng = item.path ? withLng(currentLng, item.path) : undefined;
+
+        if (item.children) {
+          const isParentActive = item.children.some((child) => {
+            const childPathWithLng = child.path ? withLng(currentLng, child.path) : undefined;
+            return !!(childPathWithLng && pathname.startsWith(childPathWithLng));
+          });
+
+          const stableKey = item.tKey ?? item.text ?? item.path ?? 'menu';
+
+          return (
+            <Box key={stableKey}>
+              <Button
+                startIcon={item.icon}
+                onClick={(e) => handleCategoryMenuOpen(e, stableKey)}
+                endIcon={<ArrowDropDownIcon />}
+                sx={{ color: isParentActive ? 'primary.main' : 'inherit', fontWeight: isParentActive ? 'bold' : 'normal' }}
+              >
+                {label}
+              </Button>
+
+              <Menu
+                anchorEl={openMenu?.anchor}
+                open={openMenu?.name === stableKey}
+                onClose={handleCategoryMenuClose}
+                MenuListProps={{ onMouseLeave: handleCategoryMenuClose }}
+              >
+                {item.children.map((child) => {
+                  const childLabel = labelFor(child); 
+                  const childPathWithLng = child.path ? withLng(currentLng, child.path) : '#';
+                  const isChildActive = !!child.path && pathname.startsWith(childPathWithLng);
+
+                  return (
+                    <MenuItem
+                      key={child.path}
+                      component={Link}
+                      href={childPathWithLng}
+                      onClick={handleCategoryMenuClose}
+                      selected={isChildActive}
+                      sx={{ '&.Mui-selected': { fontWeight: 'bold' } }}
+                    >
+                      <ListItemIcon>{child.icon}</ListItemIcon>
+                      <ListItemText>{childLabel}</ListItemText>
+                    </MenuItem>
+                  );
+                })}
+              </Menu>
+            </Box>
+          );
+        }
+
+        const isActive =
+          !!itemPathWithLng &&
+          (pathname === itemPathWithLng ||
+            (item.path !== '/dashboard' && pathname.startsWith(itemPathWithLng)));
+
+        return (
+          <Button
+            component={Link}
+            href={itemPathWithLng!}
+            key={item.path}
+            startIcon={item.icon}
+            sx={{ color: isActive ? 'primary.main' : 'inherit', fontWeight: isActive ? 'bold' : 'normal' }}
+          >
+            {label}
+          </Button>
+        );
+      })}
+    </Box>
+  );
 };
+
+
 
 // --- Helper Component for User actions and menus ---
 const UserActions = () => {
@@ -70,36 +141,62 @@ const UserActions = () => {
     const { themeMode, toggleThemeMode, navLayout, toggleNavLayout } = useLayout();
     const { selectedVehicleRegNo, clearVehicle } = useDriverSession();
     const router = useRouter();
+    const pathname = usePathname();
+    const currentLng = (pathname.split('/')[1] || fallbackLng) as string;
+    const { t } = useTranslation(['navbar']);
+
+    const nextMode = themeMode === 'light' ? 'dark' : 'light';
+    const nextLayout = navLayout === 'left' ? 'top' : 'left';
 
     const [anchorElUser, setAnchorElUser] = useState<null | HTMLElement>(null);
     const handleOpenUserMenu = (event: React.MouseEvent<HTMLElement>) => setAnchorElUser(event.currentTarget);
     const handleCloseUserMenu = () => setAnchorElUser(null);
     const handleLogout = () => { clearVehicle(); logout(); handleCloseUserMenu(); };
-    const handleGoToSettings = () => { router.push('/settings/user'); handleCloseUserMenu(); };
+    const handleGoToSettings = () => { router.push(withLng(currentLng, '/settings/user')); handleCloseUserMenu(); };
     
     return (
         <Box sx={{ display: 'flex', alignItems: 'center' }}>
+            {/* Driver badge (visible for drivers) */}
             {user?.roles.includes('Kuljettaja') && selectedVehicleRegNo && (
-                <Paper variant="outlined" sx={{ mr: 2, p: '2px 8px', borderRadius: 1, display: { xs: 'none', sm: 'flex' }, alignItems: 'center', gap: 1 }}>
+                <Paper
+                    variant="outlined"
+                    sx={{ mr: 2, p: '2px 8px', borderRadius: 1, display: { xs: 'none', sm: 'flex' }, alignItems: 'center', gap: 1 }}
+                >
                     <Chip icon={<AccountCircleIcon />} label={user.fullName} size="small" />
                     <Divider orientation="vertical" flexItem />
                     <Chip icon={<DirectionsCarIcon />} label={selectedVehicleRegNo} size="small" variant="outlined" />
                 </Paper>
             )}
 
-            <Tooltip title={`Toggle Theme`}><IconButton sx={{ ml: 1 }} onClick={toggleThemeMode} color="inherit">{themeMode === 'dark' ? <LightModeIcon /> : <Brightness4Icon />}</IconButton></Tooltip>
-            <Tooltip title={`Switch Navigation`}><IconButton sx={{ ml: 1 }} onClick={toggleNavLayout} color="inherit">{navLayout === 'left' ? <ViewDayIcon /> : <ViewSidebarIcon />}</IconButton></Tooltip>
+            {/* Language switcher */}
+            <LanguageSwitcher />
+
+            {/* Theme & layout toggles with localized tooltips */}
+            <Tooltip title={t('navbar:tooltips.toggleTheme', { mode: t(`navbar:modes.${nextMode}`) })}>
+                <IconButton sx={{ ml: 1 }} onClick={toggleThemeMode} color="inherit">
+                    {themeMode === 'dark' ? <LightModeIcon /> : <Brightness4Icon />}
+                </IconButton>
+            </Tooltip>
+            <Tooltip title={t('navbar:tooltips.switchNavLayout', { layout: t(`navbar:layouts.${nextLayout}`) })}>
+                <IconButton sx={{ ml: 1 }} onClick={toggleNavLayout} color="inherit">
+                    {navLayout === 'left' ? <ViewDayIcon /> : <ViewSidebarIcon />}
+                </IconButton>
+            </Tooltip>
             
             {user && (
                 <Box sx={{ ml: 2 }}>
-                    <Tooltip title="Open settings">
-                        <IconButton onClick={handleOpenUserMenu} sx={{ p: 0 }}><Avatar alt={user.fullName || 'U'} sx={{ width: 36, height: 36 }}>{(user.fullName || 'U').charAt(0).toUpperCase()}</Avatar></IconButton>
+                    <Tooltip title={t('navbar:tooltips.openSettings')}>
+                        <IconButton onClick={handleOpenUserMenu} sx={{ p: 0 }}>
+                            <Avatar alt={user.fullName || 'U'} sx={{ width: 36, height: 36 }}>
+                                {(user.fullName || 'U').charAt(0).toUpperCase()}
+                            </Avatar>
+                        </IconButton>
                     </Tooltip>
-                    <Menu sx={{ mt: '45px' }} anchorEl={anchorElUser} open={Boolean(anchorElUser)} onClose={handleCloseUserMenu} /* ...other props */ >
+                    <Menu sx={{ mt: '45px' }} anchorEl={anchorElUser} open={Boolean(anchorElUser)} onClose={handleCloseUserMenu}>
                         <MenuItem disabled><Typography fontWeight="bold">{user.fullName}</Typography></MenuItem>
                         <Divider />
-                        <MenuItem onClick={handleGoToSettings}><Typography>Profile Settings</Typography></MenuItem>
-                        <MenuItem onClick={handleLogout}><Typography>Logout</Typography></MenuItem>
+                        <MenuItem onClick={handleGoToSettings}><Typography>{t('navbar:menu.profileSettings')}</Typography></MenuItem>
+                        <MenuItem onClick={handleLogout}><Typography>{t('navbar:menu.logout')}</Typography></MenuItem>
                     </Menu>
                 </Box>
             )}
@@ -112,43 +209,58 @@ export default function AppNavbar() {
     const { user } = useAuth();
     const { navLayout, toggleMobileDrawer } = useLayout();
     const pathname = usePathname();
+    const currentLng = (pathname.split('/')[1] || fallbackLng) as string;
 
     // Memoized logic to get the correct navigation items based on user role
     const navItems = useMemo(() => {
         if (!user) return [];
         const isDriver = user.roles.includes('Kuljettaja');
         const items = isDriver ? driverNavigationItems : officeNavigationItems;
-        // The filtering logic can be further extracted if it gets more complex
-        const filterItems = (list: NavItemConfig[]): NavItemConfig[] => list.map(item => {
-            if (item.children) {
-                const visibleChildren = filterItems(item.children);
-                if (visibleChildren.length > 0) return { ...item, children: visibleChildren };
-                return null;
-            }
-            if (item.permission && !user.permissions?.includes(item.permission)) return null;
-            if (item.roles && !item.roles.some(role => user.roles.includes(role))) return null;
-            return item;
-        }).filter(Boolean) as NavItemConfig[];
+        const filterItems = (list: NavItemConfig[]): NavItemConfig[] =>
+            list.map(item => {
+                if (item.children) {
+                    const visibleChildren = filterItems(item.children);
+                    if (visibleChildren.length > 0) return { ...item, children: visibleChildren };
+                    return null;
+                }
+                if (item.permission && !user.permissions?.includes(item.permission)) return null;
+                if (item.roles && !item.roles.some(role => user.roles.includes(role))) return null;
+                return item;
+            }).filter(Boolean) as NavItemConfig[];
         return filterItems(items);
     }, [user]);
 
     const topNavLinks = useMemo(() => navItems.filter(item => item.isTopNav), [navItems]);
     
     return (
-        <AppBar position="fixed" sx={{ zIndex: (theme) => theme.zIndex.drawer + 1, backgroundColor: 'background.paper', color: 'text.primary', boxShadow: '0 1px 3px rgba(0,0,0,0.1)' }}>
+        <AppBar
+            position="fixed"
+            sx={{
+                zIndex: (theme) => theme.zIndex.drawer + 1,
+                backgroundColor: 'background.paper',
+                color: 'text.primary',
+                boxShadow: '0 1px 3px rgba(0,0,0,0.1)'
+            }}
+        >
             <Toolbar>
                 {navLayout === 'left' && (
                     <IconButton color="inherit" aria-label="open drawer" edge="start" onClick={toggleMobileDrawer} sx={{ mr: 2, display: { md: 'none' } }}>
                         <MenuIcon />
                     </IconButton>
                 )}
-                <Link href="/dashboard" passHref style={{ display: 'flex', alignItems: 'center', textDecoration: 'none', color: 'inherit' }}>
+                <Link
+                    href={withLng(currentLng, '/dashboard')}
+                    passHref
+                    style={{ display: 'flex', alignItems: 'center', textDecoration: 'none', color: 'inherit' }}
+                >
                     <Image src="/images/softrain-logo.png" alt="Logo" width={150} height={40} priority style={{ marginRight: '16px' }} />
                 </Link>
                 
                 <Box sx={{ flexGrow: 1 }} />
                 
-                {navLayout === 'top' && <TopNavMenu navLinks={topNavLinks} pathname={pathname} />}
+                {navLayout === 'top' && (
+                    <TopNavMenu navLinks={topNavLinks} pathname={pathname} currentLng={currentLng} />
+                )}
                 
                 <UserActions />
             </Toolbar>

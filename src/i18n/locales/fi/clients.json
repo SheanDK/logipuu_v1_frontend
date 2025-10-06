@@ -1,0 +1,28 @@
+{
+  "title": "Asiakkaiden hallinta",
+  "noPermission": "Sinulla ei ole oikeutta tarkastella asiakkaita.",
+  "buttons": {
+    "add": "Lisää uusi asiakas"
+  },
+  "columns": {
+    "clientName": "Asiakkaan nimi",
+    "city": "Kaupunki",
+    "phoneNo": "Puhelin",
+    "type": "Tyyppi",
+    "targetColor": "Kohteen väri",
+    "active": "Aktiivinen",
+    "actions": "Toiminnot"
+  },
+  "feedback": {
+    "createSuccess": "Asiakas luotu onnistuneesti.",
+    "updateSuccess": "Asiakas päivitetty onnistuneesti.",
+    "deleteSuccess": "Asiakas \"{{name}}\" poistettiin onnistuneesti.",
+    "loadFailed": "Asiakkaiden lataus epäonnistui.",
+    "saveFailed": "Tallennuksessa tapahtui virhe.",
+    "deleteFailed": "Asiakkaan poistaminen epäonnistui."
+  },
+  "confirmDelete": {
+    "title": "Poista asiakas",
+    "message": "Haluatko varmasti poistaa asiakkaan \"{{name}}\"?"
+  }
+}

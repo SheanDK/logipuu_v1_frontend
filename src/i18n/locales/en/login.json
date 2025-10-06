@@ -1,0 +1,11 @@
+{
+  "title": "Sign in",
+  "subtitle": "Welcome back! Please enter your credentials to access your account.",
+  "username": "Username",
+  "password": "Password",
+  "signIn": "Sign In",
+  "signingIn": "Signing In...",
+  "errorGeneric": "Login failed. Please try again.",
+  "forgotPassword": "Forgot password?",
+  "copyright": "Copyright © WoodMaster LogiApp by Softrain {{year}}."
+}

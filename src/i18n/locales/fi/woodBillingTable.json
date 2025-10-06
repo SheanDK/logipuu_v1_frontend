@@ -1,0 +1,22 @@
+{
+  "columns": {
+    "status": "Tila",
+    "date": "Päivä",
+    "customer": "Asiakas",
+    "timberStacks": "Puulaani",
+    "waybillNumber": "Ajomääräys nro",
+    "woodType": "Puutavaralaji",
+    "vastaanottoNro": "Vastaanotto nro",
+    "vehicle": "Ajoneuvo",
+    "driverName": "Kuljettaja",
+    "route": "Ajoreitti",
+    "notes": "Lisätiedot",
+    "actions": "Toiminnot"
+  },
+  "labels": {
+    "billed": "Laskutettu",
+    "unbilled": "Laskuttamaton",
+    "changed": "Muokattu",
+    "noPrice": "Ei hintaa"
+  }
+}

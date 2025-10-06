@@ -12,7 +12,7 @@ import {
 } from '@mui/material';
 // --- FIX 1: Import the REAL types from the main types file ---
 import { IClientBasicInfo, ITimberStackListFilters, IVehicleBasicInfo, IPuutavaraItem } from '@/types';
-
+import { useTranslation } from 'react-i18next';
 
 // --- FIX 2: Update the props interface to use the REAL types ---
 interface PuulaaniFilterBarProps {
@@ -30,6 +30,9 @@ export default function PuulaaniFilterBar({
     vehicleList,
     timberTypeList
 }: PuulaaniFilterBarProps) {
+
+    const { t } = useTranslation(['puulaaniFilterBar']);
+
     return (
         <Paper sx={{ p: 2, mb: 2 }} variant="outlined">
             <Grid container spacing={2} alignItems="center">
@@ -40,12 +43,12 @@ export default function PuulaaniFilterBar({
                         value={filters.status || 'active'}
                         exclusive
                         onChange={(e, newValue) => { if (newValue !== null) { onFilterChangeAction('status', newValue); } }}
-                        aria-label="Status"
+                        aria-label={t('status.aria')}
                         size="small"
                     >
-                        <ToggleButton value="active">Active</ToggleButton>
-                        <ToggleButton value="completed">Completed</ToggleButton>
-                        <ToggleButton value="all">All</ToggleButton>
+                        <ToggleButton value="active">{t('status.active')}</ToggleButton>
+                        <ToggleButton value="completed">{t('status.completed')}</ToggleButton>
+                        <ToggleButton value="all">{t('status.all')}</ToggleButton>
                     </ToggleButtonGroup>
                 </Grid>
 
@@ -56,7 +59,7 @@ export default function PuulaaniFilterBar({
                         getOptionLabel={(option) => option.name}
                         value={clientList.find(c => c.id === filters.clientId) || null}
                         onChange={(event, newValue) => { onFilterChangeAction('clientId', newValue ? String(newValue.id) : null); }}
-                        renderInput={(params) => <TextField {...params} label="Customer" size="small" />}
+                        renderInput={(params) => <TextField {...params} label={t('customer')} size="small" />}
                     />
                 </Grid>
 
@@ -68,7 +71,7 @@ export default function PuulaaniFilterBar({
                         getOptionLabel={(option) => option.registrationNo}
                         value={vehicleList.find(v => v.id === filters.vehicleId) || null}
                         onChange={(event, newValue) => { onFilterChangeAction('vehicleId', newValue ? String(newValue.id) : null); }}
-                        renderInput={(params) => <TextField {...params} label="Car" size="small" />}
+                        renderInput={(params) => <TextField {...params} label={t('vehicle')}size="small" />}
                     />
                 </Grid>
 
@@ -80,7 +83,7 @@ export default function PuulaaniFilterBar({
                         getOptionLabel={(option) => option.puutavara} // Use 'puutavara' for the name
                         value={timberTypeList.find(t => String(t.puutavaraNro) === filters.timberTypeId) || null}
                         onChange={(event, newValue) => { onFilterChangeAction('timberTypeId', newValue ? String(newValue.puutavaraNro) : null); }}
-                        renderInput={(params) => <TextField {...params} label="Type of timber" size="small" />}
+                        renderInput={(params) => <TextField {...params} label={t('timberType')} size="small" />}
                     />
                 </Grid>
             </Grid>

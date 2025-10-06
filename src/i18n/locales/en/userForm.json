@@ -1,0 +1,36 @@
+{
+  "titles": {
+    "add": "Add New User",
+    "edit": "Edit User"
+  },
+  "fields": {
+    "username": "Username",
+    "fullName": "Full Name",
+    "password": "Password",
+    "confirmPassword": "Confirm Password",
+    "role": "Role",
+    "status": "Status"
+  },
+  "status": {
+    "active": "Active",
+    "inactive": "Inactive"
+  },
+  "validation": {
+    "usernameRequired": "Username is required.",
+    "fullNameRequired": "Full name is required.",
+    "passwordRequired": "Password is required.",
+    "passwordMin": "Password must be at least {{count}} characters.",
+    "confirmRequired": "Please confirm password.",
+    "passwordsNoMatch": "Passwords do not match.",
+    "roleRequired": "A role is required.",
+    "roleTypeError": "A role must be selected."
+  },
+  "errors": {
+    "generic": "An error occurred.",
+    "api": "Operation failed."
+  },
+  "buttons": {
+    "save": "Save",
+    "cancel": "Cancel"
+  }
+}

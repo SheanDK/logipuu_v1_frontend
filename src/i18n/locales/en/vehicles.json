@@ -1,0 +1,33 @@
+{
+  "title": "Vehicle Management",
+  "noPermission": "You do not have permission to view this page.",
+  "buttons": {
+    "addVehicle": "Add New Vehicle"
+  },
+  "columns": {
+    "vehicleNo": "Vehicle No",
+    "registrationNo": "Registration No.",
+    "nextInspectionDate": "Next Inspection",
+    "status": "Status",
+    "actions": "Actions"
+  },
+  "status": {
+    "active": "Active",
+    "inactive": "Inactive"
+  },
+  "actions": {
+    "edit": "Edit",
+    "delete": "Delete"
+  },
+  "feedback": {
+    "createSuccess": "Vehicle created successfully.",
+    "updateSuccess": "Vehicle updated successfully.",
+    "deleteSuccess": "Vehicle \"{{registrationNo}}\" deleted successfully.",
+    "loadFailed": "Failed to load vehicles.",
+    "saveFailed": "Failed to save vehicle."
+  },
+  "confirmDelete": {
+    "title": "Delete Vehicle",
+    "message": "Are you sure you want to delete vehicle \"{{registrationNo}}\"? This action cannot be undone."
+  }
+}

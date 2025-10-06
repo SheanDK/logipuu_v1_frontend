@@ -1,0 +1,58 @@
+{
+  "title": "User Management",
+  "noPermission": "You do not have permission to view this page.",
+
+  "buttons": {
+    "addUser": "Add User"
+  },
+
+  "columns": {
+    "username": "Username",
+    "fullName": "Full Name",
+    "role": "Role",
+    "status": "Status",
+    "actions": "Actions"
+  },
+
+  "status": {
+    "active": "Active",
+    "inactive": "Inactive"
+  },
+
+  "actions": {
+    "edit": "Edit",
+    "delete": "Delete"
+  },
+
+  "feedback": {
+    "createSuccess": "User \"{{username}}\" created successfully.",
+    "updateSuccess": "User \"{{username}}\" updated successfully.",
+    "deleteSuccess": "User \"{{username}}\" deleted successfully."
+  },
+
+  "errors": {
+    "fetchUsers": "Failed to fetch users.",
+    "deleteFailed": "Failed to delete user.",
+    "saveFailed": "An error occurred while saving."
+  },
+
+  "confirmDelete": {
+    "title": "Delete User",
+    "message": "Are you sure you want to delete user \"{{username}}\"? This action cannot be undone."
+  },
+
+  "roleLabels": {
+    "superuser": "Superuser",
+    "admin": "Admin",
+    "office": "Office",
+    "dispatch": "Dispatch",
+    "driver": "Driver",
+    "subcontractor": "Subcontractor"
+  },
+
+  "grid": {
+    "rowsPerPage": "Rows per page:",
+    "displayedRows": "{{from}}–{{to}} of {{count}}"
+  }
+
+}

@@ -1,0 +1,27 @@
+{
+  "buttons": {
+    "cancel": "Cancel",
+    "confirm": "Confirm",
+    "ok": "OK",
+    "save": "Save",
+    "delete": "Delete",
+    "close": "Close",
+    "continue": "Continue",
+    "yes": "Yes",
+    "no": "No",
+    "apply": "Apply",
+    "back": "Back",
+    "edit": "Edit",
+    "add": "Add",
+    "done": "Done",
+    "update": "Update",
+    "search": "Search",
+    "report": "Report"
+  },
+  "loading": {
+    "searching": "Searching…"
+  },
+  "messages": {
+    "noPermission": "You do not have permission to view this page."
+  }
+}

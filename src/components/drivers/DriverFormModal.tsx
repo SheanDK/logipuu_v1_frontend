@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect } from 'react';
+import React, { useEffect, useMemo } from 'react';
 import {
   Dialog, DialogTitle, DialogContent, DialogActions, Button, TextField,
   Grid, CircularProgress, FormControlLabel, Checkbox, Typography, Box, Alert
@@ -8,31 +8,33 @@ import {
 import { useForm, Controller, SubmitHandler } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
 import * as yup from 'yup';
+import { useTranslation } from '@/i18n/useTranslation';
 
 import { IDriver, ICreateDriverDto, IUpdateDriverDto, IDriverFormData } from '../../types/driver';
 
-const driverSchema = yup.object().shape({
-  name: yup.string()
-    .required('Name is required')
-    .min(2, 'Name must be at least 2 characters')
-    .max(50, 'Name must not exceed 50 characters')
-    .default(''),
-  phoneNo: yup.string()
-    .required('Phone Number is required')
-    .max(20, 'Phone Number must not exceed 20 characters')
-    .default(''),
-  email: yup.string()
-    .required('Email is required')
-    .email('Enter a valid email')
-    .max(100, 'Email must not exceed 100 characters')
-    .default(''),
-  hasAlerts: yup.boolean().required().default(true),
-});
+const buildSchema = (t: (k: string) => string) =>
+  yup.object({
+    name: yup.string()
+      .required(t('errors.nameRequired'))
+      .min(2, t('errors.nameMin'))
+      .max(50, t('errors.nameMax'))
+      .default(''),
+    phoneNo: yup.string()
+      .required(t('errors.phoneRequired'))
+      .max(20, t('errors.phoneMax'))
+      .default(''),
+    email: yup.string()
+      .required(t('errors.emailRequired'))
+      .email(t('errors.emailInvalid'))
+      .max(100, t('errors.emailMax'))
+      .default(''),
+    hasAlerts: yup.boolean().required().default(true),
+  });
 
 interface DriverFormModalProps {
   open: boolean;
   onClose: () => void;
-  onSave: (data: ICreateDriverDto | IUpdateDriverDto, driverId?: number) => Promise<void>; 
+  onSave: (data: ICreateDriverDto | IUpdateDriverDto, driverId?: number) => Promise<void>;
   initialData?: IDriver | null;
   isSaving: boolean;
   apiError: string | null;
@@ -46,25 +48,29 @@ const DriverFormModal: React.FC<DriverFormModalProps> = ({
   isSaving,
   apiError,
 }) => {
+
+  const { t } = useTranslation(['driverForm', 'common']);
+  const schema = useMemo(() => buildSchema(t), [t]);
+
   const {
     handleSubmit,
     control,
     reset,
     formState: { errors, isValid, isDirty },
   } = useForm<IDriverFormData>({
-    resolver: yupResolver(driverSchema),
-    defaultValues: driverSchema.getDefault(),
+    resolver: yupResolver(schema),
+    defaultValues: schema.getDefault(),
     mode: 'onChange',
   });
 
   useEffect(() => {
-    if (open) { 
+    if (open) {
       reset(initialData ? {
         name: initialData.name,
         phoneNo: initialData.phoneNo,
         email: initialData.email,
         hasAlerts: initialData.hasAlerts,
-      } : driverSchema.getDefault());
+      } : schema.getDefault());
     }
   }, [initialData, open, reset]);
 
@@ -75,35 +81,41 @@ const DriverFormModal: React.FC<DriverFormModalProps> = ({
       email: formData.email,
       hasAlerts: formData.hasAlerts,
     };
-    
+
     await onSave(submissionData, initialData?.driverId);
   };
 
+  const submitLabel = isSaving
+    ? null
+    : initialData
+      ? t('buttons.save')
+      : t('buttons.add');
+
   return (
-    <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth> 
+    <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth>
       <DialogTitle>
         <Typography variant="h5" component="span" sx={{ mr: 1 }}>
-          {initialData ? 'Edit Driver' : 'Add New Driver'}
+          {initialData ? t('titles.edit') : t('titles.add')}
         </Typography>
       </DialogTitle>
       <DialogContent dividers>
         {apiError && <Alert severity="error" sx={{ mb: 2 }}>{apiError}</Alert>}
         <Box component="form" onSubmit={handleSubmit(onSubmitHandler)} id="driver-form" noValidate sx={{ mt: 1 }}>
           <Grid container spacing={2}>
-            <Grid item xs={12}> 
+            <Grid item xs={12}>
               <Controller
                 name="name"
                 control={control}
                 render={({ field }) => (
                   <TextField
                     {...field}
-                    label="Name"
+                    label={t('fields.name')}
                     fullWidth
                     required
-                    autoFocus 
+                    autoFocus
                     error={!!errors.name}
                     helperText={errors.name?.message}
-                    margin="dense" 
+                    margin="dense"
                   />
                 )}
               />
@@ -115,7 +127,7 @@ const DriverFormModal: React.FC<DriverFormModalProps> = ({
                 render={({ field }) => (
                   <TextField
                     {...field}
-                    label="Phone Number"
+                    label={t('fields.phoneNo')}
                     fullWidth
                     required
                     error={!!errors.phoneNo}
@@ -132,10 +144,10 @@ const DriverFormModal: React.FC<DriverFormModalProps> = ({
                 render={({ field }) => (
                   <TextField
                     {...field}
-                    label="Email"
+                    label={t('fields.email')}
                     fullWidth
                     required
-                    type="email" 
+                    type="email"
                     error={!!errors.email}
                     helperText={errors.email?.message}
                     margin="dense"
@@ -150,7 +162,7 @@ const DriverFormModal: React.FC<DriverFormModalProps> = ({
                 render={({ field }) => (
                   <FormControlLabel
                     control={<Checkbox {...field} checked={field.value} />}
-                    label="Active"
+                    label={t('fields.isActive')}
                   />
                 )}
               />
@@ -160,16 +172,16 @@ const DriverFormModal: React.FC<DriverFormModalProps> = ({
       </DialogContent>
       <DialogActions sx={{ p: 2 }}>
         <Button onClick={onClose} color="inherit" variant="outlined" disabled={isSaving}>
-          Cancel
+          {t('buttons.cancel')}
         </Button>
         <Button
           type="submit"
-          form="driver-form" 
+          form="driver-form"
           color="primary"
           variant="contained"
-          disabled={isSaving || !isDirty || !isValid} 
+          disabled={isSaving || !isDirty || !isValid}
         >
-          {isSaving ? <CircularProgress size={24} color="inherit" /> : (initialData ? 'Save Changes' : 'Add Driver')}
+          {isSaving ? <CircularProgress size={24} color="inherit" /> : submitLabel}
         </Button>
       </DialogActions>
     </Dialog>

@@ -1,0 +1,28 @@
+{
+  "title": "Client Management",
+  "noPermission": "You do not have permission to view clients.",
+  "buttons": {
+    "add": "Add New Client"
+  },
+  "columns": {
+    "clientName": "Client Name",
+    "city": "City",
+    "phoneNo": "Phone",
+    "type": "Type",
+    "targetColor": "Target Color",
+    "active": "Active",
+    "actions": "Actions"
+  },
+  "feedback": {
+    "createSuccess": "Client created successfully.",
+    "updateSuccess": "Client updated successfully.",
+    "deleteSuccess": "Client \"{{name}}\" deleted successfully.",
+    "loadFailed": "Failed to load clients.",
+    "saveFailed": "An error occurred while saving.",
+    "deleteFailed": "Failed to delete client."
+  },
+  "confirmDelete": {
+    "title": "Delete Client",
+    "message": "Are you sure you want to delete client \"{{name}}\"?"
+  }
+}

@@ -4,6 +4,7 @@
 import { Dialog, DialogTitle, DialogContent, IconButton, TextField, Box, DialogActions, Button } from '@mui/material';
 import * as Icons from '@mui/icons-material';
 import { useEffect, useState } from 'react';
+import { useTranslation } from '@/i18n/useTranslation';
 
 // Predefined lists of icons for better UX
 const allIconNames = Object.keys(Icons).filter(name => /^[A-Z]/.test(name) && !name.endsWith('Outlined'));
@@ -18,14 +19,15 @@ interface IconPickerModalProps {
 export default function IconPickerModal({ open, onCloseAction, onSelectAction }: IconPickerModalProps) {
     const [search, setSearch] = useState('');
     const filteredMuiIcons = search ? allIconNames.filter(name => name.toLowerCase().includes(search.toLowerCase())).slice(0, 50) : logisticsIconNames;
+    const { t } = useTranslation(['iconPickerModal', 'common'])
 
     useEffect(() => { if (!open) setSearch(''); }, [open]);
 
     return (
         <Dialog open={open} onClose={onCloseAction}>
-            <DialogTitle>Select Icon</DialogTitle>
+            <DialogTitle>{t('title')}</DialogTitle>
             <DialogContent sx={{ width: 400 }}>
-                <TextField label="Search Icon (English only)" fullWidth size="small" value={search} onChange={(e) => setSearch(e.target.value)} sx={{ mt: 1, mb: 2 }} />
+                <TextField label={t('search')} fullWidth size="small" value={search} onChange={(e) => setSearch(e.target.value)} sx={{ mt: 1, mb: 2 }} />
                 <Box display="flex" flexWrap="wrap" gap={1}>
                     {filteredMuiIcons.map((name) => {
                         const Icon = Icons[name as keyof typeof Icons];
@@ -33,7 +35,7 @@ export default function IconPickerModal({ open, onCloseAction, onSelectAction }:
                     })}
                 </Box>
             </DialogContent>
-            <DialogActions><Button onClick={onCloseAction} color="error">Cancel</Button></DialogActions>
+            <DialogActions><Button onClick={onCloseAction} color="error">{t('common:buttons.cancel')}</Button></DialogActions>
         </Dialog>
     );
 }

@@ -1,0 +1,50 @@
+{
+  "titles": {
+    "add": "Add New Client",
+    "edit": "Edit Client"
+  },
+  "fields": {
+    "clientName": "Client Name",
+    "vatId": "VAT ID",
+    "address": "Address",
+    "postalCode": "Postal Code",
+    "city": "City",
+    "phoneNo": "Phone Number",
+    "contactPerson": "Contact Person",
+    "email": "Email",
+    "additionalInfo": "Additional Info",
+    "typeSectionLabel": "Type",
+    "isPuulaani": "Timber Stack",
+    "isRahtikirja": "Consignment Note",
+    "targetColor": "Target Color",
+    "isActive": "Active"
+  },
+  "buttons": {
+    "cancel": "Cancel",
+    "saveChanges": "Save Changes",
+    "addClient": "Add Client"
+  },
+  "errors": {
+    "nameRequired": "Client Name is required",
+    "nameMax": "Client Name must not exceed 50 characters",
+    "emailInvalid": "Enter a valid email.",
+    "emailMax": "Email must not exceed 100 characters.",
+    "colorRequired": "Target Color is required for Puulaani clients.",
+    "colorInvalid": "Must be a valid 6-digit hex color.",
+    "colorExists": "This color is already in use.",
+    "oneTypeRequired": "At least one client type must be selected.",
+    "postalNoLetters": "Postal Code cannot contain letters.",
+    "postalInvalid": "Enter a valid postal code (3–5 digits; Swedish format \"NNN NN\" also allowed).",
+    "postalMax": "Postal Code is too long.",
+    "phoneInvalidChars": "Phone Number may contain only digits, spaces, +, -, and parentheses.",
+    "phoneInvalid": "Enter a valid phone number (6–20 digits).",
+    "phoneMax": "Phone Number is too long.",
+    "addressMax": "Address must not exceed 100 characters.",
+    "cityMax": "City must not exceed 20 characters.",
+    "contactMax": "Contact Person must not exceed 60 characters.",
+    "vatMax": "VAT ID must not exceed 10 characters.",
+    "additionalInfoMax": "Additional Info must not exceed 1000 characters.",
+    "vatInvalidChars": "VAT ID may contain only digits and a hyphen.",
+    "vatInvalidFormat": "Enter VAT ID in the format NNNNNNN-N."
+  }
+}

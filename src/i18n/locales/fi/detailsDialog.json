@@ -1,0 +1,19 @@
+{
+  "title": "Luo uusi Puulaani (Vaihe 1)",
+  "fields": {
+    "objectName": "Kohteen nimi",
+    "customer": "Asiakas",
+    "drivingOrderNo": "Ajojärjestysnumero",
+    "additionalInfo": "Lisätiedot",
+    "status": "Tila",
+    "active": "Aktiivinen",
+    "ready": "Valmis"
+  },
+  "errors": {
+    "objectNameRequired": "Kohteen nimi on pakollinen",
+    "customerRequired": "Asiakas on pakollinen"
+  },
+  "actions": {
+    "saveNext": "Tallenna ja jatka"
+  }
+}

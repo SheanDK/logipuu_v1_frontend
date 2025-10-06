@@ -1,0 +1,62 @@
+{
+  "title": "Sovellusasetukset",
+  "noPermission": "Sinulla ei ole oikeutta käyttää tätä sivua.",
+  "tabs": {
+    "rolesPermissions": "Roolit ja oikeudet",
+    "mapSettings": "Kartta-asetukset",
+    "ariaLabel": "asetusten välilehdet"
+  },
+  "alerts": {
+    "defaultMapUpdated": "Oletuskarttanäkymä päivitetty.",
+    "puulaaniIconChanged": "Puulaani-merkki-ikoni vaihdettu.",
+    "dropoffIconChanged": "Purkupaikan merkki-ikoni vaihdettu."
+  },
+  "map": {
+    "defaultView": {
+      "title": "Oletuskarttanäkymä",
+      "subheader": "Aseta karttasivun oletusmaa."
+    },
+    "defaultCountry": {
+      "label": "Oletusmaa"
+    },
+    "countries": {
+      "finland": "Suomi",
+      "sweden": "Ruotsi"
+    }
+  },
+  "puulaani": {
+    "title": "Puulaani ikoni",
+    "subheader": "Valitse puulaaneille oletusikoni ja -koko.",
+    "iconPreview": "Ikonin esikatselu",
+    "selectIcon": "Valitse ikoni",
+    "iconSize": "Ikonin koko",
+    "icons": {
+      "locationOn": "Sijainti",
+      "forest": "Metsä",
+      "room": "Neula",
+      "fmdGood": "Yksinkertainen neula",
+      "pinDrop": "Pudotusneula"
+    },
+    "aria": {
+      "group": "puulaani-ikonin valinta",
+      "sizeSlider": "ikonin-koko-liukusäädin"
+    }
+  },
+  "dropoff": {
+    "title": "Purkupaikan ikoni",
+    "subheader": "Valitse purkupaikoille oletusikoni ja -koko.",
+    "iconPreview": "Ikonin esikatselu",
+    "selectIcon": "Valitse ikoni",
+    "iconSize": "Ikonin koko",
+    "icons": {
+      "warehouse": "Varasto",
+      "factory": "Tehdas",
+      "localShipping": "Kuljetusauto",
+      "business": "Yritys"
+    },
+    "aria": {
+      "group": "purkupaikka-ikonin valinta",
+      "sizeSlider": "purkupaikka-ikonin-koko-liukusäädin"
+    }
+  }
+}

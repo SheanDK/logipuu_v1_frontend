@@ -1,0 +1,29 @@
+{
+  "title": {
+    "create": "Luo uusi muu merkki",
+    "edit": "Muokkaa muuta merkkiä"
+  },
+  "fields": {
+    "name": "Merkin nimi",
+    "icon": "Kuvake",
+    "color": "Väri",
+    "additionalInfo": "Lisätiedot"
+  },
+  "labels": {
+    "preview": "Esikatselu",
+    "color": "Väri",
+    "custom": "Vapaa valintainen"
+  },
+  "buttons": {
+    "changeIcon": "Vaihda kuvake",
+    "cancel": "Peruuta",
+    "create": "Luo merkki",
+    "update": "Päivitä merkki"
+  },
+  "validation": {
+    "nameRequired": "Merkin nimi on pakollinen",
+    "iconRequired": "Kuvake on valittava",
+    "colorRequired": "Väri on pakollinen",
+    "hexInvalid": "Täytyy olla kelvollinen heksaväri"
+  }
+}

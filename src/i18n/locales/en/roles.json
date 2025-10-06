@@ -1,0 +1,70 @@
+{
+  "rolesHeader": "Roles",
+  "permissionsForRole": "Permissions for: <0>{{role}}</0>",
+
+  "buttons": {
+    "saveChanges": "Save Changes"
+  },
+
+  "empty": {
+    "selectRoleTitle": "Select a Role",
+    "selectRoleSubtitle": "Select a role from the list to manage its permissions."
+  },
+
+  "errors": {
+    "loadFailed": "Failed to load roles and permissions.",
+    "saveFailed": "Failed to save changes."
+  },
+
+  "success": {
+    "updatedForRole": "Permissions for role \"{{role}}\" updated successfully!"
+  },
+
+  "roleLabels": {
+    "superuser": "Superuser",
+    "admin": "Admin",
+    "office": "Office",
+    "dispatch": "Dispatch",
+    "driver": "Driver",
+    "subcontractor": "Subcontractor"
+  },
+
+  "categoryLabels": {
+    "office": "Office",
+    "arrangement": "Arrangement",
+    "control": "Control",
+    "app_settings": "App Settings",
+    "other": "Other"
+  },
+
+   "resourceLabels": {
+    "consignment_invoicing": "Consignment Invoicing",
+    "driven_inspection": "Driven & Inspection",
+    "puulaani_invoicing": "Puulaani Invoicing",
+    "load_management": "Load Management",
+    "timber_management": "Timber Management",
+    "timber_map": "Timber Map",
+    "clients": "Clients",
+    "drivers": "Drivers",
+    "reports": "Reports",
+    "vehicles": "Vehicles",
+    "application_settings": "Application Settings",
+    "users": "Users",
+    "unloading_site": "Unloading Site",
+    "wood_categories": "Wood Categories"
+  },
+
+  "actionLabels": {
+    "create": "Create",
+    "delete": "Delete",
+    "edit": "Edit",
+    "view": "View",
+    "accept": "Accept",
+    "manage": "Manage"
+  },
+
+  "resourceOverrides": {
+    "timber": "Timber Stacks"
+  }
+
+}

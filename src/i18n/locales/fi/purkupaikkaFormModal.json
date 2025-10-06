@@ -1,0 +1,50 @@
+{
+  "title": {
+    "edit": "Muokkaa asiakkaan purkupaikkoja",
+    "create": "Luo uusi purkupaikka"
+  },
+  "sections": {
+    "selectCustomer": "Valitse asiakas",
+    "manageSites": "Hallitse purkupaikkoja",
+    "addNewSite": "Lisää uusi purkupaikka listaan"
+  },
+  "fields": {
+    "customer": "Asiakas",
+    "newSiteName": "Uuden purkupaikan nimi",
+    "latitude": "Leveysaste",
+    "longitude": "Pituusaste"
+  },
+  "tooltips": {
+    "visibleOnMap": "Näkyy kartalla",
+    "hiddenFromMap": "Piilotettu kartalta"
+  },
+  "actions": {
+    "editName": "Muokkaa nimeä",
+    "deleteSite": "Poista purkupaikka",
+    "addToList": "Lisää purkupaikka listaan"
+  },
+  "empty": {
+    "noSites": "Purkupaikkoja ei löytynyt. Lisää uusi alla."
+  },
+  "errors": {
+    "nameRequired": "Nimi on pakollinen",
+    "latitudeRequired": "Leveysaste on pakollinen",
+    "longitudeRequired": "Pituusaste on pakollinen",
+    "nameMin": "Vähintään {{count}} merkkiä",
+    "loadSitesFailed": "Purkupaikkojen lataus epäonnistui.",
+    "addFailed": "Purkupaikan lisääminen epäonnistui.",
+    "deleteFailed": "Purkupaikan poistaminen epäonnistui.",
+    "referencedInUse": "Purkupaikkaa ei voi poistaa, koska se on käytössä.",
+    "updateVisibilityFailed": "Näkyvyyden päivitys epäonnistui.",
+    "updateNameFailed": "Nimen päivitys epäonnistui."
+  },
+  "messages": {
+    "added": "Purkupaikka \"{{name}}\" lisätty onnistuneesti.",
+    "deleted": "Purkupaikka \"{{name}}\" poistettu onnistuneesti.",
+    "nameUpdated": "Purkupaikan nimi päivitetty."
+  },
+  "confirm": {
+    "title": "Vahvista purkupaikan poisto",
+    "message": "Haluatko varmasti poistaa purkupaikan \"{{name}}\"? Toimintoa ei voi perua."
+  }
+}

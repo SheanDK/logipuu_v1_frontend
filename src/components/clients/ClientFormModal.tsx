@@ -3,8 +3,9 @@
 
 import React, { useEffect, useMemo } from 'react';
 import {
-    Dialog, DialogTitle, DialogContent, DialogActions, Button, TextField,
-    Grid, CircularProgress, FormControlLabel, Checkbox, Box, Alert, Typography,
+  Dialog, DialogTitle, DialogContent, DialogActions, Button, TextField,
+  Grid, CircularProgress, FormControlLabel, Checkbox, Box, Alert, Typography,
+  FormControl, FormHelperText,
 } from '@mui/material';
 import { useForm, Controller, SubmitHandler } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
@@ -14,223 +15,485 @@ import { IClient, ICreateClientDto, IUpdateClientDto, IClientFormData, ClientTyp
 import { checkTargetColorExists } from '../../services/clientService';
 import NativeColorPicker from '../common/ColorPicker';
 
-// Validation schema is now a function that accepts the editing client's ID
-const validationSchema = (editingClientId?: string) => yup.object().shape({
-    clientName: yup.string().required('Client Name is required').max(50),
-    vatId: yup.string().nullable(),
-    address: yup.string().nullable(),
-    postalCode: yup.string().nullable(),
-    city: yup.string().nullable(),
-    phoneNo: yup.string().nullable(),
-    contactPerson: yup.string().nullable(),
-    email: yup.string().email('Enter a valid email.').nullable(),
-    additionalInfo: yup.string().nullable(),
+import { useTranslation } from '@/i18n/useTranslation';
 
-    targetColor: yup.string()
-        .nullable()
-        .when('isPuulaani', {
-            is: true,
-            then: (schema) => schema
-                .required('Target Color is required for Puulaani clients.')
-                .matches(/^#([0-9A-Fa-f]{6})$/i, { message: 'Must be a valid 6-digit hex color.', excludeEmptyString: true })
-                .test(
-                    'is-color-unique',
-                    'This color is already in use.',
-                    async (value) => {
-                        if (!value) return true;
-                        try {
-                            const isTaken = await checkTargetColorExists(value, editingClientId);
-                            return !isTaken;
-                        } catch (error) {
-                            console.error("Async color validation failed:", error);
-                            return true;
-                        }
-                    }
-                ),
-        }),
+// Validation schema (comments in English)
+const buildSchema = (t: (k: string, o?: any) => string, editingClientId?: string) =>
+  yup.object({
+    clientName: yup.string().required(t('errors.nameRequired')).max(50, t('errors.nameMax')).default(''),
+
+    vatId: yup
+  .string()
+  .nullable()
+  .max(10, t('errors.vatMax'))
+  // 1) No letters at all
+  .test('vat-no-letters', t('errors.vatInvalidChars'), (v) => !v || !/[A-Za-zÅÄÖåäöÆØæøÞþÐð]/u.test(v))
+  // 2) Allowed characters only: digits and a single hyphen
+  .matches(/^[0-9-]*$/, t('errors.vatInvalidChars'))
+  // 3) Strict Finnish Y-tunnus format: 7 digits, hyphen, 1 digit (optional — poista jos haluat sallia muutkin)
+  .test('vat-format-fi', t('errors.vatInvalidFormat'), (v) => {
+    if (!v) return true;
+    return /^\d{7}-\d$/.test(v);
+  })
+  .default(''),
+
+    address: yup.string().nullable().max(100, t('errors.addressMax')).default(''),
+    postalCode: yup
+      .string()
+      .nullable()
+      .transform((v) => (typeof v === 'string' ? v.trim() : v))
+      .max(10, t('errors.postalMax')) // e.g., "123 45" is 6 characters
+      .test('no-letters', t('errors.postalNoLetters'), (v) => !v || !/[A-Za-zÅÄÖåäöÆØæøÞþÐð]/u.test(v))
+      .test('nordic-postal', t('errors.postalInvalid'), (v) => {
+        if (!v) return true;
+        const clean = v.replace(/\s/g, ''); // allow Swedish format "NNN NN" by stripping spaces
+        // digits only and length 3, 4, or 5 (IS=3, DK/NO=4, FI/SE=5)
+        return /^\d+$/.test(clean) && [3, 4, 5].includes(clean.length);
+      })
+      .default(''),
+
+    city: yup.string().nullable().max(20, t('errors.cityMax')).default(''),
+
+    phoneNo: yup
+      .string()
+      .nullable()
+      .transform((v) => (typeof v === 'string' ? v.trim() : v))
+      .max(20, t('errors.phoneMax'))
+      .matches(/^[0-9+\-() \t]*$/, t('errors.phoneInvalidChars')) // allow digits and common separators only
+      .test('has-digits-len', t('errors.phoneInvalid'), (v) => {
+        if (!v) return true;
+        const digits = v.replace(/\D/g, '');
+        // practical range: 6–20 digits (aligned with E.164 length constraints)
+        return digits.length >= 6 && digits.length <= 20;
+      })
+      .default(''),
+
+    contactPerson: yup.string().nullable().max(50, t('errors.contactMax')).default(''),
+    email: yup.string().email(t('errors.emailInvalid')).nullable().max(100, t('errors.emailMax')).default(''),
+    additionalInfo: yup.string().nullable().max(1000, t('errors.additionalInfoMax')).default(''),
+
+    targetColor: yup
+      .string()
+      .nullable()
+      .when('isPuulaani', {
+        is: true,
+        then: (schema) =>
+          schema
+            .required(t('errors.colorRequired'))
+            .matches(/^#([0-9A-Fa-f]{6})$/i, {
+              message: t('errors.colorInvalid'),
+              excludeEmptyString: true,
+            })
+            .test('is-color-unique', t('errors.colorExists'), async (value) => {
+              if (!value) return true;
+              try {
+                const isTaken = await checkTargetColorExists(value, editingClientId);
+                return !isTaken;
+              } catch {
+                // do not block saving on server/IO error
+                return true;
+              }
+            }),
+      }),
 
     isPuulaani: yup.boolean().required(),
     isRahtikirja: yup.boolean().required(),
     isActive: yup.boolean().required(),
-}).test(
-    'at-least-one-type-selected',
-    'At least one client type must be selected.',
-    (values) => values.isPuulaani || values.isRahtikirja
-);
+  }).test('at-least-one-type-selected', t('errors.oneTypeRequired'), function (values) {
+    const v = values as unknown as IClientFormData;
+    if (v.isPuulaani || v.isRahtikirja) return true;
+    return this.createError({ path: 'isRahtikirja', message: t('errors.oneTypeRequired') });
+  });
 
-// --- KEY CORRECTION: Add missing props to the interface ---
 interface ClientFormModalProps {
-    open: boolean;
-    onClose: () => void;
-    onSave: (data: ICreateClientDto | IUpdateClientDto, clientId?: string) => Promise<void>;
-    initialData?: IClient | null;
-    isSaving: boolean;
-    usedColors: string[]; // This was missing
-    currentClientColor: string | null; // This was missing
-    apiError: string | null;
+  open: boolean;
+  onClose: () => void;
+  onSave: (data: ICreateClientDto | IUpdateClientDto, clientId?: string) => Promise<void>;
+  initialData?: IClient | null;
+  isSaving: boolean;
+  usedColors: string[];
+  currentClientColor: string | null;
+  apiError: string | null;
 }
-// --- END CORRECTION ---
 
-const ClientFormModal: React.FC<ClientFormModalProps> = ({ open, onClose, onSave, initialData, isSaving, usedColors, currentClientColor, apiError }) => {
+const ClientFormModal: React.FC<ClientFormModalProps> = ({
+  open, onClose, onSave, initialData, isSaving, usedColors, currentClientColor, apiError,
+}) => {
+  const { t } = useTranslation(['clientForm', 'common']);
 
-    const resolver = useMemo(
-        () => yupResolver(validationSchema(initialData?.clientId)) as any,
-        [initialData?.clientId]
-    );
+  const schema = useMemo(() => buildSchema(t, initialData?.clientId), [t, initialData?.clientId]);
 
-    const {
-        handleSubmit,
-        control,
-        reset,
-        watch,
-        setValue,
-        trigger,
-        formState: { errors, isValid, isDirty },
-    } = useForm<IClientFormData>({
-        resolver,
-        mode: 'onChange',
-        reValidateMode: 'onChange',
-        defaultValues: {
-            clientName: '', vatId: '', address: '', postalCode: '', city: '',
-            phoneNo: '', contactPerson: '', email: '', additionalInfo: '',
-            targetColor: '#FFFFFF', isPuulaani: false, isRahtikirja: false, isActive: true,
-        },
+  const {
+    handleSubmit,
+    control,
+    reset,
+    watch,
+    setValue,
+    formState: { errors, isValid, isDirty },
+  } = useForm<IClientFormData>({
+    resolver: yupResolver(schema),
+    mode: 'onChange',
+    reValidateMode: 'onChange',
+    defaultValues: {
+      clientName: '', vatId: '', address: '', postalCode: '', city: '',
+      phoneNo: '', contactPerson: '', email: '', additionalInfo: '',
+      targetColor: '#FFFFFF', isPuulaani: false, isRahtikirja: false, isActive: true,
+    },
+  });
+
+  const isPuulaaniChecked = watch('isPuulaani');
+
+  useEffect(() => {
+    if (!open) return;
+
+    if (initialData) {
+      const isRahtikirja =
+        initialData.type === ClientTypeEnum.RAHTIKIRJA ||
+        initialData.type === ClientTypeEnum.BOTH;
+
+      reset({
+        clientName: initialData.clientName,
+        vatId: initialData.vatId || '',
+        address: initialData.address || '',
+        postalCode: initialData.postalCode || '',
+        city: initialData.city || '',
+        phoneNo: initialData.phoneNo || '',
+        contactPerson: initialData.contactPerson || '',
+        email: initialData.email || '',
+        additionalInfo: initialData.additionalInfo || '',
+        targetColor: initialData.targetColor || '#FFFFFF',
+        isPuulaani: initialData.type === ClientTypeEnum.PUULAANI || initialData.type === ClientTypeEnum.BOTH,
+        isRahtikirja: isRahtikirja,
+        isActive: initialData.isActive,
+      }, { keepDirty: false, keepErrors: false, keepTouched: false });
+    } else {
+      reset({
+        clientName: '', vatId: '', address: '', postalCode: '', city: '',
+        phoneNo: '', contactPerson: '', email: '', additionalInfo: '',
+        targetColor: '#FFFFFF', isPuulaani: false, isRahtikirja: false, isActive: true,
+      }, { keepDirty: false, keepErrors: false, keepTouched: false });
+    }
+  }, [initialData, open, reset]);
+
+  useEffect(() => {
+    const subscription = watch((values, { name }) => {
+      if (name === 'isPuulaani' && !values.isPuulaani) {
+        setValue('targetColor', '#FFFFFF', { shouldValidate: true, shouldDirty: true });
+      }
     });
+    return () => subscription.unsubscribe();
+  }, [watch, setValue]);
 
-    const isPuulaaniChecked = watch('isPuulaani');
+  const onSubmitHandler: SubmitHandler<IClientFormData> = async (formData) => {
+    let typeValue: ClientTypeEnum;
+    if (formData.isPuulaani && formData.isRahtikirja) typeValue = ClientTypeEnum.BOTH;
+    else if (formData.isPuulaani) typeValue = ClientTypeEnum.PUULAANI;
+    else typeValue = ClientTypeEnum.RAHTIKIRJA;
 
-    useEffect(() => {
-        if (open) {
-            if (initialData) {
-                const isRahtikirja =
-                    initialData.type === ClientTypeEnum.RAHTIKIRJA ||
-                    initialData.type === ClientTypeEnum.BOTH;
-
-                reset({
-                    clientName: initialData.clientName,
-                    vatId: initialData.vatId || '',
-                    address: initialData.address || '',
-                    postalCode: initialData.postalCode || '',
-                    city: initialData.city || '',
-                    phoneNo: initialData.phoneNo || '',
-                    contactPerson: initialData.contactPerson || '',
-                    email: initialData.email || '',
-                    additionalInfo: initialData.additionalInfo || '',
-                    targetColor: initialData.targetColor || '#FFFFFF',
-                    isPuulaani: initialData.type === ClientTypeEnum.PUULAANI || initialData.type === ClientTypeEnum.BOTH,
-                    isRahtikirja: initialData.type === ClientTypeEnum.RAHTIKIRJA || initialData.type === ClientTypeEnum.BOTH,
-                    isActive: initialData.isActive,
-                }, {
-                    keepDirty: false,
-                    keepErrors: false,
-                    keepTouched: false,
-                });
-            } else {
-                reset({
-                    clientName: '', vatId: '', address: '', postalCode: '', city: '',
-                    phoneNo: '', contactPerson: '', email: '', additionalInfo: '',
-                    targetColor: '#FFFFFF', isPuulaani: false, isRahtikirja: false, isActive: true,
-                }, {
-                    keepDirty: false,
-                    keepErrors: false,
-                    keepTouched: false,
-                });
-            }
-        }
-    }, [initialData, open, reset, trigger]);
-
-    useEffect(() => {
-        const subscription = watch((values, { name }) => {
-            if (name === 'isPuulaani' && !values.isPuulaani) {
-                setValue('targetColor', '#FFFFFF', { shouldValidate: true, shouldDirty: true });
-            }
-        });
-        return () => subscription.unsubscribe();
-    }, [watch, setValue]);
-
-    const onSubmitHandler: SubmitHandler<IClientFormData> = async (formData) => {
-        let typeValue: ClientTypeEnum;
-        if (formData.isPuulaani && formData.isRahtikirja) typeValue = ClientTypeEnum.BOTH;
-        else if (formData.isPuulaani) typeValue = ClientTypeEnum.PUULAANI;
-        else typeValue = ClientTypeEnum.RAHTIKIRJA;
-
-        const TRANSPARENT = 'transparent';
-
-        const submissionData: ICreateClientDto = {
-            clientName: formData.clientName,
-            vatId: formData.vatId || null,
-            address: formData.address || null,
-            postalCode: formData.postalCode || null,
-            city: formData.city || null,
-            phoneNo: formData.phoneNo || null,
-            contactPerson: formData.contactPerson || null,
-            email: formData.email || null,
-            additionalInfo: formData.additionalInfo || null,
-            targetColor: formData.isPuulaani ? formData.targetColor : '#808080',
-            type: typeValue,
-            isActive: formData.isActive,
-        };
-
-        //console.log("Submitting client data:", submissionData);
-
-
-        await onSave(submissionData, initialData?.clientId);
+    const submissionData: ICreateClientDto = {
+      clientName: formData.clientName,
+      vatId: formData.vatId || null,
+      address: formData.address || null,
+      postalCode: formData.postalCode || null,
+      city: formData.city || null,
+      phoneNo: formData.phoneNo || null,
+      contactPerson: formData.contactPerson || null,
+      email: formData.email || null,
+      additionalInfo: formData.additionalInfo || null,
+      targetColor: formData.isPuulaani ? formData.targetColor : '#808080',
+      type: typeValue,
+      isActive: formData.isActive,
     };
 
-    return (
-        <Dialog open={open} onClose={onClose} maxWidth="md" fullWidth>
-            <DialogTitle>
-                <Typography variant="h5" component="span">{initialData ? 'Edit Client' : 'Add New Client'}</Typography>
-            </DialogTitle>
-            <Box component="form" onSubmit={handleSubmit(onSubmitHandler)} id="client-form" noValidate>
-                <DialogContent dividers>
-                    {apiError && <Alert severity="error" sx={{ mb: 2 }}>{apiError}</Alert>}
-                    <Grid container spacing={2} sx={{ pt: 1 }}>
-                        <Grid item xs={12} sm={6}><Controller name="clientName" control={control} render={({ field }) => (<TextField {...field} label="Client Name" fullWidth required autoFocus error={!!errors.clientName} helperText={errors.clientName?.message} />)} /></Grid>
-                        <Grid item xs={12} sm={6}><Controller name="vatId" control={control} render={({ field }) => (<TextField {...field} value={field.value ?? ''} label="VAT ID" fullWidth error={!!errors.vatId} helperText={errors.vatId?.message} />)} /></Grid>
-                        <Grid item xs={12}><Controller name="address" control={control} render={({ field }) => (<TextField {...field} value={field.value ?? ''} label="Address" fullWidth error={!!errors.address} helperText={errors.address?.message} />)} /></Grid>
-                        <Grid item xs={12} sm={6}><Controller name="postalCode" control={control} render={({ field }) => (<TextField {...field} value={field.value ?? ''} label="Postal Code" fullWidth error={!!errors.postalCode} helperText={errors.postalCode?.message} />)} /></Grid>
-                        <Grid item xs={12} sm={6}><Controller name="city" control={control} render={({ field }) => (<TextField {...field} value={field.value ?? ''} label="City" fullWidth error={!!errors.city} helperText={errors.city?.message} />)} /></Grid>
-                        <Grid item xs={12} sm={6}><Controller name="phoneNo" control={control} render={({ field }) => (<TextField {...field} value={field.value ?? ''} label="Phone Number" fullWidth error={!!errors.phoneNo} helperText={errors.phoneNo?.message} />)} /></Grid>
-                        <Grid item xs={12} sm={6}><Controller name="contactPerson" control={control} render={({ field }) => (<TextField {...field} value={field.value ?? ''} label="Contact Person" fullWidth error={!!errors.contactPerson} helperText={errors.contactPerson?.message} />)} /></Grid>
-                        <Grid item xs={12} sm={6}><Controller name="email" control={control} render={({ field }) => (<TextField {...field} value={field.value ?? ''} label="Email" fullWidth type="email" error={!!errors.email} helperText={errors.email?.message} />)} /></Grid>
-                        <Grid item xs={12}><Controller name="additionalInfo" control={control} render={({ field }) => (<TextField {...field} value={field.value ?? ''} label="Additional Info" fullWidth multiline rows={2} error={!!errors.additionalInfo} helperText={errors.additionalInfo?.message} />)} /></Grid>
+    await onSave(submissionData, initialData?.clientId);
+  };
 
-                        <Grid item xs={12}>
-                            <Box>
-                                <Typography variant="subtitle2" gutterBottom>Type *</Typography>
-                                <Box sx={{ display: 'flex', gap: 1 }}>
-                                    <Controller name="isPuulaani" control={control} render={({ field }) => (<FormControlLabel control={<Checkbox {...field} checked={field.value} />} label="Puulaani" />)} />
-                                    <Controller name="isRahtikirja" control={control} render={({ field }) => (<FormControlLabel control={<Checkbox {...field} checked={field.value} />} label="Rahtikirja" />)} />
-                                </Box>
-                                {(errors as any).isPuulaani && (<Typography color="error" variant="caption">{(errors as any).isPuulaani.message}</Typography>)}
-                            </Box>
-                        </Grid>
+  // Show field-level errors + a group-level error for the type checkboxes.
+  // Also: correct the Email props and add maxLength constraints for immediate UX.
+  return (
+    <Dialog open={open} onClose={onClose} maxWidth="md" fullWidth>
+      <DialogTitle>
+        <Typography variant="h5" component="span">
+          {initialData ? t('titles.edit') : t('titles.add')}
+        </Typography>
+      </DialogTitle>
 
-                        {isPuulaaniChecked && (
-                            <Grid item xs={12} sm={6}>
-                                <Controller
-                                    name="targetColor"
-                                    control={control}
-                                    render={({ field }) => (<NativeColorPicker label="Target Color" value={field.value || '#FFFFFF'} onChange={field.onChange} required={isPuulaaniChecked} error={!!errors.targetColor} helperText={errors.targetColor?.message} disabled={isSaving} />)}
-                                />
-                            </Grid>
+      <Box component="form" onSubmit={handleSubmit(onSubmitHandler)} id="client-form" noValidate>
+        <DialogContent dividers>
+          {apiError && <Alert severity="error" sx={{ mb: 2 }}>{apiError}</Alert>}
+
+          <Grid container spacing={2} sx={{ pt: 1 }}>
+            {/* Client Name */}
+            <Grid item xs={12} sm={6}>
+              <Controller
+                name="clientName"
+                control={control}
+                render={({ field }) => (
+                  <TextField
+                    {...field}
+                    label={t('fields.clientName')}
+                    fullWidth
+                    required
+                    autoFocus
+                    error={!!errors.clientName}
+                    helperText={errors.clientName?.message}
+                    slotProps={{ htmlInput: { maxLength: 50 } }}
+                  />
+                )}
+              />
+            </Grid>
+
+            {/* VAT ID */}
+            <Grid item xs={12} sm={6}>
+              <Controller
+                name="vatId"
+                control={control}
+                render={({ field }) => (
+                  <TextField
+                    {...field}
+                    value={field.value ?? ''}
+                    label={t('fields.vatId')}
+                    fullWidth
+                    error={!!errors.vatId}
+                    helperText={errors.vatId?.message}
+                    slotProps={{ htmlInput: { maxLength: 10 } }}
+                  />
+                )}
+              />
+            </Grid>
+
+            {/* Address */}
+            <Grid item xs={12}>
+              <Controller
+                name="address"
+                control={control}
+                render={({ field }) => (
+                  <TextField
+                    {...field}
+                    value={field.value ?? ''}
+                    label={t('fields.address')}
+                    fullWidth
+                    error={!!errors.address}
+                    helperText={errors.address?.message}
+                    slotProps={{ htmlInput: { maxLength: 100 } }}
+                  />
+                )}
+              />
+            </Grid>
+
+            {/* Postal Code */}
+            <Grid item xs={12} sm={6}>
+              <Controller
+                name="postalCode"
+                control={control}
+                render={({ field }) => (
+                  <TextField
+                    {...field}
+                    value={field.value ?? ''}
+                    label={t('fields.postalCode')}
+                    fullWidth
+                    error={!!errors.postalCode}
+                    helperText={errors.postalCode?.message}
+                    slotProps={{ htmlInput: { maxLength: 10 } }}
+                  />
+                )}
+              />
+            </Grid>
+
+            {/* City */}
+            <Grid item xs={12} sm={6}>
+              <Controller
+                name="city"
+                control={control}
+                render={({ field }) => (
+                  <TextField
+                    {...field}
+                    value={field.value ?? ''}
+                    label={t('fields.city')}
+                    fullWidth
+                    error={!!errors.city}
+                    helperText={errors.city?.message}
+                    slotProps={{ htmlInput: { maxLength: 20 } }}
+                  />
+                )}
+              />
+            </Grid>
+
+            {/* Phone Number */}
+            <Grid item xs={12} sm={6}>
+              <Controller
+                name="phoneNo"
+                control={control}
+                render={({ field }) => (
+                  <TextField
+                    {...field}
+                    value={field.value ?? ''}
+                    label={t('fields.phoneNo')}
+                    fullWidth
+                    error={!!errors.phoneNo}
+                    helperText={errors.phoneNo?.message}
+                    slotProps={{ htmlInput: { maxLength: 20 } }}
+                  />
+                )}
+              />
+            </Grid>
+
+            {/* Contact Person */}
+            <Grid item xs={12} sm={6}>
+              <Controller
+                name="contactPerson"
+                control={control}
+                render={({ field }) => (
+                  <TextField
+                    {...field}
+                    value={field.value ?? ''}
+                    label={t('fields.contactPerson')}
+                    fullWidth
+                    error={!!errors.contactPerson}
+                    helperText={errors.contactPerson?.message}
+                    slotProps={{ htmlInput: { maxLength: 50 } }}
+                  />
+                )}
+              />
+            </Grid>
+
+            {/* Email */}
+            <Grid item xs={12} sm={6}>
+              <Controller
+                name="email"
+                control={control}
+                render={({ field }) => (
+                  <TextField
+                    {...field}
+                    value={field.value ?? ''}
+                    label={t('fields.email')}
+                    type="email"
+                    fullWidth
+                    error={!!errors.email}
+                    helperText={errors.email?.message}
+                    slotProps={{ htmlInput: { maxLength: 100 } }}
+                  />
+                )}
+              />
+            </Grid>
+
+            {/* Additional Info */}
+            <Grid item xs={12}>
+              <Controller
+                name="additionalInfo"
+                control={control}
+                render={({ field }) => (
+                  <TextField
+                    {...field}
+                    value={field.value ?? ''}
+                    label={t('fields.additionalInfo')}
+                    fullWidth
+                    multiline
+                    rows={2}
+                    error={!!errors.additionalInfo}
+                    helperText={errors.additionalInfo?.message}
+                    slotProps={{ htmlInput: { maxLength: 1000 } }}
+                  />
+                )}
+              />
+            </Grid>
+
+            {/* Type (checkbox group) — single group-level error message */}
+            <Grid item xs={12}>
+              {(() => {
+                // Custom test sets the error path to 'isRahtikirja'
+                const typeError =
+                  (errors as any).isRahtikirja?.message || (errors as any).isPuulaani?.message;
+
+                return (
+                  <FormControl component="fieldset" error={!!typeError} variant="standard">
+                    <Typography variant="subtitle2" gutterBottom>
+                      {t('fields.typeSectionLabel')} *
+                    </Typography>
+
+                    <Box sx={{ display: 'flex', gap: 1 }}>
+                      <Controller
+                        name="isPuulaani"
+                        control={control}
+                        render={({ field }) => (
+                          <FormControlLabel
+                            control={<Checkbox {...field} checked={field.value} />}
+                            label={t('fields.isPuulaani')}
+                          />
                         )}
+                      />
+                      <Controller
+                        name="isRahtikirja"
+                        control={control}
+                        render={({ field }) => (
+                          <FormControlLabel
+                            control={<Checkbox {...field} checked={field.value} />}
+                            label={t('fields.isRahtikirja')}
+                          />
+                        )}
+                      />
+                    </Box>
 
-                        <Grid item xs={12} sm={isPuulaaniChecked ? 6 : 12}>
-                            <Controller name="isActive" control={control} render={({ field }) => (<FormControlLabel control={<Checkbox {...field} checked={field.value} />} label="Active" />)} />
-                        </Grid>
-                    </Grid>
-                </DialogContent>
-                <DialogActions sx={{ p: 2 }}>
-                    <Button onClick={onClose} color="inherit" variant="outlined" disabled={isSaving}>Cancel</Button>
-                    <Button type="submit" form="client-form" color="primary" variant="contained" disabled={isSaving || !isDirty || !isValid}>
-                        {isSaving ? <CircularProgress size={24} color="inherit" /> : (initialData ? 'Save Changes' : 'Add Client')}
-                    </Button>
-                </DialogActions>
-            </Box>
-        </Dialog>
-    );
+                    {typeError && <FormHelperText>{typeError}</FormHelperText>}
+                  </FormControl>
+                );
+              })()}
+            </Grid>
+
+            {/* Target Color (conditional) */}
+            {isPuulaaniChecked && (
+              <Grid item xs={12} sm={6}>
+                <Controller
+                  name="targetColor"
+                  control={control}
+                  render={({ field }) => (
+                    <NativeColorPicker
+                      label={t('fields.targetColor')}
+                      value={field.value || '#FFFFFF'}
+                      onChange={field.onChange}
+                      required={isPuulaaniChecked}
+                      error={!!errors.targetColor}
+                      helperText={errors.targetColor?.message}
+                      disabled={isSaving}
+                    />
+                  )}
+                />
+              </Grid>
+            )}
+
+            {/* Active */}
+            <Grid item xs={12} sm={isPuulaaniChecked ? 6 : 12}>
+              <Controller
+                name="isActive"
+                control={control}
+                render={({ field }) => (
+                  <FormControlLabel
+                    control={<Checkbox {...field} checked={field.value} />}
+                    label={t('fields.isActive')}
+                  />
+                )}
+              />
+            </Grid>
+          </Grid>
+        </DialogContent>
+
+        <DialogActions sx={{ p: 2 }}>
+          <Button onClick={onClose} color="inherit" variant="outlined" disabled={isSaving}>
+            {t('buttons.cancel')}
+          </Button>
+          <Button
+            type="submit"
+            form="client-form"
+            color="primary"
+            variant="contained"
+            disabled={isSaving || !isDirty || !isValid}
+          >
+            {isSaving ? <CircularProgress size={24} color="inherit" /> : (initialData ? t('buttons.saveChanges') : t('buttons.addClient'))}
+          </Button>
+        </DialogActions>
+      </Box>
+    </Dialog>
+  );
 };
 
 export default ClientFormModal;

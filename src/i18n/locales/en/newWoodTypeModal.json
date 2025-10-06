@@ -1,0 +1,15 @@
+{
+  "title": "Create New Wood Type",
+  "fields": {
+    "name": "Wood Type Name *",
+    "description": "Details",
+    "active": "Active"
+  },
+  "validation": {
+    "nameRequired": "Wood type name is required",
+    "nameMin": "At least {{min}} characters"
+  },
+  "actions": {
+    "saving": "Saving…"
+  }
+}

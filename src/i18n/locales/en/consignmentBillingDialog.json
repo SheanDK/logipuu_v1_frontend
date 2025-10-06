@@ -1,0 +1,20 @@
+{
+  "title": "Edit consignment",
+  "fields": {
+    "date": "Date",
+    "waybillNumber": "Waybill number",
+    "route": "Route",
+    "notes": "Notes"
+  },
+  "lines": {
+    "title": "Lines",
+    "amount": "Amount",
+    "unitPrice": "Unit price",
+    "cubicMeters": "m³",
+    "km": "Km",
+    "pieces": "Pcs",
+    "distributionHours": "Distribution hours",
+    "roadTax": "Road tax",
+    "total": "Total"
+  }
+}

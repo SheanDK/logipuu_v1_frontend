@@ -1,0 +1,26 @@
+{
+  "title": "Maksutiedot",
+  "fields": {
+    "date": "Pvm",
+    "billingDate": "Laskutus Pvm",
+    "waybillNumber": "Ajomääräys Nro",
+    "timberStack": "Puulaani",
+    "receiptNumber": "Vastaanotto Nro",
+    "woodType": "Puutavaralaji",
+    "customer": "Asiakas",
+    "vehicle": "Auto Nro",
+    "driver": "Kuljettaja",
+    "route": "Ajoreitti",
+    "notes": "Lisätiedot"
+  },
+  "lines": {
+    "title": "Laskurivit",
+    "amount": "Määrä",
+    "unitPrice": "Yksikköhinta",
+    "cubicMeters": "Kuutio (m3)",
+    "freightKm": "Rahti Km",
+    "hours": "Tunnit",
+    "pieces": "Kpl",
+    "total": "Kokonaishinta"
+  }
+}

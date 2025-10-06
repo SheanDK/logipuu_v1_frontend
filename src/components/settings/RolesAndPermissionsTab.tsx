@@ -13,6 +13,9 @@ import SupervisorAccountIcon from '@mui/icons-material/SupervisorAccount';
 import AdminPanelSettingsIcon from '@mui/icons-material/AdminPanelSettings';
 import BusinessCenterIcon from '@mui/icons-material/BusinessCenter';
 import VpnKeyIcon from '@mui/icons-material/VpnKey';
+import { useTranslation } from '@/i18n/useTranslation';
+import { Trans } from 'react-i18next';
+import { normalizeKey, roleKeyOf, roleDisplayName } from '@/utils/i18nKeys';
 
 type IPermissionWithCategory = IPermission & { category?: string | null };
 
@@ -42,12 +45,12 @@ interface RolesAndPermissionsTabProps {
 const normalizeCat = (s: string) => s.replace(/\s+/g, '_').toLowerCase();
 
 // Exact desired order of categories (from highest to lowest priority).
-const CATEGORY_ORDER = ['office', 'arrangement', 'control', 'app_settings'] as const;
+const CATEGORY_ORDER = ['arrangement', 'office', 'control', 'app_settings'] as const;
 
 // Precomputed rank map for O(1) priority lookups in the comparator.
 const CATEGORY_RANK: Record<string, number> = {
-  office: 0,
-  arrangement: 1,
+  arrangement: 0,
+  office: 1,
   control: 2,
   app_settings: 3,
 };
@@ -72,6 +75,9 @@ const RolesAndPermissionsTab: React.FC<RolesAndPermissionsTabProps> = ({ setFeed
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
 
+
+  const { t } = useTranslation('roles');
+
   const loadData = useCallback(async () => {
     setIsLoading(true);
     try {
@@ -82,7 +88,7 @@ const RolesAndPermissionsTab: React.FC<RolesAndPermissionsTabProps> = ({ setFeed
       setRoles(rolesData);
       setAllPermissions(permissionsData as IPermissionWithCategory[]);
     } catch (err: any) {
-      setFeedback({ type: 'error', message: err.message || 'Failed to load roles and permissions.' });
+      setFeedback({ type: 'error', message: err.message || t('errors.loadFailed') });
     } finally {
       setIsLoading(false);
     }
@@ -160,13 +166,13 @@ const RolesAndPermissionsTab: React.FC<RolesAndPermissionsTabProps> = ({ setFeed
     setFeedback(null);
     try {
       await updatePermissionsForRole(selectedRole.rooliId, Array.from(selectedPermissionIds));
-      setFeedback({ type: 'success', message: `Permissions for role "${selectedRole.roolinNimi}" updated successfully!` });
+      setFeedback({ type: 'success', message: t('success.updatedForRole', { role: selectedRole.roolinNimi }) });
       const updatedRoles = await fetchRolesAndPermissions();
       setRoles(updatedRoles);
       const updated = updatedRoles.find(r => r.rooliId === selectedRole.rooliId);
       if (updated) setSelectedRole(updated);
     } catch (err: any) {
-      setFeedback({ type: 'error', message: err.message || 'Failed to save changes.' });
+      setFeedback({ type: 'error', message: err.message || t('errors.saveFailed') });
     } finally {
       setIsSaving(false);
     }
@@ -195,7 +201,7 @@ const RolesAndPermissionsTab: React.FC<RolesAndPermissionsTabProps> = ({ setFeed
           borderBottom: { xs: 1, md: 0 },
         }}
       >
-        <Typography variant="h6" sx={{ pl: 2, pb: 1, pt: { xs: 1, md: 0 } }}>Roles</Typography>
+        <Typography variant="h6" sx={{ pl: 2, pb: 1, pt: { xs: 1, md: 0 } }}>{t('rolesHeader')}</Typography>
         <List component="nav" dense>
           {roles.map(role => (
             <ListItemButton
@@ -203,8 +209,10 @@ const RolesAndPermissionsTab: React.FC<RolesAndPermissionsTabProps> = ({ setFeed
               selected={selectedRole?.rooliId === role.rooliId}
               onClick={() => handleRoleSelect(role)}
             >
-              <ListItemIcon sx={{ minWidth: 36 }}>{getRoleIcon(role.roolinNimi)}</ListItemIcon>
-              <ListItemText primary={role.roolinNimi} />
+              <ListItemIcon sx={{ minWidth: 36 }}>
+                {getRoleIcon(role.roolinNimi)}
+              </ListItemIcon>
+              <ListItemText primary={roleDisplayName(role.roolinNimi, t)} />
             </ListItemButton>
           ))}
         </List>
@@ -227,10 +235,17 @@ const RolesAndPermissionsTab: React.FC<RolesAndPermissionsTabProps> = ({ setFeed
           <>
             <Box sx={{ px: { xs: 1.5, md: 2 }, pt: { xs: 1.5, md: 2 } }}>
               <Typography variant="h5" component="h2" gutterBottom>
-                Permissions for{' '}
-                <Box component="span" sx={{ color: 'primary.main', fontWeight: 'bold' }}>
-                  {selectedRole.roolinNimi}
-                </Box>
+                <Trans
+                  ns="roles"
+                  i18nKey="permissionsForRole"
+                  values={{ role: roleDisplayName(selectedRole.roolinNimi, t) }}
+                  components={[
+                    <Box
+                      component="span"
+                      sx={{ color: 'primary.main', fontWeight: 'bold' }}
+                    />
+                  ]}
+                />
               </Typography>
             </Box>
 
@@ -250,6 +265,13 @@ const RolesAndPermissionsTab: React.FC<RolesAndPermissionsTabProps> = ({ setFeed
                 const catAll = categoryIds.length > 0 && categoryIds.every(id => selectedPermissionIds.has(id));
                 const catSome = categoryIds.some(id => selectedPermissionIds.has(id)) && !catAll;
 
+                // Try translate known normalized categories; fallback to humanized label
+                const catLabel = t(`categoryLabels.${normalizeKey(category)}`, {
+                  defaultValue: humanize(category)
+                });
+
+
+
                 return (
                   <Box key={category} sx={{ mb: 3 }}>
                     <FormControlLabel
@@ -263,7 +285,7 @@ const RolesAndPermissionsTab: React.FC<RolesAndPermissionsTabProps> = ({ setFeed
                       }
                       label={
                         <Typography variant="h6" sx={{ textTransform: 'capitalize', fontWeight: 'bold' }}>
-                          {humanize(category)}
+                          {catLabel}
                         </Typography>
                       }
                     />
@@ -272,6 +294,12 @@ const RolesAndPermissionsTab: React.FC<RolesAndPermissionsTabProps> = ({ setFeed
                       {Object.entries(resources).map(([resource, perms]) => {
                         const allSelected = perms.every(p => selectedPermissionIds.has(p.permissionId));
                         const someSelected = perms.some(p => selectedPermissionIds.has(p.permissionId)) && !allSelected;
+
+                        // Resource header: override specific ones (e.g. 'timber') via i18n
+                        const resourceTitle = t(`resourceLabels.${normalizeKey(resource)}`, {
+                          defaultValue: humanize(resource)
+                        });
+
 
                         return (
                           <Grid
@@ -291,7 +319,7 @@ const RolesAndPermissionsTab: React.FC<RolesAndPermissionsTabProps> = ({ setFeed
                                     }
                                     label={
                                       <Typography variant="subtitle1" sx={{ textTransform: 'capitalize', fontWeight: 'bold' }}>
-                                        {humanize(resource === 'timber' ? 'Timber Stacks' : resource)}
+                                        {resourceTitle}
                                       </Typography>
                                     }
                                   />
@@ -301,8 +329,15 @@ const RolesAndPermissionsTab: React.FC<RolesAndPermissionsTabProps> = ({ setFeed
                               <CardContent>
                                 <FormGroup>
                                   {perms.map((p) => {
+
                                     const { resource: r, action } = splitPermissionName(p.permissionName);
-                                    const label = humanize(action || p.permissionName.replace(`${r}_`, ''));
+
+                                    const actionKey = normalizeKey(action || p.permissionName.replace(`${r}_`, ''));
+
+                                    const labelText = t(`actionLabels.${actionKey}`, {
+                                      defaultValue: humanize(actionKey),
+                                    });
+
                                     return (
                                       <Tooltip key={p.permissionId} title={p.description || ''} placement="right">
                                         <FormControlLabel
@@ -314,7 +349,11 @@ const RolesAndPermissionsTab: React.FC<RolesAndPermissionsTabProps> = ({ setFeed
                                               size="small"
                                             />
                                           }
-                                          label={<Typography variant="body2" sx={{ textTransform: 'capitalize' }}>{label}</Typography>}
+                                          label={
+                                            <Typography variant="body2" sx={{ textTransform: 'capitalize' }}>
+                                              {labelText}
+                                            </Typography>
+                                          }
                                         />
                                       </Tooltip>
                                     );
@@ -335,15 +374,15 @@ const RolesAndPermissionsTab: React.FC<RolesAndPermissionsTabProps> = ({ setFeed
 
             <Box sx={{ pt: 2, textAlign: 'right', px: { xs: 1.5, md: 2 } }}>
               <Button variant="contained" onClick={handleSaveChanges} disabled={isSaving}>
-                {isSaving ? <CircularProgress size={24} /> : 'Save Changes'}
+                {isSaving ? <CircularProgress size={24} /> : t('buttons.saveChanges')}
               </Button>
             </Box>
           </>
         ) : (
           <Stack alignItems="center" justifyContent="center" sx={{ flex: 1 }}>
             <AdminPanelSettingsIcon sx={{ fontSize: 60, mb: 2, color: 'text.secondary' }} />
-            <Typography variant="h6">Select a Role</Typography>
-            <Typography color="text.secondary">Select a role from the list to manage its permissions.</Typography>
+            <Typography variant="h6">{t('empty.selectRoleTitle')}</Typography>
+            <Typography color="text.secondary">{t('empty.selectRoleSubtitle')}</Typography>
           </Stack>
         )}
       </Grid>

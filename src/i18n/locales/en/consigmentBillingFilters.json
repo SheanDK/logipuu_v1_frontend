@@ -1,0 +1,20 @@
+{
+  "fields": {
+    "dateFrom": "Start date",
+    "dateTo": "End date",
+    "customer": "Customer",
+    "vehicle": "Vehicle",
+    "billingStatus": "Billing status"
+  },
+  "labels": {
+    "unbilled": "Unbilled",
+    "billed": "Billed"
+  },
+  "errors": {
+    "dateFromRequired": "Start date is required",
+    "dateToRequired": "End date is required",
+    "dateFormat": "Date must be in YYYY-MM-DD format",
+    "dateRange": "End date cannot be before start date",
+    "statusRequired": "Select at least one billing status"
+  }
+}

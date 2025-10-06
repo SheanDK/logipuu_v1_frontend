@@ -1,0 +1,12 @@
+{
+  "filters": {
+    "title": "Suodatus:",
+    "status": {
+      "aria": "Tilan suodatin",
+      "all": "Kaikki",
+      "active": "Aktiiviset"
+    },
+    "client": "Asiakas",
+    "vehicle": "Ajoneuvo"
+  }
+}

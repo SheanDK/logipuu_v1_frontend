@@ -1,0 +1,69 @@
+{
+  "title": "Kuormien hallinta / Tarkastus",
+  "buttons": {
+    "accept": "Hyväksy ({{count}})",
+    "report": "Raportti ({{count}})"
+  },
+  "columns": {
+    "select": "Valitse",
+    "date": "Päivä",
+    "drivingOrder": "Ajomääräys nro",
+    "receptionNo": "Vastaanotto nro",
+    "vehicleNo": "Ajoneuvo",
+    "driver": "Kuljettaja",
+    "puulaani": "Puulaani",
+    "customer": "Asiakas",
+    "timber": "Puutavara",
+    "route": "Ajoreitti",
+    "cubicMetres": "Kuutiot (m³)",
+    "freightKm": "Kuljetus (km)",
+    "hours": "Tunnit",
+    "pcs": "Kpl",
+    "additionalInfo": "Lisätiedot",
+    "status": "Tila",
+    "action": "Toiminnot"
+  },
+  "tooltips": {
+    "addToSelection": "Lisää valintaan",
+    "removeFromSelection": "Poista valinnasta",
+    "editLoad": "Muokkaa kuormaa",
+    "deleteLoad": "Poista kuorma"
+  },
+  "confirm": {
+    "delete": {
+      "title": "Vahvista kuorman poisto",
+      "message": "Haluatko varmasti poistaa kuorman #{{id}}?"
+    },
+    "accept": {
+      "title": "Vahvista hyväksyntä",
+      "message": "Haluatko varmasti hyväksyä {{count}} kuormaa laskutukseen?",
+      "confirmButtonText": "Kyllä, hyväksy"
+    }
+  },
+  "snackbar": {
+    "deleted": "Kuorma #{{id}} poistettu.",
+    "updated": "Kuorma #{{id}} päivitetty.",
+    "updateFailed": "Päivitys epäonnistui.",
+    "acceptedForInvoicing": "{{count}} kuormaa hyväksytty laskutukseen."
+  },
+  "warnings": {
+    "selectRowsForReport": "Valitse rivit raportin luontia varten."
+  },
+  "errors": {
+    "fetchLoads": "Kuormien haku epäonnistui.",
+    "fetchLoadDetails": "Kuorman tietojen haku muokkausta varten epäonnistui.",
+    "deleteFailed": "Kuorman poistaminen epäonnistui.",
+    "acceptFailed": "Kuormien hyväksyminen epäonnistui.",
+    "loadFilterOptions": "Kaikkia suodatinvaihtoehtoja ei voitu ladata."
+  },
+  "status": {
+    "completed": "Valmis",
+    "in_progress": "Käynnissä",
+    "en_route_to_destination": "Matkalla kohteeseen",
+    "assigned": "Osoitettu",
+    "at_origin": "Lähtöpisteessä",
+    "at_destination": "Kohteessa",
+    "paused": "Keskeytetty",
+    "na": "—"
+  }
+}

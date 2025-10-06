@@ -1,0 +1,51 @@
+{
+  "title": "Puulanien kartta",
+  "status": {
+    "connected": "Reaaliaikayhteys",
+    "connecting": "Yhdistetään…"
+  },
+  "layers": {
+    "standard": "Peruskartta",
+    "satellite": "Satelliitti",
+    "topographic": "Maastokartta",
+    "timberStacks": "Puulaanit",
+    "unloadingSites": "Purkupaikat",
+    "otherMarkers": "Muut merkit",
+    "vehicles": "Ajoneuvot"
+  },
+  "types": {
+    "timberStack": "Puulaani",
+    "dropoff": "Purkupaikka",
+    "other": "Muu merkki"
+  },
+  "messages": {
+    "locationUpdated": "{{client}} – {{name}} sijainti päivitetty.",
+    "stackSaved": "Puulaani tallennettu.",
+    "otherMarkerUpdated": "Muu merkki päivitetty.",
+    "otherMarkerCreated": "Muu merkki luotu.",
+    "alreadyUnlocked": "Toinen merkki on jo lukitsematta.",
+    "unlocked": "Merkki \"{{name}}\" on nyt lukitsematta.",
+    "deleted": "{{type}} \"{{name}}\" poistettu."
+  },
+  "errors": {
+    "noPermissionView": "Sinulla ei ole oikeutta tarkastella karttaa.",
+    "noPermissionAdd": "Ei oikeutta lisätä merkkejä.",
+    "updateLocationFailed": "Sijainnin päivitys epäonnistui. Peruutetaan.",
+    "saveFailed": "Tallennus epäonnistui.",
+    "deleteFailed": "Poisto epäonnistui: {{type}}.",
+    "inUse": "\"{{name}}\" on käytössä, eikä sitä voi poistaa.",
+    "unknown": "Jotain meni pieleen."
+  },
+  "confirm": {
+    "delete": {
+      "title": "Poista {{type}}",
+      "message": "Haluatko varmasti poistaa kohteen \"{{name}}\"?"
+    },
+    "unlock": {
+      "title": "Vahvista siirron avaus",
+      "message": "Avataanko kohde \"{{name}}\" siirrettäväksi?",
+      "confirmBtn": "Kyllä, avaa"
+    }
+  },
+  "unknownClient": "Tuntematon asiakas"
+}

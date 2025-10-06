@@ -1,0 +1,20 @@
+{
+  "title": "Muokkaa rahtiriviä",
+  "fields": {
+    "date": "Pvm",
+    "waybillNumber": "Rahtikirjan numero",
+    "route": "Reitti",
+    "notes": "Lisätiedot"
+  },
+  "lines": {
+    "title": "Rivit",
+    "amount": "Määrä",
+    "unitPrice": "Hinta/yks.",
+    "cubicMeters": "m³",
+    "km": "Km",
+    "pieces": "Kpl",
+    "distributionHours": "Jakotunnit",
+    "roadTax": "Tievero",
+    "total": "Kokohinta"
+  }
+}

@@ -1,0 +1,26 @@
+{
+  "title": "Puutavaralajit",
+  "new": "Uusi",
+  "columns": {
+    "name": "Puutavara Nimi",
+    "description": "Lisätiedot",
+    "active": "Aktiivinen",
+    "actions": "Toiminta"
+  },
+  "tooltips": {
+    "save": "Tallenna",
+    "delete": "Poista"
+  },
+  "feedback": {
+    "loadError": "Lataus epäonnistui.",
+    "saved": "Tallennettu muutokset puutavaraan: {{name}}",
+    "saveError": "Tallennus epäonnistui.",
+    "created": "Uusi puutavara luotu.",
+    "deleted": "Poistettu: {{name}}",
+    "deleteError": "Poisto epäonnistui."
+  },
+  "confirmDelete": {
+    "title": "Vahvista poisto",
+    "message": "Poistetaanko \"{{name}}\"?"
+  }
+}

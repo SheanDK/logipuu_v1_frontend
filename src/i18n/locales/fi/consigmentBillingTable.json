@@ -1,0 +1,37 @@
+{
+  "columns": {
+    "status": "Tila",
+    "actions": "Toiminnot",
+    "date": "Pvm",
+    "waybillNumber": "Rahtikirjan nro",
+    "notes": "Lisätiedot",
+    "customer": "Asiakas",
+    "vehicle": "Ajoneuvo",
+    "driver": "Kuljettaja",
+    "route": "Reitti",
+
+    "quantityM3": "m³",
+    "km": "Km",
+    "pieces": "Kpl",
+    "hours": "Tunnit",
+
+    "unitPriceM3": "m³ hinta",
+    "unitPriceKm": "Km hinta",
+    "unitPricePiece": "Kpl hinta",
+    "unitPriceHour": "Tuntihinta",
+
+    "roadTax": "Tievero",
+    "total": "Kokohinta"
+  },
+  "groups": {
+    "amount": "Määrä",
+    "price": "Hinta"
+  },
+  "labels": {
+    "billed": "Laskutettu",
+    "unbilled": "Laskuttamaton",
+    "changed": "Muokattu",
+    "noPrice": "Ei hintaa",
+    "selectGroup": "Valitse ryhmä"
+  }
+}

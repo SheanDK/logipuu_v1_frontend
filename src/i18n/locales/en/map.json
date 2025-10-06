@@ -1,0 +1,51 @@
+{
+  "title": "Timber Stack Map View",
+  "status": {
+    "connected": "Real-time Connected",
+    "connecting": "Connecting..."
+  },
+  "layers": {
+    "standard": "Standard Map",
+    "satellite": "Satellite",
+    "topographic": "Topographic",
+    "timberStacks": "Timber Stacks",
+    "unloadingSites": "Unloading Sites",
+    "otherMarkers": "Other Markers",
+    "vehicles": "Vehicles"
+  },
+  "types": {
+    "timberStack": "Timber stack",
+    "dropoff": "Unloading site",
+    "other": "Other marker"
+  },
+  "messages": {
+    "locationUpdated": "{{client}} - {{name}} location updated.",
+    "stackSaved": "Puulaani saved successfully.",
+    "otherMarkerUpdated": "Other marker updated successfully.",
+    "otherMarkerCreated": "Other marker created successfully.",
+    "alreadyUnlocked": "Another marker is already unlocked.",
+    "unlocked": "Marker \"{{name}}\" is now unlocked.",
+    "deleted": "{{type}} \"{{name}}\" deleted successfully."
+  },
+  "errors": {
+    "noPermissionView": "You do not have permission to view the map.",
+    "noPermissionAdd": "No permission to add markers.",
+    "updateLocationFailed": "Failed to update location. Reverting.",
+    "saveFailed": "Failed to save.",
+    "deleteFailed": "Failed to delete {{type}}.",
+    "inUse": "Cannot delete \"{{name}}\". It is currently in use.",
+    "unknown": "Something went wrong."
+  },
+  "confirm": {
+    "delete": {
+      "title": "Delete {{type}}",
+      "message": "Are you sure you want to delete \"{{name}}\"?"
+    },
+    "unlock": {
+      "title": "Confirm Marker Move",
+      "message": "Are you sure you want to unlock \"{{name}}\"?",
+      "confirmBtn": "Yes, Unlock"
+    }
+  },
+  "unknownClient": "Unknown Client"
+}

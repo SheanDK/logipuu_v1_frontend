@@ -1,0 +1,33 @@
+{
+  "title": "Kaluston hallinta",
+  "noPermission": "Sinulla ei ole oikeutta tarkastella tätä sivua.",
+  "buttons": {
+    "addVehicle": "Lisää ajoneuvo"
+  },
+  "columns": {
+    "vehicleNo": "Kalustonro",
+    "registrationNo": "Rekisterinumero",
+    "nextInspectionDate": "Seuraava katsastus",
+    "status": "Tila",
+    "actions": "Toiminnot"
+  },
+  "status": {
+    "active": "Aktiivinen",
+    "inactive": "Ei aktiivinen"
+  },
+  "actions": {
+    "edit": "Muokkaa",
+    "delete": "Poista"
+  },
+  "feedback": {
+    "createSuccess": "Ajoneuvo luotiin onnistuneesti.",
+    "updateSuccess": "Ajoneuvo päivitettiin onnistuneesti.",
+    "deleteSuccess": "Ajoneuvo \"{{registrationNo}}\" poistettiin onnistuneesti.",
+    "loadFailed": "Ajoneuvojen lataus epäonnistui.",
+    "saveFailed": "Ajoneuvon tallennus epäonnistui."
+  },
+  "confirmDelete": {
+    "title": "Poista ajoneuvo",
+    "message": "Haluatko varmasti poistaa ajoneuvon \"{{registrationNo}}\"? Toimintoa ei voi perua."
+  }
+}

@@ -1,0 +1,20 @@
+{
+  "empty": "No timber types have been added to this timber stack yet.",
+  "columns": {
+    "woodType": "Type of timber",
+    "dropoffSite": "Unloading site",
+    "total": "Cubes",
+    "fetched": "Retrieved",
+    "remaining": "Left",
+    "actions": "Action"
+  },
+  "tooltips": {
+    "save": "Save",
+    "cancel": "Cancel",
+    "edit": "Update",
+    "delete": "Delete"
+  },
+  "labels": {
+    "id": "ID"
+  }
+}

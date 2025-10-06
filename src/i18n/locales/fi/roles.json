@@ -1,0 +1,70 @@
+{
+  "rolesHeader": "Roolit",
+  "permissionsForRole": "Oikeudet roolille: <0>{{role}}</0>",
+
+  "buttons": {
+    "saveChanges": "Tallenna muutokset"
+  },
+
+  "empty": {
+    "selectRoleTitle": "Valitse rooli",
+    "selectRoleSubtitle": "Valitse rooli listasta hallitaksesi sen oikeuksia."
+  },
+
+  "errors": {
+    "loadFailed": "Roolien ja oikeuksien lataus epäonnistui.",
+    "saveFailed": "Muutosten tallennus epäonnistui."
+  },
+
+  "success": {
+    "updatedForRole": "Roolin \"{{role}}\" oikeudet päivitettiin onnistuneesti!"
+  },
+
+  "roleLabels": {
+    "superuser": "Superkäyttäjä",
+    "admin": "Ylläpitäjä",
+    "office": "Toimisto",
+    "dispatch": "Ajojärjestely",
+    "driver": "Kuljettaja",
+    "subcontractor": "Alihankkija"
+  },
+
+  "categoryLabels": {
+    "office": "Toimisto",
+    "arrangement": "Järjestely",
+    "control": "Hallinta",
+    "app_settings": "Sovellusasetukset",
+    "other": "Muut"
+  },
+
+   "resourceLabels": {
+    "consignment_invoicing": "Rahtikirjalaskutus",
+    "driven_inspection": "Ajot & tarkastukset",
+    "puulaani_invoicing": "Puulaanin laskutus",
+    "load_management": "Kuormanhallinta",
+    "timber_management": "Puuhallinta",
+    "timber_map": "Kartta",
+    "clients": "Asiakkaat",
+    "drivers": "Kuljettajat",
+    "reports": "Raportit",
+    "vehicles": "Ajoneuvot",
+    "application_settings": "Sovellusasetukset",
+    "users": "Käyttäjät",
+    "unloading_site": "Purkupaikka",
+    "wood_categories": "Puutavaralajit"
+  },
+
+  "actionLabels": {
+    "create": "Luo",
+    "delete": "Poista",
+    "edit": "Muokkaa",
+    "view": "Näytä",
+    "accept": "Hyväksy",
+    "manage": "Hallinnoi"
+  },
+
+  "resourceOverrides": {
+    "timber": "Puupinot"
+  }
+
+}

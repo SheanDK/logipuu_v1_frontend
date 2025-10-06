@@ -6,6 +6,7 @@ import {
     FormControl, InputLabel, Select, MenuItem, Chip, Box, SelectChangeEvent, OutlinedInput
 } from '@mui/material';
 import { IVehicleBasicInfo } from '@/types';
+import { useTranslation } from '@/i18n/useTranslation';
 
 interface AutoSelectProps {
     selectedAutoIds: number[];
@@ -16,7 +17,6 @@ interface AutoSelectProps {
 
 const AutoSelect: React.FC<AutoSelectProps> = ({ selectedAutoIds, onSelectionChangeAction, vehicleList, disabled = false }) => {
     
-    // --- CORRECTION: Remove duplicate vehicles from the list ---
     const uniqueVehicleList = useMemo(() => {
         const seen = new Set();
         return vehicleList.filter(vehicle => {
@@ -25,7 +25,9 @@ const AutoSelect: React.FC<AutoSelectProps> = ({ selectedAutoIds, onSelectionCha
             return !duplicate;
         });
     }, [vehicleList]);
-    // --- END CORRECTION ---
+
+    const { t } = useTranslation(['autoSelect', 'common']);
+
 
     const handleChange = (event: SelectChangeEvent<typeof selectedAutoIds>) => {
         const { target: { value } } = event;
@@ -36,13 +38,13 @@ const AutoSelect: React.FC<AutoSelectProps> = ({ selectedAutoIds, onSelectionCha
 
     return (
         <FormControl fullWidth size="small" disabled={disabled}>
-            <InputLabel id="vehicles-select-label">All Cars</InputLabel>
+            <InputLabel id="vehicles-select-label">{t('label')}</InputLabel>
             <Select
                 labelId="vehicles-select-label"
                 multiple
                 value={selectedAutoIds}
                 onChange={handleChange}
-                input={<OutlinedInput id="select-multiple-chip" label="All Cars" sx={{ backgroundColor: 'white' }} />}
+                input={<OutlinedInput id="select-multiple-chip" label={t('label')} sx={{ backgroundColor: 'white' }} />}
                 renderValue={(selected) => (
                     <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
                         {selected.map((id) => {

@@ -1,0 +1,48 @@
+{
+    "title": "Omat tiedot ja asetukset",
+    "notLoggedIn": "Kirjaudu sisään nähdäksesi käyttäjäasetukset.",
+    "feedback": {
+        "profileSaved": "Profiili tallennettiin onnistuneesti.",
+        "passwordChanged": "Salasana vaihdettiin onnistuneesti."
+    },
+    "errors": {
+        "profileSaveFailed": "Profiilin päivitys epäonnistui.",
+        "passwordChangeFailed": "Salasanan vaihto epäonnistui.",
+        "fullNameRequired": "Nimi on pakollinen",
+        "nameTooShort": "Nimi on liian lyhyt",
+        "emailRequired": "Sähköposti on pakollinen",
+        "emailInvalid": "Anna kelvollinen sähköpostiosoite",
+        "currentPasswordRequired": "Nykyinen salasana on pakollinen",
+        "newPasswordRequired": "Uusi salasana on pakollinen",
+        "newPasswordMin": "Uuden salasanan on oltava vähintään 8 merkkiä pitkä",
+        "confirmNewPasswordRequired": "Vahvista uusi salasana",
+        "passwordsDoNotMatch": "Salasanat eivät täsmää"
+    },
+    "profileCard": {
+        "title": "Profiilin tiedot",
+        "buttons": {
+            "saveProfile": "Tallenna profiili"
+        }
+    },
+    "passwordCard": {
+        "title": "Vaihda salasana",
+        "currentPassword": "Nykyinen salasana",
+        "newPassword": "Uusi salasana",
+        "confirmNewPassword": "Vahvista uusi salasana",
+        "buttons": {
+            "changePassword": "Vaihda salasana"
+        }
+    },
+    "fields": {
+        "fullName": "Nimi",
+        "email": "Sähköpostiosoite",
+        "usernameId": "Käyttäjätunnus",
+        "roles": "Roolit",
+        "noRoles": "Ei rooleja",
+        "status": "Tila"
+    },
+    "status": {
+        "active": "Aktiivinen",
+        "inactive": "Ei aktiivinen"
+    }
+}

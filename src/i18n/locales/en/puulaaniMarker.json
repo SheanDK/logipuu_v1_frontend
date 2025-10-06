@@ -1,0 +1,17 @@
+{
+  "popup": {
+    "client": "Client",
+    "total": "Total",
+    "remaining": "Remaining",
+    "status": "Status"
+  },
+  "status": {
+    "active": "Active",
+    "inactive": "Inactive",
+    "completed": "(Completed)"
+  },
+  "buttons": {
+    "detailsEdit": "Details / Edit",
+    "delete": "Delete"
+  }
+}

@@ -1,0 +1,42 @@
+{
+  "header": {
+    "company": "Yritys Oy",
+    "title": "Puulaanin laskutusraportti",
+    "period": "Ajanjakso: {{start}} - {{end}}"
+  },
+  "section": {
+    "customer": "Asiakas: {{name}}",
+    "vehicle": "Auto: {{name}}"
+  },
+  "placeholders": {
+    "noCustomer": "Ei asiakasta",
+    "noVehicle": "Ei ajoneuvoa"
+  },
+  "columns": {
+    "date": "Pvm",
+    "receiptNumber": "Vastaanotto nro",
+    "timberStack": "Puulaani",
+    "woodType": "Puutavara",
+    "route": "Reitti",
+    "notes": "Lisätiedot",
+    "m3": "m³",
+    "m3Price": "m³ hinta",
+    "km": "Km",
+    "kmPrice": "Km hinta",
+    "hours": "Tunnit",
+    "hourPrice": "Tuntihinta",
+    "pieces": "Kpl",
+    "piecePrice": "Kpl hinta",
+    "totalPrice": "Kokohinta"
+  },
+  "totals": "Yhteensä",
+  "buttons": {
+    "print": "Tulosta"
+  },
+  "page": "Sivu {{current}} / {{total}}",
+  "errors": {
+    "noData": "Ei näytettävää dataa",
+    "noLocalStorage": "Raporttidataa ei löytynyt localStoragesta",
+    "parseFailed": "Datan jäsentäminen epäonnistui"
+  }
+}

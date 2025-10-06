@@ -1,0 +1,19 @@
+{
+  "title": "Create New Puulaani (Step 1)",
+  "fields": {
+    "objectName": "Object Name",
+    "customer": "Customer",
+    "drivingOrderNo": "Driving Order No.",
+    "additionalInfo": "Additional Information",
+    "status": "Status",
+    "active": "Active",
+    "ready": "Ready"
+  },
+  "errors": {
+    "objectNameRequired": "Object Name is required",
+    "customerRequired": "Customer is required"
+  },
+  "actions": {
+    "saveNext": "Save & Next"
+  }
+}

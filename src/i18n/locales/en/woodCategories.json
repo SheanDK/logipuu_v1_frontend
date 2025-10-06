@@ -1,0 +1,26 @@
+{
+  "title": "Wood Categories",
+  "new": "New",
+  "columns": {
+    "name": "Wood Type Name",
+    "description": "Details",
+    "active": "Active",
+    "actions": "Actions"
+  },
+  "tooltips": {
+    "save": "Save",
+    "delete": "Delete"
+  },
+  "feedback": {
+    "loadError": "Loading failed.",
+    "saved": "Saved changes to: {{name}}",
+    "saveError": "Save failed.",
+    "created": "New wood type created.",
+    "deleted": "Deleted: {{name}}",
+    "deleteError": "Delete failed."
+  },
+  "confirmDelete": {
+    "title": "Confirm delete",
+    "message": "Delete \"{{name}}\"?"
+  }
+}

@@ -1,0 +1,35 @@
+{
+  "fields": {
+    "dateFrom": "From",
+    "dateTo": "To",
+    "customer": "Customer",
+    "vehicle": "Vehicle",
+    "billingStatus": "Billing status",
+    "woodTypes": "Wood types"
+  },
+  "labels": {
+    "unbilled": "Unbilled",
+    "billed": "Billed"
+  },
+  "buttons": {
+    "selectAll": "Select all",
+    "clearAll": "Clear",
+    "search": "Search",
+    "searching": "Searching…"
+  },
+  "tooltips": {
+    "selectAll": "Select all wood types",
+    "clearAll": "Clear selections"
+  },
+  "messages": {
+    "noWoodTypes": "No wood types"
+  },
+  "errors": {
+    "dateFromRequired": "Start date is required",
+    "dateToRequired": "End date is required",
+    "dateFormat": "Date must be in YYYY-MM-DD format",
+    "dateRange": "End date must be the same or later than start date",
+    "woodTypesRequired": "Select at least one wood type",
+    "statusRequired": "Select at least one billing status"
+  }
+}

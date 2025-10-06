@@ -1,0 +1,34 @@
+{
+  "title": "Driver Management",
+  "noPermission": "You do not have permission to view drivers.",
+  "buttons": {
+    "addDriver": "Add New Driver"
+  },
+  "columns": {
+    "id": "ID",
+    "name": "Name",
+    "phoneNo": "Phone",
+    "email": "Email",
+    "status": "Status",
+    "actions": "Actions"
+  },
+  "status": {
+    "active": "Active",
+    "inactive": "Inactive"
+  },
+  "actions": {
+    "edit": "Edit",
+    "delete": "Delete"
+  },
+  "feedback": {
+    "createSuccess": "Driver created successfully.",
+    "updateSuccess": "Driver updated successfully.",
+    "deleteSuccess": "Driver \"{{name}}\" deleted successfully.",
+    "loadFailed": "Failed to load drivers.",
+    "saveFailed": "Failed to save driver."
+  },
+  "confirmDelete": {
+    "title": "Delete Driver",
+    "message": "Are you sure you want to delete driver \"{{name}}\"? This action cannot be undone."
+  }
+}

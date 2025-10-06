@@ -6,6 +6,7 @@ import { Marker, Popup } from 'react-leaflet';
 import { Box, Typography, Button, Divider } from '@mui/material';
 import { getMuuMerkkiIcon } from '../../../utils/mapUtils';
 import { IMapOtherMarker } from '../../../types';
+import { useTranslation } from '@/i18n/useTranslation';
 
 interface MuuMerkkiMarkerProps {
     marker: IMapOtherMarker;
@@ -15,6 +16,7 @@ interface MuuMerkkiMarkerProps {
 
 const MuuMerkkiMarker: React.FC<MuuMerkkiMarkerProps> = ({ marker, onEdit, onDelete }) => {
     const icon = getMuuMerkkiIcon(marker);
+    const { t } = useTranslation(['muuMerkkiMarker', 'common'])
 
     return (
         <Marker 
@@ -26,11 +28,11 @@ const MuuMerkkiMarker: React.FC<MuuMerkkiMarkerProps> = ({ marker, onEdit, onDel
                     <Typography variant="h6" gutterBottom>{marker.name}</Typography>
                     <Divider sx={{ my: 1 }} />
                     {marker.additionalInfo && (
-                        <Typography variant="body2"><strong>Info:</strong> {marker.additionalInfo}</Typography>
+                        <Typography variant="body2"><strong>{t('popup.title')}:</strong> {marker.additionalInfo}</Typography>
                     )}
                     <Box sx={{ mt: 2, display: 'flex', justifyContent: 'space-between' }}>
-                        <Button size="small" variant="outlined" onClick={() => onEdit(marker)}>Edit</Button>
-                        <Button size="small" color="error" onClick={() => onDelete(marker)}>Delete</Button>
+                        <Button size="small" variant="outlined" onClick={() => onEdit(marker)}>{t('common:buttons.edit')}</Button>
+                        <Button size="small" color="error" onClick={() => onDelete(marker)}>{t('common:buttons.delete')}</Button>
                     </Box>
                 </Box>
             </Popup>

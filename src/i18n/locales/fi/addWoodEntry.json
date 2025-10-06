@@ -1,0 +1,23 @@
+{
+  "entryForm": {
+    "labels": {
+      "woodType": "Puulaji",
+      "unloadingSite": "Purkupaikka",
+      "volume": "Kuutiot"
+    },
+    "placeholders": {
+      "selectType": "Valitse laji",
+      "selectSite": "Valitse purkupaikka"
+    },
+    "actions": {
+      "add": "Lisää"
+    },
+    "errors": {
+      "woodTypeRequired": "Puulaji on pakollinen",
+      "dropoffRequired": "Purkupaikka on pakollinen",
+      "number": "Täytyy olla numero",
+      "volumeMin": "Tilavuuden on oltava > 0",
+      "volumeRequired": "Kuutiomäärä on pakollinen"
+    }
+  }
+}

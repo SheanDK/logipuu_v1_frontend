@@ -1,0 +1,37 @@
+{
+  "columns": {
+    "status": "Status",
+    "actions": "Actions",
+    "date": "Date",
+    "waybillNumber": "Waybill no.",
+    "notes": "Notes",
+    "customer": "Customer",
+    "vehicle": "Vehicle",
+    "driver": "Driver",
+    "route": "Route",
+
+    "quantityM3": "m³",
+    "km": "Km",
+    "pieces": "Pcs",
+    "hours": "Hours",
+
+    "unitPriceM3": "m³ price",
+    "unitPriceKm": "Km price",
+    "unitPricePiece": "Pcs price",
+    "unitPriceHour": "Hour price",
+
+    "roadTax": "Road tax",
+    "total": "Total"
+  },
+  "groups": {
+    "amount": "Amount",
+    "price": "Price"
+  },
+  "labels": {
+    "billed": "Billed",
+    "unbilled": "Unbilled",
+    "changed": "Edited",
+    "noPrice": "No price",
+    "selectGroup": "Select group"
+  }
+}

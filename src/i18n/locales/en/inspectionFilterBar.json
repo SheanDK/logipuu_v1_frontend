@@ -1,0 +1,23 @@
+{
+  "status": {
+    "aria": "Status",
+    "active": "Active",
+    "inspection": "Inspection",
+    "all": "All"
+  },
+  "labels": {
+    "customer": "Customer",
+    "vehicle": "Vehicle",
+    "driver": "Driver"
+  },
+  "all": {
+    "allCustomers": "All Customers",
+    "allVehicles": "All Vehicles",
+    "allDrivers": "All Drivers"
+  },
+  "tooltips": {
+    "clearCustomer": "Clear Customer",
+    "clearVehicle": "Clear Vehicle",
+    "clearDriver": "Clear Driver"
+  }
+}

@@ -7,6 +7,8 @@ import {
   Button, CircularProgress, Typography
 } from '@mui/material';
 
+import { useTranslation } from '@/i18n/useTranslation';
+
 interface ConfirmationDialogProps {
   open: boolean;
   onClose: () => void;
@@ -15,8 +17,6 @@ interface ConfirmationDialogProps {
   message: string;
   isConfirming?: boolean;
   confirmButtonText?: string;
-  // --- THIS IS THE FIX ---
-  // Add the missing optional prop to the interface.
   confirmButtonColor?: 'inherit' | 'primary' | 'secondary' | 'success' | 'error' | 'info' | 'warning';
   cancelButtonText?: string;
 }
@@ -28,12 +28,17 @@ const ConfirmationDialog: React.FC<ConfirmationDialogProps> = ({
   title,
   message,
   isConfirming = false,
-  confirmButtonText = 'Confirm',
-  // --- THIS IS THE FIX ---
-  // Accept the prop and provide a default value.
+  confirmButtonText,
   confirmButtonColor = 'primary',
-  cancelButtonText = 'Cancel',
+  cancelButtonText,
 }) => {
+
+  //  i18n (fallback common.json if props are not given)
+  const { t } = useTranslation('common');
+  const cancelText = cancelButtonText ?? t('buttons.cancel');
+  const confirmText = confirmButtonText ?? t('buttons.confirm');
+  const confirmingText = t('buttons.confirming', { defaultValue: 'Confirming...' });
+
   return (
     <Dialog
       open={open}
@@ -55,7 +60,7 @@ const ConfirmationDialog: React.FC<ConfirmationDialogProps> = ({
       </DialogContent>
       <DialogActions>
         <Button onClick={onClose} disabled={isConfirming} color="inherit">
-          {cancelButtonText}
+          {cancelText}
         </Button>
         <Button
           onClick={onConfirm}
@@ -66,7 +71,7 @@ const ConfirmationDialog: React.FC<ConfirmationDialogProps> = ({
           disabled={isConfirming}
           startIcon={isConfirming && <CircularProgress size={20} color="inherit" />}
         >
-          {isConfirming ? 'Confirming...' : confirmButtonText}
+          {isConfirming ? confirmingText : confirmText}
         </Button>
       </DialogActions>
     </Dialog>

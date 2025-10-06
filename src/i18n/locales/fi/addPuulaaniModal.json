@@ -1,0 +1,27 @@
+{
+  "title": "Luo uusi puulaani (Vaihe 1)",
+  "sections": {
+    "primaryDetails": "Perustiedot",
+    "mapLocation": "Sijainti kartalla"
+  },
+  "fields": {
+    "name": "Kohteen nimi",
+    "client": "Asiakas",
+    "date": "Päivämäärä",
+    "latitude": "Leveysaste",
+    "longitude": "Pituusaste"
+  },
+  "actions": {
+    "cancel": "Peruuta",
+    "saveContinue": "Tallenna ja jatka",
+    "closeAria": "Sulje"
+  },
+  "validation": {
+    "name": { "required": "Kohteen nimi on pakollinen" },
+    "client": { "required": "Asiakas on pakollinen" },
+    "date": { "required": "Päivämäärä on pakollinen" },
+    "location": { "selectOnMap": "Valitse sijainti kartalta" },
+    "latitude": { "required": "Leveysaste on pakollinen" },
+    "longitude": { "required": "Pituusaste on pakollinen" }
+  }
+}

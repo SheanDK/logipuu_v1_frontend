@@ -1,0 +1,42 @@
+{
+  "title": "Consignment Invoicing",
+  "buttons": {
+    "invoice": "Invoice selected",
+    "report": "Report"
+  },
+  "messages": {
+    "noResults": "No results for the selected criteria",
+    "searchFailed": "Search failed",
+    "updateFailed": "Row update failed",
+    "invoiceFailed": "Invoicing failed",
+    "noRowsForReport": "No rows for the report",
+    "saveOk": "Saved."
+  },
+  "feedback": {
+    "invoiced": "Invoiced {{count}} row",
+    "invoiced_one": "Invoiced {{count}} row",
+    "invoiced_other": "Invoiced {{count}} rows",
+    "already": "{{count}} was already invoiced",
+    "already_one": "{{count}} was already invoiced",
+    "already_other": "{{count}} were already invoiced",
+    "deleted": "Deleted {{count}} row",
+    "deleted_one": "Deleted {{count}} row",
+    "deleted_other": "Deleted {{count}} rows",
+    "cannotDeleteBilled": "A billed row could not be deleted ({{count}})",
+    "cannotDeleteBilled_one": "A billed row could not be deleted ({{count}})",
+    "cannotDeleteBilled_other": "Billed rows could not be deleted ({{count}})",
+    "notFound": "Some rows were not found anymore ({{count}})",
+    "notFound_one": "Some rows were not found anymore ({{count}})",
+    "notFound_other": "Some rows were not found anymore ({{count}})"
+  },
+  "confirm": {
+    "deleteTitle": "Delete rows",
+    "deleteOne": "Are you sure you want to delete the selected row? This action cannot be undone.",
+    "deleteMany": "Are you sure you want to delete {{count}} rows? This action cannot be undone.",
+    "confirm": "Delete",
+    "cancel": "Cancel",
+    "discardTitle": "Discard changes?",
+    "discardMessage": "You have unsaved changes. Close without saving?",
+    "discardConfirm": "Discard changes"
+  }
+}

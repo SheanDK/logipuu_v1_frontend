@@ -1,0 +1,41 @@
+{
+  "title": "Timber Management",
+  "buttons": {
+    "new": "New Puulaani"
+  },
+  "footer": {
+    "altogether": "Altogether"
+  },
+  "columns": {
+    "id": "Puulaani ID",
+    "date": "Date",
+    "customer": "Customer",
+    "objectName": "Object Name",
+    "size": "Size (m³)",
+    "left": "Left (m³)",
+    "actions": "Actions"
+  },
+  "tooltips": {
+    "edit": "Edit Puulaani",
+    "delete": "Delete Puulaani"
+  },
+  "labels": {
+    "unknownClient": "Unknown Client"
+  },
+  "confirm": {
+    "deleteTitle": "Confirm Puulaani Deletion",
+    "deleteMessage": "Are you sure you want to delete Puulaani \"{{name}}\"?"
+  },
+  "snackbar": {
+    "saved": "Puulaani saved successfully!",
+    "deleted": "Puulaani '{{name}}' deleted successfully."
+  },
+  "warnings": {
+    "detailsNotFound": "Could not find full details for this Puulaani."
+  },
+  "errors": {
+    "loadDetails": "Failed to load Puulaani details for editing.",
+    "deleteFailed": "Failed to delete Puulaani.",
+    "loadPage": "Failed to load page data. Please try again."
+  }
+}

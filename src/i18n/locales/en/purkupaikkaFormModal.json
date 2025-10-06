@@ -1,0 +1,50 @@
+{
+  "title": {
+    "edit": "Edit Customer Sites",
+    "create": "Create New Unloading Site"
+  },
+  "sections": {
+    "selectCustomer": "Select a Customer",
+    "manageSites": "Manage Sites",
+    "addNewSite": "Add a New Site to the List"
+  },
+  "fields": {
+    "customer": "Customer",
+    "newSiteName": "New Site Name",
+    "latitude": "Latitude",
+    "longitude": "Longitude"
+  },
+  "tooltips": {
+    "visibleOnMap": "Visible on map",
+    "hiddenFromMap": "Hidden from map"
+  },
+  "actions": {
+    "editName": "Edit Name",
+    "deleteSite": "Delete Site",
+    "addToList": "Add Site to List"
+  },
+  "empty": {
+    "noSites": "No sites found. Add one below."
+  },
+  "errors": {
+    "nameRequired": "Name is required",
+    "latitudeRequired": "Latitude is required",
+    "longitudeRequired": "Longitude is required",
+    "nameMin": "Minimum {{count}} characters",
+    "loadSitesFailed": "Failed to load unloading sites.",
+    "addFailed": "Failed to add site.",
+    "deleteFailed": "Failed to delete site.",
+    "referencedInUse": "This site cannot be deleted because it is in use.",
+    "updateVisibilityFailed": "Failed to update visibility.",
+    "updateNameFailed": "Failed to update site name."
+  },
+  "messages": {
+    "added": "Site \"{{name}}\" added successfully.",
+    "deleted": "Site \"{{name}}\" deleted successfully.",
+    "nameUpdated": "Site name updated successfully."
+  },
+  "confirm": {
+    "title": "Confirm Site Deletion",
+    "message": "Are you sure you want to delete the site \"{{name}}\"? This action cannot be undone."
+  }
+}

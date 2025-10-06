@@ -1,4 +1,7 @@
 // src/components/map/forms/PurkupaikkaForm.tsx
+
+// not used on anywhere
+
 'use client';
 import { FormControl, InputLabel, Select, MenuItem, TextField, Box, FormHelperText } from "@mui/material";
 import { useFormContext, Controller } from 'react-hook-form';

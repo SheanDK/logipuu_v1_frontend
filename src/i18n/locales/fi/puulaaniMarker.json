@@ -1,0 +1,23 @@
+{
+  "filters": {
+    "title": "Suodatus:",
+    "status": { "aria": "Tilan suodatin", "all": "Kaikki", "active": "Aktiiviset" },
+    "client": "Asiakas",
+    "vehicle": "Ajoneuvo"
+  },
+  "popup": {
+    "client": "Asiakas",
+    "total": "Yhteensä",
+    "remaining": "Jäljellä",
+    "status": "Tila"
+  },
+  "status": {
+    "active": "Aktiivinen",
+    "inactive": "Passiivinen",
+    "completed": "(Valmis)"
+  },
+  "buttons": {
+    "detailsEdit": "Lisätiedot / Muokkaa",
+    "delete": "Poista"
+  }
+}

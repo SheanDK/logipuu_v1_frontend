@@ -1,0 +1,21 @@
+{
+  "titles": {
+    "add": "Lisää ajoneuvo",
+    "edit": "Muokkaa ajoneuvoa"
+  },
+  "fields": {
+    "registrationNo": "Rekisterinumero",
+    "previousInspectionDate": "Edellinen katsastus",
+    "nextInspectionDate": "Seuraava katsastus",
+    "isActive": "Aktiivinen"
+  },
+  "errors": {
+    "regRequired": "Rekisterinumero on pakollinen",
+    "regMin": "Vähintään 2 merkkiä",
+    "regMax": "Enintään 15 merkkiä",
+    "regExists": "Tämä rekisterinumero on jo käytössä.",
+    "prevRequired": "Edellisen katsastuksen päivämäärä on pakollinen",
+    "nextRequired": "Seuraavan katsastuksen päivämäärä on pakollinen",
+    "dateOrder": "Seuraavan katsastuksen tulee olla edellisen jälkeen"
+  }
+}

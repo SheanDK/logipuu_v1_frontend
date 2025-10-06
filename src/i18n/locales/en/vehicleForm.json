@@ -1,0 +1,21 @@
+{
+  "titles": {
+    "add": "Add New Vehicle",
+    "edit": "Edit Vehicle"
+  },
+  "fields": {
+    "registrationNo": "Registration No.",
+    "previousInspectionDate": "Previous Inspection",
+    "nextInspectionDate": "Next Inspection",
+    "isActive": "Active"
+  },
+  "errors": {
+    "regRequired": "Registration Number is required",
+    "regMin": "Must be at least 2 characters",
+    "regMax": "Must not exceed 15 characters",
+    "regExists": "This registration number is already in use.",
+    "prevRequired": "Previous Inspection Date is required",
+    "nextRequired": "Next Inspection Date is required",
+    "dateOrder": "Next inspection date must be after previous inspection date"
+  }
+}

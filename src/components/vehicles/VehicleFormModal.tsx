@@ -1,7 +1,7 @@
 // frontend/src/components/vehicles/VehicleFormModal.tsx
 'use client';
 
-import React, { useEffect } from 'react';
+import React, { useEffect, useMemo } from 'react';
 import {
   Dialog, DialogTitle, DialogContent, DialogActions, Button, TextField,
   Grid, CircularProgress, FormControlLabel, Checkbox, Typography
@@ -12,56 +12,48 @@ import * as yup from 'yup';
 
 import { IVehicle, ICreateVehicleDto, IUpdateVehicleDto, IVehicleFormData } from '../../types/vehicle';
 import { checkRegistrationNoExists } from '../../services/vehicleService';
-
-// Yup Validation Schema
-const vehicleSchema = yup.object().shape({
-  registrationNo: yup.string()
-    .required('Registration Number is required')
-    .min(2, 'Must be at least 2 characters')
-    .max(15, 'Must not exceed 15 characters')
-    .test(
-        'is-unique-reg-no', 
-        'This registration number is already in use.', 
-        async function (value) {
-            if (!value) return true;
-            // The context object is passed from useForm, containing the ID of the vehicle being edited.
-            const editingVehicleId = this.options.context?.vehicleId; // This will be a string or undefined
-            try {
-                const isTaken = await checkRegistrationNoExists(value, editingVehicleId);
-                return !isTaken;
-            } catch (error) {
-                console.error("Async validation failed:", error);
-                return true;
-            }
-        }
-    )
-    .default(''), 
-  previousInspectionDate: yup.string()
-    .required('Previous Inspection Date is required')
-    .default(''), 
-  nextInspectionDate: yup.string()
-    .required('Next Inspection Date is required')
-    .test(
-      'is-after-previous',
-      'Next inspection date must be after previous inspection date',
-      function (value) {
-        const { previousInspectionDate } = this.parent;
-        if (!previousInspectionDate || !value) return true;
-        return new Date(value) > new Date(previousInspectionDate);
-      }
-    )
-    .default(''), 
-  isActive: yup.boolean().required().default(true),
-});
+import { useTranslation } from '@/i18n/useTranslation';
+import { TFunction } from 'i18next';
 
 interface VehicleFormModalProps {
   open: boolean;
   onClose: () => void;
   // CORRECTED: vehicleId is now a string
-  onSave: (data: ICreateVehicleDto | IUpdateVehicleDto, vehicleId?: string) => Promise<void>; 
+  onSave: (data: ICreateVehicleDto | IUpdateVehicleDto, vehicleId?: string) => Promise<void>;
   initialData?: IVehicle | null;
   isSaving: boolean;
 }
+
+const buildSchema = (t: (k: string, o?: any) => string, currentId?: string) =>
+  yup.object({
+    registrationNo: yup
+      .string()
+      .required(t('errors.regRequired'))
+      .min(2, t('errors.regMin'))
+      .max(15, t('errors.regMax'))
+      .test('is-unique-reg-no', t('errors.regExists'), async (value) => {
+        if (!value) return true;
+        try {
+          const isTaken = await checkRegistrationNoExists(value, currentId);
+          return !isTaken;
+        } catch {
+          return true; // don’t block on network error
+        }
+      })
+      .default(''),
+    previousInspectionDate: yup.string().required(t('errors.prevRequired')).default(''),
+    nextInspectionDate: yup
+      .string()
+      .required(t('errors.nextRequired'))
+      .test('is-after-previous', t('errors.dateOrder'), function (value) {
+        const { previousInspectionDate } = this.parent as IVehicleFormData;
+        if (!previousInspectionDate || !value) return true;
+        return new Date(value) > new Date(previousInspectionDate);
+      })
+      .default(''),
+    isActive: yup.boolean().required().default(true),
+  });
+
 
 const VehicleFormModal: React.FC<VehicleFormModalProps> = ({
   open,
@@ -70,23 +62,29 @@ const VehicleFormModal: React.FC<VehicleFormModalProps> = ({
   initialData,
   isSaving,
 }) => {
+
+  const { t } = useTranslation(['vehicleForm', 'common']);
+
+  const schema = useMemo(
+    () => buildSchema(t, initialData?.vehicleNo),
+    [t, initialData?.vehicleNo]
+  );
+
   const {
     handleSubmit,
     control,
     reset,
     formState: { errors, isValid, isDirty },
   } = useForm<IVehicleFormData>({
-    resolver: yupResolver(vehicleSchema),
-    context: {
-        // Pass the string vehicleId to the validation context
-        vehicleId: initialData?.vehicleNo,
-    },
-    defaultValues: vehicleSchema.getDefault(),
+    resolver: yupResolver(schema),
+    // you don't need `context` anymore because buildSchema already
+    // receives the current vehicle id
+    defaultValues: schema.getDefault(),
     mode: 'onTouched',
   });
 
   useEffect(() => {
-    if (open) { 
+    if (open) {
       if (initialData) {
         const prevDate = initialData.previousInspectionDate ? new Date(initialData.previousInspectionDate).toISOString().split('T')[0] : '';
         const nextDate = initialData.nextInspectionDate ? new Date(initialData.nextInspectionDate).toISOString().split('T')[0] : '';
@@ -97,10 +95,10 @@ const VehicleFormModal: React.FC<VehicleFormModalProps> = ({
           isActive: initialData.isActive,
         });
       } else {
-        reset(vehicleSchema.getDefault()); 
+        reset(schema.getDefault());
       }
     }
-  }, [initialData, open, reset]); 
+  }, [initialData, open, reset, schema]);
 
   const onSubmitHandler: SubmitHandler<IVehicleFormData> = async (formData) => {
     const submissionData: ICreateVehicleDto | IUpdateVehicleDto = {
@@ -109,35 +107,34 @@ const VehicleFormModal: React.FC<VehicleFormModalProps> = ({
       nextInspectionDate: formData.nextInspectionDate,
       isActive: formData.isActive,
     };
-    
+
     // Pass the string ID from initialData directly. It's already the correct type.
     await onSave(submissionData, initialData?.vehicleNo);
   };
 
   return (
-    <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth> 
+    <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth>
       <DialogTitle>
         <Typography variant="h5" component="span">
-          {initialData ? 'Edit Vehicle' : 'Add New Vehicle'}
+          {initialData ? t('titles.edit') : t('titles.add')}
         </Typography>
       </DialogTitle>
       <DialogContent dividers>
         <form onSubmit={handleSubmit(onSubmitHandler)} id="vehicle-form" noValidate>
           <Grid container spacing={2} sx={{ pt: 1 }}>
-            <Grid item xs={12}> 
+            <Grid item xs={12}>
               <Controller
                 name="registrationNo"
                 control={control}
                 render={({ field }) => (
                   <TextField
                     {...field}
-                    label="Registration No."
+                    label={t('fields.registrationNo')}
                     fullWidth
                     required
-                    autoFocus 
                     error={!!errors.registrationNo}
                     helperText={errors.registrationNo?.message}
-                    margin="dense" 
+                    margin="dense"
                   />
                 )}
               />
@@ -149,11 +146,11 @@ const VehicleFormModal: React.FC<VehicleFormModalProps> = ({
                 render={({ field }) => (
                   <TextField
                     {...field}
-                    label="Previous Inspection"
+                    label={t('fields.previousInspectionDate')}
                     fullWidth
                     required
-                    type="date" 
-                    InputLabelProps={{ shrink: true }} 
+                    type="date"
+                    InputLabelProps={{ shrink: true }}
                     error={!!errors.previousInspectionDate}
                     helperText={errors.previousInspectionDate?.message}
                     margin="dense"
@@ -168,10 +165,10 @@ const VehicleFormModal: React.FC<VehicleFormModalProps> = ({
                 render={({ field }) => (
                   <TextField
                     {...field}
-                    label="Next Inspection"
+                    label={t('fields.nextInspectionDate')}
                     fullWidth
                     required
-                    type="date" 
+                    type="date"
                     InputLabelProps={{ shrink: true }}
                     error={!!errors.nextInspectionDate}
                     helperText={errors.nextInspectionDate?.message}
@@ -187,7 +184,7 @@ const VehicleFormModal: React.FC<VehicleFormModalProps> = ({
                 render={({ field }) => (
                   <FormControlLabel
                     control={<Checkbox {...field} checked={field.value} />}
-                    label="Active"
+                    label={t('fields.isActive')}
                   />
                 )}
               />
@@ -197,16 +194,16 @@ const VehicleFormModal: React.FC<VehicleFormModalProps> = ({
       </DialogContent>
       <DialogActions sx={{ p: 2 }}>
         <Button onClick={onClose} color="inherit" variant="outlined" disabled={isSaving}>
-          Cancel
+          {t('buttons.cancel')}
         </Button>
         <Button
           type="submit"
-          form="vehicle-form" 
+          form="vehicle-form"
           color="primary"
           variant="contained"
-          disabled={isSaving || !isDirty || !isValid} 
+          disabled={isSaving || !isDirty || !isValid}
         >
-          {isSaving ? <CircularProgress size={24} color="inherit" /> : 'Save Changes'}
+          {isSaving ? <CircularProgress size={24} color="inherit" /> : t('buttons.save')}
         </Button>
       </DialogActions>
     </Dialog>

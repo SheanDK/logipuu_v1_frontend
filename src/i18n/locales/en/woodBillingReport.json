@@ -1,0 +1,42 @@
+{
+  "header": {
+    "company": "Company Ltd",
+    "title": "Wood Billing Report",
+    "period": "Period: {{start}} - {{end}}"
+  },
+  "section": {
+    "customer": "Customer: {{name}}",
+    "vehicle": "Vehicle: {{name}}"
+  },
+  "placeholders": {
+    "noCustomer": "No customer",
+    "noVehicle": "No vehicle"
+  },
+  "columns": {
+    "date": "Date",
+    "receiptNumber": "Receipt Number",
+    "timberStack": "Timber Stack",
+    "woodType": "Wood Type",
+    "route": "Route",
+    "notes": "Notes",
+    "m3": "m³",
+    "m3Price": "m³ Price",
+    "km": "km",
+    "kmPrice": "km Price",
+    "hours": "Hours",
+    "hourPrice": "Hour Price",
+    "pieces": "Pieces",
+    "piecePrice": "Piece Price",
+    "totalPrice": "Total"
+  },
+  "totals": "Totals",
+  "buttons": {
+    "print": "Print"
+  },
+  "page": "Page {{current}} / {{total}}",
+  "errors": {
+    "noData": "No data to display",
+    "noLocalStorage": "Report data not found in localStorage",
+    "parseFailed": "Failed to parse data"
+  }
+}

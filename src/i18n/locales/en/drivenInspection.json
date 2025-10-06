@@ -1,0 +1,32 @@
+{
+  "header": {
+    "company": "HKK KULJETUS",
+    "title": "DRIVEN / INSPECTION REPORT",
+    "period": "Period: {{start}} - {{end}}"
+  },
+  "columns": {
+    "pvm": "Date",
+    "ajomaaraysNro": "Driving Order No.",
+    "vastaanottoNro": "Reception No.",
+    "puulaani": "Puulaani",
+    "timberType": "Timber",
+    "customer": "Customer",
+    "rekNro": "Vehicle",
+    "reitti": "Route",
+    "lisatiedot": "Additional Info",
+    "m3": "m³",
+    "km": "Km",
+    "tunnit": "Hours",
+    "kpl": "Pcs"
+  },
+  "totals": "Total",
+  "buttons": {
+    "print": "Print Report"
+  },
+  "page": "page {{current}} / {{total}}",
+  "errors": {
+    "noData": "No data available for the report.",
+    "noLocalStorage": "No data found to generate the report.",
+    "parseFailed": "Failed to parse report data."
+  }
+}

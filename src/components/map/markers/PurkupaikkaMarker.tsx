@@ -7,6 +7,7 @@ import { Box, Typography, Button, Divider } from '@mui/material';
 import { purkupaikkaIcon } from '../../../utils/mapUtils';
 import { IMapDropoffLocation } from '../../../types';
 import { useLayout } from '@/contexts/LayoutContext';
+import { useTranslation } from '@/i18n/useTranslation';
 
 interface PurkupaikkaMarkerProps {
     marker: IMapDropoffLocation;
@@ -15,22 +16,23 @@ interface PurkupaikkaMarkerProps {
 }
 
 const PurkupaikkaMarker: React.FC<PurkupaikkaMarkerProps> = ({ marker, onEdit, onDelete }) => {
-    const { dropoffIcon, dropoffIconSize } = useLayout(); // <<< GET size from context
-    const icon = purkupaikkaIcon(dropoffIcon, dropoffIconSize); // <<< PASS size
+    const { dropoffIcon, dropoffIconSize } = useLayout();
+    const icon = purkupaikkaIcon(dropoffIcon, dropoffIconSize);
+    const { t } = useTranslation(['purkupaikkaMarker', 'common']);
 
     return (
-        <Marker 
-            position={[marker.latitude, marker.longitude]} 
+        <Marker
+            position={[marker.latitude, marker.longitude]}
             icon={icon}
         >
             <Popup minWidth={250}>
                 <Box>
-                    <Typography variant="h6" gutterBottom>Drop-off: {marker.name}</Typography>
+                    <Typography variant="h6" gutterBottom>{t('popup.title')}: {marker.name}</Typography>
                     <Divider sx={{ my: 1 }} />
-                    <Typography variant="body2"><strong>Client:</strong> {marker.clientName}</Typography>
+                    <Typography variant="body2"><strong>{t('popup.client')}:</strong> {marker.clientName}</Typography>
                     <Box sx={{ mt: 2, display: 'flex', justifyContent: 'space-between' }}>
-                        <Button size="small" variant="outlined" onClick={() => onEdit(marker)}>EDIT</Button>
-                        <Button size="small" color="error" onClick={() => onDelete(marker)}>DELETE</Button>
+                        <Button size="small" variant="outlined" onClick={() => onEdit(marker)}>{t('common:buttons.edit')}</Button>
+                        <Button size="small" color="error" onClick={() => onDelete(marker)}>{t('common:buttons.delete')}</Button>
                     </Box>
                 </Box>
             </Popup>

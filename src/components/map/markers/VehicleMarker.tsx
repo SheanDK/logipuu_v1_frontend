@@ -8,6 +8,7 @@ import L from 'leaflet';
 import { renderToStaticMarkup } from 'react-dom/server';
 import DirectionsCarIcon from '@mui/icons-material/DirectionsCar';
 import { IVehicleLocation } from '../../../types';
+import { useTranslation } from '@/i18n/useTranslation';
 
 // Function to create a custom icon for vehicles
 const getVehicleIcon = (): L.DivIcon => {
@@ -46,6 +47,7 @@ interface VehicleMarkerProps {
 const VehicleMarker: React.FC<VehicleMarkerProps> = ({ vehicle }) => {
     const icon = getVehicleIcon();
     const lastUpdated = vehicle.timestamp ? new Date(vehicle.timestamp).toLocaleTimeString('fi-FI') : 'N/A';
+    const { t } = useTranslation('vehicleMarker')
 
     return (
         <Marker 
@@ -60,12 +62,12 @@ const VehicleMarker: React.FC<VehicleMarkerProps> = ({ vehicle }) => {
             <Popup minWidth={200}>
                 <Box>
                     <Typography variant="h6" component="div" gutterBottom>
-                        Vehicle: {vehicle.id}
+                        {t('vehicle')} {vehicle.id}
                     </Typography>
                     <Divider sx={{ my: 1 }} />
-                    <Typography variant="body2"><strong>Latitude:</strong> {vehicle.lat.toFixed(6)}</Typography>
-                    <Typography variant="body2"><strong>Longitude:</strong> {vehicle.lng.toFixed(6)}</Typography>
-                    <Typography variant="body2"><strong>Last Update:</strong> {lastUpdated}</Typography>
+                    <Typography variant="body2"><strong>{t('latitude')}:</strong> {vehicle.lat.toFixed(6)}</Typography>
+                    <Typography variant="body2"><strong>{t('longitude')}:</strong> {vehicle.lng.toFixed(6)}</Typography>
+                    <Typography variant="body2"><strong>{t('lastUpdate')}:</strong> {lastUpdated}</Typography>
                 </Box>
             </Popup>
         </Marker>

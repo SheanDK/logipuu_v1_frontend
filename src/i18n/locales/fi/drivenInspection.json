@@ -1,0 +1,32 @@
+{
+  "header": {
+    "company": "HKK KULJETUS",
+    "title": "AJETUT / TARKASTUSRAPORTTI",
+    "period": "Ajanjakso: {{start}} - {{end}}"
+  },
+  "columns": {
+    "pvm": "Pvm",
+    "ajomaaraysNro": "AjomääräysNro",
+    "vastaanottoNro": "VastaanottoNro",
+    "puulaani": "Puulaani",
+    "timberType": "Puutavara",
+    "customer": "Asiakas",
+    "rekNro": "AutoNro",
+    "reitti": "Reitti",
+    "lisatiedot": "Lisätiedot",
+    "m3": "m³",
+    "km": "Km",
+    "tunnit": "Tunnit",
+    "kpl": "Kpl"
+  },
+  "totals": "Yhteensä",
+  "buttons": {
+    "print": "Tulosta raportti"
+  },
+  "page": "sivu {{current}} / {{total}}",
+  "errors": {
+    "noData": "Raportille ei ole dataa.",
+    "noLocalStorage": "Raportin muodostamiseen ei löytynyt dataa.",
+    "parseFailed": "Raporttidatan jäsennys epäonnistui."
+  }
+}

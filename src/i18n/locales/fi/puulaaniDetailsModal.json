@@ -1,0 +1,37 @@
+{
+  "title": {
+    "edit": "Muokkaa Puulaanin tietoja",
+    "create": "Viimeistele uusi Puulaani (Vaihe 2)"
+  },
+  "sections": {
+    "primaryDetails": "Perustiedot",
+    "location": "Sijainti",
+    "vehicleAssignment": "Kaluston valinta",
+    "timberLogs": "Puutavararivit",
+    "statusInfo": "Tila ja lisätiedot"
+  },
+  "fields": {
+    "nameOfProperty": "Kohteen nimi",
+    "objectName": "Kohteen nimi",
+    "customer": "Asiakas",
+    "date": "Päivämäärä",
+    "drivingOrderNo": "Ajojärjestysnumero",
+    "tripTotalKm": "Matka yhteensä (km)",
+    "updateLocationHint": "Päivitä sijainti klikkaamalla tai raahaamalla merkkiä",
+    "additionalInfo": "Lisätiedot",
+    "active": "Aktiivinen",
+    "ready": "Valmis"
+  },
+  "actions": {
+    "update": "Päivitä Puulaani",
+    "create": "Luo Puulaani"
+  },
+  "errors": {
+    "nameRequired": "Nimi on pakollinen",
+    "dateRequired": "Päivämäärä on pakollinen",
+    "mustBeNumber": "Anna kelvollinen numero",
+    "loadFailed": "Tietojen lataus epäonnistui.",
+    "saveFailed": "Tallennus epäonnistui.",
+    "retrievedGtCubes": "Haettu arvo ei voi olla suurempi kuin kuutiot."
+  }
+}

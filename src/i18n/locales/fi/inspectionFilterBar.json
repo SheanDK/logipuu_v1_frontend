@@ -1,0 +1,23 @@
+{
+  "status": {
+    "aria": "Tila",
+    "active": "Aktiiviset",
+    "inspection": "Tarkastus",
+    "all": "Kaikki"
+  },
+  "labels": {
+    "customer": "Asiakas",
+    "vehicle": "Ajoneuvo",
+    "driver": "Kuljettaja"
+  },
+  "all": {
+    "allCustomers": "Kaikki asiakkaat",
+    "allVehicles": "Kaikki ajoneuvot",
+    "allDrivers": "Kaikki kuljettajat"
+  },
+  "tooltips": {
+    "clearCustomer": "Tyhjennä asiakas",
+    "clearVehicle": "Tyhjennä ajoneuvo",
+    "clearDriver": "Tyhjennä kuljettaja"
+  }
+}

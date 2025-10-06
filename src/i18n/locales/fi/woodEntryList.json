@@ -1,0 +1,20 @@
+{
+  "empty": "Yhtään puutavaralajia ei ole vielä lisätty tähän puulaaniin.",
+  "columns": {
+    "woodType": "Puulaji",
+    "dropoffSite": "Purkupaikka",
+    "total": "Kuutiot",
+    "fetched": "Noudettu",
+    "remaining": "Jäljellä",
+    "actions": "Toiminnot"
+  },
+  "tooltips": {
+    "save": "Tallenna",
+    "cancel": "Peruuta",
+    "edit": "Muokkaa",
+    "delete": "Poista"
+  },
+  "labels": {
+    "id": "Tunnus"
+  }
+}

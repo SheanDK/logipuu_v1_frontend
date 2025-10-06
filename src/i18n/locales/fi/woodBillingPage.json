@@ -1,0 +1,18 @@
+{
+  "title": "Puulaanin Laskutus",
+  "buttons": {
+    "invoice": "Laskuta valitut",
+    "report": "Raportti"
+  },
+  "messages": {
+    "noResults": "Ei tuloksia valituilla suodattimilla.",
+    "searchFailed": "Haku epäonnistui.",
+    "updateFailed": "Päivitys epäonnistui.",
+    "invoiceFailed": "Laskutus epäonnistui."
+  },
+  "feedback": {
+    "invoiced": "Laskutettu määrä: {{count}}",
+    "already": "Jo laskutettuja ei huomioitu: {{count}}",
+    "notFound": "Ei löytynyt: {{count}}"
+  }
+}

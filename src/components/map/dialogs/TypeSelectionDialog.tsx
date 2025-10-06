@@ -1,4 +1,6 @@
 // frontend/src/components/map/dialogs/TypeSelectionDialog.tsx
+'use client'
+
 import React from 'react';
 import { 
     Dialog, 
@@ -17,6 +19,7 @@ import ForestIcon from '@mui/icons-material/Forest'; // Icon for Puulaani (timbe
 import LocalShippingIcon from '@mui/icons-material/LocalShipping'; // Icon for Unloading Site
 import PlaceIcon from '@mui/icons-material/Place'; // Generic icon for "Other"
 import CloseIcon from '@mui/icons-material/Close';
+import { useTranslation } from '@/i18n/useTranslation';
 
 interface TypeSelectionDialogProps {
   open: boolean;
@@ -26,23 +29,25 @@ interface TypeSelectionDialogProps {
 
 const TypeSelectionDialog: React.FC<TypeSelectionDialogProps> = ({ open, onCancelAction, onTypeSelect }) => {
   
+  const { t } = useTranslation(['typeSelectionDialog', 'common']) 
+
   const selectionOptions = [
     {
       type: 'Puulaani' as MarkerType,
-      title: 'New Puulaani',
-      description: 'Create a new timber collection point on the map.',
+      title:  t('puulaani.title'),
+      description:  t('puulaani.description'),
       icon: <ForestIcon sx={{ fontSize: 40, color: 'primary.main' }} />
     },
     {
       type: 'Purkupaikka' as MarkerType,
-      title: 'New Unloading Site',
-      description: 'Add a new drop-off location for timber.',
+      title: t('purkupaikka.title'),
+      description: t('purkupaikka.description'),
       icon: <LocalShippingIcon sx={{ fontSize: 40, color: 'primary.main' }} />
     },
     {
       type: 'Muu merkki' as MarkerType,
-      title: 'New Other Marker',
-      description: 'Place a generic, non-specific marker on the map.',
+      title: t('other.title'),
+      description: t('other.description'),
       icon: <PlaceIcon sx={{ fontSize: 40, color: 'primary.main' }} />
     }
   ];
@@ -55,7 +60,7 @@ const TypeSelectionDialog: React.FC<TypeSelectionDialogProps> = ({ open, onCance
     >
       <DialogTitle sx={{ m: 0, p: 2, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <Typography variant="h6" component="div">
-          Select Marker Type
+          {t('title')}
         </Typography>
         <IconButton
           aria-label="close"

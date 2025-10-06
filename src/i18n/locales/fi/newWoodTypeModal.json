@@ -1,0 +1,15 @@
+{
+  "title": "Tee Uusi Puutavara",
+  "fields": {
+    "name": "Puutavara Nimi *",
+    "description": "Lisätiedot",
+    "active": "Aktiivinen"
+  },
+  "validation": {
+    "nameRequired": "Puutavara Nimi on pakollinen",
+    "nameMin": "Vähintään {{min}} merkkiä"
+  },
+  "actions": {
+    "saving": "Tallennetaan…"
+  }
+}

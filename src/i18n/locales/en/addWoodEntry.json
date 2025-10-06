@@ -1,0 +1,23 @@
+{
+  "entryForm": {
+    "labels": {
+      "woodType": "Type of timber",
+      "unloadingSite": "Unloading site",
+      "volume": "Cubes"
+    },
+    "placeholders": {
+      "selectType": "Select Type",
+      "selectSite": "Select Site"
+    },
+    "actions": {
+      "add": "Add"
+    },
+    "errors": {
+      "woodTypeRequired": "Wood type is required",
+      "dropoffRequired": "Unloading site is required",
+      "number": "Must be a number",
+      "volumeMin": "Volume must be > 0",
+      "volumeRequired": "Cubes is required"
+    }
+  }
+}
