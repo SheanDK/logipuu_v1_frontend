@@ -4,7 +4,7 @@
 import React, { useEffect, useState } from 'react';
 import {
     Dialog, DialogTitle, DialogContent, DialogActions, Button, Box, TextField,
-    Grid, CircularProgress, Alert, Stack, Typography, IconButton
+    Grid, CircularProgress, Alert, Typography, IconButton
 } from '@mui/material';
 import { useForm, Controller, SubmitHandler } from 'react-hook-form';
 import * as yup from 'yup';
@@ -14,9 +14,11 @@ import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import dayjs from 'dayjs';
 import CloseIcon from '@mui/icons-material/Close';
 
-import { ILoadDetails, IUpdateLoadDto } from '@/types';
+// Use ITripDetails which is what the parent page will provide
+import { IUpdateLoadDto, ITripDetails } from '@/types'; 
 import { updateLoad } from '@/services/loadService';
 
+// Form data now matches the editable fields
 interface EditLoadFormData {
     pvm: Date | null;
     vastaanottoNro: string;
@@ -43,7 +45,7 @@ interface EditLoadModalProps {
     open: boolean;
     onCloseAction: () => void;
     onSaveSuccessAction: (message: string) => void;
-    loadData: ILoadDetails;
+    loadData: ITripDetails; // Expect the full TripDetails object
 }
 
 export default function EditLoadModal({ open, onCloseAction, onSaveSuccessAction, loadData }: EditLoadModalProps) {
@@ -53,30 +55,47 @@ export default function EditLoadModal({ open, onCloseAction, onSaveSuccessAction
         resolver: yupResolver(schema) as any, mode: 'onChange',
     });
 
+    // Get the first leg, which is the primary record we are editing in this context
+    const loadToEdit = loadData?.legs?.[0];
+
     useEffect(() => {
-        if (loadData) {
+        if (loadToEdit) {
             reset({
-                pvm: dayjs(loadData.pvm).toDate(),
-                vastaanottoNro: loadData.vastaanottoNro || '',
-                reitti: loadData.reitti || '',
-                m3: loadData.m3 || 0,
-                km: loadData.km || 0,
-                tunnit: loadData.tunnit || 0,
-                kpl: loadData.kpl || 0,
-                lisatiedot: loadData.lisatiedot || ''
+                pvm: dayjs(loadToEdit.pvm).toDate(),
+                vastaanottoNro: (loadToEdit as any).vastaanottoNro || '',
+                reitti: (loadToEdit as any).reitti || '',
+                m3: loadToEdit.m3 || 0,
+                km: (loadToEdit as any).km || 0,
+                tunnit: (loadToEdit as any).tunnit || 0,
+                kpl: (loadToEdit as any).kpl || 0,
+                lisatiedot: loadToEdit.lisatiedot || ''
             });
         }
-    }, [loadData, reset]);
+    }, [loadToEdit, reset]);
 
     const onSubmit: SubmitHandler<EditLoadFormData> = async (formData) => {
+        if (!loadToEdit) {
+            setError("Cannot save, load data is missing.");
+            return;
+        }
+        
         setIsSaving(true);
         setError(null);
+        
         const payload: IUpdateLoadDto = {
-            pvm: formData.pvm!, vastaanottoNro: formData.vastaanottoNro || null, reitti: formData.reitti || null,
-            m3: formData.m3, km: formData.km, tunnit: formData.tunnit, kpl: formData.kpl, lisatiedot: formData.lisatiedot || null,
+            pvm: formData.pvm!, 
+            vastaanottoNro: formData.vastaanottoNro || null, 
+            reitti: formData.reitti || null,
+            m3: formData.m3, 
+            km: formData.km, 
+            tunnit: formData.tunnit, 
+            kpl: formData.kpl, 
+            lisatiedot: formData.lisatiedot || null,
         };
+
         try {
-            await updateLoad(loadData.kuormaId, payload);
+            // Use the correct kuormaId from the leg
+            await updateLoad(loadToEdit.kuormaId, payload);
             onSaveSuccessAction('Load updated successfully!');
         } catch (err: any) {
             setError(err.response?.data?.message || "An error occurred while updating the load.");
@@ -89,7 +108,7 @@ export default function EditLoadModal({ open, onCloseAction, onSaveSuccessAction
         <LocalizationProvider dateAdapter={AdapterDayjs}>
             <Dialog open={open} onClose={onCloseAction} maxWidth="sm" fullWidth>
                 <DialogTitle sx={{ m: 0, p: 2, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <Typography variant="h6" component="div">Edit Load #{loadData.kuormaId}</Typography>
+                    <Typography variant="h6" component="div">Edit Load #{loadToEdit?.kuormaId}</Typography>
                     <IconButton aria-label="close" onClick={onCloseAction}><CloseIcon /></IconButton>
                 </DialogTitle>
                 <Box component="form" id="edit-load-form" onSubmit={handleSubmit(onSubmit)}>
