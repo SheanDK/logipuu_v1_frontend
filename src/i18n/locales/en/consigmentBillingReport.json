@@ -1,6 +1,6 @@
 {
   "header": {
-    "company": "Company name",
+    "company": "Company Ltd",
     "title": "Consignment billing report",
     "period": "Period: {{start}} – {{end}}"
   },

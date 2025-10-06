@@ -1,6 +1,6 @@
 {
   "header": {
-    "company": "Yrityksen nimi",
+    "company": "Yritys Oy",
     "title": "Rahtikirjalaskun raportti",
     "period": "Ajanjakso: {{start}} – {{end}}"
   },

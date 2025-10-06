@@ -130,9 +130,12 @@ const WoodBillingReport: React.FC<Props> = ({ rows }) => {
 
       {/* Header */}
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
-        <Typography variant="h5" sx={{ fontWeight: 'bold' }}>
-          {t('woodBillingReport:header.company')}
-        </Typography>
+        <Box
+          component="img"
+          src="/images/hkk-logo.png"
+          alt={t('woodBillingReport:header.company') || 'Company logo'}
+          sx={{ height: 48 }}
+        />
         <Box sx={{ textAlign: 'right' }}>
           <Typography variant="h6" sx={{ fontWeight: 'bold' }}>
             {t('woodBillingReport:header.title')}
