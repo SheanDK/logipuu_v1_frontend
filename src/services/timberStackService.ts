@@ -110,7 +110,9 @@ export const fetchTimberStackList = async (filters: ITimberStackListFilters): Pr
         if (filters.clientId) params.append('clientId', filters.clientId);
         if (filters.vehicleId) params.append('vehicleId', filters.vehicleId);
         if (filters.timberTypeId) params.append('timberTypeId', filters.timberTypeId);
-        const response = await apiClient.get<ITimberStackListItem[]>(`/timber-stacks/list?${params.toString()}`);
+        const response = await apiClient.get<ITimberStackListItem[]>(API_ENDPOINT, { 
+            params: filters 
+        });
         return response.data;
     } catch (error) {
         console.error("SERVICE ERROR: Failed to fetch timber stack list", error);
