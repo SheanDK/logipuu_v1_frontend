@@ -1,60 +1,44 @@
 // frontend/src/app/(main)/layout.tsx (UPDATED for DEBUGGING)
 'use client';
-import React, { ReactNode, useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
-import { AuthProvider, useAuth } from '../../../contexts/AuthContext';
-import { LayoutProvider, useLayout } from '../../../contexts/LayoutContext';
-import { DriverSessionProvider, useDriverSession } from '../../../contexts/DriverSessionContext';
-import { fetchAllVehicles } from '@/services/vehicleService';
-import { IVehicleBasicInfo, IVehicleBackendResponse } from '@/types';
+import React, { ReactNode, useEffect } from 'react';
+import { usePathname, useRouter } from 'next/navigation';
+import { useAuth } from '../../../contexts/AuthContext';
+import { useLayout } from '../../../contexts/LayoutContext';
 import Box from '@mui/material/Box';
 import CircularProgress from '@mui/material/CircularProgress';
+import Toolbar from '@mui/material/Toolbar';
+
 import AppNavbar from '../../../components/layout/AppNavbar';
 import AppSidebar from '../../../components/layout/AppSidebar';
-import SelectVehicleModal from '@/components/drivers/SelectVehicleModal';
-import ThemeProvider from '@/theme/ThemeProvider';
+import { withLng } from '@/utils/withLng';
 
 const drawerWidth = 240;
 
-// This is the core logic component
-function AppContent({ children }: { children: ReactNode }) {
-    // --- THIS IS THE FIX for 'implicitly has an 'any' type' ---
-    // We explicitly use the useAuth() hook which returns a typed object.
-    const { isAuthenticated, isLoading: isAuthLoading } = useAuth();
-    const { isVehicleSelectionRequired, selectVehicle } = useDriverSession();
+export default function MainLayout({ children }: { children: ReactNode }) {
+    const { isAuthenticated, isLoading, user } = useAuth(); // Get 'user' as well for debugging
     const { navLayout } = useLayout();
     const router = useRouter();
-    const [vehicleList, setVehicleList] = useState<IVehicleBasicInfo[]>([]);
+    const pathname = usePathname();
+    const currentLng = pathname.split('/')[1] || 'fi';
 
-    // Effect for handling redirection if the user is not authenticated.
+    // --- FOR DEBUGGING: Log the state from contexts ---
+    console.log('--- MainLayout Render ---');
+    console.log('Auth Is Loading:', isLoading);
+    console.log('Is Authenticated:', isAuthenticated);
+    console.log('Navigation Layout:', navLayout);
+    console.log('User Object:', user); // See if user object with roles/permissions is available
+    // --- END DEBUGGING ---
+
     useEffect(() => {
-        if (!isAuthLoading && !isAuthenticated) {
-            router.replace('/login');
+        if (!isLoading && !isAuthenticated) {
+            console.log("MainLayout: Redirecting to /login because user is not authenticated.");
+            router.replace(withLng(currentLng, '/login'));
         }
-    }, [isAuthLoading, isAuthenticated, router]);
+    }, [isAuthenticated, isLoading, router]);
 
-    // Effect for fetching the vehicle list when the selection modal is needed.
-    useEffect(() => {
-        if (isVehicleSelectionRequired) {
-            fetchAllVehicles()
-                .then((data: IVehicleBackendResponse[]) => {
-                    const mappedVehicles = data.map(v => ({ 
-                        id: String(v.kalustoNro), 
-                        registrationNo: v.rekNro, 
-                        name: v.rekNro, 
-                        vehicleNo: String(v.kalustoNro) 
-                    }));
-                    setVehicleList(mappedVehicles);
-                })
-                .catch(err => console.error("Failed to fetch vehicles for modal:", err));
-        }
-    }, [isVehicleSelectionRequired]);
-
-    // --- RENDER LOGIC ---
-
-    // 1. While the AuthContext is checking the token, show a full-page loader.
-    // This is the most critical guard against redirect loops.
-    if (isAuthLoading) {
+    // Show a full-page loader while checking authentication state
+    if (isLoading) {
+        console.log("MainLayout: Showing loading spinner.");
         return (
             <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
                 <CircularProgress />
@@ -62,57 +46,34 @@ function AppContent({ children }: { children: ReactNode }) {
         );
     }
 
-    // 2. If authentication is done and the user is NOT authenticated, render nothing.
-    // The useEffect above will handle the redirect to the login page.
+    // Don't render anything if not authenticated (will be redirected by useEffect)
     if (!isAuthenticated) {
+        console.log("MainLayout: Not rendering layout because user is not authenticated.");
         return null;
     }
 
-    // 3. If authenticated, render the main application layout.
+    // If authenticated, render the full layout
+    console.log("MainLayout: Rendering full layout with Navbar and Sidebar.");
     return (
-        <Box sx={{ display: 'flex', height: '100vh', overflow: 'hidden' }}>
+        <Box sx={{ display: 'flex' }}>
             <AppNavbar />
-            {navLayout === 'left' && <AppSidebar />}
-            
-            <Box 
-                component="main" 
-                sx={{ 
-                    flexGrow: 1, 
-                    width: { md: `calc(100% - ${drawerWidth}px)` }, 
-                    overflow: 'auto', 
-                    // Add padding top to account for the fixed AppBar height
-                    pt: (theme) => `${theme.mixins.toolbar.minHeight}px` 
+
+            {/* Conditionally render the sidebar based on the navLayout setting */}
+            {navLayout === 'left' && (
+                <AppSidebar />
+            )}
+
+            <Box
+                component="main"
+                sx={{
+                    flexGrow: 1,
+                    p: 3,
+                    width: { md: navLayout === 'left' ? `calc(100% - ${drawerWidth}px)` : '100%' },
                 }}
             >
-                {/* The vehicle selection modal floats above everything else when open */}
-                <SelectVehicleModal
-                    open={isVehicleSelectionRequired}
-                    vehicles={vehicleList}
-                    onVehicleSelectAction={selectVehicle}
-                />
-                
-                {/* --- THIS IS THE FIX --- */}
-                {/* Only render the page's content (`children`) if vehicle selection is NOT required.
-                    This prevents the `my-loads` page from trying to load data before a vehicle is selected. */}
-                {!isVehicleSelectionRequired && children}
+                <Toolbar />
+                {children}
             </Box>
         </Box>
-    );
-}
-
-// Main Layout component that wraps everything with context providers.
-export default function MainLayout({ children }: { children: ReactNode }) {
-    return (
-        <AuthProvider>
-            <DriverSessionProvider>
-                <LayoutProvider>
-                    <ThemeProvider>
-                        <AppContent>
-                            {children}
-                        </AppContent>
-                    </ThemeProvider>
-                </LayoutProvider>
-            </DriverSessionProvider>
-        </AuthProvider>
     );
 }
