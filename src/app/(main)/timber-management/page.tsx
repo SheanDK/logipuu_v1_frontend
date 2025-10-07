@@ -21,7 +21,7 @@ import PuulaaniFilterBar from '../../../components/timber-management/dialogs/Puu
 
 // --- FIX 3: Import all necessary types ---
 import { ITimberStackListItem, ITimberStackListFilters, IMapTimberStack, IEditablePuulaani, IClientBasicInfo, IBackendClient, IVehicleBasicInfo, IPuutavaraItem, PendingPuulaaniData } from '../../../types';
-import { fetchTimberStackList, deleteTimberStack, getTimberStackFullDetails } from '../../../services/timberStackService';
+import { fetchTimberStackList, deleteTimberStack, fetchTimberStackFullDetails } from '../../../services/timberStackService';
 import { fetchAllClients } from '../../../services/clientService'; 
 import { fetchVehiclesListApi } from '../../../services/vehicleService'; 
 import { fetchAllWoodTypes } from '../../../services/timberStackService'; // Assuming this is the correct service name
@@ -164,7 +164,7 @@ export default function PuulaaniListPage() {
 
     const handleEditClick = async (puulaaniListItem: ITimberStackListItem) => {
         try {
-            const fullDetails = await getTimberStackFullDetails(puulaaniListItem.puulaaniId);
+            const fullDetails = await fetchTimberStackFullDetails(puulaaniListItem.puulaaniId);
             if (fullDetails && fullDetails.puulaani) {
                 const rawPuulaani = fullDetails.puulaani;
                 const client = filterData.clientList.find(c => c.id === String(rawPuulaani.asiakasId)) || { name: 'Unknown Client', targetColor: '#808080' };

@@ -259,7 +259,7 @@ export default function TimberStacksPage() {
 
     return (
 
-        <Box sx={{ height: 'calc(100vh - 64px)', width: '100%', position: 'relative', m: -3, p: 0, overflow: 'hidden' }}>
+        <Box sx={{ height: 'calc(100vh - 55px)', width: '100%', position: 'relative', overflow: 'hidden' }}>
             <Box sx={{ position: 'absolute', top: 0, left: 35, right: 0, zIndex: 1000, p: 2 }}>
                 <Paper sx={{ p: 2, backgroundColor: 'rgba(255, 255, 255, 0.15)', backdropFilter: 'blur(0.75px)', borderRadius: 2 }}>
                     <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
