@@ -47,6 +47,13 @@ export default function LoginPage() {
             // now handles ALL redirection logic itself. We don't need to do anything else here.
             await login(apiResponse);
 
+            const userRoles = apiResponse.user.roles || [];
+            if (userRoles.includes('Kuljettaja')) {
+                router.push('/my-loads');
+            } else {
+                router.push('/timber-stacks'); // Or any other default office page
+            }
+
             // Step 3: REMOVED the router.push('/dashboard') call from here.
 
         } catch (err: any) {

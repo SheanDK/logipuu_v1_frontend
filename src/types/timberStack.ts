@@ -45,6 +45,7 @@ export interface IBackendAutot {
 // }
 
 export interface IPuulaaniFullDetails {
+    puutavarat: any;
     puulaani: any; // Or a more specific type for puulaani details
     autot: number[]; // <-- FIX 1: This should be an array of numbers
     timberEntries: any[]; // <-- FIX 2: Rename 'puutavarat' to 'timberEntries'
@@ -216,6 +217,7 @@ export interface IWoodEntry {
     purkupaikkaLng?: number | null;
 }
 export interface PuulaaniDetails {
+    puutavarat: any[];
     puulaani: {
         // Properties we already had
         puulaaniId: number;
