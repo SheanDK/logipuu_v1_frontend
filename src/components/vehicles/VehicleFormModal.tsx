@@ -4,7 +4,8 @@
 import React, { useEffect, useMemo } from 'react';
 import {
   Dialog, DialogTitle, DialogContent, DialogActions, Button, TextField,
-  Grid, CircularProgress, FormControlLabel, Checkbox, Typography
+  Grid, CircularProgress, FormControlLabel, Checkbox, Typography,
+  Box
 } from '@mui/material';
 import { useForm, Controller, SubmitHandler } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
@@ -13,7 +14,7 @@ import * as yup from 'yup';
 import { IVehicle, ICreateVehicleDto, IUpdateVehicleDto, IVehicleFormData } from '../../types/vehicle';
 import { checkRegistrationNoExists } from '../../services/vehicleService';
 import { useTranslation } from '@/i18n/useTranslation';
-import { TFunction } from 'i18next';
+import dayjs from 'dayjs';
 
 interface VehicleFormModalProps {
   open: boolean;
@@ -86,8 +87,12 @@ const VehicleFormModal: React.FC<VehicleFormModalProps> = ({
   useEffect(() => {
     if (open) {
       if (initialData) {
-        const prevDate = initialData.previousInspectionDate ? new Date(initialData.previousInspectionDate).toISOString().split('T')[0] : '';
-        const nextDate = initialData.nextInspectionDate ? new Date(initialData.nextInspectionDate).toISOString().split('T')[0] : '';
+         const prevDate = initialData.previousInspectionDate
+        ? dayjs(initialData.previousInspectionDate).format('YYYY-MM-DD')
+        : '';
+      const nextDate = initialData.nextInspectionDate
+        ? dayjs(initialData.nextInspectionDate).format('YYYY-MM-DD')
+        : '';
         reset({
           registrationNo: initialData.registrationNo,
           previousInspectionDate: prevDate,
@@ -121,75 +126,84 @@ const VehicleFormModal: React.FC<VehicleFormModalProps> = ({
       </DialogTitle>
       <DialogContent dividers>
         <form onSubmit={handleSubmit(onSubmitHandler)} id="vehicle-form" noValidate>
-          <Grid container spacing={2} sx={{ pt: 1 }}>
-            <Grid item xs={12}>
-              <Controller
-                name="registrationNo"
-                control={control}
-                render={({ field }) => (
-                  <TextField
-                    {...field}
-                    label={t('fields.registrationNo')}
-                    fullWidth
-                    required
-                    error={!!errors.registrationNo}
-                    helperText={errors.registrationNo?.message}
-                    margin="dense"
-                  />
-                )}
-              />
-            </Grid>
-            <Grid item xs={12} sm={6}>
-              <Controller
-                name="previousInspectionDate"
-                control={control}
-                render={({ field }) => (
-                  <TextField
-                    {...field}
-                    label={t('fields.previousInspectionDate')}
-                    fullWidth
-                    required
-                    type="date"
-                    InputLabelProps={{ shrink: true }}
-                    error={!!errors.previousInspectionDate}
-                    helperText={errors.previousInspectionDate?.message}
-                    margin="dense"
-                  />
-                )}
-              />
-            </Grid>
-            <Grid item xs={12} sm={6}>
-              <Controller
-                name="nextInspectionDate"
-                control={control}
-                render={({ field }) => (
-                  <TextField
-                    {...field}
-                    label={t('fields.nextInspectionDate')}
-                    fullWidth
-                    required
-                    type="date"
-                    InputLabelProps={{ shrink: true }}
-                    error={!!errors.nextInspectionDate}
-                    helperText={errors.nextInspectionDate?.message}
-                    margin="dense"
-                  />
-                )}
-              />
-            </Grid>
-            <Grid item xs={12}>
-              <Controller
-                name="isActive"
-                control={control}
-                render={({ field }) => (
-                  <FormControlLabel
-                    control={<Checkbox {...field} checked={field.value} />}
-                    label={t('fields.isActive')}
-                  />
-                )}
-              />
-            </Grid>
-          </Grid>
+          {/* Row 1: Registration number */}
+          <Box sx={{ mb: 2 }}>
+            <Controller
+              name="registrationNo"
+              control={control}
+              render={({ field }) => (
+                <TextField
+                  {...field}
+                  label={t('fields.registrationNo')}
+                  fullWidth
+                  required
+                  error={!!errors.registrationNo}
+                  helperText={errors.registrationNo?.message}
+                  margin="dense"
+                />
+              )}
+            />
+          </Box>
+
+          {/* Row 2: Dates as CSS Grid (2 columns >= sm) */}
+          <Box
+            sx={{
+              display: 'grid',
+              gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr' },
+              gap: 2,
+              mb: 2,
+            }}
+          >
+            <Controller
+              name="previousInspectionDate"
+              control={control}
+              render={({ field }) => (
+                <TextField
+                  {...field}
+                  label={t('fields.previousInspectionDate')}
+                  fullWidth
+                  required
+                  type="date"
+                  InputLabelProps={{ shrink: true }}
+                  error={!!errors.previousInspectionDate}
+                  helperText={errors.previousInspectionDate?.message}
+                  margin="dense"
+                />
+              )}
+            />
+
+            <Controller
+              name="nextInspectionDate"
+              control={control}
+              render={({ field }) => (
+                <TextField
+                  {...field}
+                  label={t('fields.nextInspectionDate')}
+                  fullWidth
+                  required
+                  type="date"
+                  InputLabelProps={{ shrink: true }}
+                  error={!!errors.nextInspectionDate}
+                  helperText={errors.nextInspectionDate?.message}
+                  margin="dense"
+                />
+              )}
+            />
+          </Box>
+
+          {/* Row 3: Active checkbox */}
+          <Box>
+            <Controller
+              name="isActive"
+              control={control}
+              render={({ field }) => (
+                <FormControlLabel
+                  control={<Checkbox {...field} checked={field.value} />}
+                  label={t('fields.isActive')}
+                />
+              )}
+            />
+          </Box>
         </form>
       </DialogContent>
       <DialogActions sx={{ p: 2 }}>

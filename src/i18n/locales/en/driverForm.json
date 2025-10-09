@@ -18,8 +18,12 @@
     "nameRequired": "Name is required",
     "nameMin": "Name must be at least 2 characters",
     "nameMax": "Name must not exceed 50 characters",
+    "nameInvalid": "Invalid name format",
     "phoneRequired": "Phone Number is required",
     "phoneMax": "Phone Number must not exceed 20 characters",
+    "phoneInvalid": "Phone can only contain + and digits",
+    "phoneDigits": "Phone must have 5–15 digits",
+    "phonePlus": "Plus sign must be at the start only",
     "emailRequired": "Email is required",
     "emailInvalid": "Enter a valid email",
     "emailMax": "Email must not exceed 100 characters"

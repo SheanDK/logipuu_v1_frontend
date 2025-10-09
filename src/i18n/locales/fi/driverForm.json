@@ -1,6 +1,6 @@
 {
   "titles": {
-    "add": "Lisää kuljettaja",
+    "add": "Lisää uusi kuljettaja",
     "edit": "Muokkaa kuljettajaa"
   },
   "fields": {
@@ -16,12 +16,16 @@
   },
   "errors": {
     "nameRequired": "Nimi on pakollinen",
-    "nameMin": "Nimen on oltava vähintään 2 merkkiä",
-    "nameMax": "Nimi ei saa ylittää 50 merkkiä",
+    "nameMin": "Nimen pituuden tulee olla vähintään 2 merkkiä",
+    "nameMax": "Nimen pituus ei saa ylittää 50 merkkiä",
+    "nameInvalid": "Nimen muoto on virheellinen",
     "phoneRequired": "Puhelinnumero on pakollinen",
     "phoneMax": "Puhelinnumero ei saa ylittää 20 merkkiä",
+    "phoneInvalid": "Puhelinnumerossa saa olla vain + ja numeroita",
+    "phoneDigits": "Puhelinnumerossa tulee olla 5–15 numeroa",
+    "phonePlus": "Plus-merkki saa olla vain numeron alussa",
     "emailRequired": "Sähköposti on pakollinen",
-    "emailInvalid": "Anna kelvollinen sähköposti",
-    "emailMax": "Sähköposti ei saa ylittää 100 merkkiä"
+    "emailInvalid": "Anna kelvollinen sähköpostiosoite",
+    "emailMax": "Sähköpostiosoite ei saa ylittää 100 merkkiä"
   }
 }
