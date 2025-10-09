@@ -4,7 +4,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import {
     Dialog, DialogTitle, DialogContent, DialogActions, Button, Box, TextField,
-    Grid, CircularProgress, Alert, Typography, IconButton
+    CircularProgress, Alert, Typography, IconButton
 } from '@mui/material';
 import { useForm, Controller, SubmitHandler } from 'react-hook-form';
 import * as yup from 'yup';
@@ -126,9 +126,9 @@ export default function EditLoadModal({ open, onCloseAction, onSaveSuccessAction
         try {
             // Use the correct kuormaId from the leg
             await updateLoad(loadToEdit.kuormaId, payload);
-           onSaveSuccessAction(
-        t('editLoadModal:snackbar.updated', { id: (loadToEdit as any).kuormaId })
-      );
+            onSaveSuccessAction(
+                t('editLoadModal:snackbar.updated', { id: (loadToEdit as any).kuormaId })
+            );
         } catch (err: any) {
             setError(err?.response?.data?.message || t('editLoadModal:errors.updateFailed'));
         } finally {
@@ -141,25 +141,169 @@ export default function EditLoadModal({ open, onCloseAction, onSaveSuccessAction
             <Dialog open={open} onClose={onCloseAction} maxWidth="sm" fullWidth>
                 <DialogTitle sx={{ m: 0, p: 2, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                     <Typography variant="h6" component="div">
-            {t('editLoadModal:title', {
-              id: loadToEdit ? (loadToEdit as any).kuormaId : '—',
-            })}
-          </Typography>
+                        {t('editLoadModal:title', {
+                            id: loadToEdit ? (loadToEdit as any).kuormaId : '—',
+                        })}
+                    </Typography>
                     <IconButton aria-label={t('common:buttons.close')} onClick={onCloseAction}><CloseIcon /></IconButton>
                 </DialogTitle>
                 <Box component="form" id="edit-load-form" onSubmit={handleSubmit(onSubmit)}>
                     <DialogContent dividers sx={{ p: { xs: 2, sm: 3 } }}>
                         {error && <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>}
-                        <Grid container spacing={2}>
-                            <Grid item xs={12} sm={6}><Controller name="pvm" control={control} render={({ field }) => (<DatePicker label={t('editLoadModal:fields.date')} value={field.value ? dayjs(field.value) : null} onChange={(date) => field.onChange(date?.toDate() ?? null)} format="DD.MM.YYYY" slotProps={{ textField: { fullWidth: true, required: true, error: !!errors.pvm, helperText: errors.pvm?.message } }} />)} /></Grid>
-                            <Grid item xs={12} sm={6}><Controller name="vastaanottoNro" control={control} render={({ field }) => <TextField {...field} value={field.value ?? ''} label={t('editLoadModal:fields.receptionNo')} fullWidth error={!!errors.vastaanottoNro} helperText={errors.vastaanottoNro?.message} />} /></Grid>
-                            <Grid item xs={12}><Controller name="reitti" control={control} render={({ field }) => <TextField {...field} value={field.value ?? ''} label={t('editLoadModal:fields.route')} fullWidth error={!!errors.reitti} helperText={errors.reitti?.message} />} /></Grid>
-                            <Grid item xs={6} sm={3}><Controller name="m3" control={control} render={({ field }) => <TextField {...field} value={field.value ?? ''} type="number" label={t('editLoadModal:fields.cubicMetres')} fullWidth error={!!errors.m3} helperText={errors.m3?.message} />} /></Grid>
-                            <Grid item xs={6} sm={3}><Controller name="km" control={control} render={({ field }) => <TextField {...field} value={field.value ?? ''} type="number" label={t('editLoadModal:fields.freightKm')} fullWidth error={!!errors.km} helperText={errors.km?.message} />} /></Grid>
-                            <Grid item xs={6} sm={3}><Controller name="tunnit" control={control} render={({ field }) => <TextField {...field} value={field.value ?? ''} type="number" label={t('editLoadModal:fields.hours')} fullWidth error={!!errors.tunnit} helperText={errors.tunnit?.message} />} /></Grid>
-                            <Grid item xs={6} sm={3}><Controller name="kpl" control={control} render={({ field }) => <TextField {...field} value={field.value ?? ''} type="number" label={t('editLoadModal:fields.pcs')} fullWidth error={!!errors.kpl} helperText={errors.kpl?.message} />} /></Grid>
-                            <Grid item xs={12}><Controller name="lisatiedot" control={control} render={({ field }) => <TextField {...field} value={field.value ?? ''} label={t('editLoadModal:fields.additionalInfo')} multiline rows={3} fullWidth error={!!errors.lisatiedot} helperText={errors.lisatiedot?.message} />} /></Grid>
-                        </Grid>
+                        {/* Row 1: Date + Reception No (2 columns on >= sm) */}
+                        <Box
+                            sx={{
+                                display: 'grid',
+                                gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr' },
+                                gap: 2,
+                                mb: 2,
+                            }}
+                        >
+                            <Controller
+                                name="pvm"
+                                control={control}
+                                render={({ field }) => (
+                                    <DatePicker
+                                        label={t('editLoadModal:fields.date')}
+                                        value={field.value ? dayjs(field.value) : null}
+                                        onChange={(date) => field.onChange(date?.toDate() ?? null)}
+                                        format="DD.MM.YYYY"
+                                        slotProps={{
+                                            textField: {
+                                                fullWidth: true,
+                                                required: true,
+                                                error: !!errors.pvm,
+                                                helperText: errors.pvm?.message,
+                                            },
+                                        }}
+                                    />
+                                )}
+                            />
+
+                            <Controller
+                                name="vastaanottoNro"
+                                control={control}
+                                render={({ field }) => (
+                                    <TextField
+                                        {...field}
+                                        value={field.value ?? ''}
+                                        label={t('editLoadModal:fields.receptionNo')}
+                                        fullWidth
+                                        error={!!errors.vastaanottoNro}
+                                        helperText={errors.vastaanottoNro?.message}
+                                    />
+                                )}
+                            />
+                        </Box>
+
+                        {/* Row 2: Route (full width) */}
+                        <Box sx={{ mb: 2 }}>
+                            <Controller
+                                name="reitti"
+                                control={control}
+                                render={({ field }) => (
+                                    <TextField
+                                        {...field}
+                                        value={field.value ?? ''}
+                                        label={t('editLoadModal:fields.route')}
+                                        fullWidth
+                                        error={!!errors.reitti}
+                                        helperText={errors.reitti?.message}
+                                    />
+                                )}
+                            />
+                        </Box>
+
+                        {/* Row 3: Number fields (4 columns on >= sm, 2 columns on xs) */}
+                        <Box
+                            sx={{
+                                display: 'grid',
+                                gridTemplateColumns: { xs: '1fr 1fr', sm: 'repeat(4, 1fr)' },
+                                gap: 2,
+                                mb: 2,
+                            }}
+                        >
+                            <Controller
+                                name="m3"
+                                control={control}
+                                render={({ field }) => (
+                                    <TextField
+                                        {...field}
+                                        value={field.value ?? ''}
+                                        type="number"
+                                        label={t('editLoadModal:fields.cubicMetres')}
+                                        fullWidth
+                                        error={!!errors.m3}
+                                        helperText={errors.m3?.message}
+                                    />
+                                )}
+                            />
+                            <Controller
+                                name="km"
+                                control={control}
+                                render={({ field }) => (
+                                    <TextField
+                                        {...field}
+                                        value={field.value ?? ''}
+                                        type="number"
+                                        label={t('editLoadModal:fields.freightKm')}
+                                        fullWidth
+                                        error={!!errors.km}
+                                        helperText={errors.km?.message}
+                                    />
+                                )}
+                            />
+                            <Controller
+                                name="tunnit"
+                                control={control}
+                                render={({ field }) => (
+                                    <TextField
+                                        {...field}
+                                        value={field.value ?? ''}
+                                        type="number"
+                                        label={t('editLoadModal:fields.hours')}
+                                        fullWidth
+                                        error={!!errors.tunnit}
+                                        helperText={errors.tunnit?.message}
+                                    />
+                                )}
+                            />
+                            <Controller
+                                name="kpl"
+                                control={control}
+                                render={({ field }) => (
+                                    <TextField
+                                        {...field}
+                                        value={field.value ?? ''}
+                                        type="number"
+                                        label={t('editLoadModal:fields.pcs')}
+                                        fullWidth
+                                        error={!!errors.kpl}
+                                        helperText={errors.kpl?.message}
+                                    />
+                                )}
+                            />
+                        </Box>
+
+                        {/* Row 4: Additional info (full width) */}
+                        <Box>
+                            <Controller
+                                name="lisatiedot"
+                                control={control}
+                                render={({ field }) => (
+                                    <TextField
+                                        {...field}
+                                        value={field.value ?? ''}
+                                        label={t('editLoadModal:fields.additionalInfo')}
+                                        multiline
+                                        rows={3}
+                                        fullWidth
+                                        error={!!errors.lisatiedot}
+                                        helperText={errors.lisatiedot?.message}
+                                    />
+                                )}
+                            />
+                        </Box>
                     </DialogContent>
                     <DialogActions sx={{ p: 2, borderTop: '1px solid', borderColor: 'divider' }}>
                         <Button onClick={onCloseAction} disabled={isSaving}>{t('common:buttons.cancel')}</Button>

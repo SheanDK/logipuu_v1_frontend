@@ -1,5 +1,5 @@
 {
-  "title": "Kuormien hallinta / Tarkastus",
+  "title": "Kuormanhallinta / Tarkastus",
   "buttons": {
     "accept": "Hyväksy ({{count}})",
     "report": "Raportti ({{count}})"

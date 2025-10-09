@@ -71,7 +71,7 @@ export interface ILoadDetails {
     status: string;
     lisatiedot: string | null;
     kuljId: number;
-    
+
     // --- THIS IS THE FIX ---
     // Add the raw ID fields needed by the form
     tyyppi: LoadTypeEnum;
@@ -183,7 +183,13 @@ export interface ITripLeg {
     kuormaId: number;
     pvm: Date;
     status: string;
+
     m3: number;
+    km: number;                
+    tunnit: number;            
+    kpl: number;                
+    reitti: string | null;      
+    vastaanottoNro: string | null; 
     originName: string;
     destinationName: string;
     originLat: number | null;
@@ -199,7 +205,7 @@ export interface ITripLeg {
 
 export interface ITripDetails {
     tripId: string;
-    ajomaaraysNro: string | null; 
+    ajomaaraysNro: string | null;
     asiakasId: number;
     asiakkaanNimi: string;
     rekNro: string;
