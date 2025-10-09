@@ -17,93 +17,95 @@ import NativeColorPicker from '../common/ColorPicker';
 
 import { useTranslation } from '@/i18n/useTranslation';
 
-// Validation schema (comments in English)
-const buildSchema = (t: (k: string, o?: any) => string, editingClientId?: string) =>
-  yup.object({
-    clientName: yup.string().required(t('errors.nameRequired')).max(50, t('errors.nameMax')).default(''),
+// Validation schema
+const buildSchema = (
+  t: (k: string, o?: any) => string,
+  editingClientId?: string
+): yup.ObjectSchema<IClientFormData> =>
+  yup
+    .object({
+      clientName: yup
+        .string()
+        .required(t('errors.nameRequired'))
+        .max(50, t('errors.nameMax'))
+        .default(''),
 
-    vatId: yup
-  .string()
-  .nullable()
-  .max(10, t('errors.vatMax'))
-  // 1) No letters at all
-  .test('vat-no-letters', t('errors.vatInvalidChars'), (v) => !v || !/[A-Za-zÅÄÖåäöÆØæøÞþÐð]/u.test(v))
-  // 2) Allowed characters only: digits and a single hyphen
-  .matches(/^[0-9-]*$/, t('errors.vatInvalidChars'))
-  // 3) Strict Finnish Y-tunnus format: 7 digits, hyphen, 1 digit (optional — poista jos haluat sallia muutkin)
-  .test('vat-format-fi', t('errors.vatInvalidFormat'), (v) => {
-    if (!v) return true;
-    return /^\d{7}-\d$/.test(v);
-  })
-  .default(''),
+      vatId: yup
+        .string()
+        .max(10, t('errors.vatMax'))
+        .test('vat-no-letters', t('errors.vatInvalidChars'), (v) => !v || !/[A-Za-zÅÄÖåäöÆØæøÞþÐð]/u.test(v))
+        .matches(/^[0-9-]*$/, { message: t('errors.vatInvalidChars'), excludeEmptyString: true })
+        .test('vat-format-fi', t('errors.vatInvalidFormat'), (v) => {
+          if (!v) return true;
+          return /^\d{7}-\d$/.test(v);
+        })
+        .default(''),
 
-    address: yup.string().nullable().max(100, t('errors.addressMax')).default(''),
-    postalCode: yup
-      .string()
-      .nullable()
-      .transform((v) => (typeof v === 'string' ? v.trim() : v))
-      .max(10, t('errors.postalMax')) // e.g., "123 45" is 6 characters
-      .test('no-letters', t('errors.postalNoLetters'), (v) => !v || !/[A-Za-zÅÄÖåäöÆØæøÞþÐð]/u.test(v))
-      .test('nordic-postal', t('errors.postalInvalid'), (v) => {
-        if (!v) return true;
-        const clean = v.replace(/\s/g, ''); // allow Swedish format "NNN NN" by stripping spaces
-        // digits only and length 3, 4, or 5 (IS=3, DK/NO=4, FI/SE=5)
-        return /^\d+$/.test(clean) && [3, 4, 5].includes(clean.length);
-      })
-      .default(''),
+      address: yup.string().max(100, t('errors.addressMax')).default(''),
 
-    city: yup.string().nullable().max(20, t('errors.cityMax')).default(''),
+      postalCode: yup
+        .string()
+        .transform((v) => (typeof v === 'string' ? v.trim() : v))
+        .max(10, t('errors.postalMax'))
+        .test('no-letters', t('errors.postalNoLetters'), (v) => !v || !/[A-Za-zÅÄÖåäöÆØæøÞþÐð]/u.test(v))
+        .test('nordic-postal', t('errors.postalInvalid'), (v) => {
+          if (!v) return true;
+          const clean = v.replace(/\s/g, '');
+          return /^\d+$/.test(clean) && [3, 4, 5].includes(clean.length);
+        })
+        .default(''),
 
-    phoneNo: yup
-      .string()
-      .nullable()
-      .transform((v) => (typeof v === 'string' ? v.trim() : v))
-      .max(20, t('errors.phoneMax'))
-      .matches(/^[0-9+\-() \t]*$/, t('errors.phoneInvalidChars')) // allow digits and common separators only
-      .test('has-digits-len', t('errors.phoneInvalid'), (v) => {
-        if (!v) return true;
-        const digits = v.replace(/\D/g, '');
-        // practical range: 6–20 digits (aligned with E.164 length constraints)
-        return digits.length >= 6 && digits.length <= 20;
-      })
-      .default(''),
+      city: yup.string().max(20, t('errors.cityMax')).default(''),
 
-    contactPerson: yup.string().nullable().max(50, t('errors.contactMax')).default(''),
-    email: yup.string().email(t('errors.emailInvalid')).nullable().max(100, t('errors.emailMax')).default(''),
-    additionalInfo: yup.string().nullable().max(1000, t('errors.additionalInfoMax')).default(''),
+      phoneNo: yup
+        .string()
+        .transform((v) => (typeof v === 'string' ? v.trim() : v))
+        .max(20, t('errors.phoneMax'))
+        .matches(/^[0-9+\-() \t]*$/, { message: t('errors.phoneInvalidChars'), excludeEmptyString: true })
+        .test('has-digits-len', t('errors.phoneInvalid'), (v) => {
+          if (!v) return true;
+          const digits = v.replace(/\D/g, '');
+          return digits.length >= 6 && digits.length <= 20;
+        })
+        .default(''),
 
-    targetColor: yup
-      .string()
-      .nullable()
-      .when('isPuulaani', {
-        is: true,
-        then: (schema) =>
-          schema
-            .required(t('errors.colorRequired'))
-            .matches(/^#([0-9A-Fa-f]{6})$/i, {
-              message: t('errors.colorInvalid'),
-              excludeEmptyString: true,
-            })
-            .test('is-color-unique', t('errors.colorExists'), async (value) => {
-              if (!value) return true;
-              try {
-                const isTaken = await checkTargetColorExists(value, editingClientId);
-                return !isTaken;
-              } catch {
-                // do not block saving on server/IO error
-                return true;
-              }
-            }),
-      }),
+      contactPerson: yup.string().max(50, t('errors.contactMax')).default(''),
+      email: yup.string().email(t('errors.emailInvalid')).max(100, t('errors.emailMax')).default(''),
+      additionalInfo: yup.string().max(1000, t('errors.additionalInfoMax')).default(''),
 
-    isPuulaani: yup.boolean().required(),
-    isRahtikirja: yup.boolean().required(),
-    isActive: yup.boolean().required(),
-  }).test('at-least-one-type-selected', t('errors.oneTypeRequired'), function (values) {
-    const v = values as unknown as IClientFormData;
-    if (v.isPuulaani || v.isRahtikirja) return true;
-    return this.createError({ path: 'isRahtikirja', message: t('errors.oneTypeRequired') });
-  });
+      targetColor: yup
+        .string()
+        .when('isPuulaani', {
+          is: true,
+          then: (schema) =>
+            schema
+              .required(t('errors.colorRequired'))
+              .matches(/^#([0-9A-Fa-f]{6})$/i, {
+                message: t('errors.colorInvalid'),
+                excludeEmptyString: true,
+              })
+              .test('is-color-unique', t('errors.colorExists'), async (value) => {
+                if (!value) return true;
+                try {
+                  const isTaken = await checkTargetColorExists(value, editingClientId);
+                  return !isTaken;
+                } catch {
+                  return true; // don't block on IO error
+                }
+              }),
+          otherwise: (schema) => schema.default('#FFFFFF'),
+        })
+        .default('#FFFFFF'),
+
+      isPuulaani: yup.boolean().required().default(false),
+      isRahtikirja: yup.boolean().required().default(false),
+      isActive: yup.boolean().required().default(true),
+    })
+    .test('at-least-one-type-selected', t('errors.oneTypeRequired'), function (values) {
+      const v = values as unknown as IClientFormData;
+      if (v.isPuulaani || v.isRahtikirja) return true;
+      return this.createError({ path: 'isRahtikirja', message: t('errors.oneTypeRequired') });
+    });
 
 interface ClientFormModalProps {
   open: boolean;
@@ -222,259 +224,284 @@ const ClientFormModal: React.FC<ClientFormModalProps> = ({
         <DialogContent dividers>
           {apiError && <Alert severity="error" sx={{ mb: 2 }}>{apiError}</Alert>}
 
-          <Grid container spacing={2} sx={{ pt: 1 }}>
-            {/* Client Name */}
-            <Grid item xs={12} sm={6}>
-              <Controller
-                name="clientName"
-                control={control}
-                render={({ field }) => (
-                  <TextField
-                    {...field}
-                    label={t('fields.clientName')}
-                    fullWidth
-                    required
-                    autoFocus
-                    error={!!errors.clientName}
-                    helperText={errors.clientName?.message}
-                    slotProps={{ htmlInput: { maxLength: 50 } }}
-                  />
-                )}
-              />
-            </Grid>
-
-            {/* VAT ID */}
-            <Grid item xs={12} sm={6}>
-              <Controller
-                name="vatId"
-                control={control}
-                render={({ field }) => (
-                  <TextField
-                    {...field}
-                    value={field.value ?? ''}
-                    label={t('fields.vatId')}
-                    fullWidth
-                    error={!!errors.vatId}
-                    helperText={errors.vatId?.message}
-                    slotProps={{ htmlInput: { maxLength: 10 } }}
-                  />
-                )}
-              />
-            </Grid>
-
-            {/* Address */}
-            <Grid item xs={12}>
-              <Controller
-                name="address"
-                control={control}
-                render={({ field }) => (
-                  <TextField
-                    {...field}
-                    value={field.value ?? ''}
-                    label={t('fields.address')}
-                    fullWidth
-                    error={!!errors.address}
-                    helperText={errors.address?.message}
-                    slotProps={{ htmlInput: { maxLength: 100 } }}
-                  />
-                )}
-              />
-            </Grid>
-
-            {/* Postal Code */}
-            <Grid item xs={12} sm={6}>
-              <Controller
-                name="postalCode"
-                control={control}
-                render={({ field }) => (
-                  <TextField
-                    {...field}
-                    value={field.value ?? ''}
-                    label={t('fields.postalCode')}
-                    fullWidth
-                    error={!!errors.postalCode}
-                    helperText={errors.postalCode?.message}
-                    slotProps={{ htmlInput: { maxLength: 10 } }}
-                  />
-                )}
-              />
-            </Grid>
-
-            {/* City */}
-            <Grid item xs={12} sm={6}>
-              <Controller
-                name="city"
-                control={control}
-                render={({ field }) => (
-                  <TextField
-                    {...field}
-                    value={field.value ?? ''}
-                    label={t('fields.city')}
-                    fullWidth
-                    error={!!errors.city}
-                    helperText={errors.city?.message}
-                    slotProps={{ htmlInput: { maxLength: 20 } }}
-                  />
-                )}
-              />
-            </Grid>
-
-            {/* Phone Number */}
-            <Grid item xs={12} sm={6}>
-              <Controller
-                name="phoneNo"
-                control={control}
-                render={({ field }) => (
-                  <TextField
-                    {...field}
-                    value={field.value ?? ''}
-                    label={t('fields.phoneNo')}
-                    fullWidth
-                    error={!!errors.phoneNo}
-                    helperText={errors.phoneNo?.message}
-                    slotProps={{ htmlInput: { maxLength: 20 } }}
-                  />
-                )}
-              />
-            </Grid>
-
-            {/* Contact Person */}
-            <Grid item xs={12} sm={6}>
-              <Controller
-                name="contactPerson"
-                control={control}
-                render={({ field }) => (
-                  <TextField
-                    {...field}
-                    value={field.value ?? ''}
-                    label={t('fields.contactPerson')}
-                    fullWidth
-                    error={!!errors.contactPerson}
-                    helperText={errors.contactPerson?.message}
-                    slotProps={{ htmlInput: { maxLength: 50 } }}
-                  />
-                )}
-              />
-            </Grid>
-
-            {/* Email */}
-            <Grid item xs={12} sm={6}>
-              <Controller
-                name="email"
-                control={control}
-                render={({ field }) => (
-                  <TextField
-                    {...field}
-                    value={field.value ?? ''}
-                    label={t('fields.email')}
-                    type="email"
-                    fullWidth
-                    error={!!errors.email}
-                    helperText={errors.email?.message}
-                    slotProps={{ htmlInput: { maxLength: 100 } }}
-                  />
-                )}
-              />
-            </Grid>
-
-            {/* Additional Info */}
-            <Grid item xs={12}>
-              <Controller
-                name="additionalInfo"
-                control={control}
-                render={({ field }) => (
-                  <TextField
-                    {...field}
-                    value={field.value ?? ''}
-                    label={t('fields.additionalInfo')}
-                    fullWidth
-                    multiline
-                    rows={2}
-                    error={!!errors.additionalInfo}
-                    helperText={errors.additionalInfo?.message}
-                    slotProps={{ htmlInput: { maxLength: 1000 } }}
-                  />
-                )}
-              />
-            </Grid>
-
-            {/* Type (checkbox group) — single group-level error message */}
-            <Grid item xs={12}>
-              {(() => {
-                // Custom test sets the error path to 'isRahtikirja'
-                const typeError =
-                  (errors as any).isRahtikirja?.message || (errors as any).isPuulaani?.message;
-
-                return (
-                  <FormControl component="fieldset" error={!!typeError} variant="standard">
-                    <Typography variant="subtitle2" gutterBottom>
-                      {t('fields.typeSectionLabel')} *
-                    </Typography>
-
-                    <Box sx={{ display: 'flex', gap: 1 }}>
-                      <Controller
-                        name="isPuulaani"
-                        control={control}
-                        render={({ field }) => (
-                          <FormControlLabel
-                            control={<Checkbox {...field} checked={field.value} />}
-                            label={t('fields.isPuulaani')}
-                          />
-                        )}
-                      />
-                      <Controller
-                        name="isRahtikirja"
-                        control={control}
-                        render={({ field }) => (
-                          <FormControlLabel
-                            control={<Checkbox {...field} checked={field.value} />}
-                            label={t('fields.isRahtikirja')}
-                          />
-                        )}
-                      />
-                    </Box>
-
-                    {typeError && <FormHelperText>{typeError}</FormHelperText>}
-                  </FormControl>
-                );
-              })()}
-            </Grid>
-
-            {/* Target Color (conditional) */}
-            {isPuulaaniChecked && (
-              <Grid item xs={12} sm={6}>
-                <Controller
-                  name="targetColor"
-                  control={control}
-                  render={({ field }) => (
-                    <NativeColorPicker
-                      label={t('fields.targetColor')}
-                      value={field.value || '#FFFFFF'}
-                      onChange={field.onChange}
-                      required={isPuulaaniChecked}
-                      error={!!errors.targetColor}
-                      helperText={errors.targetColor?.message}
-                      disabled={isSaving}
-                    />
-                  )}
+           {/* Row: Name + VAT */}
+          <Box
+            sx={{
+              display: 'grid',
+              gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr' },
+              gap: 2,
+              pt: 1,
+            }}
+          >
+            <Controller
+              name="clientName"
+              control={control}
+              render={({ field }) => (
+                <TextField
+                  {...field}
+                  label={t('fields.clientName')}
+                  fullWidth
+                  required
+                  autoFocus
+                  error={!!errors.clientName}
+                  helperText={errors.clientName?.message}
+                  slotProps={{ htmlInput: { maxLength: 50 } }}
                 />
-              </Grid>
+              )}
+            />
+
+            <Controller
+              name="vatId"
+              control={control}
+              render={({ field }) => (
+                <TextField
+                  {...field}
+                  value={field.value ?? ''}
+                  label={t('fields.vatId')}
+                  fullWidth
+                  error={!!errors.vatId}
+                  helperText={errors.vatId?.message}
+                  slotProps={{ htmlInput: { maxLength: 10 } }}
+                />
+              )}
+            />
+          </Box>
+
+          {/* Row: Address (full) */}
+          <Box sx={{ mt: 2 }}>
+            <Controller
+              name="address"
+              control={control}
+              render={({ field }) => (
+                <TextField
+                  {...field}
+                  value={field.value ?? ''}
+                  label={t('fields.address')}
+                  fullWidth
+                  error={!!errors.address}
+                  helperText={errors.address?.message}
+                  slotProps={{ htmlInput: { maxLength: 100 } }}
+                />
+              )}
+            />
+          </Box>
+
+          {/* Row: Postal + City */}
+          <Box
+            sx={{
+              display: 'grid',
+              gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr' },
+              gap: 2,
+              mt: 2,
+            }}
+          >
+            <Controller
+              name="postalCode"
+              control={control}
+              render={({ field }) => (
+                <TextField
+                  {...field}
+                  value={field.value ?? ''}
+                  label={t('fields.postalCode')}
+                  fullWidth
+                  error={!!errors.postalCode}
+                  helperText={errors.postalCode?.message}
+                  slotProps={{ htmlInput: { maxLength: 10 } }}
+                />
+              )}
+            />
+
+            <Controller
+              name="city"
+              control={control}
+              render={({ field }) => (
+                <TextField
+                  {...field}
+                  value={field.value ?? ''}
+                  label={t('fields.city')}
+                  fullWidth
+                  error={!!errors.city}
+                  helperText={errors.city?.message}
+                  slotProps={{ htmlInput: { maxLength: 20 } }}
+                />
+              )}
+            />
+          </Box>
+
+          {/* Row: Phone + Contact */}
+          <Box
+            sx={{
+              display: 'grid',
+              gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr' },
+              gap: 2,
+              mt: 2,
+            }}
+          >
+            <Controller
+              name="phoneNo"
+              control={control}
+              render={({ field }) => (
+                <TextField
+                  {...field}
+                  value={field.value ?? ''}
+                  label={t('fields.phoneNo')}
+                  fullWidth
+                  error={!!errors.phoneNo}
+                  helperText={errors.phoneNo?.message}
+                  slotProps={{ htmlInput: { maxLength: 20 } }}
+                />
+              )}
+            />
+
+            <Controller
+              name="contactPerson"
+              control={control}
+              render={({ field }) => (
+                <TextField
+                  {...field}
+                  value={field.value ?? ''}
+                  label={t('fields.contactPerson')}
+                  fullWidth
+                  error={!!errors.contactPerson}
+                  helperText={errors.contactPerson?.message}
+                  slotProps={{ htmlInput: { maxLength: 50 } }}
+                />
+              )}
+            />
+          </Box>
+
+          {/* Row: Email */}
+          <Box
+            sx={{
+              display: 'grid',
+              gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr' },
+              gap: 2,
+              mt: 2,
+            }}
+          >
+            <Controller
+              name="email"
+              control={control}
+              render={({ field }) => (
+                <TextField
+                  {...field}
+                  value={field.value ?? ''}
+                  label={t('fields.email')}
+                  type="email"
+                  fullWidth
+                  error={!!errors.email}
+                  helperText={errors.email?.message}
+                  slotProps={{ htmlInput: { maxLength: 100 } }}
+                />
+              )}
+            />
+            {/* empty spacer to keep grid balanced on sm+ */}
+            <Box sx={{ display: { xs: 'none', sm: 'block' } }} />
+          </Box>
+
+          {/* Row: Additional Info (full) */}
+          <Box sx={{ mt: 2 }}>
+            <Controller
+              name="additionalInfo"
+              control={control}
+              render={({ field }) => (
+                <TextField
+                  {...field}
+                  value={field.value ?? ''}
+                  label={t('fields.additionalInfo')}
+                  fullWidth
+                  multiline
+                  rows={2}
+                  error={!!errors.additionalInfo}
+                  helperText={errors.additionalInfo?.message}
+                  slotProps={{ htmlInput: { maxLength: 1000 } }}
+                />
+              )}
+            />
+          </Box>
+
+          {/* Row: Type (checkbox group) */}
+          <Box sx={{ mt: 2 }}>
+            {(() => {
+              const typeError =
+                (errors as any).isRahtikirja?.message || (errors as any).isPuulaani?.message;
+
+              return (
+                <FormControl component="fieldset" error={!!typeError} variant="standard">
+                  <Typography variant="subtitle2" gutterBottom>
+                    {t('fields.typeSectionLabel')} *
+                  </Typography>
+
+                  <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
+                    <Controller
+                      name="isPuulaani"
+                      control={control}
+                      render={({ field }) => (
+                        <FormControlLabel
+                          control={<Checkbox {...field} checked={field.value} />}
+                          label={t('fields.isPuulaani')}
+                        />
+                      )}
+                    />
+                    <Controller
+                      name="isRahtikirja"
+                      control={control}
+                      render={({ field }) => (
+                        <FormControlLabel
+                          control={<Checkbox {...field} checked={field.value} />}
+                          label={t('fields.isRahtikirja')}
+                        />
+                      )}
+                    />
+                  </Box>
+
+                  {typeError && <FormHelperText>{typeError}</FormHelperText>}
+                </FormControl>
+              );
+            })()}
+          </Box>
+
+          {/* Row: Target Color (conditional) + Active */}
+          <Box
+            sx={{
+              display: 'grid',
+              gridTemplateColumns: {
+                xs: '1fr',
+                sm: isPuulaaniChecked ? '1fr 1fr' : '1fr',
+              },
+              gap: 2,
+              mt: 2,
+            }}
+          >
+            {isPuulaaniChecked && (
+              <Controller
+                name="targetColor"
+                control={control}
+                render={({ field }) => (
+                  <NativeColorPicker
+                    label={t('fields.targetColor')}
+                    value={field.value || '#FFFFFF'}
+                    onChange={field.onChange}
+                    required={isPuulaaniChecked}
+                    error={!!errors.targetColor}
+                    helperText={errors.targetColor?.message}
+                    disabled={isSaving}
+                  />
+                )}
+              />
             )}
 
-            {/* Active */}
-            <Grid item xs={12} sm={isPuulaaniChecked ? 6 : 12}>
-              <Controller
-                name="isActive"
-                control={control}
-                render={({ field }) => (
-                  <FormControlLabel
-                    control={<Checkbox {...field} checked={field.value} />}
-                    label={t('fields.isActive')}
-                  />
-                )}
-              />
-            </Grid>
-          </Grid>
+            <Controller
+              name="isActive"
+              control={control}
+              render={({ field }) => (
+                <FormControlLabel
+                  control={<Checkbox {...field} checked={field.value} />}
+                  label={t('fields.isActive')}
+                />
+              )}
+            />
+          </Box>
         </DialogContent>
 
         <DialogActions sx={{ p: 2 }}>

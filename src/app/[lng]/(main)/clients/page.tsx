@@ -15,7 +15,7 @@ import { IClient, IBackendClient, ICreateClientDto, IUpdateClientDto, ClientType
 import { fetchAllClients, createClient, updateClient, deleteClient } from '../../../../services/clientService';
 import ClientFormModal from '../../../../components/clients/ClientFormModal';
 import ConfirmationDialog from '../../../../components/common/ConfirmationDialog';
-import { getClientTypeString } from '../../../../utils/displayHelpers';
+//import { getClientTypeString } from '../../../../utils/displayHelpers';
 import { GridToolbar } from '@mui/x-data-grid';
 import { useTranslation } from '@/i18n/useTranslation';
 
@@ -138,6 +138,16 @@ export default function ClientsPage() {
         }
     };
 
+    // Normalizes whatever backend sends (enum number or FI text) to i18n key
+    const typeToKey = (raw: unknown): 'puulaani' | 'rahtikirja' | 'both' | 'unknown' => {
+        const s = String(raw ?? '').toLowerCase();
+        if (raw === 0 || s === 'puulaani') return 'puulaani';
+        if (raw === 1 || s === 'rahtikirja') return 'rahtikirja';
+        // support 2, “Puulaani & Rahtikirja”, “both”, etc.
+        if (raw === 2 || s.includes('&') || s.includes('both')) return 'both';
+        return 'unknown';
+    };
+
     const columns: GridColDef<IClient>[] = useMemo(() => [
         { field: 'clientName', headerName: t('columns.clientName'), flex: 1, minWidth: 200 },
         { field: 'city', headerName: t('columns.city'), width: 150, valueGetter: (value) => value || '–' },
@@ -145,8 +155,11 @@ export default function ClientsPage() {
         {
             field: 'type',
             headerName: t('columns.type'),
-            width: 130,
-            renderCell: (params) => getClientTypeString(params.value as ClientTypeEnum),
+            width: 180,
+            renderCell: (params) => {
+                const key = typeToKey(params.value);
+                return t(`type.${key}`);  
+            },
         },
         {
             field: 'targetColor',
@@ -162,9 +175,9 @@ export default function ClientsPage() {
                     <Box
                         sx={{
                             width: '100%',
-                            height: '100%',             
-                            display: 'flex',            
-                            alignItems: 'center',      
+                            height: '100%',
+                            display: 'flex',
+                            alignItems: 'center',
                         }}
                     >
                         <Box
