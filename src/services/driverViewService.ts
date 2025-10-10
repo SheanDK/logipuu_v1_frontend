@@ -25,3 +25,23 @@ export const getDriverMapData = async (vehicleId: string): Promise<DriverMapData
     }
 };
 
+export const getActiveTripForDriver = async (): Promise<any | null> => {
+    try {
+        const response = await apiClient.get('/driver/active-trip');
+        return response.data;
+    } catch (error) {
+        console.error("SERVICE ERROR: Failed to fetch active trip for driver", error);
+        throw error;
+    }
+};
+
+
+export const updateTimberEntryStatus = async (puulaaniId: number, timberEntries: { puutavaraId: number, valmis: boolean }[]): Promise<any> => {
+    try {
+        const response = await apiClient.put(`/driver/puulaani/${puulaaniId}/statuses`, { timberEntries });
+        return response.data;
+    } catch (error) {
+        console.error("SERVICE ERROR: Failed to update timber statuses", error);
+        throw error;
+    }
+};

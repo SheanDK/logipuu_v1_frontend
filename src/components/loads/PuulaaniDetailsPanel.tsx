@@ -7,8 +7,10 @@ import CloseIcon from '@mui/icons-material/Close';
 import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline';
 import EditIcon from '@mui/icons-material/Edit';
 import SaveIcon from '@mui/icons-material/Save';
+import DeleteIcon from '@mui/icons-material/Delete';
+import PlayCircleOutlineIcon from '@mui/icons-material/PlayCircleOutline';
 import { useAuth } from '@/contexts/AuthContext';
-import { PuulaaniDetails } from '@/types';
+import { IWoodEntry, PuulaaniDetails } from '@/types';
 
 interface PuulaaniDetailsPanelProps {
     details: PuulaaniDetails | null;
@@ -17,12 +19,23 @@ interface PuulaaniDetailsPanelProps {
     onCreateLoadAction: (puulaaniDetails: PuulaaniDetails) => void;
     onEditLoadAction: (loadId: number) => void;
     onSaveAction: (updatedDetails: PuulaaniDetails) => Promise<void>;
+    onDeleteLoadAction: (load: any) => void;
+    onStartTripAction: (load: any) => void;
+    activeLoadId: number | null;
+    hasActiveTrip: boolean;
 }
 
 const StyledTableCell = (props: any) => <TableCell sx={{ py: 1, px: 2, borderColor: 'divider' }} {...props} />;
 const StyledHeaderCell = (props: any) => <StyledTableCell sx={{ fontWeight: 'bold', backgroundColor: 'action.hover', color: 'text.secondary' }} {...props} />;
 
-export default function PuulaaniDetailsPanel({ details, isLoading, onCloseAction, onCreateLoadAction, onEditLoadAction, onSaveAction }: PuulaaniDetailsPanelProps) {
+export default function PuulaaniDetailsPanel({ 
+    details, isLoading, 
+    onCloseAction, onCreateLoadAction, 
+    onEditLoadAction, onSaveAction, 
+    onDeleteLoadAction, onStartTripAction, 
+    activeLoadId, hasActiveTrip 
+}: PuulaaniDetailsPanelProps) {
+
     const { user } = useAuth();
     const [editableDetails, setEditableDetails] = useState<PuulaaniDetails | null>(null);
     const [isDirty, setIsDirty] = useState(false);
@@ -57,7 +70,7 @@ export default function PuulaaniDetailsPanel({ details, isLoading, onCloseAction
     const { timberEntries, relatedLoads } = editableDetails;
 
     return (
-        <Paper elevation={10} sx={{ position: 'absolute', bottom: { xs: 0, sm: 24 }, left: { xs: 0, sm: '50%' }, transform: { xs: 'none', sm: 'translateX(-50%)' }, zIndex: 1050, width: { xs: '100%', sm: 'auto', md: 800 }, maxHeight: { xs: '80vh', sm: '70vh' }, display: 'flex', flexDirection: 'column', backgroundColor: 'rgba(255, 255, 255, 0.98)', backdropFilter: 'blur(8px)', borderRadius: { xs: '16px 16px 0 0', sm: 3 }, borderTop: '1px solid rgba(0,0,0,0.12)', boxShadow: '0px -8px 40px -12px rgba(0,0,0,0.2)' }}>
+        <Paper elevation={10} sx={{ position: 'absolute', bottom: { xs: 0, sm: 24 }, left: { xs: 0, sm: '50%' }, transform: { xs: 'none', sm: 'translateX(-50%)' }, zIndex: 1050, width: { xs: '100%', sm: 'auto', md: 800 }, maxHeight: { xs: '80vh', sm: '70vh' }, display: 'flex', flexDirection: 'column', backgroundColor: 'rgba(255, 255, 255, 0.98)', backdropFilter: 'blur(8px)', borderRadius: { xs: '16px 16px 0 0', sm: 3 }, borderTop: '1px solid rgba(0,0,0,0.12)', boxShadow: '0px -8px 40px -12px rgba(0,0,0,0.3)' }}>
             <Box sx={{ p: 2, display: 'flex', alignItems: 'center', borderBottom: 1, borderColor: 'divider' }}>
                 <Stack sx={{ flexGrow: 1 }}>
                     <Typography variant="overline" lineHeight={1.2} color="text.secondary">PUULAANI DETAILS</Typography>
@@ -74,16 +87,10 @@ export default function PuulaaniDetailsPanel({ details, isLoading, onCloseAction
             <Box sx={{ flexGrow: 1, overflowY: 'auto', p: { xs: 1.5, sm: 2 } }}>
                 <Stack spacing={3}>
                     <Box>
-                        <Typography variant="subtitle1" gutterBottom fontWeight="bold" sx={{ px: 1 }}>Timber Types (Puutavaralajit)</Typography>
+                        <Typography variant="subtitle1" gutterBottom fontWeight="bold" sx={{ px: 1 }}>Timber Types</Typography>
                         <TableContainer component={Paper} variant="outlined">
                             <Table size="small">
-                                <TableHead><TableRow>
-                                    <StyledHeaderCell>Type</StyledHeaderCell>
-                                    <StyledHeaderCell align="right">Total (m³)</StyledHeaderCell>
-                                    <StyledHeaderCell align="right">Hauled (m³)</StyledHeaderCell>
-                                    <StyledHeaderCell align="right">Remaining (m³)</StyledHeaderCell>
-                                    <StyledHeaderCell align="center">Completed</StyledHeaderCell>
-                                </TableRow></TableHead>
+                                <TableHead><TableRow><StyledHeaderCell>Type</StyledHeaderCell><StyledHeaderCell align="right">Total (m³)</StyledHeaderCell><StyledHeaderCell align="right">Hauled (m³)</StyledHeaderCell><StyledHeaderCell align="right">Remaining (m³)</StyledHeaderCell><StyledHeaderCell align="center">Completed</StyledHeaderCell></TableRow></TableHead>
                                 <TableBody>
                                     {timberEntries.map((entry) => (
                                         <TableRow key={entry.puutavaraId} sx={{ '&:last-child td, &:last-child th': { border: 0 } }}>
@@ -100,43 +107,63 @@ export default function PuulaaniDetailsPanel({ details, isLoading, onCloseAction
                     </Box>
                     <Box>
                         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1, px: 1 }}>
-                            <Typography variant="subtitle1" fontWeight="bold">Loads (Kuormakirjat)</Typography>
+                            <Typography variant="subtitle1" fontWeight="bold">Loads</Typography>
                             <Button variant="contained" sx={{backgroundColor: '#607d8b', '&:hover': {backgroundColor: '#546e7a'}}} size="small" startIcon={<AddCircleOutlineIcon />} onClick={() => onCreateLoadAction(editableDetails)} disabled={!editableDetails.puulaani}>New Load</Button>
                         </Box>
                          <TableContainer component={Paper} variant="outlined">
                             <Table size="small">
-                                <TableHead><TableRow>
-                                    <StyledHeaderCell>Timber Type</StyledHeaderCell>
-                                    <StyledHeaderCell>Date</StyledHeaderCell>
-                                    <StyledHeaderCell>Driver</StyledHeaderCell>
-                                    <StyledHeaderCell align="right">Hauled (m³)</StyledHeaderCell>
-                                    <StyledHeaderCell align="right">Remaining (m³)</StyledHeaderCell>
-                                    {/* <StyledHeaderCell align="center">Actions</StyledHeaderCell> */}
-                                </TableRow></TableHead>
+                                <TableHead><TableRow><StyledHeaderCell>Timber Type</StyledHeaderCell><StyledHeaderCell>Date</StyledHeaderCell><StyledHeaderCell>Driver</StyledHeaderCell><StyledHeaderCell align="right">Hauled (m³)</StyledHeaderCell><StyledHeaderCell align="center">Actions</StyledHeaderCell></TableRow></TableHead>
                                 <TableBody>
-                                    {relatedLoads.length > 0 ? relatedLoads.map((load) => {
+                                    {relatedLoads.map((load) => {
                                         const isOwner = Number(user?.driverNumericId) === Number(load.kuljId);
-                                         return (
+                                        const canEditOrDelete = isOwner && load.status === 'Assigned';
+                                        const isActive = load.kuormaId === activeLoadId;
+                                        const canStart = isOwner && load.status === 'Assigned' && !hasActiveTrip;
+
+                                        return (
                                             <TableRow 
                                                 key={load.kuormaId} 
-                                                hover={isOwner} 
+                                                hover={isOwner && !isActive}
                                                 sx={{ 
-                                                    cursor: isOwner ? 'pointer' : 'default', 
-                                                    opacity: isOwner ? 1 : 0.7 
+                                                    cursor: canEditOrDelete ? 'pointer' : 'default',
+                                                    backgroundColor: isActive ? 'primary.light' : 'transparent',
+                                                    '&:hover': {
+                                                        backgroundColor: isActive ? 'primary.light' : (isOwner ? 'action.hover' : 'transparent')
+                                                    },
+                                                    opacity: isOwner || isActive ? 1 : 0.7
                                                 }}
-                                                // Only allow clicking if the user is the owner
-                                                onClick={() => isOwner && onEditLoadAction(load.kuormaId)}
+                                                onClick={() => canEditOrDelete && onEditLoadAction(load.kuormaId)}
                                             >
                                                 <StyledTableCell>{load.puutavaralaji || 'N/A'}</StyledTableCell>
                                                 <StyledTableCell>{new Date(load.pvm).toLocaleDateString('fi-FI')}</StyledTableCell>
                                                 <StyledTableCell>{load.kuljettajanNimi || 'N/A'}</StyledTableCell>
                                                 <StyledTableCell align="right">{Number(load.haettu).toFixed(2)}</StyledTableCell>
                                                 <StyledTableCell align="center">
-                                                    {isOwner && <IconButton size="small"><EditIcon fontSize="small" /></IconButton>}
+                                                    {isActive ? (
+                                                        <Chip label={load.status} color="primary" size="small" />
+                                                    ) : (
+                                                        <Stack direction="row" spacing={0.5} justifyContent="center">
+                                                            {canStart && (
+                                                                <IconButton size="small" title="Start Trip" color="success" onClick={(e) => { e.stopPropagation(); onStartTripAction(load); }}>
+                                                                    <PlayCircleOutlineIcon />
+                                                                </IconButton>
+                                                            )}
+                                                            {canEditOrDelete && (
+                                                                <IconButton size="small" title="Edit Load">
+                                                                    <EditIcon fontSize="small" />
+                                                                </IconButton>
+                                                            )}
+                                                            {canEditOrDelete && (
+                                                                <IconButton size="small" color="error" title="Delete Load" onClick={(e) => { e.stopPropagation(); onDeleteLoadAction(load); }}>
+                                                                    <DeleteIcon fontSize="small" />
+                                                                </IconButton>
+                                                            )}
+                                                        </Stack>
+                                                    )}
                                                 </StyledTableCell>
                                             </TableRow>
                                         );
-                                    }) : <TableRow><StyledTableCell colSpan={6} align="center" sx={{p: 3, fontStyle: 'italic', color: 'text.secondary'}}>No loads found for this Puulaani.</StyledTableCell></TableRow>}
+                                    })}
                                 </TableBody>
                             </Table>
                         </TableContainer>

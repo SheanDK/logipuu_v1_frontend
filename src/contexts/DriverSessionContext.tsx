@@ -6,6 +6,8 @@ import { useAuth } from './AuthContext';
 
 const VEHICLE_ID_STORAGE_KEY = 'driver_vehicle_id';
 const VEHICLE_REGNO_STORAGE_KEY = 'driver_vehicle_regno';
+const ACTIVE_TRIP_ID_KEY = 'driver_active_trip_id';
+
 
 interface DriverSessionState {
     selectedVehicleId: string | null;
@@ -14,6 +16,9 @@ interface DriverSessionState {
     clearVehicle: () => void;
     isVehicleSelectionRequired: boolean;
     isInitialized: boolean;
+
+    activeTripId: string | null;
+    setActiveTrip: (tripId: string | null) => void;
 }
 
 const DriverSessionContext = createContext<DriverSessionState | undefined>(undefined);
@@ -71,6 +76,21 @@ export const DriverSessionProvider = ({ children }: { children: ReactNode }) => 
         setSelectedVehicleId(vehicleId);
         setSelectedVehicleRegNo(regNo);
     };
+
+    const [activeTripId, setActiveTripIdState] = useState<string | null>(() => {
+        if (typeof window !== 'undefined') return localStorage.getItem(ACTIVE_TRIP_ID_KEY);
+        return null;
+    });
+
+    const setActiveTrip = (tripId: string | null) => {
+        if (tripId) {
+            localStorage.setItem(ACTIVE_TRIP_ID_KEY, tripId);
+            setActiveTripIdState(tripId);
+        } else {
+            localStorage.removeItem(ACTIVE_TRIP_ID_KEY);
+            setActiveTripIdState(null);
+        }
+    };
     
     const clearVehicle = () => {
         console.warn("[DriverSession] CLEARING vehicle from state and localStorage!");
@@ -78,6 +98,7 @@ export const DriverSessionProvider = ({ children }: { children: ReactNode }) => 
         localStorage.removeItem(VEHICLE_REGNO_STORAGE_KEY);
         setSelectedVehicleId(null);
         setSelectedVehicleRegNo(null);
+        setActiveTrip(null);
     };
 
     useEffect(() => {
@@ -89,7 +110,17 @@ export const DriverSessionProvider = ({ children }: { children: ReactNode }) => 
         }
     }, [user, isInitialized]);
 
-    const value = { selectedVehicleId, selectedVehicleRegNo, selectVehicle, clearVehicle, isVehicleSelectionRequired, isInitialized };
+    const value = { 
+        selectedVehicleId, 
+        selectedVehicleRegNo, 
+        selectVehicle, 
+        clearVehicle, 
+        isVehicleSelectionRequired, 
+        isInitialized,
+        activeTripId,
+        setActiveTrip,
+    
+    };
 
     return (
         <DriverSessionContext.Provider value={value}>

@@ -12,19 +12,21 @@ import { IVehicleBackendResponse, IVehicleBasicInfo } from '@/types';
 import { fetchAllVehicles } from '@/services/vehicleService';
 
 // --- Dynamic Component Imports ---
-// This page now only needs to know about the top-level dashboards and the mode selector.
 const ModeSelection = dynamic(() => import('../../../../components/drivers/ModeSelection'), { ssr: false });
 const TimberDashboard = dynamic(() => import('../../../../components/drivers/TimberDashboard'), { ssr: false });
-
-interface TimberDashboardProps {
-    onBackAction: () => void;
-}
+// FIX: Add the new consignment component imports
+const ConsignmentDriverDashboard = dynamic(() => import('../../../../components/drivers/ConsignmentDriverDashboard'), { ssr: false });
+const ConsignmentDriverForm = dynamic(() => import('../../../../components/drivers/ConsignmentDriverForm'), { ssr: false });
 
 
 export default function DriverDashboardPage() {
     const { selectedVehicleId, selectVehicle } = useDriverSession();
     
-    const [view, setView] = useState<'mode-select' | 'timber' | 'consignment'>('mode-select');
+    // FIX: Expand the view state type to include all possible consignment views
+    const [view, setView] = useState<'mode-select' | 'timber' | 'consignment-list' | 'consignment-form'>('mode-select');
+    // FIX: Add state to hold the ID of the consignment being edited
+    const [editingConsignmentId, setEditingConsignmentId] = useState<number | null>(null);
+
     const [vehicles, setVehicles] = useState<IVehicleBasicInfo[]>([]);
     const [isLoadingVehicles, setIsLoadingVehicles] = useState(true);
 
@@ -45,48 +47,41 @@ export default function DriverDashboardPage() {
             .finally(() => setIsLoadingVehicles(false));
     }, []);
 
+    // FIX: Add handler functions to navigate between the consignment list and form
+    const handleNavigateToForm = (id: number | null) => {
+        setEditingConsignmentId(id); // null for create mode, a number for edit mode
+        setView('consignment-form');
+    };
+
+    const handleBackToList = () => {
+        setEditingConsignmentId(null);
+        setView('consignment-list');
+    };
+
     // --- RENDER LOGIC ---
     
-    // 1. If a vehicle is NOT selected, show the vehicle selection modal.
     if (!selectedVehicleId) {
         if (isLoadingVehicles) {
-            return (
-                <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100%' }}>
-                    <CircularProgress />
-                </Box>
-            );
+            return <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100%' }}><CircularProgress /></Box>;
         }
-        return (
-            <SelectVehicleModal
-                open={true} // The modal is always open if no vehicle is selected
-                vehicles={vehicles}
-                onVehicleSelectAction={selectVehicle}
-            />
-        );
+        return <SelectVehicleModal open={true} vehicles={vehicles} onVehicleSelectAction={selectVehicle} />;
     }
 
-    // 2. A vehicle IS selected, so proceed with the view logic.
+    // A vehicle IS selected, so proceed with the view logic.
     switch (view) {
         case 'mode-select':
-            return <ModeSelection onModeSelectAction={(selectedMode) => setView(selectedMode)} />;
+            // FIX: Update the onModeSelectAction to navigate to the correct list view
+            return <ModeSelection onModeSelectAction={(selectedMode) => setView(selectedMode === 'timber' ? 'timber' : 'consignment-list')} />;
         
         case 'timber':
             return <TimberDashboard onBackAction={() => setView('mode-select')} />;
 
-        case 'consignment':
-            return (
-                 <Box sx={{ p: 3, height: '100%' }}>
-                    <Button startIcon={<ArrowBackIcon />} onClick={() => setView('mode-select')}>
-                        Back to Mode Selection
-                    </Button>
-                    <Typography variant="h4" sx={{mt: 2}}>Consignments (Rahtikirjat)</Typography>
-                    <Paper sx={{p:4, mt: 2}}>
-                        <Typography color="text.secondary">
-                            Consignment list view will be implemented here.
-                        </Typography>
-                    </Paper>
-                </Box>
-            );
+        // FIX: Add cases for the new consignment views
+        case 'consignment-list':
+            return <ConsignmentDriverDashboard onBackAction={() => setView('mode-select')} onNavigateToFormAction={handleNavigateToForm} />;
+
+        case 'consignment-form':
+            return <ConsignmentDriverForm onBackToListAction={handleBackToList} consignmentId={editingConsignmentId} />;
 
         default:
             return null;

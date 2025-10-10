@@ -10,6 +10,7 @@ export * from './role';
 export * from './user';
 export * from './vehicle';
 export * from './waybill';
+export * from './consignment';
 
 // All map and timber stack related types are in one place
 export * from './timberStack'; 

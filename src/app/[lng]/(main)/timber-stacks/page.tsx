@@ -3,6 +3,7 @@
 
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import dynamic from 'next/dynamic';
+import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { Box, Typography, Paper, CircularProgress, Alert, Chip, Snackbar, AlertColor, useTheme } from '@mui/material';
 import ForestIcon from '@mui/icons-material/Forest';
 import dayjs from 'dayjs';
@@ -62,7 +63,14 @@ export default function TimberStacksPage() {
     const { user, isLoading: isAuthLoading } = useAuth();
     const { mapSettings } = useLayout(); // --- 3. Get mapSettings from the context ---
     const { isConnected, lastLocationUpdate } = useSocket();
-    const [filters, setFilters] = useState<IMapFilterState>({ status: 'active', clientId: null, vehicleId: null });
+     const router = useRouter();
+    const pathname = usePathname();
+    const searchParams = useSearchParams();
+    const [filters, setFilters] = useState<IMapFilterState>({
+        status: (searchParams.get('status') as 'all' | 'active') || 'active',
+        clientId: searchParams.get('clientId') || null,
+        vehicleId: searchParams.get('vehicleId') || null,
+    });
     const { isLoading, mapError, data, lists, reloadData, setLocalData } = useMapData(filters);
     const { timberStacks, dropoffLocations, otherMarkers } = data;
     const { clientList, vehicleList } = lists;
@@ -132,9 +140,33 @@ export default function TimberStacksPage() {
         }
     }, [lastLocationUpdate]);
 
-    const handleFilterChange = useCallback((name: keyof IMapFilterState, value: any) => {
+     const handleFilterChange = useCallback((name: keyof IMapFilterState, value: any) => {
+        // Create a new URLSearchParams object from the current read-only one
+        const currentParams = new URLSearchParams(searchParams.toString());
+
+        if (value) {
+            currentParams.set(name, String(value));
+        } else {
+            currentParams.delete(name);
+        }
+
+        const newQueryString = currentParams.toString();
+        // Use router.push to navigate to the new URL. This is the correct way to update URL params.
+        router.push(`${pathname}?${newQueryString}`);
+        
+        // We also update the local state to keep it in sync, though the page will re-render
+        // due to the URL change anyway.
         setFilters(prev => ({ ...prev, [name]: value }));
-    }, []);
+
+    }, [searchParams, pathname, router]);
+
+    useEffect(() => {
+        setFilters({
+            status: (searchParams.get('status') as 'all' | 'active') || 'active',
+            clientId: searchParams.get('clientId') || null,
+            vehicleId: searchParams.get('vehicleId') || null,
+        });
+    }, [searchParams]);
 
     const handleCloseModals = (didChange: boolean = false) => {
         if (didChange) {
@@ -269,7 +301,13 @@ export default function TimberStacksPage() {
                         </Box>
                         <Chip label={isConnected ? t('status.connected') : t('status.connecting')} color={isConnected ? 'success' : 'warning'} size="small" variant="outlined" />
                     </Box>
-                    <TimberStackFilterBar filters={filters} onFilterChange={handleFilterChange} clientList={clientList} vehicleList={vehicleList} isLoading={isLoading} />
+                    <TimberStackFilterBar 
+                    filters={filters} 
+                    onFilterChange={handleFilterChange} 
+                    clientList={clientList} 
+                    vehicleList={vehicleList} 
+                    isLoading={isLoading} 
+                    />
                     {mapError && <Alert severity="error" sx={{ mt: 1 }}>{mapError}</Alert>}
                 </Paper>
             </Box>

@@ -18,9 +18,8 @@ L.Icon.Default.mergeOptions({ iconRetinaUrl: '/images/marker-icon-2x.png', iconU
 // Specific icon for an active trip's numbered pickup points
 const createPickupIcon = (index: number) => L.divIcon({ className: `custom-icon-pickup-${index}`, html: `<div style="background-color: #d32f2f; width: 32px; height: 32px; border-radius: 50%; display: flex; justify-content: center; align-items: center; border: 2px solid white; box-shadow: 0 3px 6px rgba(0,0,0,0.4);"><span style="color: white; font-weight: bold;">${index + 1}</span></div>`, iconSize: [36, 36], iconAnchor: [18, 36], popupAnchor: [0, -36] });
 
-// Icon for the driver's live location
-const driverIcon = L.divIcon({ className: 'custom-icon-driver', html: renderToStaticMarkup(<NavigationIcon style={{ fontSize: '38px', color: '#ff5722', transform: 'rotate(-45deg)', filter: 'drop-shadow(0 2px 3px rgba(0,0,0,0.6))', stroke: 'white', strokeWidth: 0.5 }} />), iconSize: [38, 38], iconAnchor: [19, 19] });
-
+// Icon for the driver's live location (changed color to red)
+const driverIcon = L.divIcon({ className: 'custom-icon-driver', html: renderToStaticMarkup(<NavigationIcon style={{ fontSize: '38px', color: '#ff0000', fill: '#ff0000d0', transform: 'rotate(-45deg)', filter: 'drop-shadow(0 2px 3px rgba(0,0,0,0.6))', stroke: 'white', strokeWidth: 0.5 }} />), iconSize: [38, 38], iconAnchor: [19, 19] });
 // Icon for Puulaani (Timber Sites / Pickups)
 const puulaaniIcon = L.divIcon({ className: 'custom-icon-puulaani', html: `<div style="background-color: #1976D2; width: 14px; height: 14px; border-radius: 50%; border: 2px solid white; opacity: 0.9; box-shadow: 0 1px 3px rgba(0,0,0,0.5);"></div>`, iconSize: [18, 18], iconAnchor: [9, 9] });
 

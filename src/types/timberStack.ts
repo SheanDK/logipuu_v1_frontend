@@ -243,6 +243,7 @@ export interface PuulaaniDetails {
     autot: number[];
     timberEntries: IWoodEntry[];
     relatedLoads: {
+        status: string;
         kuormaId: number;
         kuljId: number;
         kuljettajanNimi: string;
