@@ -13,6 +13,12 @@
     "active": "Aktiivinen",
     "actions": "Toiminnot"
   },
+  "type": {
+    "puulaani": "Puulaani",
+    "rahtikirja": "Rahtikirja",
+    "both": "Puulaani & Rahtikirja",
+    "unknown": "Tuntematon"
+  },
   "feedback": {
     "createSuccess": "Asiakas luotu onnistuneesti.",
     "updateSuccess": "Asiakas päivitetty onnistuneesti.",

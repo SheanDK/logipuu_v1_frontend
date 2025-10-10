@@ -18,8 +18,8 @@ import type { ChipProps } from '@mui/material/Chip';
 import EditLoadModal from '../../../../components/loads/EditLoadModal';
 import ConfirmationDialog from '../../../../components/common/ConfirmationDialog';
 import InspectionFilterBar, { ILoadFilters } from '../../../../components/loads/InspectionFilterBar';
-import { ILoadListItem, ILoad, IClientBasicInfo, IVehicleBasicInfo, IDriver, IBackendClient, IVehicleBackendResponse, IBackendDriver, ILoadDetails, IUpdateLoadDto } from '../../../../types';
-import { fetchAllLoads, getLoadById, deleteLoad, updateLoad, fetchLoadsForInspection, acceptLoadsForInvoicing, ILoadListApiFilters } from '../../../../services/loadService';
+import { ILoadListItem, ILoad, IClientBasicInfo, IVehicleBasicInfo, IDriver, IBackendClient, IVehicleBackendResponse, IBackendDriver, ITripDetails, IUpdateLoadDto } from '../../../../types';
+import { fetchAllLoads, getTripById, deleteLoad, updateLoad, fetchLoadsForInspection, acceptLoadsForInvoicing, ILoadListApiFilters } from '../../../../services/loadService';
 import { fetchAllClients } from '@/services/clientService';
 import { fetchAllVehicles } from '@/services/vehicleService';
 import { fetchAllDrivers } from '@/services/driverService';
@@ -42,7 +42,7 @@ export default function DrivenInspectionPage() {
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [isEditModalOpen, setIsEditModalOpen] = useState(false);
-    const [selectedLoadForEditing, setSelectedLoadForEditing] = useState<ILoadDetails | null>(null);
+    const [selectedLoadForEditing, setSelectedLoadForEditing] = useState<ITripDetails | null>(null);
     const [snackbar, setSnackbar] = useState<{ open: boolean, message: string, severity: AlertColor } | null>(null);
     const [deleteConfirmation, setDeleteConfirmation] = useState<ILoadListItem | null>(null);
     const [isDeleting, setIsDeleting] = useState(false);
@@ -107,7 +107,7 @@ export default function DrivenInspectionPage() {
 
     const handleOpenEditModal = async (loadItem: ILoadListItem) => {
         try {
-            const fullLoadData = await getLoadById(loadItem.kuormaId);
+            const fullLoadData = await getTripById(loadItem.kuormaId);
             setSelectedLoadForEditing(fullLoadData);
             setIsEditModalOpen(true);
         } catch (err) {

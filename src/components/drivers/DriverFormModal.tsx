@@ -12,22 +12,68 @@ import { useTranslation } from '@/i18n/useTranslation';
 
 import { IDriver, ICreateDriverDto, IUpdateDriverDto, IDriverFormData } from '../../types/driver';
 
+const normalizePhone = (raw: unknown) => {
+  if (typeof raw !== 'string') return raw;
+  let v = raw.trim();
+
+  // Replace leading 00 with +
+  if (v.startsWith('00')) v = `+${v.slice(2)}`;
+
+  // Remove spaces, dashes, parentheses, dots
+  v = v.replace(/[\s\-().]/g, '');
+
+  return v;
+};
+
 const buildSchema = (t: (k: string) => string) =>
   yup.object({
-    name: yup.string()
+    name: yup
+      .string()
+      .transform((v) => (typeof v === 'string' ? v.trim().replace(/\s+/g, ' ') : v))
       .required(t('errors.nameRequired'))
       .min(2, t('errors.nameMin'))
       .max(50, t('errors.nameMax'))
+      // letters (incl. diacritics), space, apostrophe, hyphen
+      .matches(
+        /^[\p{L}\p{M}][\p{L}\p{M}'\- ]+$/u,
+        t('errors.nameInvalid') || 'Invalid name format'
+      )
       .default(''),
-    phoneNo: yup.string()
+
+    phoneNo: yup
+      .string()
+      .transform((v) => (typeof v === 'string' ? normalizePhone(v) : v))
       .required(t('errors.phoneRequired'))
       .max(20, t('errors.phoneMax'))
+      // only optional leading + and digits thereafter
+      .matches(/^\+?\d+$/, t('errors.phoneInvalid') || 'Phone can only contain + and digits')
+      .test(
+        'phone-digit-length',
+        t('errors.phoneDigits') || 'Phone must have 5–15 digits',
+        (v) => {
+          if (!v) return false;
+          const digits = v.replace(/\D/g, '');
+          return digits.length >= 5 && digits.length <= 15;
+        }
+      )
+      // at most one leading +
+      .test(
+        'phone-plus-position',
+        t('errors.phonePlus') || 'Plus sign must be at the start only',
+        (v) => (v ? (v.startsWith('+') ? v.indexOf('+') === 0 : !v.includes('+')) : false)
+      )
       .default(''),
-    email: yup.string()
+
+    email: yup
+      .string()
+      .transform((v) => (typeof v === 'string' ? v.trim().toLowerCase() : v))
       .required(t('errors.emailRequired'))
       .email(t('errors.emailInvalid'))
       .max(100, t('errors.emailMax'))
+      // require TLD of at least 2 chars
+      .matches(/^[^@\s]+@[^@\s]+\.[^@\s]{2,}$/, t('errors.emailInvalid'))
       .default(''),
+
     hasAlerts: yup.boolean().required().default(true),
   });
 
@@ -101,73 +147,82 @@ const DriverFormModal: React.FC<DriverFormModalProps> = ({
       <DialogContent dividers>
         {apiError && <Alert severity="error" sx={{ mb: 2 }}>{apiError}</Alert>}
         <Box component="form" onSubmit={handleSubmit(onSubmitHandler)} id="driver-form" noValidate sx={{ mt: 1 }}>
-          <Grid container spacing={2}>
-            <Grid item xs={12}>
-              <Controller
-                name="name"
-                control={control}
-                render={({ field }) => (
-                  <TextField
-                    {...field}
-                    label={t('fields.name')}
-                    fullWidth
-                    required
-                    autoFocus
-                    error={!!errors.name}
-                    helperText={errors.name?.message}
-                    margin="dense"
-                  />
-                )}
-              />
-            </Grid>
-            <Grid item xs={12} sm={6}>
-              <Controller
-                name="phoneNo"
-                control={control}
-                render={({ field }) => (
-                  <TextField
-                    {...field}
-                    label={t('fields.phoneNo')}
-                    fullWidth
-                    required
-                    error={!!errors.phoneNo}
-                    helperText={errors.phoneNo?.message}
-                    margin="dense"
-                  />
-                )}
-              />
-            </Grid>
-            <Grid item xs={12} sm={6}>
-              <Controller
-                name="email"
-                control={control}
-                render={({ field }) => (
-                  <TextField
-                    {...field}
-                    label={t('fields.email')}
-                    fullWidth
-                    required
-                    type="email"
-                    error={!!errors.email}
-                    helperText={errors.email?.message}
-                    margin="dense"
-                  />
-                )}
-              />
-            </Grid>
-            <Grid item xs={12}>
-              <Controller
-                name="hasAlerts"
-                control={control}
-                render={({ field }) => (
-                  <FormControlLabel
-                    control={<Checkbox {...field} checked={field.value} />}
-                    label={t('fields.isActive')}
-                  />
-                )}
-              />
-            </Grid>
-          </Grid>
+          {/* Row 1: Name (full width) */}
+          <Box sx={{ mb: 2 }}>
+            <Controller
+              name="name"
+              control={control}
+              render={({ field }) => (
+                <TextField
+                  {...field}
+                  label={t('fields.name')}
+                  fullWidth
+                  required
+                  autoFocus
+                  error={!!errors.name}
+                  helperText={errors.name?.message}
+                  margin="dense"
+                />
+              )}
+            />
+          </Box>
+
+          {/* Row 2: Phone + Email (2 columns on >= sm) */}
+          <Box
+            sx={{
+              display: 'grid',
+              gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr' },
+              gap: 2,
+              mb: 2,
+            }}
+          >
+            <Controller
+              name="phoneNo"
+              control={control}
+              render={({ field }) => (
+                <TextField
+                  {...field}
+                  label={t('fields.phoneNo')}
+                  fullWidth
+                  required
+                  error={!!errors.phoneNo}
+                  helperText={errors.phoneNo?.message}
+                  margin="dense"
+                />
+              )}
+            />
+
+            <Controller
+              name="email"
+              control={control}
+              render={({ field }) => (
+                <TextField
+                  {...field}
+                  label={t('fields.email')}
+                  fullWidth
+                  required
+                  type="email"
+                  error={!!errors.email}
+                  helperText={errors.email?.message}
+                  margin="dense"
+                />
+              )}
+            />
+          </Box>
+
+          {/* Row 3: Checkbox (full width) */}
+          <Box>
+            <Controller
+              name="hasAlerts"
+              control={control}
+              render={({ field }) => (
+                <FormControlLabel
+                  control={<Checkbox {...field} checked={field.value} />}
+                  label={t('fields.isActive')}
+                />
+              )}
+            />
+          </Box>
         </Box>
       </DialogContent>
       <DialogActions sx={{ p: 2 }}>
