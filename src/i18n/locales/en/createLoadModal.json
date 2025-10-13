@@ -1,0 +1,48 @@
+{
+  "title": {
+    "create": "Create New Load",
+    "edit": "Edit Load",
+    "from": "From:"
+  },
+  "section": {
+    "addLeg": "Add Load Leg",
+    "editDetails": "Load Details"
+  },
+  "form": {
+    "timberType": "Timber Type",
+    "dropoff": "Drop-off Location",
+    "receptionNo": "Reception Number",
+    "total": "Total (m³)",
+    "hauled": "Hauled (m³)",
+    "remaining": "Remaining (m³)",
+    "route": "Route",
+    "freightKm": "Freight (km)",
+    "notes": "Additional Notes"
+  },
+  "legs": {
+    "title": "Trip Legs",
+    "tableAria": "Trip legs table",
+    "columns": {
+      "timber": "Timber",
+      "volume": "Volume (m³)",
+      "reception": "Reception No.",
+      "actions": "Actions"
+    },
+    "empty": {
+      "title": "No legs added yet",
+      "subtitle": "Add your first load leg using the form above"
+    }
+  },
+  "actions": {
+    "addToTrip": "Add to Trip",
+    "confirmCreate": "Confirm & Create Trip",
+    "close": "Close",
+    "removeLeg": "Remove leg",
+    "start": "Start Trip",
+    "edit": "Edit Load",
+    "delete": "Delete Load"
+  },
+  "validation": {
+    "required": "Required"
+  }
+}

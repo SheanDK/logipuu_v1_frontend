@@ -1,0 +1,17 @@
+{
+    "mode": {
+        "title": "Select Your Work Mode",
+        "subtitle": "Choose the type of job you will be performing for this session.",
+        "ariaList": "Available work modes",
+        "timber": {
+            "title": "Timber Loads",
+            "subtitle": "(Puulaani)",
+            "aria": "Select timber loads mode"
+        },
+        "consignment": {
+            "title": "Consignments",
+            "subtitle": "(Rahtikirja)",
+            "aria": "Select consignments mode"
+        }
+    }
+}

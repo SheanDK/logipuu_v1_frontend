@@ -7,6 +7,7 @@ import {
     Select, MenuItem, Box, Typography, Stack
 } from '@mui/material';
 import { IVehicleBasicInfo } from '@/types';
+import { useTranslation } from 'react-i18next';
 
 interface SelectVehicleModalProps {
     open: boolean;
@@ -16,6 +17,7 @@ interface SelectVehicleModalProps {
 
 export default function SelectVehicleModal({ open, vehicles, onVehicleSelectAction }: SelectVehicleModalProps) {
     const [selectedId, setSelectedId] = useState<string>('');
+    const { t } = useTranslation('selectVehicleModal');
 
     const handleConfirm = () => {
         const selectedVehicle = vehicles.find(v => v.id === selectedId);
@@ -25,24 +27,27 @@ export default function SelectVehicleModal({ open, vehicles, onVehicleSelectActi
     };
 
     return (
-        <Dialog 
+        <Dialog
             open={open}
             // Prevent closing the modal accidentally
             disableEscapeKeyDown
             PaperProps={{ sx: { minWidth: { xs: '90%', sm: 400 } } }}
+            aria-labelledby="select-vehicle-title"
+            aria-describedby="select-vehicle-description"
         >
-            <DialogTitle>Select Your Vehicle for this Session</DialogTitle>
+            <DialogTitle id="select-vehicle-title">{t('selectVehicleTitle')}</DialogTitle>
             <DialogContent>
                 <Stack spacing={2} sx={{ pt: 1 }}>
-                    <Typography color="text.secondary">
-                        Please select the vehicle you will be operating. This can be changed later if needed.
+                    <Typography id="select-vehicle-description" color="text.secondary">
+                        {t('selectVehicleHelp')}
                     </Typography>
                     <FormControl fullWidth required>
-                        <InputLabel>Vehicle</InputLabel>
+                        <InputLabel id="vehicle-label">{t('vehicleLabel')}</InputLabel>
                         <Select
                             value={selectedId}
-                            label="Vehicle"
+                            label={t('vehicleLabel')}
                             onChange={(e) => setSelectedId(e.target.value as string)}
+                            inputProps={{ 'aria-label': t('vehicleAria') }}
                         >
                             {vehicles.map((v) => (
                                 <MenuItem key={v.id} value={v.id}>
@@ -57,7 +62,7 @@ export default function SelectVehicleModal({ open, vehicles, onVehicleSelectActi
                         onClick={handleConfirm}
                         disabled={!selectedId}
                     >
-                        Confirm and Start
+                        {t('confirmAndStart')}
                     </Button>
                 </Stack>
             </DialogContent>

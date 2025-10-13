@@ -1,0 +1,50 @@
+{
+  "title": {
+    "create": "Luo uusi kuorma",
+    "edit": "Muokkaa kuormaa",
+    "from": "Lähde:"
+  },
+  "section": {
+    "addLeg": "Lisää ajon osuus",
+    "editDetails": "Kuorman tiedot"
+  },
+  "form": {
+    "timberType": "Puutavaralaji",
+    "dropoff": "Purkupaikka",
+    "receptionNo": "Vastaanotto numero",
+    "total": "Yhteensä (m³)",
+    "hauled": "Haettu (m³)",
+    "remaining": "Jäljellä (m³)",
+    "route": "Reitti",
+    "freightKm": "Rahti (km)",
+    "notes": "Lisätiedot"
+  },
+  "legs": {
+    "title": "Ajon osuudet",
+    "tableAria": "Ajon osuuksien taulukko",
+    "columns": {
+      "timber": "Puutavara",
+      "volume": "Määrä (m³)",
+      "reception": "Vastaanotto nro",
+      "actions": "Toiminnot"
+    },
+    "empty": {
+      "title": "Osuuksia ei ole vielä lisätty",
+      "subtitle": "Lisää ensimmäinen osuus yllä olevalla lomakkeella"
+    }
+  },
+  "actions": {
+    "addToTrip": "Lisää ajoon",
+    "cancel": "Peruuta",
+    "saveChanges": "Tallenna muutokset",
+    "confirmCreate": "Vahvista ja luo ajo",
+    "close": "Sulje",
+    "removeLeg": "Poista osuus",
+    "start": "Aloita ajo",
+    "edit": "Muokkaa kuormaa",
+    "delete": "Poista kuorma"
+  },
+  "validation": {
+    "required": "Pakollinen"
+  }
+}

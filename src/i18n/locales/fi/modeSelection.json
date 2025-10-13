@@ -1,0 +1,17 @@
+{
+"mode": {
+"title": "Valitse työtila",
+"subtitle": "Valitse tehtävätyyppi tätä työvuoroa varten.",
+"ariaList": "Saatavilla olevat työtilat",
+"timber": {
+"title": "Puutavarakuormat",
+"subtitle": "(Puulaani)",
+"aria": "Valitse puutavarakuormatila"
+},
+"consignment": {
+"title": "Rahtikuljetukset",
+"subtitle": "(Rahtikirja)",
+"aria": "Valitse rahtikuljetustila"
+}
+}
+}

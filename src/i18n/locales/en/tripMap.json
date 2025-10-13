@@ -1,0 +1,10 @@
+{
+  "noLocations": "No locations to display on map.",
+  "pickup": "Pickup #{{index}}:",
+  "destination": "Destination:",
+  "yourLocation": "Your current location",
+  "layers": {
+    "street": "Street Map",
+    "satellite": "Satellite"
+  }
+}

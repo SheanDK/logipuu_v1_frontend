@@ -1,0 +1,54 @@
+{
+  "list": {
+    "header": "Timber Sites (Puulaanit)"
+  },
+  "errors": {
+    "noVehicle": "No vehicle selected.",
+    "mapLoad": "Failed to load map data."
+  },
+  "toasts": {
+    "puulaaniLoadError": "Failed to load Puulaani details.",
+    "editLoadFetchError": "Failed to fetch load details for editing.",
+    "invalidSession": "User or vehicle session is invalid.",
+    "loadUpdated": "Load updated successfully!",
+    "loadUpdateFailed": "Failed to update load.",
+    "loadsCreated": "Load(s) created successfully!",
+    "genericError": "An error occurred.",
+    "statusesUpdated": "Statuses updated successfully!",
+    "saveFailed": "Failed to save changes.",
+    "loadDeleted": "Load deleted successfully!",
+    "deleteFailed": "Failed to delete load.",
+    "tripStarted": "Trip started!",
+    "tripStartFailed": "Failed to start trip.",
+    "tripCompleted": "Trip completed!",
+    "tripStatusUpdated": "Trip status updated to {{status}}",
+    "statusUpdateFailed": "Failed to update status.",
+    "finishActiveTripFirst": "Please complete or cancel the current active trip before starting a new one."
+  },
+  "buttons": {
+    "changeMode": "Change Mode",
+    "showList": "Show List",
+    "showMap": "Show Map",
+    "listView": "List View",
+    "mapView": "Map View",
+    "showActiveTrip": "Show Active Trip"
+  },
+  "dialogs": {
+    "delete": {
+      "title": "Confirm Load Deletion",
+      "message": "Are you sure you want to delete this load? (Timber: {{timber}})",
+      "confirm": "Delete"
+    },
+    "activeTrip": {
+      "title": "Active Trip Warning",
+      "message": "You have an active trip in progress. Changing mode will not stop the trip. Are you sure you want to proceed?",
+      "confirm": "Yes, Proceed"
+    }
+  },
+  "speedDial": {
+    "aria": "Actions"
+  },
+  "common": {
+    "na": "N/A"
+  }
+}

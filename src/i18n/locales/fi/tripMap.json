@@ -1,0 +1,10 @@
+{
+  "noLocations": "Ei sijainteja näytettävänä kartalla.",
+  "pickup": "Nouto #{{index}}:",
+  "destination": "Purku:",
+  "yourLocation": "Nykyinen sijaintisi",
+  "layers": {
+    "street": "Katu- ja maastokartta",
+    "satellite": "Satelliitti"
+  }
+}

@@ -6,6 +6,7 @@ import { Box, Paper, Typography, Grid } from '@mui/material';
 import { styled } from '@mui/material/styles';
 import ForestIcon from '@mui/icons-material/Forest';
 import LocalShippingIcon from '@mui/icons-material/LocalShipping';
+import { useTranslation } from 'react-i18next';
 
 const ModeCard = styled(Paper)(({ theme }) => ({
     padding: theme.spacing(4),
@@ -23,8 +24,10 @@ interface ModeSelectionProps {
 }
 
 export default function ModeSelection({ onModeSelectAction }: ModeSelectionProps) {
+    const { t } = useTranslation('modeSelection');
+
     return (
-        <Box 
+        <Box
             sx={{
                 display: 'flex',
                 flexDirection: 'column',
@@ -35,35 +38,47 @@ export default function ModeSelection({ onModeSelectAction }: ModeSelectionProps
             }}
         >
             <Typography variant="h4" component="h1" gutterBottom fontWeight={700}>
-                Select Your Work Mode
+                {t('mode.title')}
             </Typography>
             <Typography variant="subtitle1" color="text.secondary" sx={{ mb: 5, maxWidth: 500, textAlign: 'center' }}>
-                Choose the type of job you will be performing for this session.
+                {t('mode.subtitle')}
             </Typography>
-            <Grid container spacing={4} justifyContent="center" maxWidth="md">
-                <Grid item xs={12} sm={6} md={5}>
+
+            <Box
+                sx={{
+                    display: 'grid',
+                    gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr' },
+                    gap: 4,
+                    width: '100%',
+                    maxWidth: '900px',
+                    justifyItems: 'center',
+                }}
+                role="list"
+                aria-label={t('mode.ariaList')}
+            >
+                <Box role="listitem" sx={{ width: '100%', maxWidth: 420 }}>
                     <ModeCard elevation={4} onClick={() => onModeSelectAction('timber')}>
                         <ForestIcon sx={{ fontSize: 60, color: 'success.main', mb: 2 }} />
                         <Typography variant="h5" fontWeight={600}>
-                            Timber Loads
+                            {t('mode.timber.title')}
                         </Typography>
                         <Typography color="text.secondary">
-                            (Puulaani)
+                            {t('mode.timber.subtitle')}
                         </Typography>
                     </ModeCard>
-                </Grid>
-                <Grid item xs={12} sm={6} md={5}>
+                </Box>
+                <Box role="listitem" sx={{ width: '100%', maxWidth: 420 }}>
                     <ModeCard elevation={4} onClick={() => onModeSelectAction('consignment')}>
                         <LocalShippingIcon sx={{ fontSize: 60, color: 'info.main', mb: 2 }} />
                         <Typography variant="h5" fontWeight={600}>
-                            Consignments
+                            {t('mode.consignment.title')}
                         </Typography>
                         <Typography color="text.secondary">
-                            (Rahtikirja)
+                            {t('mode.consignment.subtitle')}
                         </Typography>
                     </ModeCard>
-                </Grid>
-            </Grid>
+                </Box>
+            </Box>
         </Box>
     );
 }

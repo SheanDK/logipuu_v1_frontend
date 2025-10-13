@@ -1,0 +1,54 @@
+{
+  "list": {
+    "header": "Puulaanit (hakkuupaikat)"
+  },
+  "errors": {
+    "noVehicle": "Ajoneuvoa ei ole valittu.",
+    "mapLoad": "Karttadatan lataus epäonnistui."
+  },
+  "toasts": {
+    "puulaaniLoadError": "Puulaanin tietojen haku epäonnistui.",
+    "editLoadFetchError": "Kuorman muokkaustietojen haku epäonnistui.",
+    "invalidSession": "Käyttäjä- tai ajoneuvotiedot puuttuvat.",
+    "loadUpdated": "Kuorma päivitetty!",
+    "loadUpdateFailed": "Kuorman päivitys epäonnistui.",
+    "loadsCreated": "Kuorma(t) luotu!",
+    "genericError": "Tapahtui virhe.",
+    "statusesUpdated": "Tilat päivitetty!",
+    "saveFailed": "Tallennus epäonnistui.",
+    "loadDeleted": "Kuorma poistettu!",
+    "deleteFailed": "Kuorman poisto epäonnistui.",
+    "tripStarted": "Ajo aloitettu!",
+    "tripStartFailed": "Ajonn aloitus epäonnistui.",
+    "tripCompleted": "Ajo valmis!",
+    "tripStatusUpdated": "Ajotilan päivitys: {{status}}",
+    "statusUpdateFailed": "Tilapäivitys epäonnistui.",
+    "finishActiveTripFirst": "Viimeistele tai peru aktiivinen ajo ennen uuden aloittamista."
+  },
+  "buttons": {
+    "changeMode": "Vaihda tilaa",
+    "showList": "Näytä lista",
+    "showMap": "Näytä kartta",
+    "listView": "Listanäkymä",
+    "mapView": "Karttanäkymä",
+    "showActiveTrip": "Näytä aktiivinen ajo"
+  },
+  "dialogs": {
+    "delete": {
+      "title": "Vahvista kuorman poisto",
+      "message": "Haluatko varmasti poistaa tämän kuorman? (Puutavara: {{timber}})",
+      "confirm": "Poista"
+    },
+    "activeTrip": {
+      "title": "Aktiivinen ajo",
+      "message": "Sinulla on aktiivinen ajo käynnissä. Tilan vaihtaminen ei lopeta ajoa. Haluatko jatkaa?",
+      "confirm": "Kyllä, jatka"
+    }
+  },
+  "speedDial": {
+    "aria": "Toiminnot"
+  },
+  "common": {
+    "na": "—"
+  }
+}

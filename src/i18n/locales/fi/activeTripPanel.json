@@ -1,0 +1,32 @@
+{
+    "activeTrip": {
+        "title": "Aktiivinen ajo",
+        "haulingPrefix": "Kuljetetaan",
+        "from": " lähtöpaikasta",
+        "to": " kohteeseen",
+        "na": "N/A",
+        "alertNoCoords": "Sijaintikoordinaatteja ei ole saatavilla tähän navigointipisteeseen.",
+        "loading": "Päivitetään…",
+        "close": "Piilota paneeli",
+        "toPickup": "Reitti noutoon",
+        "toPickupAria": "Navigoi puulaaniin",
+        "toDropoff": "Reitti Purkuun",
+        "toDropoffAria": "Navigoi purkupaikkaan",
+        "pause": "Keskeytä ajo",
+        "pauseAria": "Keskeytä nykyinen ajo",
+        "resume": "Jatka ajoa",
+        "resumeAria": "Jatka nykyistä ajoa",
+        "complete": "Päätä ajo",
+        "completeAria": "Merkitse ajo päättyneeksi"
+    },
+    "status": {
+        "inProgress": "Käynnissä",
+        "paused": "Keskeytetty",
+        "completed": "Valmis",
+        "enRouteToDestination": "Matkalla kohteeseen",
+        "assigned": "Osoitettu",
+        "atOrigin": "Lähtöpisteessä",
+        "atDestination": "Kohteessa",
+        "na": "—"
+    }
+}

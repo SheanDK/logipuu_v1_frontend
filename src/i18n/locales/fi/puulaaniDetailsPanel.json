@@ -1,0 +1,55 @@
+{
+  "common": {
+    "na": "N/A"
+  },
+  "loading": "Ladataan…",
+  "header": {
+    "label": "PUULAANIN TIEDOT",
+    "unknown": "Tuntematon puulaani"
+  },
+  "actions": {
+    "saveChanges": "Tallenna muutokset",
+    "saving": "Tallennetaan...",
+    "close": "Sulje"
+  },
+  "timber": {
+    "title": "Puutavaralajit",
+    "tableAria": "Puutavaralajien taulukko",
+    "columns": {
+      "type": "Laji",
+      "total": "Yhteensä (m³)",
+      "hauled": "Haettu (m³)",
+      "remaining": "Jäljellä (m³)",
+      "completed": "Valmis"
+    },
+    "completedAria": "Merkitse {{type}} valmiiksi"
+  },
+  "loads": {
+    "title": "Kuormat",
+    "create": "Uusi kuorma",
+    "createAria": "Luo uusi kuorma",
+    "tableAria": "Kuormien taulukko",
+    "columns": {
+      "timberType": "Puutavaralaji",
+      "date": "Päivä",
+      "driver": "Kuljettaja",
+      "hauled": "Haettu (m³)",
+      "actions": "Toiminnot"
+    },
+    "actions": {
+      "start": "Aloita ajo",
+      "edit": "Muokkaa kuormaa",
+      "delete": "Poista kuorma"
+    }
+  },
+  "status": {
+    "completed": "Valmis",
+    "in_progress": "Käynnissä",
+    "en_route_to_destination": "Matkalla kohteeseen",
+    "assigned": "Osoitettu",
+    "at_origin": "Lähtöpisteessä",
+    "at_destination": "Kohteessa",
+    "paused": "Keskeytetty",
+    "na": "—"
+  }
+}

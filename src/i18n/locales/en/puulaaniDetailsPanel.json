@@ -1,0 +1,55 @@
+{
+  "common": {
+    "na": "N/A"
+  },
+  "loading": "Loading…",
+  "header": {
+    "label": "PUULAANI DETAILS",
+    "unknown": "Unknown Puulaani"
+  },
+  "actions": {
+    "saveChanges": "Save Changes",
+    "saving": "Saving...",
+    "close": "Close"
+  },
+  "timber": {
+    "title": "Timber Types",
+    "tableAria": "Timber types table",
+    "columns": {
+      "type": "Type",
+      "total": "Total (m³)",
+      "hauled": "Hauled (m³)",
+      "remaining": "Remaining (m³)",
+      "completed": "Completed"
+    },
+    "completedAria": "Mark {{type}} as completed"
+  },
+  "loads": {
+    "title": "Loads",
+    "create": "New Load",
+    "createAria": "Create new load",
+    "tableAria": "Loads table",
+    "columns": {
+      "timberType": "Timber Type",
+      "date": "Date",
+      "driver": "Driver",
+      "hauled": "Hauled (m³)",
+      "actions": "Actions"
+    },
+    "actions": {
+      "start": "Start Trip",
+      "edit": "Edit Load",
+      "delete": "Delete Load"
+    }
+  },
+  "status": {
+    "completed": "Completed",
+    "in_progress": "In Progress",
+    "en_route_to_destination": "En route to destination",
+    "assigned": "Assigned",
+    "at_origin": "At origin",
+    "at_destination": "At destination",
+    "paused": "Paused",
+    "na": "—"
+  }
+}
