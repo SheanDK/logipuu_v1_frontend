@@ -1,13 +1,13 @@
 {
   "list": {
-    "header": "Timber Sites (Puulaanit)"
+    "header": "Timber Sites"
   },
   "errors": {
     "noVehicle": "No vehicle selected.",
     "mapLoad": "Failed to load map data."
   },
   "toasts": {
-    "puulaaniLoadError": "Failed to load Puulaani details.",
+    "puulaaniLoadError": "Failed to load Timber Stacks details.",
     "editLoadFetchError": "Failed to fetch load details for editing.",
     "invalidSession": "User or vehicle session is invalid.",
     "loadUpdated": "Load updated successfully!",
