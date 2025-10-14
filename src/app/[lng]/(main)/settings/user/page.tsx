@@ -173,85 +173,85 @@ export default function UserSettingsPage() {
                 </Alert>
             )}
 
-            <Grid container spacing={4}>
-                {/* Profile Details Card */}
-                <Grid item xs={12} md={6}>
-                    <Card elevation={3}>
-                        <CardHeader title={t('profileCard.title')} />
-                        <Divider />
-                        <CardContent>
-                            <Box component="form" onSubmit={handleProfileSubmit(onProfileSubmit)} noValidate>
+
+            {/* Profile Details Card */}
+            <Box sx={{ p: { xs: 2, md: 3 } }}>
+                <Card elevation={3}>
+                    <CardHeader title={t('profileCard.title')} />
+                    <Divider />
+                    <CardContent>
+                        <Box component="form" onSubmit={handleProfileSubmit(onProfileSubmit)} noValidate>
+                            <Controller
+                                name="fullName"
+                                control={profileControl}
+                                render={({ field }) => (
+                                    <TextField {...field} label={t('fields.fullName')} fullWidth margin="normal" required error={!!profileErrors.fullName} helperText={profileErrors.fullName?.message} />
+                                )}
+                            />
+                            {isDriver && (
                                 <Controller
-                                    name="fullName"
+                                    name="email"
                                     control={profileControl}
                                     render={({ field }) => (
-                                        <TextField {...field} label={t('fields.fullName')} fullWidth margin="normal" required error={!!profileErrors.fullName} helperText={profileErrors.fullName?.message} />
+                                        <TextField {...field} label={t('fields.email')} fullWidth margin="normal" required error={!!profileErrors.email} helperText={profileErrors.email?.message} />
                                     )}
                                 />
-                                {isDriver && (
-                                    <Controller
-                                        name="email"
-                                        control={profileControl}
-                                        render={({ field }) => (
-                                            <TextField {...field} label={t('fields.email')} fullWidth margin="normal" required error={!!profileErrors.email} helperText={profileErrors.email?.message} />
-                                        )}
-                                    />
-                                )}
-                                <TextField label={t('fields.usernameId')} value={user.username || ''} fullWidth margin="normal" disabled />
-                                <TextField label={t('fields.roles')} value={user.roles?.join(', ') || t('fields.noRoles')} fullWidth margin="normal" disabled />
-                                <Box sx={{ mt: 2, display: 'flex', justifyContent: 'flex-end' }}>
-                                    <Button type="submit" variant="contained" disabled={isSavingProfile}>
-                                        {isSavingProfile ? <CircularProgress size={24} color="inherit" /> : t('profileCard.buttons.saveProfile')}
-                                    </Button>
-                                </Box>
+                            )}
+                            <TextField label={t('fields.usernameId')} value={user.username || ''} fullWidth margin="normal" disabled />
+                            <TextField label={t('fields.roles')} value={user.roles?.join(', ') || t('fields.noRoles')} fullWidth margin="normal" disabled />
+                            <Box sx={{ mt: 2, display: 'flex', justifyContent: 'flex-end' }}>
+                                <Button type="submit" variant="contained" disabled={isSavingProfile}>
+                                    {isSavingProfile ? <CircularProgress size={24} color="inherit" /> : t('profileCard.buttons.saveProfile')}
+                                </Button>
                             </Box>
-                        </CardContent>
-                    </Card>
-                </Grid>
+                        </Box>
+                    </CardContent>
+                </Card>
+            </Box>
 
-                {/* Change Password Card */}
-                <Grid item xs={12} md={6}>
-                    <Card elevation={3}>
-                        <CardHeader title={t('passwordCard.title')} />
-                        <Divider />
-                        <CardContent>
-                            <Box component="form" onSubmit={handlePasswordSubmit(onPasswordSubmit)} noValidate>
-                                <Controller
-                                    name="currentPassword"
-                                    control={passwordControl}
-                                    render={({ field }) => (
-                                        <TextField {...field} label={t('passwordCard.currentPassword')} type="password" fullWidth margin="normal" required error={!!passwordErrors.currentPassword} helperText={passwordErrors.currentPassword?.message} />
-                                    )}
-                                />
-                                <Controller
-                                    name="newPassword"
-                                    control={passwordControl}
-                                    render={({ field }) => (
-                                        <TextField {...field} label={t('passwordCard.newPassword')}type="password" fullWidth margin="normal" required error={!!passwordErrors.newPassword} helperText={passwordErrors.newPassword?.message} />
-                                    )}
-                                />
-                                <Controller
-                                    name="confirmNewPassword"
-                                    control={passwordControl}
-                                    render={({ field }) => (
-                                        <TextField {...field} label={t('passwordCard.confirmNewPassword')}type="password" fullWidth margin="normal" required error={!!passwordErrors.confirmNewPassword} helperText={passwordErrors.confirmNewPassword?.message} />
-                                    )}
-                                />
-                                <Box sx={{ mt: 2, display: 'flex', justifyContent: 'flex-end' }}>
-                                    <Button
-                                        type="submit"
-                                        variant="contained"
-                                        disabled={!isPasswordValid || isSavingPassword}
-                                    >
-                                        {isSavingPassword ? <CircularProgress size={24} color="inherit" /> : t('passwordCard.buttons.changePassword')}
-                                    </Button>
-                                </Box>
+            {/* Change Password Card */}
+            <Box sx={{ p: { xs: 2, md: 3 } }}>
+                <Card elevation={3}>
+                    <CardHeader title={t('passwordCard.title')} />
+                    <Divider />
+                    <CardContent>
+                        <Box component="form" onSubmit={handlePasswordSubmit(onPasswordSubmit)} noValidate>
+                            <Controller
+                                name="currentPassword"
+                                control={passwordControl}
+                                render={({ field }) => (
+                                    <TextField {...field} label={t('passwordCard.currentPassword')} type="password" fullWidth margin="normal" required error={!!passwordErrors.currentPassword} helperText={passwordErrors.currentPassword?.message} />
+                                )}
+                            />
+                            <Controller
+                                name="newPassword"
+                                control={passwordControl}
+                                render={({ field }) => (
+                                    <TextField {...field} label={t('passwordCard.newPassword')} type="password" fullWidth margin="normal" required error={!!passwordErrors.newPassword} helperText={passwordErrors.newPassword?.message} />
+                                )}
+                            />
+                            <Controller
+                                name="confirmNewPassword"
+                                control={passwordControl}
+                                render={({ field }) => (
+                                    <TextField {...field} label={t('passwordCard.confirmNewPassword')} type="password" fullWidth margin="normal" required error={!!passwordErrors.confirmNewPassword} helperText={passwordErrors.confirmNewPassword?.message} />
+                                )}
+                            />
+                            <Box sx={{ mt: 2, display: 'flex', justifyContent: 'flex-end' }}>
+                                <Button
+                                    type="submit"
+                                    variant="contained"
+                                    disabled={!isPasswordValid || isSavingPassword}
+                                >
+                                    {isSavingPassword ? <CircularProgress size={24} color="inherit" /> : t('passwordCard.buttons.changePassword')}
+                                </Button>
                             </Box>
-                        </CardContent>
-                    </Card>
-                </Grid>
-            </Grid>
+                        </Box>
+                    </CardContent>
+                </Card>
+            </Box>
         </Box>
+
     );
 }
 

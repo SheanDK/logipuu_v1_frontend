@@ -16,7 +16,7 @@ import { LocalizationProvider, DatePicker } from '@mui/x-date-pickers';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import dayjs, { Dayjs } from 'dayjs';
 
-import LocationPicker from '@/components/common/LocationPicker'; 
+import LocationPicker from '@/components/common/LocationPicker';
 import { IClientBasicInfo, PendingPuulaaniData } from '@/types';
 import { useTranslation } from 'react-i18next';
 
@@ -29,17 +29,17 @@ interface AddPuulaaniModalProps {
 
 // Build schema with i18n
 const getSchema = (t: (k: string, o?: any) => string) => yup.object({
-  name: yup.string().required(t('addPuulaaniModal:validation.name.required')),
-  clientId: yup.string().required(t('addPuulaaniModal:validation.client.required')),
-  date: yup.mixed<Dayjs>().nullable().required(t('addPuulaaniModal:validation.date.required')),
-  latitude: yup
-    .number()
-    .typeError(t('addPuulaaniModal:validation.location.selectOnMap'))
-    .required(t('addPuulaaniModal:validation.latitude.required')),
-  longitude: yup
-    .number()
-    .typeError(t('addPuulaaniModal:validation.location.selectOnMap'))
-    .required(t('addPuulaaniModal:validation.longitude.required')),
+    name: yup.string().required(t('addPuulaaniModal:validation.name.required')),
+    clientId: yup.string().required(t('addPuulaaniModal:validation.client.required')),
+    date: yup.mixed<Dayjs>().nullable().required(t('addPuulaaniModal:validation.date.required')),
+    latitude: yup
+        .number()
+        .typeError(t('addPuulaaniModal:validation.location.selectOnMap'))
+        .required(t('addPuulaaniModal:validation.latitude.required')),
+    longitude: yup
+        .number()
+        .typeError(t('addPuulaaniModal:validation.location.selectOnMap'))
+        .required(t('addPuulaaniModal:validation.longitude.required')),
 });
 
 type AddPuulaaniFormData = yup.InferType<ReturnType<typeof getSchema>>;
@@ -47,7 +47,7 @@ type AddPuulaaniFormData = yup.InferType<ReturnType<typeof getSchema>>;
 export default function AddPuulaaniModal({ open, onCloseAction, onNextAction, clientList }: AddPuulaaniModalProps) {
     const { t } = useTranslation(['addPuulaaniModal', 'common']);
 
-  const addSchema = useMemo(() => getSchema(t), [t]);
+    const addSchema = useMemo(() => getSchema(t), [t]);
 
     const { control, handleSubmit, reset, setValue, watch, formState: { errors, isValid } } = useForm<AddPuulaaniFormData>({
         resolver: yupResolver(addSchema),
@@ -65,30 +65,30 @@ export default function AddPuulaaniModal({ open, onCloseAction, onNextAction, cl
             reset({ name: '', clientId: '', date: dayjs(), latitude: undefined, longitude: undefined });
         }
     }, [open, reset]);
-    
+
     const handleLocationChange = (lat: string, lng: string) => {
         setValue('latitude', parseFloat(lat), { shouldValidate: true });
         setValue('longitude', parseFloat(lng), { shouldValidate: true });
     };
 
     const onSubmit: SubmitHandler<AddPuulaaniFormData> = (data) => {
-    const pendingData: Partial<PendingPuulaaniData> = {
-        name: data.name,
-        clientId: data.clientId, 
-        date: data.date as Dayjs,
-        latitude: data.latitude,
-        longitude: data.longitude,
-        isActive: true,
-        isCompleted: false,
-        additionalInfo: '',
-        dispatchOrderNo: ''
+        const pendingData: Partial<PendingPuulaaniData> = {
+            name: data.name,
+            clientId: data.clientId,
+            date: data.date as Dayjs,
+            latitude: data.latitude,
+            longitude: data.longitude,
+            isActive: true,
+            isCompleted: false,
+            additionalInfo: '',
+            dispatchOrderNo: ''
+        };
+        onNextAction(pendingData);
     };
-    onNextAction(pendingData);
-};
 
-     return (
+    return (
 
-        <Dialog open={open} onClose={onCloseAction} maxWidth="md" fullWidth> 
+        <Dialog open={open} onClose={onCloseAction} maxWidth="md" fullWidth>
             <DialogTitle sx={{ m: 0, p: 2, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <Typography variant="h6" component="div">{t('addPuulaaniModal:title')}</Typography>
                 <IconButton aria-label={t('addPuulaaniModal:actions.closeAria')} onClick={onCloseAction} sx={{ color: (theme) => theme.palette.grey[500] }}>
@@ -98,26 +98,26 @@ export default function AddPuulaaniModal({ open, onCloseAction, onNextAction, cl
             <Box component="form" id="add-puulaani-form" onSubmit={handleSubmit(onSubmit as SubmitHandler<FieldValues>)}>
                 <DialogContent dividers sx={{ p: { xs: 2, sm: 3 }, backgroundColor: '#f7f7f7' }}>
                     {error && <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>}
-                    
+
                     <Stack spacing={3}>
-                        
+
                         <Paper variant="outlined" sx={{ p: 2.5 }}>
                             <Typography variant="overline" color="text.secondary" gutterBottom>
                                 {t('addPuulaaniModal:sections.primaryDetails')}
                             </Typography>
                             <Stack spacing={2} sx={{ mt: 1 }}>
-                                <Controller name="name" control={control} render={({ field }) => ( <TextField {...field} label={t('addPuulaaniModal:fields.name')} fullWidth required autoFocus error={!!errors.name} helperText={errors.name?.message} size="small" /> )}/>
+                                <Controller name="name" control={control} render={({ field }) => (<TextField {...field} label={t('addPuulaaniModal:fields.name')} fullWidth required autoFocus error={!!errors.name} helperText={errors.name?.message} size="small" />)} />
                                 <FormControl fullWidth required error={!!errors.clientId} size="small">
                                     <InputLabel>{t('addPuulaaniModal:fields.client')}</InputLabel>
-                                    <Controller name="clientId" control={control} render={({ field }) => ( 
+                                    <Controller name="clientId" control={control} render={({ field }) => (
                                         <Select {...field} label={t('addPuulaaniModal:fields.client')} value={field.value || ''}>
-                                            {clientList.map((c) => ( <MenuItem key={c.id} value={c.id}>{c.name}</MenuItem> ))} 
-                                        </Select> 
-                                    )}/>
+                                            {clientList.map((c) => (<MenuItem key={c.id} value={c.id}>{c.name}</MenuItem>))}
+                                        </Select>
+                                    )} />
                                     {errors.clientId && <FormHelperText>{errors.clientId.message}</FormHelperText>}
                                 </FormControl>
                                 <LocalizationProvider dateAdapter={AdapterDayjs}>
-                                    <Controller name="date" control={control} render={({ field }) => ( <DatePicker {...field} value={field.value || null} label={t('addPuulaaniModal:fields.date')} format="DD.MM.YYYY" slotProps={{ textField: { fullWidth: true, required: true, error: !!errors.date, size: 'small' } }}/> )}/>
+                                    <Controller name="date" control={control} render={({ field }) => (<DatePicker {...field} value={field.value || null} label={t('addPuulaaniModal:fields.date')} format="DD.MM.YYYY" slotProps={{ textField: { fullWidth: true, required: true, error: !!errors.date, size: 'small' } }} />)} />
                                 </LocalizationProvider>
                             </Stack>
                         </Paper>
@@ -127,27 +127,33 @@ export default function AddPuulaaniModal({ open, onCloseAction, onNextAction, cl
                                 {t('addPuulaaniModal:sections.mapLocation')}
                             </Typography>
                             <Stack spacing={1} sx={{ mt: 1 }}>
-                                <LocationPicker 
+                                <LocationPicker
                                     initialLat={latValue}
                                     initialLng={lngValue}
                                     onLocationChange={handleLocationChange}
                                 />
-                                <Grid container spacing={2}>
-                                    <Grid item xs={6}>
-                                        <Controller name="latitude" control={control} render={({ field }) => ( <TextField {...field} value={field.value || ''} label={t('addPuulaaniModal:fields.latitude')} fullWidth required InputProps={{ readOnly: true }} error={!!errors.latitude} helperText={errors.latitude?.message} size="small" /> )}/>
-                                    </Grid>
-                                    <Grid item xs={6}>
-                                        <Controller name="longitude" control={control} render={({ field }) => ( <TextField {...field} value={field.value || ''} label={t('addPuulaaniModal:fields.longitude')} fullWidth required InputProps={{ readOnly: true }} error={!!errors.longitude} helperText={errors.longitude?.message} size="small" /> )}/>
-                                    </Grid>
-                                </Grid>
+                                <Box
+                                    sx={{
+                                        display: 'grid',
+                                        gap: 2,
+                                        gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr' },
+                                    }}
+                                >
+                                    <Box>
+                                        <Controller name="latitude" control={control} render={({ field }) => (<TextField {...field} value={field.value || ''} label={t('addPuulaaniModal:fields.latitude')} fullWidth required InputProps={{ readOnly: true }} error={!!errors.latitude} helperText={errors.latitude?.message} size="small" />)} />
+                                    </Box>
+                                    <Box>
+                                        <Controller name="longitude" control={control} render={({ field }) => (<TextField {...field} value={field.value || ''} label={t('addPuulaaniModal:fields.longitude')} fullWidth required InputProps={{ readOnly: true }} error={!!errors.longitude} helperText={errors.longitude?.message} size="small" />)} />
+                                    </Box>
+                                </Box>
                             </Stack>
                         </Paper>
 
                     </Stack>
                 </DialogContent>
                 <DialogActions sx={{ p: 2, borderTop: '1px solid', borderColor: 'divider' }}>
-                     <Button onClick={onCloseAction}>{t('common:buttons.cancel')}</Button>
-                     <Button type="submit" form="add-puulaani-form" variant="contained" disabled={isSaving || !isValid}>
+                    <Button onClick={onCloseAction}>{t('common:buttons.cancel')}</Button>
+                    <Button type="submit" form="add-puulaani-form" variant="contained" disabled={isSaving || !isValid}>
                         {isSaving ? <CircularProgress size={24} /> : t('addPuulaaniModal:actions.saveContinue')}
                     </Button>
                 </DialogActions>

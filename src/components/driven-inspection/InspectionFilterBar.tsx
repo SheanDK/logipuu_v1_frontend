@@ -2,7 +2,7 @@
 'use client';
 
 import React, { useMemo } from 'react';
-import { Grid, TextField, Autocomplete, Paper, Chip } from '@mui/material';
+import { Grid, TextField, Autocomplete, Paper, Chip, Box } from '@mui/material';
 import { LocalizationProvider, DatePicker } from '@mui/x-date-pickers';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import { Dayjs } from 'dayjs';
@@ -41,8 +41,15 @@ export default function InspectionFilterBar({
 
     return (
         <Paper sx={{ p: 2, mb: 2 }} variant="outlined">
-            <Grid container spacing={2} alignItems="center">
-                <Grid item xs={12} sm={6} md={2}>
+            <Box
+                sx={{
+                    display: 'grid',
+                    gap: 2,
+                    alignItems: 'center',
+                    gridTemplateColumns: { xs: '1fr', sm: 'repeat(12, 1fr)' },
+                }}
+            >
+                <Box sx={{ gridColumn: { xs: '1', sm: 'span 6', md: 'span 2' } }}>
                     <LocalizationProvider dateAdapter={AdapterDayjs}>
                         <DatePicker
                             label="Start date"
@@ -51,8 +58,8 @@ export default function InspectionFilterBar({
                             slotProps={{ textField: { size: 'small', fullWidth: true } }}
                         />
                     </LocalizationProvider>
-                </Grid>
-                <Grid item xs={12} sm={6} md={2}>
+                </Box>
+                <Box sx={{ gridColumn: { xs: '1', sm: 'span 6', md: 'span 2' } }}>
                     <LocalizationProvider dateAdapter={AdapterDayjs}>
                         <DatePicker
                             label="End date"
@@ -61,30 +68,30 @@ export default function InspectionFilterBar({
                             slotProps={{ textField: { size: 'small', fullWidth: true } }}
                         />
                     </LocalizationProvider>
-                </Grid>
-                <Grid item xs={12} sm={6} md={3}>
+                </Box>
+                <Box sx={{ gridColumn: { xs: '1', sm: 'span 6', md: 'span 2' } }}>
                     <Autocomplete
-                        sx={{ width: 150 }}
+                        fullWidth
                         options={clientList}
                         getOptionLabel={(option: IClientBasicInfo) => option.name}
                         value={clientList.find(c => c.id === filters.customerId) || null}
                         onChange={(event, newValue) => onFilterChangeAction('customerId', newValue ? newValue.id : null)}
                         renderInput={(params) => <TextField {...params} label="Customer" size="small" />}
                     />
-                </Grid>
-                <Grid item xs={12} sm={6} md={3}>
+                </Box>
+                <Box sx={{ gridColumn: { xs: '1', sm: 'span 6', md: 'span 2' } }}>
                     <Autocomplete
                         options={vehicleList}
-                        sx={{ width: 150 }}
+                        fullWidth
                         getOptionLabel={(option: IVehicleBasicInfo) => option.registrationNo}
                         value={vehicleList.find(v => v.id === filters.vehicleId) || null}
                         onChange={(event, newValue) => onFilterChangeAction('vehicleId', newValue ? newValue.id : null)}
                         renderInput={(params) => <TextField {...params} label="Car" size="small" />}
                     />
-                </Grid>
-                <Grid item xs={12} md={6}>
+                </Box>
+                <Box sx={{ gridColumn: { xs: '1', sm: 'span 12', md: 'span 6' } }}>
                     <Autocomplete
-                        sx={{ width: 150 }}
+                        fullWidth
                         multiple
                         id="timber-grades-filter"
                         options={timberTypeList}
@@ -117,8 +124,8 @@ export default function InspectionFilterBar({
                             });
                         }}
                     />
-                </Grid>
-            </Grid>
+                </Box>
+            </Box>
         </Paper>
     );
 }

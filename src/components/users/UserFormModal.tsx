@@ -35,24 +35,34 @@ interface UserFormData {
     fullName: string;
     password?: string;
     confirmPassword?: string;
-    roleId: number | '';
+    roleId: number | null;
     isActive: boolean;
 }
 
 // 2. Create the Yup schema dynamically based on whether it's edit mode.
-const getValidationSchema = (isEditMode: boolean) => yup.object({
+const getValidationSchema = (isEditMode: boolean) =>
+(yup.object({
     username: yup.string().required('Username is required.'),
     fullName: yup.string().required('Full name is required.'),
-    password: yup.string().when([], {
-        is: () => !isEditMode,
-        then: schema => schema.required('Password is required').min(8, 'Password must be at least 8 characters'),
-    }),
+    password: yup
+        .string()
+        .when([], {
+            is: () => !isEditMode,
+            then: (schema) => schema.required('Password is required').min(8, 'Password must be at least 8 characters'),
+        }),
     confirmPassword: yup.string().when('password', ([password], schema) => {
-        return password ? schema.required('Please confirm password').oneOf([yup.ref('password')], 'Passwords do not match') : schema.optional();
+        return password
+            ? schema.required('Please confirm password').oneOf([yup.ref('password')], 'Passwords do not match')
+            : schema.optional();
     }),
-    roleId: yup.number().typeError('A role must be selected').required('A role is required'),
+    roleId: yup
+        .number()
+        .transform((v, orig) => (orig === '' ? null : v))
+        .nullable()
+        .typeError('A role must be selected')
+        .required('A role is required'),
     isActive: yup.boolean().required(),
-});
+}) as yup.ObjectSchema<UserFormData>);
 
 
 
@@ -75,13 +85,12 @@ export default function UserFormModal({ open, onCloseAction, onSaveAction, user,
             fullName: '',
             password: '',
             confirmPassword: '',
-            roleId: '',
+            roleId: null,
             isActive: true,
         },
         mode: 'onChange',
     });
 
-    // --- FINAL, BULLETPROOF SAVE BUTTON LOGIC ---
     const [initialFormState, setInitialFormState] = useState<Partial<UserFormData>>({});
     const currentValues = watch();
 
@@ -116,12 +125,12 @@ export default function UserFormModal({ open, onCloseAction, onSaveAction, user,
 
     useEffect(() => {
         if (open) {
-            const initialState = {
+            const initialState: UserFormData = {
                 username: user?.username || '',
                 fullName: user?.fullName || '',
                 password: '',
                 confirmPassword: '',
-                roleId: (user?.roleIds?.[0] ?? ('')) as '' | number,
+                roleId: (user?.roleIds?.[0] ?? null) as number | null,
                 isActive: user ? user.isActive : true,
             };
 
@@ -163,18 +172,25 @@ export default function UserFormModal({ open, onCloseAction, onSaveAction, user,
             <form id="user-form" onSubmit={handleSubmit(onSubmitHandler)}>
                 <DialogContent dividers>
                     {apiError && <Alert severity="error" sx={{ mb: 2 }}>{apiError || t('errors.api')}</Alert>}
-                    <Grid container spacing={2} sx={{ pt: 1 }}>
-                        <Grid item xs={12} sm={6}><Controller name="username" control={control} render={({ field }) => <TextField {...field} label={t('fields.username')} fullWidth required disabled={isEditMode} error={!!errors.username} helperText={errors.username?.message} />} /></Grid>
-                        <Grid item xs={12}><Controller name="fullName" control={control} render={({ field }) => <TextField {...field} label={t('fields.fullName')} fullWidth required error={!!errors.fullName} helperText={errors.fullName?.message} />} /></Grid>
+                    <Box
+                        sx={{
+                            display: 'grid',
+                            gap: 2,
+                            pt: 1,
+                            gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr' },
+                        }}
+                    >
+                        <Box><Controller name="username" control={control} render={({ field }) => <TextField {...field} label={t('fields.username')} fullWidth required disabled={isEditMode} error={!!errors.username} helperText={errors.username?.message} />} /></Box>
+                        <Box><Controller name="fullName" control={control} render={({ field }) => <TextField {...field} label={t('fields.fullName')} fullWidth required error={!!errors.fullName} helperText={errors.fullName?.message} />} /></Box>
                         {!isEditMode && (
                             <>
-                                <Grid item xs={12} sm={6}><Controller name="password" control={control} render={({ field }) => <TextField {...field} type="password" label={t('fields.password')} fullWidth required={!isEditMode} error={!!errors.password} helperText={errors.password?.message} />} /></Grid>
-                                <Grid item xs={12} sm={6}><Controller name="confirmPassword" control={control} render={({ field }) => <TextField {...field} type="password" label={t('fields.confirmPassword')} fullWidth required={!isEditMode} error={!!errors.confirmPassword} helperText={errors.confirmPassword?.message} />} /></Grid>
+                                <Box><Controller name="password" control={control} render={({ field }) => <TextField {...field} type="password" label={t('fields.password')} fullWidth required={!isEditMode} error={!!errors.password} helperText={errors.password?.message} />} /></Box>
+                                <Box><Controller name="confirmPassword" control={control} render={({ field }) => <TextField {...field} type="password" label={t('fields.confirmPassword')} fullWidth required={!isEditMode} error={!!errors.confirmPassword} helperText={errors.confirmPassword?.message} />} /></Box>
                             </>
                         )}
-                        <Grid item xs={12}><FormControl fullWidth required error={!!errors.roleId}><InputLabel id="role-select-label">{t('fields.role')}</InputLabel><Controller name="roleId" control={control} render={({ field }) => (<Select {...field} labelId="role-select-label" label={t('fields.role')} sx={{ width: 150 }} value={field.value === '' ? '' : Number(field.value)} onChange={(e) => field.onChange(Number(e.target.value))} >{allRoles.map((role) => (<MenuItem key={role.rooliId} value={role.rooliId}>{role.roolinNimi}</MenuItem>))}</Select>)} />{errors.roleId && <FormHelperText>{errors.roleId.message}</FormHelperText>}</FormControl></Grid>
-                        <Grid item xs={12}><FormControlLabel control={<Controller name="isActive" control={control} render={({ field }) => <Switch {...field} checked={field.value} />} />} label={<Typography>{t('fields.status')} <b>{watch('isActive') ? t('status.active') : t('status.inactive')}</b></Typography>} /></Grid>
-                    </Grid>
+                        <Box><FormControl fullWidth required error={!!errors.roleId}><InputLabel id="role-select-label">{t('fields.role')}</InputLabel><Controller name="roleId" control={control} render={({ field }) => (<Select {...field} labelId="role-select-label" label={t('fields.role')} sx={{ width: 150 }} onChange={(e) => field.onChange(Number(e.target.value))} >{allRoles.map((role) => (<MenuItem key={role.rooliId} value={role.rooliId}>{role.roolinNimi}</MenuItem>))}</Select>)} />{errors.roleId && <FormHelperText>{errors.roleId.message}</FormHelperText>}</FormControl></Box>
+                        <Box><FormControlLabel control={<Controller name="isActive" control={control} render={({ field }) => <Switch {...field} checked={field.value} />} />} label={<Typography>{t('fields.status')} <b>{watch('isActive') ? t('status.active') : t('status.inactive')}</b></Typography>} /></Box>
+                    </Box>
                 </DialogContent>
                 <DialogActions sx={{ p: 2 }}>
                     <Button onClick={onCloseAction} disabled={isSaving}>{t('common:buttons.cancel')}</Button>

@@ -61,8 +61,15 @@ export function AddWoodEntry({ onAddAction, woodTypeList, dropoffLocationList }:
     return (
         <Paper elevation={0} sx={{ backgroundColor: 'transparent', mt: 1 }}>
             <Box sx={{ width: '100%', border: '1px solid #ccc', p: 1.5, borderRadius: 1 }}>
-                <Grid container spacing={2} alignItems="center">
-                    <Grid item xs={12} sm={4} sx={{ minWidth: 150 }}>
+                <Box
+                    sx={{
+                        display: 'grid',
+                        gap: 2,
+                        alignItems: 'center',
+                        gridTemplateColumns: { xs: '1fr', sm: 'repeat(12, 1fr)' },
+                    }}
+                >
+                    <Box sx={{ gridColumn: { xs: '1 / -1', sm: 'span 4' }, minWidth: 150 }}>
                         <FormControl fullWidth size="small" error={!!errors.woodTypeId}>
                             <InputLabel>{t('entryForm.labels.woodType')}</InputLabel>
                             <Controller name="woodTypeId" control={control} render={({ field }) => (
@@ -73,8 +80,8 @@ export function AddWoodEntry({ onAddAction, woodTypeList, dropoffLocationList }:
                             )} />
                             {errors.woodTypeId && <FormHelperText>{errors.woodTypeId.message}</FormHelperText>}
                         </FormControl>
-                    </Grid>
-                    <Grid item xs={12} sm={4} sx={{ minWidth: 150 }}>
+                    </Box>
+                    <Box sx={{ gridColumn: { xs: '1 / -1', sm: 'span 4' }, minWidth: 150 }}>
                         <FormControl fullWidth size="small" error={!!errors.dropoffLocationId}>
                             <InputLabel>{t('entryForm.labels.unloadingSite')}</InputLabel>
                             <Controller name="dropoffLocationId" control={control} render={({ field }) => (
@@ -85,8 +92,8 @@ export function AddWoodEntry({ onAddAction, woodTypeList, dropoffLocationList }:
                             )} />
                             {errors.dropoffLocationId && <FormHelperText>{errors.dropoffLocationId.message}</FormHelperText>}
                         </FormControl>
-                    </Grid>
-                    <Grid item xs={12} sm={2}>
+                    </Box>
+                    <Box sx={{ gridColumn: { xs: '1 / -1', sm: 'span 2' } }}>
                         <Controller name="volume" control={control} render={({ field }) => (
                             <TextField
                                 {...field} fullWidth size="small" type="number" label={t('entryForm.labels.volume')}
@@ -96,8 +103,8 @@ export function AddWoodEntry({ onAddAction, woodTypeList, dropoffLocationList }:
 
                             />
                         )} />
-                    </Grid>
-                    <Grid item xs={12} sm={2}>
+                    </Box>
+                    <Box sx={{ gridColumn: { xs: '1 / -1', sm: 'span 2' } }}>
                         <Button
                             variant="contained" size="medium"
                             disabled={!isValid}
@@ -107,8 +114,8 @@ export function AddWoodEntry({ onAddAction, woodTypeList, dropoffLocationList }:
                         >
                             {t('common:buttons.add')}
                         </Button>
-                    </Grid>
-                </Grid>
+                    </Box>
+                </Box>
             </Box>
         </Paper>
     );

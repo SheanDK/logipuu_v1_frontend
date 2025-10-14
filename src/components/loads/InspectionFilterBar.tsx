@@ -2,9 +2,9 @@
 'use client';
 
 import React from 'react';
-import { 
-    Grid, FormControl, InputLabel, Select, MenuItem, ToggleButtonGroup, ToggleButton,
-    InputAdornment, Tooltip, IconButton 
+import {
+    Grid, Box, FormControl, InputLabel, Select, MenuItem, ToggleButtonGroup, ToggleButton,
+    InputAdornment, Tooltip, IconButton
 } from '@mui/material';
 import { SelectChangeEvent } from '@mui/material/Select';
 import { IClientBasicInfo, IVehicleBasicInfo, IDriver } from '@/types';
@@ -18,7 +18,7 @@ export interface ILoadFilters {
     kuljId: string;
 }
 
-// --- FIX: Correct the prop names and add missing ones ---
+
 interface InspectionFilterBarProps {
     filters: ILoadFilters;
     onFilterChangeAction: (name: keyof ILoadFilters, value: string | null) => void;
@@ -35,7 +35,7 @@ export default function InspectionFilterBar({
     vehicleList,
     driverList,
 }: InspectionFilterBarProps) {
-    
+
     const { t } = useTranslation('inspectionFilterBar');
 
     const handleSelectChange = (event: SelectChangeEvent<string>) => {
@@ -54,15 +54,22 @@ export default function InspectionFilterBar({
     };
 
     return (
-        <Grid container spacing={2} alignItems="center">
-            <Grid item>
+        <Box
+            sx={{
+                display: 'grid',
+                gap: 2,
+                alignItems: 'center',
+                gridTemplateColumns: { xs: '1fr', md: 'repeat(12, 1fr)' },
+            }}
+        >
+            <Box>
                 <ToggleButtonGroup value={filters.status} exclusive onChange={handleStatusChange} size="small">
                     <ToggleButton value="active">{t('status.active')}</ToggleButton>
                     <ToggleButton value="pending_inspection">{t('status.inspection')}</ToggleButton>
                     <ToggleButton value="all">{t('status.all')}</ToggleButton>
                 </ToggleButtonGroup>
-            </Grid>
-            <Grid item xs={12} sm={12} md={3} sx={{ minWidth: 120 }}>
+            </Box>
+            <Box sx={{ gridColumn: { xs: '1 / -1', md: 'span 3' } }}>
                 <FormControl fullWidth size="small">
                     <InputLabel id="customer-filter-label">{t('labels.customer')}</InputLabel>
                     <Select
@@ -71,14 +78,14 @@ export default function InspectionFilterBar({
                         value={filters.asiakasId || ''}
                         label={t('labels.customer')}
                         onChange={handleSelectChange}
-                        endAdornment={ filters.asiakasId && ( <InputAdornment position="end" sx={{ marginRight: '24px' }}><Tooltip title={t('tooltips.clearCustomer')}><IconButton size="small" onClick={(e) => handleClearFilter(e, 'asiakasId')}><ClearIcon fontSize="small" /></IconButton></Tooltip></InputAdornment> )}
+                        endAdornment={filters.asiakasId && (<InputAdornment position="end" sx={{ marginRight: '24px' }}><Tooltip title={t('tooltips.clearCustomer')}><IconButton size="small" onClick={(e) => handleClearFilter(e, 'asiakasId')}><ClearIcon fontSize="small" /></IconButton></Tooltip></InputAdornment>)}
                     >
                         <MenuItem value=""><em>{t('all.allCustomers')}</em></MenuItem>
                         {clientList.map((client: IClientBasicInfo) => (<MenuItem key={client.id} value={client.id}>{client.name}</MenuItem>))}
                     </Select>
                 </FormControl>
-            </Grid>
-            <Grid item xs={12} sm={12} md={3} sx={{ minWidth: 120 }}>
+            </Box>
+            <Box sx={{ gridColumn: { xs: '1 / -1', md: 'span 3' }}}>
                 <FormControl fullWidth size="small">
                     <InputLabel id="vehicle-filter-label">{t('labels.vehicle')}</InputLabel>
                     <Select
@@ -87,14 +94,14 @@ export default function InspectionFilterBar({
                         value={filters.kalustoNro || ''}
                         label={t('labels.vehicle')}
                         onChange={handleSelectChange}
-                        endAdornment={ filters.kalustoNro && ( <InputAdornment position="end" sx={{ marginRight: '24px' }}><Tooltip title={t('tooltips.clearVehicle')}><IconButton size="small" onClick={(e) => handleClearFilter(e, 'kalustoNro')}><ClearIcon fontSize="small" /></IconButton></Tooltip></InputAdornment> )}
+                        endAdornment={filters.kalustoNro && (<InputAdornment position="end" sx={{ marginRight: '24px' }}><Tooltip title={t('tooltips.clearVehicle')}><IconButton size="small" onClick={(e) => handleClearFilter(e, 'kalustoNro')}><ClearIcon fontSize="small" /></IconButton></Tooltip></InputAdornment>)}
                     >
                         <MenuItem value=""><em>{t('all.allVehicles')}</em></MenuItem>
                         {vehicleList.map((vehicle: IVehicleBasicInfo) => (<MenuItem key={vehicle.id} value={vehicle.id}>{vehicle.registrationNo}</MenuItem>))}
                     </Select>
                 </FormControl>
-            </Grid>
-            <Grid item xs={12} sm={12} md={3} sx={{ minWidth: 120 }}>
+            </Box>
+            <Box sx={{ gridColumn: { xs: '1 / -1', md: 'span 3' }}}>
                 <FormControl fullWidth size="small">
                     <InputLabel id="driver-filter-label">{t('labels.driver')}</InputLabel>
                     <Select
@@ -103,15 +110,13 @@ export default function InspectionFilterBar({
                         value={filters.kuljId || ''}
                         label={t('labels.driver')}
                         onChange={handleSelectChange}
-                        endAdornment={ filters.kuljId && ( <InputAdornment position="end" sx={{ marginRight: '24px' }}><Tooltip title={t('tooltips.clearDriver')}><IconButton size="small" onClick={(e) => handleClearFilter(e, 'kuljId')}><ClearIcon fontSize="small" /></IconButton></Tooltip></InputAdornment> )}
+                        endAdornment={filters.kuljId && (<InputAdornment position="end" sx={{ marginRight: '24px' }}><Tooltip title={t('tooltips.clearDriver')}><IconButton size="small" onClick={(e) => handleClearFilter(e, 'kuljId')}><ClearIcon fontSize="small" /></IconButton></Tooltip></InputAdornment>)}
                     >
                         <MenuItem value=""><em>{t('all.allDrivers')}</em></MenuItem>
                         {driverList.map((driver: IDriver) => (<MenuItem key={driver.driverId} value={driver.driverId}>{driver.name}</MenuItem>))}
                     </Select>
                 </FormControl>
-            </Grid>
-        </Grid>
+            </Box>
+        </Box>
     );
 }
-
-//<Grid item xs={12} sm={12} md={3} sx={{ minWidth: 120 }}>

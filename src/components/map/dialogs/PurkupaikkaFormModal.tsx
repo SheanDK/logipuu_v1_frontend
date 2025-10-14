@@ -235,7 +235,7 @@ export default function PurkupaikkaFormModal({
                                                     const isCurrentlyEditing = editingSiteId === site.purkupaikkaId;
                                                     return (
                                                         <ListItem key={site.purkupaikkaId} divider>
-                                                            <Tooltip title={site.isVisibleOnMap ?  t('tooltips.visibleOnMap') : t('tooltips.hiddenFromMap')}>
+                                                            <Tooltip title={site.isVisibleOnMap ? t('tooltips.visibleOnMap') : t('tooltips.hiddenFromMap')}>
                                                                 <Box component="span" sx={{ display: 'inline-block' }}><Switch edge="start" checked={!!site.isVisibleOnMap} onChange={() => handleVisibilityToggle(site)} size="small" disabled={isCurrentlyEditing} /></Box>
                                                             </Tooltip>
 
@@ -267,11 +267,18 @@ export default function PurkupaikkaFormModal({
                                             <Typography variant="overline" color="text.secondary" gutterBottom>{t('sections.addNewSite')}</Typography>
                                             {errorMessage && <Alert severity="error" sx={{ mb: 2 }}>{errorMessage}</Alert>}
                                             {successMessage && <Alert severity="success" sx={{ mb: 2 }}>{successMessage}</Alert>}
-                                            <Grid container spacing={2} alignItems="center">
-                                                <Grid item xs={12} sm={5}><Controller name="name" control={control} render={({ field }) => (<TextField {...field} label={t('fields.newSiteName')} fullWidth required error={!!errors.name} helperText={errors.name?.message} />)} /></Grid>
-                                                <Grid item xs={6} sm={3.5}><Controller name="latitude" control={control} render={({ field }) => (<TextField {...field} value={field.value ?? ''} label={t('fields.latitude')} type="number" fullWidth required error={!!errors.latitude} helperText={errors.latitude?.message} />)} /></Grid>
-                                                <Grid item xs={6} sm={3.5}><Controller name="longitude" control={control} render={({ field }) => (<TextField {...field} value={field.value ?? ''} label={t('fields.longitude')} type="number" fullWidth required error={!!errors.longitude} helperText={errors.longitude?.message} />)} /></Grid>
-                                            </Grid>
+                                            <Box
+                                                sx={{
+                                                    display: 'grid',
+                                                    gap: 2,
+                                                    alignItems: 'center',
+                                                    gridTemplateColumns: { xs: '1fr', sm: '5fr 3.5fr 3.5fr' },
+                                                }}
+                                            >
+                                                <Box><Controller name="name" control={control} render={({ field }) => (<TextField {...field} label={t('fields.newSiteName')} fullWidth required error={!!errors.name} helperText={errors.name?.message} />)} /></Box>
+                                                <Box><Controller name="latitude" control={control} render={({ field }) => (<TextField {...field} value={field.value ?? ''} label={t('fields.latitude')} type="number" fullWidth required error={!!errors.latitude} helperText={errors.latitude?.message} />)} /></Box>
+                                                <Box><Controller name="longitude" control={control} render={({ field }) => (<TextField {...field} value={field.value ?? ''} label={t('fields.longitude')} type="number" fullWidth required error={!!errors.longitude} helperText={errors.longitude?.message} />)} /></Box>
+                                            </Box>
                                             <Button type="submit" variant="contained" fullWidth disabled={isSaving} sx={{ mt: 2, backgroundColor: '#A98E71', '&:hover': { backgroundColor: '#8E735B' } }}>
                                                 {isSaving ? <CircularProgress size={24} color="inherit" /> : t('actions.addToList')}
                                             </Button>
