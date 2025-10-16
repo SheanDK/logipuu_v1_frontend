@@ -1,0 +1,7 @@
+{
+  "selectVehicleTitle": "Valitse ajoneuvo tähän työvuoroon",
+  "selectVehicleHelp": "Valitse ajoneuvo, jolla ajat. Voit vaihtaa valinnan myöhemmin tarvittaessa.",
+  "vehicleLabel": "Ajoneuvo",
+  "vehicleAria": "Valitse ajoneuvo",
+  "confirmAndStart": "Vahvista ja aloita"
+}

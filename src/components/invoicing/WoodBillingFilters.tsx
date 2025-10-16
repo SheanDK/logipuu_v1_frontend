@@ -152,7 +152,7 @@ const WoodBillingFilters: React.FC<Props> = ({ onSubmit, loading, initialValues 
   useEffect(() => {
     if (!initialValues) return;
 
-    const normalizeId = (value: string | number | null | undefined) =>
+    const normalizeId = (value: string | number | null | undefined): string | null =>
       value === null || value === undefined ? null : String(value);
 
     const customerId = normalizeId(initialValues.customerId);
@@ -160,30 +160,33 @@ const WoodBillingFilters: React.FC<Props> = ({ onSubmit, loading, initialValues 
 
     const matchedCustomer = customerId
       ? customerOptions.find((c) => {
-          const candidateIds = [c.id, (c as any)?.clientId]
-            .filter(Boolean)
-            .map((id) => String(id));
-          return candidateIds.includes(customerId);
-        }) ?? null
+        const candidateIds = [c.id, (c as any)?.clientId]
+          .filter(Boolean)
+          .map((id) => String(id));
+        return candidateIds.includes(customerId);
+      }) ?? null
       : null;
 
     const matchedVehicle = vehicleId
       ? carOptions.find((v) => {
-          const candidateIds = [v.id, (v as any)?.vehicleNo, (v as any)?.registrationNo]
-            .filter(Boolean)
-            .map((id) => String(id));
-          return candidateIds.includes(vehicleId);
-        }) ?? null
+        const candidateIds = [v.id, (v as any)?.vehicleNo, (v as any)?.registrationNo]
+          .filter(Boolean)
+          .map((id) => String(id));
+        return candidateIds.includes(vehicleId);
+      }) ?? null
       : null;
 
-    const rawWoodIds = Array.isArray(initialValues.woodTypeIds)
-      ? initialValues.woodTypeIds.map((id) => normalizeId(id)).filter(Boolean)
+    const rawWoodIds: string[] = Array.isArray(initialValues.woodTypeIds)
+      ? initialValues.woodTypeIds
+        .map((id) => normalizeId(id))
+        .filter((id): id is string => typeof id === 'string')
       : [];
-    const availableWoodIds = new Set(woodTypeOptions.map((w) => String(w.id)));
+    const availableWoodIds = new Set<string>(woodTypeOptions.map((w) => String(w.id)));
 
-    const selectedWoodTypes = rawWoodIds.length
-      ? rawWoodIds.filter((id) => availableWoodIds.size === 0 || availableWoodIds.has(id))
-      : woodTypeOptions.map((w) => String(w.id));
+    const selectedWoodTypes: string[] =
+      rawWoodIds.length > 0
+        ? rawWoodIds.filter((id) => availableWoodIds.size === 0 || availableWoodIds.has(id))
+        : woodTypeOptions.map((w) => String(w.id));
 
     reset(
       {

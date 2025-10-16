@@ -14,8 +14,8 @@ const DEFAULT_ZOOM = 6;
 
 // Custom icon for the draggable marker
 const draggableIcon = new L.Icon({
-    iconUrl: '/images/wing.png', // Ensure this marker icon is in public/images
-    iconRetinaUrl: '/images/marker-icon-2x.png',
+    iconUrl: '/images/wing.png', 
+    iconRetinaUrl: '/images/wing.png',
     shadowUrl: '/images/marker-shadow.png',
     iconSize: [40, 41],
     iconAnchor: [12, 41],

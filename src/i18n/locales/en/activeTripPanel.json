@@ -1,0 +1,32 @@
+{
+    "activeTrip": {
+        "title": "Active Trip",
+        "haulingPrefix": "Hauling",
+        "from": " from",
+        "to": " to",
+        "na": "N/A",
+        "alertNoCoords": "Location coordinates not available for this navigation point.",
+        "loading": "Updating…",
+        "close": "Hide panel",
+        "toPickup": "To Pickup",
+        "toPickupAria": "Navigate to pickup location",
+        "toDropoff": "To Drop-off",
+        "toDropoffAria": "Navigate to drop-off location",
+        "pause": "Pause Trip",
+        "pauseAria": "Pause current trip",
+        "resume": "Resume Trip",
+        "resumeAria": "Resume current trip",
+        "complete": "Complete Trip",
+        "completeAria": "Mark trip as completed"
+    },
+    "status": {
+        "inProgress": "In Progress",
+        "paused": "Paused",
+        "completed": "Completed",
+        "enRouteToDestination": "En route to destination",
+        "assigned": "Assigned",
+        "atOrigin": "At origin",
+        "atDestination": "At destination",
+        "na": "—"
+    }
+}

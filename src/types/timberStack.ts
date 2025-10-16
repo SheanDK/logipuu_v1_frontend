@@ -191,6 +191,8 @@ export interface ITimberStackListItem {
   jaljella: number;
   sijaintiLat: number | null;
   sijaintiLong: number | null;
+  aktiivinen?: boolean | 0 | 1 | '0' | '1';
+  valmis?: boolean | 0 | 1 | '0' | '1';
 }
 
 export type IEditablePuulaani = IMapTimberStack & {

@@ -9,6 +9,7 @@ import { MapContainer, TileLayer, Marker, Popup, useMap, LayersControl, ZoomCont
 import FlagIcon from '@mui/icons-material/Flag';
 import NavigationIcon from '@mui/icons-material/Navigation';
 import { renderToStaticMarkup } from 'react-dom/server';
+import { useTranslation } from 'react-i18next';
 
 // --- Leaflet Icon setup ---
 // @ts-ignore
@@ -61,6 +62,8 @@ const MapFocusController = ({ focusedTripId, trips, onFocusCompleteAction }:
 };
 
 export default function TripMap({ legs, puulaanit, purkupaikat, driverLocation, focusedTripId, onFocusCompleteAction, onMarkerClickAction }: TripMapProps) {
+    const { t } = useTranslation('tripMap');
+
     const bounds = useMemo(() => {
         const allCoords: LatLngTuple[] = [];
         legs.forEach(leg => {
@@ -77,7 +80,7 @@ export default function TripMap({ legs, puulaanit, purkupaikat, driverLocation, 
     if (!bounds) {
         return (
             <Box sx={{height: '100%', width: '100%', bgcolor: 'grey.300', display: 'flex', alignItems: 'center', justifyContent: 'center'}}>
-                <Typography color="text.secondary">No locations to display on map.</Typography>
+                <Typography color="text.secondary">{t('noLocations')}</Typography>
             </Box>
         );
     }
@@ -92,15 +95,15 @@ export default function TripMap({ legs, puulaanit, purkupaikat, driverLocation, 
         >
             <ZoomControl position="bottomleft" />
             <LayersControl position="bottomleft">
-                <LayersControl.BaseLayer checked name="Street Map"><TileLayer attribution='&copy; OpenStreetMap' url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" /></LayersControl.BaseLayer>
-                <LayersControl.BaseLayer name="Satellite"><TileLayer url='https://{s}.google.com/vt/lyrs=s&x={x}&y={y}&z={z}' maxZoom={20} subdomains={['mt1','mt2','mt3']} attribution='&copy; Google' /></LayersControl.BaseLayer>
+                <LayersControl.BaseLayer checked name={t('layers.street')}><TileLayer attribution='&copy; OpenStreetMap' url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" /></LayersControl.BaseLayer>
+                <LayersControl.BaseLayer name={t('layers.satellite')}><TileLayer url='https://{s}.google.com/vt/lyrs=s&x={x}&y={y}&z={z}' maxZoom={20} subdomains={['mt1','mt2','mt3']} attribution='&copy; Google' /></LayersControl.BaseLayer>
             </LayersControl>
             
             {/* Markers for the active trip's route */}
             {legs.map((leg, index) => (
                 <React.Fragment key={`leg-${leg.kuormaId}`}>
-                    {leg.originCoords && <Marker position={[leg.originCoords.lat, leg.originCoords.lng]} icon={createPickupIcon(index)}><Popup><b>Pickup #{index + 1}:</b><br />{leg.originName}</Popup></Marker>}
-                    {leg.destinationCoords && <Marker position={[leg.originCoords.lat, leg.destinationCoords.lng]} icon={purkupaikkaIcon}><Popup><b>Destination:</b><br />{leg.destinationName}</Popup></Marker>}
+                    {leg.originCoords && <Marker position={[leg.originCoords.lat, leg.originCoords.lng]} icon={createPickupIcon(index)}><Popup><b>{t('pickup', { index: index + 1 })}</b><br />{leg.originName}</Popup></Marker>}
+                    {leg.destinationCoords && <Marker position={[leg.originCoords.lat, leg.destinationCoords.lng]} icon={purkupaikkaIcon}><Popup><b>{t('destination')}</b><br />{leg.destinationName}</Popup></Marker>}
                 </React.Fragment>
             ))}
             
@@ -129,7 +132,7 @@ export default function TripMap({ legs, puulaanit, purkupaikat, driverLocation, 
                 </Marker>
             ))}
 
-            {driverLocation && ( <Marker position={[driverLocation.lat, driverLocation.lng]} icon={driverIcon}><Popup>Your current location</Popup></Marker> )}
+            {driverLocation && ( <Marker position={[driverLocation.lat, driverLocation.lng]} icon={driverIcon}><Popup>{t('yourLocation')}</Popup></Marker> )}
             
             <MapFocusController trips={puulaanit} {...{focusedTripId, onFocusCompleteAction}} />
         </MapContainer>

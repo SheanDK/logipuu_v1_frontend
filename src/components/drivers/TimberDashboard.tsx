@@ -15,15 +15,16 @@ import { LeafletMouseEvent } from 'leaflet';
 import { useDriverSession } from '@/contexts/DriverSessionContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { useSnackbar } from 'notistack';
+import { useTranslation } from 'react-i18next';
 
 // --- Types ---
 import { TripMapProps, TripLegForMap } from '../loads/TripMap';
 import { PuulaaniDetails, ICreateLoadDto, LoadTypeEnum } from '@/types';
 
 // --- Services ---
-import { getDriverMapData, DriverMapData, getActiveTripForDriver, updateTimberEntryStatus } from '@/services/driverViewService';
-import { getTimberStackFullDetails } from '@/services/timberStackService';
-import { createLoad, deleteLoad, getLoadForEdit, updateLoad, updateLoadStatus } from '@/services/loadService';
+import {  getDriverMapData, DriverMapData, getActiveTripForDriver, updateTimberEntryStatus } from '@/services/driverViewService';
+import { getTimberStackFullDetails, updateTimberStackFull } from '@/services/timberStackService';
+import { createLoad, deleteLoad, getLoadById, getLoadForEdit, updateLoad, updateLoadStatus } from '@/services/loadService';
 
 // --- Child Components ---
 const TripMap = dynamic<TripMapProps>(() => import('../loads/TripMap'), { ssr: false, loading: () => <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100%' }}><CircularProgress /></Box> });
@@ -33,19 +34,20 @@ const ActiveTripPanel = dynamic(() => import('./ActiveTripPanel'), { ssr: false 
 const ConfirmationDialog = dynamic(() => import('../common/ConfirmationDialog'), { ssr: false });
 
 // --- Inner Components ---
-const MapView = ({ puulaanit, purkupaikat, onMarkerClick, currentLocation }: { 
-    puulaanit: any[], 
+const MapView = ({ puulaanit, purkupaikat, onMarkerClick, currentLocation }: {
+    puulaanit: any[],
     purkupaikat: any[],
     onMarkerClick: (id: number, event: LeafletMouseEvent) => void,
-    currentLocation: { lat: number; lng: number } | null 
+    currentLocation: { lat: number; lng: number } | null
 }) => {
-    const puulaaniMarkers: TripLegForMap[] = useMemo(() => puulaanit.map(p => ({ kuormaId: p.id, originName: p.name, originCoords: { lat: Number(p.latitude), lng: Number(p.longitude) }})), [puulaanit]);
-    const purkupaikkaMarkers: TripLegForMap[] = useMemo(() => purkupaikat.map(p => ({ kuormaId: p.id * -1, originName: p.name, originCoords: { lat: Number(p.latitude), lng: Number(p.longitude) }})), [purkupaikat]);
-    
-    return (<TripMap legs={[]} puulaanit={puulaaniMarkers} purkupaikat={purkupaikkaMarkers} driverLocation={currentLocation} onMarkerClickAction={onMarkerClick} {...{focusedTripId: null, onFocusCompleteAction: ()=>{}}}/>);
+    const puulaaniMarkers: TripLegForMap[] = useMemo(() => puulaanit.map(p => ({ kuormaId: p.id, originName: p.name, originCoords: { lat: Number(p.latitude), lng: Number(p.longitude) } })), [puulaanit]);
+    const purkupaikkaMarkers: TripLegForMap[] = useMemo(() => purkupaikat.map(p => ({ kuormaId: p.id * -1, originName: p.name, originCoords: { lat: Number(p.latitude), lng: Number(p.longitude) } })), [purkupaikat]);
+
+    return (<TripMap legs={[]} puulaanit={puulaaniMarkers} purkupaikat={purkupaikkaMarkers} driverLocation={currentLocation} onMarkerClickAction={onMarkerClick} {...{ focusedTripId: null, onFocusCompleteAction: () => { } }} />);
 };
 
 const ListView = ({ puulaanit, onPuulaaniClick }: { puulaanit: any[], onPuulaaniClick: (id: number) => void }) => (
+    // Corrected layout for ListView
     <Paper sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
         <Typography variant="h6" gutterBottom sx={{ p: 2, pb: 1, flexShrink: 0 }}>Timber Sites (Puulaanit)</Typography>
         <Divider />
@@ -76,17 +78,19 @@ export default function TimberDashboard({ onBackAction }: TimberDashboardProps) 
     const [isDeleting, setIsDeleting] = useState(false);
     const [activeLoad, setActiveLoad] = useState<any | null>(null);
     const [isConfirmationOpen, setIsConfirmationOpen] = useState(false);
+    const [confirmationState, setConfirmationState] = useState({ title: '', message: '', onConfirm: () => {} });
     const [isUpdatingStatus, setIsUpdatingStatus] = useState(false);
     const [isTripPanelVisible, setIsTripPanelVisible] = useState(true);
+    const { t } = useTranslation('timberDashboard');
 
     const socketRef = useRef<Socket | null>(null);
     const watchIdRef = useRef<number | null>(null);
 
     const fetchMapData = useCallback(() => {
-        if (!selectedVehicleId) { setError("No vehicle selected."); setIsLoading(false); return; }
+        if (!selectedVehicleId) { setError(t('errors.noVehicle'));  setIsLoading(false); return; }
         setIsLoading(true);
         getDriverMapData(selectedVehicleId)
-            .then(data => setMapData(data)).catch(() => setError("Failed to load map data."))
+            .then(data => setMapData(data)).catch(() => setError(t('errors.mapLoad')))
             .finally(() => setIsLoading(false));
     }, [selectedVehicleId]);
 
@@ -194,28 +198,29 @@ export default function TimberDashboard({ onBackAction }: TimberDashboardProps) 
     const handleMarkerClick = useCallback(async (puulaaniId: number) => {
         if (puulaaniId < 0) return;
         setIsTripPanelVisible(false);
-        setIsPanelLoading(true); 
+        setIsPanelLoading(true);
         setSelectedPuulaaniDetails(null);
         try {
             const puulaaniData = await getTimberStackFullDetails(puulaaniId);
             setSelectedPuulaaniDetails(puulaaniData);
-        } catch (err) { enqueueSnackbar("Failed to load Puulaani details.", { variant: 'error' }); } 
+        } catch (err) { enqueueSnackbar(t('toasts.puulaaniLoadError'), { variant: 'error' }); }
         finally { setIsPanelLoading(false); }
     }, [enqueueSnackbar]);
     
+
     const handleEditLoad = async (loadId: number) => {
         try {
             const loadData = await getLoadForEdit(loadId);
             setLoadToEdit(loadData);
             setIsCreateLoadModalOpen(true);
         } catch (err) {
-            enqueueSnackbar("Failed to fetch load details for editing.", { variant: 'error' });
+            enqueueSnackbar(t('toasts.editLoadFetchError'), { variant: 'error' });
         }
     };
 
     const handleCreateOrUpdateLoad = async (data: any, isEdit: boolean) => {
         if (!user || typeof user.driverNumericId !== 'number' || !selectedVehicleId) {
-            enqueueSnackbar("User or vehicle session is invalid.", { variant: 'error' }); return;
+            enqueueSnackbar(t('toasts.invalidSession'), { variant: 'error' }); return;
         }
         const driverId = user.driverNumericId;
         const vehicleId = Number(selectedVehicleId);
@@ -227,8 +232,8 @@ export default function TimberDashboard({ onBackAction }: TimberDashboardProps) 
                     reitti: data.route, lisatiedot: data.notes
                 };
                 await updateLoad(data.kuormaId, payload);
-                enqueueSnackbar('Load updated successfully!', { variant: 'success' });
-            } catch (err: any) { enqueueSnackbar(err.response?.data?.message || "Failed to update load.", { variant: 'error' }); }
+                enqueueSnackbar(t('toasts.loadUpdated'), { variant: 'success' });
+            } catch (err: any) { enqueueSnackbar(err.response?.data?.message || t('toasts.loadUpdateFailed'), { variant: 'error' }); }
         } else {
             const legPromises = data.map((leg: any) => {
                 const payload: ICreateLoadDto = {
@@ -242,8 +247,8 @@ export default function TimberDashboard({ onBackAction }: TimberDashboardProps) 
             });
             try {
                 await Promise.all(legPromises);
-                enqueueSnackbar('Load(s) created successfully!', { variant: 'success' });
-            } catch (err: any) { enqueueSnackbar(err.response?.data?.message || "An error occurred.", { variant: 'error' }); }
+                enqueueSnackbar(t('toasts.loadsCreated'), { variant: 'success' });
+            } catch (err: any) { enqueueSnackbar(err.response?.data?.message || t('toasts.genericError'), { variant: 'error' }); }
         }
         setIsCreateLoadModalOpen(false);
         setLoadToEdit(null);
@@ -253,7 +258,7 @@ export default function TimberDashboard({ onBackAction }: TimberDashboardProps) 
 
     const handleSavePuulaani = async (updatedDetails: PuulaaniDetails) => {
         try {
-            // --- THIS IS THE FIX ---
+
             // Create a payload that only contains the information needed to update statuses.
             const payload = updatedDetails.timberEntries.map(e => ({
                 puutavaraId: e.puutavaraId,
@@ -262,14 +267,14 @@ export default function TimberDashboard({ onBackAction }: TimberDashboardProps) 
 
             // Call the new, dedicated service function for drivers
             await updateTimberEntryStatus(updatedDetails.puulaani.puulaaniId, payload);
-            
-            enqueueSnackbar('Statuses updated successfully!', { variant: 'success' });
-            
+
+            enqueueSnackbar(t('toasts.statusesUpdated'), { variant: 'success' });
+
             // Refresh the panel data to confirm changes from the server
             handleMarkerClick(updatedDetails.puulaani.puulaaniId);
 
-        } catch(err: any) {
-            enqueueSnackbar(err.response?.data?.message || 'Failed to save changes.', { variant: 'error' });
+        } catch (err: any) {
+            enqueueSnackbar(err.response?.data?.message || t('toasts.saveFailed'), { variant: 'error' });
         }
     };
 
@@ -278,29 +283,29 @@ export default function TimberDashboard({ onBackAction }: TimberDashboardProps) 
         setIsDeleting(true);
         try {
             await deleteLoad(loadToDelete.kuormaId);
-            enqueueSnackbar('Load deleted successfully!', { variant: 'success' });
+            enqueueSnackbar(t('toasts.loadDeleted'), { variant: 'success' });
             setLoadToDelete(null);
             if (selectedPuulaaniDetails) {
                 handleMarkerClick(selectedPuulaaniDetails.puulaani.puulaaniId);
             }
         } catch (err: any) {
-            enqueueSnackbar(err.response?.data?.message || "Failed to delete load.", { variant: 'error' });
+            enqueueSnackbar(err.response?.data?.message || t('toasts.deleteFailed'), { variant: 'error' });
         } finally {
             setIsDeleting(false);
         }
     };
 
-      useEffect(() => {
+     useEffect(() => {
         const checkForActiveTrip = async () => {
             try {
                 const trip = await getActiveTripForDriver();
                 if (trip) {
                     const detailsForPanel = {
-                        puulaaniName: trip.puulaaniName, 
-                        puulaaniLat: trip.puulaaniLat, 
+                        puulaaniName: trip.puulaaniName,
+                        puulaaniLat: trip.puulaaniLat,
                         puulaaniLng: trip.puulaaniLng,
-                        purkupaikkaName: trip.purkupaikkaName, 
-                        purkupaikkaLat: trip.purkupaikkaLat, 
+                        purkupaikkaName: trip.purkupaikkaName,
+                        purkupaikkaLat: trip.purkupaikkaLat,
                         purkupaikkaLng: trip.purkupaikkaLng,
                         puutavaralaji: trip.puutavaralaji
                     };
@@ -314,7 +319,7 @@ export default function TimberDashboard({ onBackAction }: TimberDashboardProps) 
         checkForActiveTrip();
     }, [setActiveTrip]);
 
-     const handleStartTrip = async (load: any) => {
+    const handleStartTrip = async (load: any) => {
         if (!selectedPuulaaniDetails) return;
         setIsUpdatingStatus(true);
         try {
@@ -333,9 +338,9 @@ export default function TimberDashboard({ onBackAction }: TimberDashboardProps) 
             setActiveTrip(String(updatedLoad.kuormaId));
             setSelectedPuulaaniDetails(null);
             setIsTripPanelVisible(true);
-            enqueueSnackbar('Trip started!', { variant: 'success' });
+            enqueueSnackbar(t('toasts.tripStarted'), { variant: 'success' });
         } catch (err: any) {
-            enqueueSnackbar(err.response?.data?.message || "Failed to start trip.", { variant: 'error' });
+            enqueueSnackbar(err.response?.data?.message || t('toasts.tripStartFailed'), { variant: 'error' });
         } finally {
             setIsUpdatingStatus(false);
         }
@@ -349,14 +354,16 @@ export default function TimberDashboard({ onBackAction }: TimberDashboardProps) 
             if (newStatus === 'Completed') {
                 setActiveLoad(null);
                 setActiveTrip(null);
-                enqueueSnackbar('Trip completed!', { variant: 'success' });
+                enqueueSnackbar(t('toasts.tripCompleted'), { variant: 'success' });
                 fetchMapData();
             } else {
+                // --- THIS IS THE FIX ---
+                // Explicitly define the type of the 'prev' parameter
                 setActiveLoad((prev: any) => ({ ...prev, ...updatedLoad }));
-                enqueueSnackbar(`Trip status updated to ${newStatus}`, { variant: 'info' });
+                enqueueSnackbar(t('toasts.tripStatusUpdated', { status: newStatus }), { variant: 'info' });
             }
         } catch (err: any) {
-            enqueueSnackbar(err.response?.data?.message || "Failed to update status.", { variant: 'error' });
+            enqueueSnackbar(err.response?.data?.message || t('toasts.statusUpdateFailed'), { variant: 'error' });
         } finally {
             setIsUpdatingStatus(false);
         }
@@ -371,27 +378,41 @@ export default function TimberDashboard({ onBackAction }: TimberDashboardProps) 
     };
 
     const handleNewLoadRequest = (details: PuulaaniDetails) => {
+        // --- THIS IS THE FIX ---
+        // Check if a trip is already active
         if (activeLoad) {
-            enqueueSnackbar("Please complete the current trip before starting a new one.", { variant: 'warning' });
+            // If active, show a warning instead of opening the create modal
+            enqueueSnackbar("Please complete or cancel the current active trip before starting a new one.", { variant: 'warning' });
         } else {
             setSelectedPuulaaniDetails(details);
             setIsCreateLoadModalOpen(true);
         }
     };
 
+
+
+    // --- FIX: 'actions' variable was declared twice ---
+    const speedDialActions = [
+        { icon: <ArrowBackIcon />, name: 'Change Mode', handler: onBackAction },
+        { icon: view === 'map' ? <ListIcon /> : <MapIcon />, name: view === 'map' ? 'Show List' : 'Show Map', handler: () => handleViewChange(view === 'map' ? 'list' : 'map') },
+    ];
+
     const actions = [
-        { icon: <ArrowBackIcon />, name: 'Change Mode', handler: handleBackActionWithConfirmation },
+        { icon: <ArrowBackIcon />, name: 'Change Mode', handler: onBackAction },
         { icon: view === 'map' ? <ListIcon /> : <MapIcon />, name: view === 'map' ? 'Show List' : 'Show Map', handler: () => handleViewChange(view === 'map' ? 'list' : 'map') }
     ];
 
     if (isLoading) { return <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100%' }}><CircularProgress /></Box>; }
     if (error) { return <Alert severity="error" sx={{ m: 2 }}>{error}</Alert>; }
 
-     return (
+    return (
         <Box sx={{ height: '100%', width: '100%', position: 'relative' }}>
+            
+            {/* --- THIS IS THE FIX: Part 1 - Always render the content first --- */}
+            {/* The Map and List views will now take up the entire screen space */}
             <Box sx={{ height: '100%', width: '100%', display: view === 'map' ? 'block' : 'none' }}>
-                <MapView 
-                    puulaanit={mapData?.puulaanit || []} 
+                <MapView
+                    puulaanit={mapData?.puulaanit || []}
                     purkupaikat={mapData?.purkupaikat || []}
                     onMarkerClick={(id) => handleMarkerClick(id)}
                     currentLocation={currentLocation}
@@ -399,6 +420,7 @@ export default function TimberDashboard({ onBackAction }: TimberDashboardProps) 
             </Box>
 
             <Box sx={{ height: '100%', display: view === 'list' ? 'block' : 'none' }}>
+                {/* Add padding to the top of the list view to avoid being covered by the floating controls */}
                 <Box sx={{ pt: {xs: 8, sm: 10}, height: '100%', p: {xs: 1, sm: 2} }}>
                     <ListView 
                         puulaanit={mapData?.puulaanit || []}
@@ -410,56 +432,82 @@ export default function TimberDashboard({ onBackAction }: TimberDashboardProps) 
                 </Box>
             </Box>
 
+            {/* --- THIS IS THE FIX: Part 2 - Render floating controls on top --- */}
+
+            {/* Floating Control Panel for Desktop */}
             <Paper 
                 elevation={4} 
                 sx={{ 
-                    position: 'absolute', top: 16, left: 16, zIndex: 1000, p: 1, 
-                    backgroundColor: 'rgba(255, 255, 255, 0.9)', backdropFilter: 'blur(5px)',
-                    borderRadius: 2, display: { xs: 'none', sm: 'flex' } 
+                    position: 'absolute', 
+                    top: 16, 
+                    left: 16, 
+                    zIndex: 1000, 
+                    p: 1, 
+                    backgroundColor: 'rgba(255, 255, 255, 0.9)', 
+                    backdropFilter: 'blur(5px)',
+                    borderRadius: 2, 
+                    display: { xs: 'none', sm: 'flex' } 
                 }}
             >
                 <Stack direction="row" spacing={1}>
-                    <Button variant="outlined" size="small" startIcon={<ArrowBackIcon />} onClick={handleBackActionWithConfirmation}>Change Mode</Button>
+                    <Button variant="outlined" size="small" startIcon={<ArrowBackIcon />} onClick={handleBackActionWithConfirmation}>{t('buttons.changeMode')}</Button>
                     <Button variant="outlined" size="small" startIcon={view === 'map' ? <ListIcon /> : <MapIcon />} onClick={() => handleViewChange(view === 'map' ? 'list' : 'map')}>
-                        {view === 'map' ? 'List View' : 'Map View'}
+                        {view === 'map' ? t('buttons.listView') : t('buttons.mapView')}
                     </Button>
                     {activeLoad && !isTripPanelVisible && (
                         <Button variant="contained" size="small" color="primary" startIcon={<RestoreIcon />} onClick={() => setIsTripPanelVisible(true)}>
-                            Show Active Trip
+                            {t('buttons.showActiveTrip')}
                         </Button>
                     )}
                 </Stack>
             </Paper>
 
+            {/* All other floating components */}
             <PuulaaniDetailsPanel 
-                details={selectedPuulaaniDetails} isLoading={isPanelLoading} onCloseAction={() => setSelectedPuulaaniDetails(null)} 
-                onCreateLoadAction={handleNewLoadRequest} onSaveAction={handleSavePuulaani} onEditLoadAction={handleEditLoad} 
-                onDeleteLoadAction={(load) => setLoadToDelete(load)} onStartTripAction={handleStartTrip} 
-                activeLoadId={activeLoad?.kuormaId || null} hasActiveTrip={!!activeLoad} 
+                details={selectedPuulaaniDetails} 
+                isLoading={isPanelLoading} 
+                onCloseAction={() => setSelectedPuulaaniDetails(null)} 
+                 onCreateLoadAction={handleNewLoadRequest} 
+                onSaveAction={handleSavePuulaani} 
+                onEditLoadAction={handleEditLoad} 
+                onDeleteLoadAction={(load) => setLoadToDelete(load)} 
+                onStartTripAction={handleStartTrip} 
+                activeLoadId={activeLoad?.kuormaId || null}
+                hasActiveTrip={!!activeLoad} 
             />
             <CreateLoadModal open={isCreateLoadModalOpen} onCloseAction={() => { setIsCreateLoadModalOpen(false); setLoadToEdit(null); }} puulaaniDetails={selectedPuulaaniDetails} onSubmitAction={handleCreateOrUpdateLoad} initialLoadData={loadToEdit} />
             <ActiveTripPanel activeLoad={activeLoad} open={isTripPanelVisible} onToggleVisibilityAction={() => setIsTripPanelVisible((prev) => !prev)} onStatusUpdateAction={handleStatusUpdate} isUpdating={isUpdatingStatus} />
-            
             <ConfirmationDialog 
-                open={!!loadToDelete} onClose={() => setLoadToDelete(null)} onConfirm={handleDeleteLoad} 
-                title="Confirm Load Deletion" message={`Are you sure you want to delete this load? (Timber: ${loadToDelete?.puutavaralaji || 'N/A'})`} 
-                isConfirming={isDeleting} confirmButtonText="Delete" confirmButtonColor="error" 
+            open={!!loadToDelete} 
+            onClose={() => setLoadToDelete(null)} 
+            onConfirm={handleDeleteLoad} 
+            title="Confirm Load Deletion" 
+            message={`Are you sure you want to delete this load? (Timber: ${loadToDelete?.puutavaralaji || 'N/A'})`} 
+            isConfirming={isDeleting} 
+            confirmButtonText="Delete" 
+            confirmButtonColor="error" 
             />
+
              <ConfirmationDialog
-                open={isConfirmationOpen} onClose={() => setIsConfirmationOpen(false)}
-                onConfirm={() => { setIsConfirmationOpen(false); onBackAction(); }}
+                open={isConfirmationOpen}
+                onClose={() => setIsConfirmationOpen(false)}
+                onConfirm={() => {
+                    setIsConfirmationOpen(false);
+                    onBackAction();
+                }}
                 title="Active Trip Warning"
-                message="You have an active trip. Changing mode will not stop the trip. Are you sure you want to proceed?"
-                confirmButtonText="Yes, Proceed" confirmButtonColor="warning"
+                message="You have an active trip in progress. Changing mode will not stop the trip. Are you sure you want to proceed?"
+                confirmButtonText="Yes, Proceed"
+                confirmButtonColor="warning"
             />
-            
+
             {/* SpeedDial for Mobile (already a floating component) */}
             <SpeedDial
                 ariaLabel="Actions" sx={{ position: 'absolute', bottom: 16, right: 16, display: { xs: 'flex', sm: 'none' }, zIndex: 1200 }}
                 icon={<SpeedDialIcon />} onClose={() => setIsSpeedDialOpen(false)} onOpen={() => setIsSpeedDialOpen(true)} open={isSpeedDialOpen}
                 hidden={!!selectedPuulaaniDetails || (!!activeLoad && isTripPanelVisible)}
             >
-                {actions.map((action) => (<SpeedDialAction key={action.name} icon={action.icon} tooltipTitle={action.name} onClick={() => { action.handler(); setIsSpeedDialOpen(false); }}/>))}
+                {actions.map((action) => (<SpeedDialAction key={action.name} icon={action.icon} tooltipTitle={action.name} onClick={() => { action.handler(); setIsSpeedDialOpen(false); }} />))}
             </SpeedDial>
         </Box>
     );

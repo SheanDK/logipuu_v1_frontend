@@ -105,14 +105,25 @@ export const updateTimberStackLocation = async (id: number, location: { latitude
 
 export const fetchTimberStackList = async (filters: ITimberStackListFilters): Promise<ITimberStackListItem[]> => {
     try {
-        const params = new URLSearchParams();
-        if (filters.status && filters.status !== 'all') params.append('status', filters.status);
-        if (filters.clientId) params.append('clientId', filters.clientId);
-        if (filters.vehicleId) params.append('vehicleId', filters.vehicleId);
-        if (filters.timberTypeId) params.append('timberTypeId', filters.timberTypeId);
-        const response = await apiClient.get<ITimberStackListItem[]>(API_ENDPOINT, { 
-            params: filters 
-        });
+        const params: Record<string, string> = {};
+
+        if (filters.status && filters.status !== 'all') {
+            params.status = filters.status;
+        }
+
+        if (filters.clientId) {
+            params.clientId = filters.clientId;
+        }
+
+        if (filters.vehicleId) {
+            params.vehicleId = filters.vehicleId;
+        }
+
+        if (filters.timberTypeId) {
+            params.timberTypeId = filters.timberTypeId;
+        }
+
+        const response = await apiClient.get<ITimberStackListItem[]>(API_ENDPOINT, { params });
         return response.data;
     } catch (error) {
         console.error("SERVICE ERROR: Failed to fetch timber stack list", error);

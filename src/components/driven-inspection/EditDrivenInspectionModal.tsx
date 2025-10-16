@@ -6,19 +6,21 @@ import { LocalizationProvider, DatePicker } from '@mui/x-date-pickers';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 
 import React, { useEffect, useState } from 'react';
-import { Dialog, 
-    DialogTitle, 
-    DialogContent, 
-    DialogActions, 
-    Button, 
-    Typography, 
-    IconButton, 
-    Grid, 
-    TextField, 
-    CircularProgress, 
+import {
+    Dialog,
+    DialogTitle,
+    DialogContent,
+    DialogActions,
+    Button,
+    Typography,
+    IconButton,
+    Grid,
+    TextField,
+    CircularProgress,
     Alert,
     Box,
-    Stack  } from '@mui/material';
+    Stack
+} from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
 import { useForm, Controller, SubmitHandler } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -44,7 +46,7 @@ interface EditInspectionModalProps {
     open: boolean;
     initialData: IDrivenInspectionListItem;
     onClose: () => void;
-    onSaveSuccess: (updatedItem: any) => void; 
+    onSaveSuccess: (updatedItem: any) => void;
 }
 
 const EditInspectionModal: React.FC<EditInspectionModalProps> = ({ open, initialData, onClose, onSaveSuccess }) => {
@@ -76,7 +78,7 @@ const EditInspectionModal: React.FC<EditInspectionModalProps> = ({ open, initial
 
         try {
             // --- FIX: Declare a variable to hold the result of the API call ---
-            let savedItem; 
+            let savedItem;
 
             // --- SMART SAVE LOGIC ---
             if (initialData.kuormaId) {
@@ -110,7 +112,7 @@ const EditInspectionModal: React.FC<EditInspectionModalProps> = ({ open, initial
             }
 
             // --- FIX: Now 'savedItem' is defined and can be passed to the parent component ---
-            onSaveSuccess(savedItem); 
+            onSaveSuccess(savedItem);
 
         } catch (err: any) {
             setError(err?.response?.data?.message || 'Failed to save changes.');
@@ -129,87 +131,87 @@ const EditInspectionModal: React.FC<EditInspectionModalProps> = ({ open, initial
                 </DialogTitle>
                 <DialogContent dividers sx={{ px: 3, pt: 1, pb: 2 }}>
                     {error && <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>}
-                    
+
                     <Box sx={{ mb: 2 }}>
-                        <Grid container columnSpacing={3}>
-                            <Grid item>
-                                <Typography variant="body2" color="text.secondary">
-                                    <strong>Driving Order:</strong> {initialData.drivingOrderNo || 'N/A'}
-                                </Typography>
-                            </Grid>
-                            <Grid item>
-                                <Typography variant="body2" color="text.secondary">
-                                    <strong>Customer:</strong> {initialData.customerName || 'N/A'}
-                                </Typography>
-                            </Grid>
-                        </Grid>
+                        <Box sx={{ display: 'flex', gap: 3, flexWrap: 'wrap' }}>
+                            <Typography variant="body2" color="text.secondary">
+                                <strong>Driving Order:</strong> {initialData.drivingOrderNo || 'N/A'}
+                            </Typography>
+                            <Typography variant="body2" color="text.secondary">
+                                <strong>Customer:</strong> {initialData.customerName || 'N/A'}
+                            </Typography>
+                        </Box>
                     </Box>
 
-                    
-
-                    <Grid container spacing={2}>
-                        <Grid item xs={6}>
-                    <Controller
-                        name="date"
-                        control={control}
-                        render={({ field }) => (
-                            <LocalizationProvider dateAdapter={AdapterDayjs}>
-                                <DatePicker
-                                    label="Date"
-                                    value={field.value || null} // Ensure value is not undefined
-                                    onChange={(newValue) => field.onChange(newValue)}
-                                    slotProps={{
-                                        textField: {
-                                            size: 'small',
-                                            fullWidth: true,
-                                            error: !!errors.date,
-                                            // --- THIS IS THE FIX ---
-                                            // Ensure the helperText is always a string or undefined.
-                                            // The `String()` constructor handles different types gracefully.
-                                            helperText: errors.date ? String(errors.date.message) : '',
-                                        }
-                                    }}
-                                />
-                            </LocalizationProvider>
-                        )}
-                    />
-                </Grid>
-                        <Grid item xs={6}>
+                    <Box
+                        sx={{
+                            display: 'grid',
+                            gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr' },
+                            gap: 2,
+                        }}
+                    >
+                        <Box>
+                            <Controller
+                                name="date"
+                                control={control}
+                                render={({ field }) => (
+                                    <LocalizationProvider dateAdapter={AdapterDayjs}>
+                                        <DatePicker
+                                            label="Date"
+                                            value={field.value || null} // Ensure value is not undefined
+                                            onChange={(newValue) => field.onChange(newValue)}
+                                            slotProps={{
+                                                textField: {
+                                                    size: 'small',
+                                                    fullWidth: true,
+                                                    error: !!errors.date,
+                                                    // --- THIS IS THE FIX ---
+                                                    // Ensure the helperText is always a string or undefined.
+                                                    // The `String()` constructor handles different types gracefully.
+                                                    helperText: errors.date ? String(errors.date.message) : '',
+                                                }
+                                            }}
+                                        />
+                                    </LocalizationProvider>
+                                )}
+                            />
+                        </Box>
+                        <Box>
                             <Controller name="cubicMeters" control={control} render={({ field }) => (
                                 <TextField {...field} value={field.value ?? ''} label="Cubic Metres (m³)" type="number" fullWidth variant="outlined" size="small" onChange={e => field.onChange(e.target.value === '' ? null : Number(e.target.value))} error={!!errors.cubicMeters} helperText={errors.cubicMeters?.message} />
-                            )}/>
-                        </Grid>
-                        <Grid item xs={6}>
+                            )} />
+                        </Box>
+                        <Box>
                             <Controller name="receptionNo" control={control} render={({ field }) => (
                                 <TextField {...field} value={field.value ?? ''} label="Reception No." fullWidth variant="outlined" size="small" error={!!errors.receptionNo} helperText={errors.receptionNo?.message} />
-                            )}/>
-                        </Grid>
-                        <Grid item xs={6}>
-                             <Controller name="freightKm" control={control} render={({ field }) => (
+                            )} />
+                        </Box>
+                        <Box>
+                            <Controller name="freightKm" control={control} render={({ field }) => (
                                 <TextField {...field} value={field.value ?? ''} label="Freight (km)" type="number" fullWidth variant="outlined" size="small" onChange={e => field.onChange(e.target.value === '' ? null : Number(e.target.value))} error={!!errors.freightKm} helperText={errors.freightKm?.message} />
-                            )}/>
-                        </Grid>
-                        <Grid item xs={6}>
+                            )} />
+                        </Box>
+                        <Box>
                             <Controller name="drivingRoute" control={control} render={({ field }) => (
                                 <TextField {...field} value={field.value ?? ''} label="Driving Route" fullWidth variant="outlined" size="small" error={!!errors.drivingRoute} helperText={errors.drivingRoute?.message} />
-                            )}/>
-                        </Grid>
-                        <Grid item xs={6}>
+                            )} />
+                        </Box>
+                        <Box>
                             <Controller name="pcs" control={control} render={({ field }) => (
                                 <TextField {...field} value={field.value ?? ''} label="Pcs" type="number" fullWidth variant="outlined" size="small" onChange={e => field.onChange(e.target.value === '' ? null : Number(e.target.value))} error={!!errors.pcs} helperText={errors.pcs?.message} />
-                            )}/>
-                        </Grid>
-                        <Grid item xs={6}>
+                            )} />
+                        </Box>
+                        <Box>
                             <Controller name="hours" control={control} render={({ field }) => (
                                 <TextField {...field} value={field.value ?? ''} label="Hours" type="number" fullWidth variant="outlined" size="small" onChange={e => field.onChange(e.target.value === '' ? null : Number(e.target.value))} error={!!errors.hours} helperText={errors.hours?.message} />
-                            )}/>
-                        </Grid>
-                        <Grid item xs={12}>
-                             <Controller name="additionalInformation" control={control} render={({ field }) => (
+                            )} />
+                        </Box>
+                        <Box>
+                            <Controller name="additionalInformation" control={control} render={({ field }) => (
                                 <TextField {...field} value={field.value ?? ''} label="Additional Information" multiline rows={2} fullWidth variant="outlined" size="small" error={!!errors.additionalInformation} helperText={errors.additionalInformation?.message} />
-                            )}/>
-                        </Grid>
-                    </Grid>
+                            )} />
+                        </Box>
+                    </Box>
                 </DialogContent>
                 <DialogActions sx={{ p: 2 }}>
                     <Button onClick={onClose} disabled={isSaving}>Cancel</Button>

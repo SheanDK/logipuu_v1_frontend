@@ -1,0 +1,7 @@
+{
+  "selectVehicleTitle": "Select Your Vehicle for this Session",
+  "selectVehicleHelp": "Please select the vehicle you will be operating. This can be changed later if needed.",
+  "vehicleLabel": "Vehicle",
+  "vehicleAria": "Select a vehicle",
+  "confirmAndStart": "Confirm and Start"
+}

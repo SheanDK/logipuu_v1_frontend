@@ -25,6 +25,38 @@ const PuulaaniDetailsModal = dynamic(() => import('@/components/map/dialogs/Puul
 const AddPuulaaniModal = dynamic(() => import('@/components/timber-management/dialogs/AddPuulaaniModal'), { ssr: false });
 const ConfirmationDialog = dynamic(() => import('@/components/common/ConfirmationDialog'), { ssr: false });
 
+const normalizeBoolean = (value?: boolean | number | string | null): boolean => {
+    if (typeof value === 'boolean') return value;
+    if (typeof value === 'number') return value === 1;
+    if (typeof value === 'string') {
+        const normalized = value.trim().toLowerCase();
+        return normalized === 'true' || normalized === '1';
+    }
+    return false;
+};
+
+const filterRowsByStatus = (
+    items: ITimberStackListItem[],
+    status?: ITimberStackListFilters['status']
+) => {
+    const resolvedStatus = status ?? 'active';
+
+    if (resolvedStatus === 'all') {
+        return items;
+    }
+
+    if (resolvedStatus === 'completed') {
+        return items.filter((item) => normalizeBoolean(item.valmis));
+    }
+
+    return items.filter((item) => {
+        const isCompleted = normalizeBoolean(item.valmis);
+        if (isCompleted) return false;
+        if (item.aktiivinen === undefined) return true;
+        return normalizeBoolean(item.aktiivinen);
+    });
+};
+
 function CustomFooter({ rows }: { rows: ITimberStackListItem[] }) {
     const { t } = useTranslation(['timberManagement']);
     const { totalKok, totalJaljella } = useMemo(() => {
@@ -96,7 +128,7 @@ export default function PuulaaniListPage() {
                 fetchAllWoodTypes()
             ]);
             
-            setRows(puulaaniData);
+            setRows(filterRowsByStatus(puulaaniData, filters.status));
 
             const transformedClients: IClientBasicInfo[] = clientData.map(client => ({
                 id: String(client.asiakkaanId),
@@ -283,7 +315,7 @@ export default function PuulaaniListPage() {
     }, [canEdit, canDelete, handleEditClick, handleDeleteClick]);
 
     return (
-        <Box sx={{ p: 3, m: -3, height: 'calc(100vh - 64px)', display: 'flex', flexDirection: 'column', gap: 2}}>
+        <Box sx={{ p: 3, m: -3, height: 'calc(100vh - 64px)', display: 'flex', flexDirection: 'column', gap: 2, minHeight: 0}}>
             <Paper sx={{ p: 2, flexShrink: 0 }}>
                 <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
                     <Typography variant="h5" component="h1" sx={{ fontWeight: 'bold' }}>{t('title')}</Typography>
@@ -300,7 +332,20 @@ export default function PuulaaniListPage() {
 
             {error && <Alert severity="error" sx={{ flexShrink: 0 }}>{error}</Alert>}
             
-            <Box sx={{ flexGrow: 1, width: '100%', backgroundColor: 'background.paper', borderRadius: 1, boxShadow: 1 }}>
+            <Box 
+                sx={{ 
+                    flexGrow: 1, 
+                    width: '100%', 
+                    backgroundColor: 'background.paper', 
+                    borderRadius: 1, 
+                    boxShadow: 1,
+                    display: 'flex',
+                    flexDirection: 'column',
+                    overflow: 'hidden',
+                    minHeight: 0,
+                    minWidth: 0,
+                }}
+            >
                 <DataGrid
                     rows={rows}
                     columns={columns}
@@ -313,8 +358,18 @@ export default function PuulaaniListPage() {
                     pageSizeOptions={[10, 25, 50, 100]}
                     slots={{ footer: () => <CustomFooter rows={rows} /> }}
                     sx={{
-    height: '100%',
+    flex: 1,
+    minHeight: 0,
     border: 'none', // Remove the default border
+    '& .MuiDataGrid-main': {
+        flex: 1,
+        minHeight: 0,
+    },
+    '& .MuiDataGrid-virtualScroller': {
+        overflowY: 'auto',
+        overflowX: 'auto',
+        flexGrow: 1,
+    },
     // Style for the column headers container
     '& .MuiDataGrid-columnHeaders': {
         backgroundColor: (theme) => theme.palette.grey[200], // A slightly darker grey

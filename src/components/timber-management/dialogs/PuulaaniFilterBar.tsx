@@ -53,36 +53,102 @@ export default function PuulaaniFilterBar({
                 </Grid>
 
                 {/* Customer Filter */}
-                <Grid item xs={12} sm={12} md={3} sx={{ minWidth: 120 }}>
+                <Grid
+                    item
+                    xs={12}
+                    sm={6}
+                    md="auto"
+                    sx={{
+                        minWidth: { xs: '100%', md: 240 },
+                        display: 'flex',
+                        alignItems: 'center',
+                    }}
+                >
                     <Autocomplete
                         options={clientList}
                         getOptionLabel={(option) => option.name}
                         value={clientList.find(c => c.id === filters.clientId) || null}
                         onChange={(event, newValue) => { onFilterChangeAction('clientId', newValue ? String(newValue.id) : null); }}
+                        sx={{
+                            width: { xs: '100%', md: 'auto' },
+                            minWidth: { xs: '100%', md: 240 },
+                            '& .MuiInputBase-root': {
+                                width: { xs: '100%', md: 'auto' },
+                                minWidth: { xs: '100%', md: 240 },
+                                flexWrap: 'nowrap',
+                            },
+                            '& .MuiAutocomplete-input': {
+                                width: 'auto !important',
+                            },
+                        }}
                         renderInput={(params) => <TextField {...params} label={t('customer')} size="small" />}
                     />
                 </Grid>
 
                 {/* Vehicle Filter */}
-                <Grid item xs={12} sm={12} md={3} sx={{ minWidth: 120 }}>
+                <Grid
+                    item
+                    xs={12}
+                    sm={6}
+                    md="auto"
+                    sx={{
+                        minWidth: { xs: '100%', md: 200 },
+                        display: 'flex',
+                        alignItems: 'center',
+                    }}
+                >
                      <Autocomplete
                         options={vehicleList}
                         // --- FIX 3: Use the correct property 'registrationNo' from IVehicleBasicInfo ---
                         getOptionLabel={(option) => option.registrationNo}
                         value={vehicleList.find(v => v.id === filters.vehicleId) || null}
                         onChange={(event, newValue) => { onFilterChangeAction('vehicleId', newValue ? String(newValue.id) : null); }}
-                        renderInput={(params) => <TextField {...params} label={t('vehicle')}size="small" />}
+                        sx={{
+                            width: { xs: '100%', md: 'auto' },
+                            minWidth: { xs: '100%', md: 200 },
+                            '& .MuiInputBase-root': {
+                                width: { xs: '100%', md: 'auto' },
+                                minWidth: { xs: '100%', md: 200 },
+                                flexWrap: 'nowrap',
+                            },
+                            '& .MuiAutocomplete-input': {
+                                width: 'auto !important',
+                            },
+                        }}
+                        renderInput={(params) => <TextField {...params} label={t('vehicle')} size="small" />}
                     />
                 </Grid>
 
                 {/* Timber Type Filter */}
-                <Grid item xs={12} sm={12} md={3} sx={{ minWidth: 150 }}>
+                <Grid
+                    item
+                    xs={12}
+                    sm={6}
+                    md="auto"
+                    sx={{
+                        minWidth: { xs: '100%', md: 220 },
+                        display: 'flex',
+                        alignItems: 'center',
+                    }}
+                >
                     <Autocomplete
                         options={timberTypeList}
                         // --- FIX 4: Use the correct properties from IPuutavaraItem ---
                         getOptionLabel={(option) => option.puutavara} // Use 'puutavara' for the name
                         value={timberTypeList.find(t => String(t.puutavaraNro) === filters.timberTypeId) || null}
                         onChange={(event, newValue) => { onFilterChangeAction('timberTypeId', newValue ? String(newValue.puutavaraNro) : null); }}
+                        sx={{
+                            width: { xs: '100%', md: 'auto' },
+                            minWidth: { xs: '100%', md: 220 },
+                            '& .MuiInputBase-root': {
+                                width: { xs: '100%', md: 'auto' },
+                                minWidth: { xs: '100%', md: 220 },
+                                flexWrap: 'nowrap',
+                            },
+                            '& .MuiAutocomplete-input': {
+                                width: 'auto !important',
+                            },
+                        }}
                         renderInput={(params) => <TextField {...params} label={t('timberType')} size="small" />}
                     />
                 </Grid>
