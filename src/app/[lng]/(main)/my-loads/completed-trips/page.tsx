@@ -1,108 +1,169 @@
-// frontend-web/src/app/(main)/completed-trips/page.tsx
-
+// frontend/src/app/(main)/completed-trips/page.tsx
 'use client';
 
-import React, { useState, useEffect } from 'react';
-import {
-    Box, Typography, Paper, CircularProgress, Alert,
-    List, ListItem, ListItemText, Divider, IconButton, Button
-} from '@mui/material';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
+import { Box, Typography, Paper, CircularProgress, Alert, Button, Tabs, Tab } from '@mui/material';
 import { useRouter } from 'next/navigation';
-import dayjs from 'dayjs';
-import 'dayjs/locale/fi';
-
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
+import { DataGrid, GridColDef, GridToolbar } from '@mui/x-data-grid';
 
-import { ILoadListItem } from '../../../../../types';
-import { fetchMyCompletedLoads } from '../../../../../services/loadService';
+import { ILoadListItem } from '@/types';
+import { fetchMyCompletedLoads } from '@/services/loadService';
 import { useTranslation } from '@/i18n/useTranslation';
+import TableSkeletonLoader from '@/components/common/TableSkeletonLoader';
+import CustomNoRowsOverlay from '@/components/common/CustomNoRowsOverlay';
+import ErrorDisplay from '@/components/common/ErrorDisplay'; 
+
+// Custom TabPanel component to show/hide content
+interface TabPanelProps {
+  children?: React.ReactNode;
+  index: number;
+  value: number;
+}
+
+function TabPanel(props: TabPanelProps) {
+  const { children, value, index, ...other } = props;
+  return (
+    <div
+      role="tabpanel"
+      hidden={value !== index}
+      id={`completed-trips-tabpanel-${index}`}
+      aria-labelledby={`completed-trips-tab-${index}`}
+      style={{ height: '100%', width: '100%' }}
+      {...other}
+    >
+      {value === index && (
+        <Box sx={{ height: '100%', width: '100%' }}>{children}</Box>
+      )}
+    </div>
+  );
+}
 
 export default function CompletedTripsPage() {
     const router = useRouter();
-    const [trips, setTrips] = useState<ILoadListItem[]>([]);
+    const [allTrips, setAllTrips] = useState<ILoadListItem[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
-    const { t, i18n } = useTranslation(['completedTrips']);
+    const { t } = useTranslation(['completedTrips', 'common']);
+    
+    // State for the currently selected tab (0 for Timber, 1 for Consignments)
+    const [currentTab, setCurrentTab] = useState(0);
 
-    // Update the dayjs locale to match the i18n language
+    const loadCompletedTrips = useCallback(async () => {
+        setIsLoading(true);
+        setError(null);
+        try {
+            const data = await fetchMyCompletedLoads();
+            setAllTrips(data);
+        } catch (err: any) {
+            setError(err.response?.data?.message || 'Failed to load completed trips.');
+        } finally {
+            setIsLoading(false);
+        }
+    }, []); // Empty dependency array means this function is created only once.
+
     useEffect(() => {
-        dayjs.locale(i18n.language?.startsWith('fi') ? 'fi' : 'en');
-    }, [i18n.language]);
-
-    useEffect(() => {
-        const loadCompletedTrips = async () => {
-            setIsLoading(true);
-            setError(null);
-            try {
-                const data = await fetchMyCompletedLoads();
-                setTrips(data);
-            } catch (err: any) {
-                setError(err.response?.data?.message || t('errors.loadFailed'));
-            } finally {
-                setIsLoading(false);
-            }
-        };
-
         loadCompletedTrips();
-    }, []);
+    }, [loadCompletedTrips]);
 
-    const renderContent = () => {
-        if (isLoading) {
-            return <Box sx={{ display: 'flex', justifyContent: 'center', p: 4 }}><CircularProgress /></Box>;
-        }
+    // useMemo hooks to filter trips based on the selected tab
+    // This is very efficient as it avoids re-filtering on every render.
+    const timberTrips = useMemo(() => 
+        allTrips.filter(trip => trip.tyyppi === 'Timber Load'), 
+    [allTrips]);
 
-        if (error) {
-            return <Alert severity="error" sx={{ m: 2 }}>{error}</Alert>;
-        }
+    const consignmentTrips = useMemo(() => 
+        allTrips.filter(trip => trip.tyyppi === 'Consignment'), 
+    [allTrips]);
 
-        if (trips.length === 0) {
-            return <Typography sx={{ p: 3, textAlign: 'center', color: 'text.secondary' }}>{t('empty')}</Typography>;
-        }
+    const columns = useMemo((): GridColDef[] => [
+        {
+            field: 'pvm',
+            headerName: t('Date', { ns: 'completedTrips' }),
+            width: 120,
+            type: 'date',
+            valueGetter: (value) => new Date(value),
+            renderCell: (params) => new Date(params.value).toLocaleDateString(),
+        },
+        { field: 'asiakkaanNimi', headerName: t('Customer', { ns: 'completedTrips' }), flex: 1.5 },
+        { field: 'lahto', headerName: t('Origin', { ns: 'completedTrips' }), flex: 1 },
+        { field: 'kohde', headerName: t('Destination', { ns: 'completedTrips' }), flex: 1 },
+        // 'Type' column is no longer needed as we are using tabs
+    ], [t]);
 
-        return (
-            <List sx={{ p: 0 }}>
-                {trips.map((trip, index) => {
-                    const label =
-                        trip.ajomaaraysNro ||
-                        t('item.fallbackLabel', { id: trip.kuormaId });
-
-                    const dateStr = dayjs(trip.pvm).format(t('dateFormat'));
-
-                    return (
-                        <React.Fragment key={trip.kuormaId}>
-                            <ListItem>
-                                <ListItemText
-                                    primary={t('item.primary', { label })}
-                                    secondary={t('item.secondary', {
-                                        date: dateStr,
-                                        customer: trip.asiakkaanNimi,
-                                    })}
-                                />
-                            </ListItem>
-                            {index < trips.length - 1 && <Divider />}
-                        </React.Fragment>
-                    );
-                })}
-            </List>
-        );
+    const handleTabChange = (event: React.SyntheticEvent, newValue: number) => {
+        setCurrentTab(newValue);
     };
 
-    return (
-        <Box sx={{ p: { xs: 2, sm: 3 }, maxWidth: '960px', mx: 'auto' }}>
-            <Paper variant="outlined">
-                <Box sx={{ p: 2, display: 'flex', alignItems: 'center', borderBottom: 1, borderColor: 'divider' }}>
-                    <Button
-                        startIcon={<ArrowBackIcon />}
-                        onClick={() => router.push('/my-loads')}
-                        sx={{ mr: 2 }}
-                    >
-                        {t('buttons.backToMap')}
-                    </Button>
-                    <Typography variant="h6" component="h1">
-                        {t('title')}
-                    </Typography>
+     if (error) {
+        return <ErrorDisplay message={error} onRetry={loadCompletedTrips} />;
+    }
+
+     return (
+        <Box sx={{ p: { xs: 1, sm: 3 }, height: 'calc(100vh - 64px)', display: 'flex', flexDirection: 'column' }}>
+            
+            {/* --- THE FIX IS HERE --- */}
+            {/* 1. Add 'justifyContent: space-between' to the Box. */}
+            {/* 2. Move the Typography (title) before the Button. */}
+            <Box sx={{ mb: 2, display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexShrink: 0 }}>
+                <Typography variant="h5" component="h1">
+                    {t('title', { ns: 'completedTrips' })}
+                </Typography>
+                <Button startIcon={<ArrowBackIcon />} onClick={() => router.push('/my-loads')}>
+                    {t('Back To Dashboard', { ns: 'common' })}
+                </Button>
+            </Box>
+
+            
+            
+            <Paper sx={{ flexGrow: 1, width: '100%', display: 'flex', flexDirection: 'column' }}>
+                <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
+                    <Tabs value={currentTab} onChange={handleTabChange} aria-label="completed trips tabs">
+                        <Tab label={`Timber Loads (${timberTrips.length})`} id="completed-trips-tab-0" />
+                        <Tab label={`Consignments (${consignmentTrips.length})`} id="completed-trips-tab-1" />
+                    </Tabs>
                 </Box>
-                {renderContent()}
+
+                {/* --- 2. Use the Skeleton Loader while data is fetching --- */}
+                {isLoading ? (
+                    <TableSkeletonLoader rows={10} />
+                ) : (
+                    <>
+                <TabPanel value={currentTab} index={0}>
+                    <DataGrid
+                        rows={timberTrips}
+                        columns={columns}
+                        getRowId={(row) => row.kuormaId}
+                        loading={isLoading}
+                        initialState={{ sorting: { sortModel: [{ field: 'pvm', sort: 'desc' }] } }}
+                        localeText={{ noRowsLabel: t('empty', { ns: 'completedTrips' }) }}
+                        disableRowSelectionOnClick
+                        sx={{ '& .MuiDataGrid-columnHeaderTitle': { fontWeight: 'bold' } }}
+                        slots={{
+                            toolbar: GridToolbar,
+                            noRowsOverlay: () => <CustomNoRowsOverlay message="No completed Timber Loads found." />
+                        }}
+                    />
+                </TabPanel>
+
+                <TabPanel value={currentTab} index={1}>
+                    <DataGrid
+                        rows={consignmentTrips}
+                        columns={columns}
+                        getRowId={(row) => row.kuormaId}
+                        loading={isLoading}
+                        initialState={{ sorting: { sortModel: [{ field: 'pvm', sort: 'desc' }] } }}
+                        localeText={{ noRowsLabel: t('empty', { ns: 'completedTrips' }) }}
+                        disableRowSelectionOnClick
+                        sx={{ '& .MuiDataGrid-columnHeaderTitle': { fontWeight: 'bold' } }}
+                        slots={{
+                            toolbar: GridToolbar,
+                            noRowsOverlay: () => <CustomNoRowsOverlay message="No completed Consignments found." />
+                        }}
+                    />  
+                </TabPanel>
+                </>
+                )}
             </Paper>
         </Box>
     );

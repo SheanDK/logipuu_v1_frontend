@@ -49,12 +49,14 @@ export interface ILoadListItem {
     isActive: boolean;
     lahto?: string;
     kohde?: string;
+    tyyppi: string; 
 
     // --- THIS IS FIX 2 ---
     // Add the optional origin coordinate properties.
     // They are optional (?) because some old data or different load types might not have them.
     originLat?: number | null;
     originLng?: number | null;
+    
 }
 
 export interface ILoadDetails {

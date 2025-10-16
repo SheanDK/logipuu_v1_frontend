@@ -4,27 +4,27 @@ export interface IConsignmentKuormaListItem {
     kuormaId: number;
     pvm: string;
     asiakkaanNimi: string;
-    // NEW: Add fields from screenshot SS1
-    autoNro: string; // For "Auto" column
-    kuljettajanNimi: string; // For "Kuljettaja" column
+    autoNro: string;
+    kuljettajanNimi: string;
     rahtikirjaCount: number;
     status: string;
 }
 
 export interface IRahtikirjaItem {
     id?: number;
-    // NEW: Add all fields from screenshot SS2/SS3
-    rahtikirjanNumero?: string; // "Nro" field
+    rahtikirjanNumero?: string;
     reitti: string;
+    // FIX: Allow form inputs to be strings, as HTML inputs always return strings.
     m3: number | string;
     km: number | string;
-    kpl?: number | string; // "Kpl" field
-    jako?: number | string; // "Jako" field
-    // tievero and lisatiedot can be added if needed
+    kpl?: number | string;
+    jako?: number | string;
+    tievero?: number | string; // For 'Road Toll'
+    lisatiedot?: string;       // For 'Notes'
 }
 
 export interface IConsignmentForm {
-    asiakasId: number | null;
+    asiakasId: number | null | ''; 
     pvm: string;
     lisatiedot?: string;
     rahtikirjat: IRahtikirjaItem[];

@@ -62,3 +62,4 @@ export const updateConsignment = async (id: number, payload: IConsignmentForm): 
         throw error;
     }
 };
+
