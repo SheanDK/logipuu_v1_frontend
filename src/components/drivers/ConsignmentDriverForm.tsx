@@ -15,6 +15,17 @@ import { useTranslation } from '@/i18n/useTranslation';
 
 const ConfirmationDialog = dynamic(() => import('@/components/common/ConfirmationDialog'), { ssr: false });
 
+const EMPTY_WAYBILL_VALUES: IRahtikirjaItem = {
+    rahtikirjanNumero: '',
+    reitti: '',
+    m3: '',
+    km: '',
+    kpl: '',
+    jako: '',
+    tievero: '',
+    lisatiedot: '',
+};
+
 const WaybillEditorForm = ({
     onAddWaybill,
     onUpdateWaybill,
@@ -27,7 +38,9 @@ const WaybillEditorForm = ({
     onCancelEdit: () => void;
 }) => {
     const isEditMode = editingWaybill !== null;
-    const methods = useForm<IRahtikirjaItem>();
+    const methods = useForm<IRahtikirjaItem>({
+        defaultValues: { ...EMPTY_WAYBILL_VALUES },
+    });
     const { handleSubmit, reset, control } = methods;
     const { t } = useTranslation(['consignmentForm']);
 
@@ -46,7 +59,7 @@ const WaybillEditorForm = ({
             };
             reset(defaultValues);
         } else {
-            reset({ rahtikirjanNumero: '', reitti: '', m3: '', km: '', kpl: '', jako: '', tievero: '', lisatiedot: '' });
+            reset({ ...EMPTY_WAYBILL_VALUES });
         }
     }, [editingWaybill, isEditMode, reset]);
 
@@ -56,7 +69,7 @@ const WaybillEditorForm = ({
         } else {
             onAddWaybill(data);
             // Reset the form ONLY when in 'add' mode.
-            reset({ rahtikirjanNumero: '', reitti: '', m3: '', km: '', kpl: '', jako: '', tievero: '', lisatiedot: '' });
+            reset({ ...EMPTY_WAYBILL_VALUES });
         }
     };
 
