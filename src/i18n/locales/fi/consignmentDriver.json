@@ -1,0 +1,16 @@
+{
+  "title": "Rahtikirjat",
+  "buttons": {
+    "newConsignment": "Uusi rahtikirja",
+    "changeMode": "Vaihda tilaa"
+  },
+  "errors": {
+    "loadFailed": "Rahtikirjojen lataus epäonnistui. Yritä uudelleen."
+  },
+  "noRowsSelectedVehicle": "Valitulle ajoneuvolle ei löytynyt rahtikirjoja.",
+  "date": "Päivä",
+  "customer": "Asiakas",
+  "vehicle": "Ajoneuvo",
+  "driver": "Kuljettaja",
+  "dateFormat": "DD.MM.YYYY"
+}

@@ -1,16 +1,30 @@
 {
-  "title": "Päättyneet ajot",
+  "title": "Valmiit ajot",
   "buttons": {
-    "backToMap": "Takaisin kartalle"
+    "backToDashboard": "Takaisin etusivulle"
   },
   "errors": {
-    "loadFailed": "Päättyneiden ajojen lataus epäonnistui."
+    "loadFailed": "Valmiiden ajojen lataus epäonnistui."
   },
-  "empty": "Päättyneitä ajoja ei löytynyt.",
+  "empty": "Valmiita ajoja ei löytynyt.",
   "item": {
     "primary": "Ajo: {{label}}",
     "fallbackLabel": "Kuorma #{{id}}",
-    "secondary": "Valmistui: {{date}} | Asiakas: {{customer}}"
+    "secondary": "Valmistunut: {{date}} | Asiakas: {{customer}}"
   },
-  "dateFormat": "DD.MM.YYYY"
+  "dateFormat": "DD.MM.YYYY",
+
+  "date": "Päivä",
+  "customer": "Asiakas",
+  "origin": "Lähtö",
+  "destination": "Kohde",
+  "noTimber": "Valmiita puutavarakuormia ei löytynyt.",
+  "noConsignments": "Valmiita lähetyksiä ei löytynyt.",
+  "ariaTabs": "valmiiden ajojen välilehdet",
+  "tabs": {
+    "timber": "Puutavarakuormat",
+    "consignments": "Rahtikirja-ajot",
+    "timberWithCount": "Puutavarakuormat ({{count}})",
+    "consignmentsWithCount": "Rahtikirja-ajot ({{count}})"
+  }
 }

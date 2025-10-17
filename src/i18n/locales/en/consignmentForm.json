@@ -1,0 +1,56 @@
+{
+  "sections": {
+    "loadDetails": "Load Details"
+  },
+  "waybillEditor": {
+    "titleNew": "New Waybill",
+    "titleEdit": "Edit Waybill"
+  },
+  "waybillsList": {
+    "title": "Waybills"
+  },
+  "fields": {
+    "waybillNumber": "Waybill Number",
+    "route": "Route",
+    "m3": "m³",
+    "pcs": "Pcs",
+    "dist": "Dist",
+    "km": "Km",
+    "roadToll": "Road Toll",
+    "notes": "Notes",
+    "date": "Date",
+    "selectCustomer": "Select Customer"
+  },
+  "table": {
+    "numberShort": "No.",
+    "action": "Action"
+  },
+  "buttons": {
+    "addWaybill": "Add Waybill",
+    "updateWaybill": "Update Waybill",
+    "saveChanges": "Save Changes",
+    "sendLoad": "Send Load"
+  },
+  "errors": {
+    "customersLoadFailed": "Failed to load customers.",
+    "consignmentLoadFailed": "Failed to load consignment.",
+    "vehicleNotSelected": "Vehicle not selected.",
+    "submissionFailed": "Submission failed."
+  },
+  "toasts": {
+    "consignmentUpdated": "Consignment updated!",
+    "consignmentCreated": "Consignment created!",
+    "waybillRemoved": "Waybill removed."
+  },
+  "dialog": {
+    "confirmDeleteTitle": "Confirm Waybill Deletion",
+    "confirmDeleteMessage": "Are you sure you want to remove this waybill? (No: {{number}})",
+    "delete": "Delete"
+  },
+  "validation": {
+    "waybillNumberRequired": "Waybill number is required",
+    "routeRequired": "Route is required",
+    "customerRequired": "Customer is required"
+  },
+  "dateFormat": "DD MMM YYYY"
+}

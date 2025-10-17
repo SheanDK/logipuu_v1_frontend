@@ -1,0 +1,16 @@
+{
+  "title": "Consignments",
+  "buttons": {
+    "newConsignment": "New Consignment",
+    "changeMode": "Change Mode"
+  },
+  "errors": {
+    "loadFailed": "Failed to load consignments. Please try again."
+  },
+  "noRowsSelectedVehicle": "No consignments found for the selected vehicle.",
+  "date": "Date",
+  "customer": "Customer",
+  "vehicle": "Vehicle",
+  "driver": "Driver",
+  "dateFormat": "DD MMM YYYY"
+}

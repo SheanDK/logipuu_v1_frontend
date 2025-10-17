@@ -1,0 +1,56 @@
+{
+  "sections": {
+    "loadDetails": "Kuorman tiedot"
+  },
+  "waybillEditor": {
+    "titleNew": "Uusi rahtikirja",
+    "titleEdit": "Muokkaa rahtikirjaa"
+  },
+  "waybillsList": {
+    "title": "Rahtikirjat"
+  },
+  "fields": {
+    "waybillNumber": "Rahtikirjan numero",
+    "route": "Reitti",
+    "m3": "m³",
+    "pcs": "Kpl",
+    "dist": "Jako",
+    "km": "Km",
+    "roadToll": "Tievero",
+    "notes": "Lisätiedot",
+    "date": "Päivä",
+    "selectCustomer": "Valitse asiakas"
+  },
+  "table": {
+    "numberShort": "Nro",
+    "action": "Toiminnot"
+  },
+  "buttons": {
+    "addWaybill": "Lisää rahtikirja",
+    "updateWaybill": "Päivitä rahtikirja",
+    "saveChanges": "Tallenna muutokset",
+    "sendLoad": "Lähetä kuorma"
+  },
+  "errors": {
+    "customersLoadFailed": "Asiakkaiden lataus epäonnistui.",
+    "consignmentLoadFailed": "Rahtikirjan lataus epäonnistui.",
+    "vehicleNotSelected": "Ajoneuvoa ei ole valittu.",
+    "submissionFailed": "Lähetys epäonnistui."
+  },
+  "toasts": {
+    "consignmentUpdated": "Rahtikirja päivitetty!",
+    "consignmentCreated": "Rahtikirja luotu!",
+    "waybillRemoved": "Rahtikirja poistettu."
+  },
+  "dialog": {
+    "confirmDeleteTitle": "Vahvista rahtikirjan poisto",
+    "confirmDeleteMessage": "Haluatko varmasti poistaa tämän rahtikirjan? (Nro: {{number}})",
+    "delete": "Poista"
+  },
+  "validation": {
+    "waybillNumberRequired": "Rahtikirjan numero on pakollinen",
+    "routeRequired": "Reitti on pakollinen",
+    "customerRequired": "Asiakas on pakollinen"
+  },
+  "dateFormat": "DD.MM.YYYY"
+}

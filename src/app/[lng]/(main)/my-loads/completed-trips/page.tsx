@@ -56,7 +56,7 @@ export default function CompletedTripsPage() {
             const data = await fetchMyCompletedLoads();
             setAllTrips(data);
         } catch (err: any) {
-            setError(err.response?.data?.message || 'Failed to load completed trips.');
+            setError(err.response?.data?.message || t('loadError', { ns: 'completedTrips' }));
         } finally {
             setIsLoading(false);
         }
@@ -79,16 +79,15 @@ export default function CompletedTripsPage() {
     const columns = useMemo((): GridColDef[] => [
         {
             field: 'pvm',
-            headerName: t('Date', { ns: 'completedTrips' }),
+            headerName: t('date', { ns: 'completedTrips' }),
             width: 120,
             type: 'date',
             valueGetter: (value) => new Date(value),
             renderCell: (params) => new Date(params.value).toLocaleDateString(),
         },
-        { field: 'asiakkaanNimi', headerName: t('Customer', { ns: 'completedTrips' }), flex: 1.5 },
-        { field: 'lahto', headerName: t('Origin', { ns: 'completedTrips' }), flex: 1 },
-        { field: 'kohde', headerName: t('Destination', { ns: 'completedTrips' }), flex: 1 },
-        // 'Type' column is no longer needed as we are using tabs
+        { field: 'asiakkaanNimi', headerName: t('customer', { ns: 'completedTrips' }), flex: 1.5 },
+        { field: 'lahto', headerName: t('origin', { ns: 'completedTrips' }), flex: 1 },
+        { field: 'kohde', headerName: t('destination', { ns: 'completedTrips' }), flex: 1 },
     ], [t]);
 
     const handleTabChange = (event: React.SyntheticEvent, newValue: number) => {
@@ -101,26 +100,20 @@ export default function CompletedTripsPage() {
 
      return (
         <Box sx={{ p: { xs: 1, sm: 3 }, height: 'calc(100vh - 64px)', display: 'flex', flexDirection: 'column' }}>
-            
-            {/* --- THE FIX IS HERE --- */}
-            {/* 1. Add 'justifyContent: space-between' to the Box. */}
-            {/* 2. Move the Typography (title) before the Button. */}
+
             <Box sx={{ mb: 2, display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexShrink: 0 }}>
                 <Typography variant="h5" component="h1">
                     {t('title', { ns: 'completedTrips' })}
                 </Typography>
-                <Button startIcon={<ArrowBackIcon />} onClick={() => router.push('/my-loads')}>
-                    {t('Back To Dashboard', { ns: 'common' })}
-                </Button>
             </Box>
 
             
             
             <Paper sx={{ flexGrow: 1, width: '100%', display: 'flex', flexDirection: 'column' }}>
                 <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
-                    <Tabs value={currentTab} onChange={handleTabChange} aria-label="completed trips tabs">
-                        <Tab label={`Timber Loads (${timberTrips.length})`} id="completed-trips-tab-0" />
-                        <Tab label={`Consignments (${consignmentTrips.length})`} id="completed-trips-tab-1" />
+                    <Tabs value={currentTab} onChange={handleTabChange} aria-label={t('ariaTabs', { ns: 'completedTrips' })}>
+                        <Tab label={t('tabs.timberWithCount', { ns: 'completedTrips', count: timberTrips.length })} id="completed-trips-tab-0" />
+                        <Tab label={t('tabs.consignmentsWithCount', { ns: 'completedTrips', count: consignmentTrips.length })} id="completed-trips-tab-1" />
                     </Tabs>
                 </Box>
 
@@ -141,7 +134,7 @@ export default function CompletedTripsPage() {
                         sx={{ '& .MuiDataGrid-columnHeaderTitle': { fontWeight: 'bold' } }}
                         slots={{
                             toolbar: GridToolbar,
-                            noRowsOverlay: () => <CustomNoRowsOverlay message="No completed Timber Loads found." />
+                            noRowsOverlay: () => <CustomNoRowsOverlay message={t('noTimber', { ns: 'completedTrips' })} />
                         }}
                     />
                 </TabPanel>
@@ -158,7 +151,7 @@ export default function CompletedTripsPage() {
                         sx={{ '& .MuiDataGrid-columnHeaderTitle': { fontWeight: 'bold' } }}
                         slots={{
                             toolbar: GridToolbar,
-                            noRowsOverlay: () => <CustomNoRowsOverlay message="No completed Consignments found." />
+                            noRowsOverlay: () => <CustomNoRowsOverlay message={t('noConsignments', { ns: 'completedTrips' })}/>
                         }}
                     />  
                 </TabPanel>
