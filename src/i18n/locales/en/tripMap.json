@@ -5,6 +5,7 @@
   "yourLocation": "Your current location",
   "layers": {
     "street": "Street Map",
-    "satellite": "Satellite"
+    "satellite": "Satellite",
+    "topographic": "Topographic"
   }
 }

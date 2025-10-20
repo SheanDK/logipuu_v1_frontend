@@ -3,6 +3,7 @@
 
 import React, { useEffect, useMemo } from 'react';
 import { Box, Typography } from '@mui/material';
+import { useTheme } from '@mui/material/styles';
 import L, { LatLngTuple, LeafletMouseEvent } from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import { MapContainer, TileLayer, Marker, Popup, useMap, LayersControl, ZoomControl } from 'react-leaflet';
@@ -10,6 +11,9 @@ import FlagIcon from '@mui/icons-material/Flag';
 import NavigationIcon from '@mui/icons-material/Navigation';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { useTranslation } from 'react-i18next';
+import { useLeafletPopupTheme } from '@/utils/useLeafletPopupTheme';
+import { GlobalStyles } from '@mui/material';
+import { alpha } from '@mui/material/styles';
 
 // --- Leaflet Icon setup ---
 // @ts-ignore
@@ -46,7 +50,7 @@ export interface TripMapProps {
     onMarkerClickAction: (tripId: number, event: LeafletMouseEvent) => void;
 }
 
-const MapFocusController = ({ focusedTripId, trips, onFocusCompleteAction }: 
+const MapFocusController = ({ focusedTripId, trips, onFocusCompleteAction }:
     { focusedTripId: number | null | undefined, trips: TripLegForMap[], onFocusCompleteAction: () => void }) => {
     const map = useMap();
     useEffect(() => {
@@ -63,6 +67,10 @@ const MapFocusController = ({ focusedTripId, trips, onFocusCompleteAction }:
 
 export default function TripMap({ legs, puulaanit, purkupaikat, driverLocation, focusedTripId, onFocusCompleteAction, onMarkerClickAction }: TripMapProps) {
     const { t } = useTranslation('tripMap');
+    const theme = useTheme();
+    const isDarkMode = theme.palette.mode === 'dark';
+
+    useLeafletPopupTheme();
 
     const bounds = useMemo(() => {
         const allCoords: LatLngTuple[] = [];
@@ -73,13 +81,13 @@ export default function TripMap({ legs, puulaanit, purkupaikat, driverLocation, 
         puulaanit.forEach(trip => { if (trip.originCoords) allCoords.push([trip.originCoords.lat, trip.originCoords.lng]); });
         purkupaikat.forEach(trip => { if (trip.originCoords) allCoords.push([trip.originCoords.lat, trip.originCoords.lng]); });
         if (driverLocation) allCoords.push([driverLocation.lat, driverLocation.lng]);
-        
+
         return allCoords.length > 0 ? L.latLngBounds(allCoords) : undefined;
     }, [legs, puulaanit, purkupaikat, driverLocation]);
 
     if (!bounds) {
         return (
-            <Box sx={{height: '100%', width: '100%', bgcolor: 'grey.300', display: 'flex', alignItems: 'center', justifyContent: 'center'}}>
+            <Box sx={{ height: '100%', width: '100%', bgcolor: isDarkMode ? 'background.paper' : 'grey.300', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                 <Typography color="text.secondary">{t('noLocations')}</Typography>
             </Box>
         );
@@ -91,14 +99,39 @@ export default function TripMap({ legs, puulaanit, purkupaikat, driverLocation, 
             boundsOptions={{ paddingTopLeft: [280, 20], paddingBottomRight: [20, 20] }}
             scrollWheelZoom={true}
             style={{ height: '100%', width: '100%' }}
+            className={isDarkMode ? 'leaflet-dark' : undefined}
             zoomControl={false}
         >
             <ZoomControl position="bottomleft" />
-            <LayersControl position="bottomleft">
-                <LayersControl.BaseLayer checked name={t('layers.street')}><TileLayer attribution='&copy; OpenStreetMap' url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" /></LayersControl.BaseLayer>
-                <LayersControl.BaseLayer name={t('layers.satellite')}><TileLayer url='https://{s}.google.com/vt/lyrs=s&x={x}&y={y}&z={z}' maxZoom={20} subdomains={['mt1','mt2','mt3']} attribution='&copy; Google' /></LayersControl.BaseLayer>
+            <LayersControl position="bottomleft" key={`layers-${theme.palette.mode}`}>
+                {/* Street / Standard (OSM) */}
+                <LayersControl.BaseLayer checked={!isDarkMode} name={t('layers.street')}>
+                    <TileLayer
+                        attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+                        url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                    />
+                </LayersControl.BaseLayer>
+
+                {/* Satellite (Google hybrid)*/}
+                <LayersControl.BaseLayer checked={isDarkMode} name={t('layers.satellite')}>
+                    <TileLayer
+                        url="https://{s}.google.com/vt/lyrs=s,h&x={x}&y={y}&z={z}"
+                        maxZoom={20}
+                        subdomains={['mt0', 'mt1', 'mt2', 'mt3']}
+                        attribution="&copy; Google"
+                    />
+                </LayersControl.BaseLayer>
+
+                {/* Topographic (OpenTopoMap) */}
+                <LayersControl.BaseLayer name={t('layers.topographic')}>
+                    <TileLayer
+                        url="https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png"
+                        maxZoom={17}
+                        attribution='Map data: &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors, <a href="http://viewfinderpanoramas.org">SRTM</a> | Map style: &copy; <a href="https://opentopomap.org">OpenTopoMap</a> (<a href="https://creativecommons.org/licenses/by-sa/3.0/">CC-BY-SA</a>)'
+                    />
+                </LayersControl.BaseLayer>
             </LayersControl>
-            
+
             {/* Markers for the active trip's route */}
             {legs.map((leg, index) => (
                 <React.Fragment key={`leg-${leg.kuormaId}`}>
@@ -106,35 +139,82 @@ export default function TripMap({ legs, puulaanit, purkupaikat, driverLocation, 
                     {leg.destinationCoords && <Marker position={[leg.originCoords.lat, leg.destinationCoords.lng]} icon={purkupaikkaIcon}><Popup><b>{t('destination')}</b><br />{leg.destinationName}</Popup></Marker>}
                 </React.Fragment>
             ))}
-            
+
             {/* Markers for available Puulaani sites */}
             {puulaanit.map((trip) => (
-                trip.originCoords && 
-                <Marker 
-                    key={`puulaani-${trip.kuormaId}`} 
-                    position={[trip.originCoords.lat, trip.originCoords.lng]} 
+                trip.originCoords &&
+                <Marker
+                    key={`puulaani-${trip.kuormaId}`}
+                    position={[trip.originCoords.lat, trip.originCoords.lng]}
                     icon={puulaaniIcon}
                     eventHandlers={{ click: (e) => onMarkerClickAction(trip.kuormaId, e) }}
                 >
                     <Popup>{trip.originName}</Popup>
                 </Marker>
             ))}
-            
+
             {/* Markers for available Purkupaikka sites */}
             {purkupaikat.map((trip) => (
-                trip.originCoords && 
-                <Marker 
-                    key={`purkupaikka-${trip.kuormaId}`} 
-                    position={[trip.originCoords.lat, trip.originCoords.lng]} 
+                trip.originCoords &&
+                <Marker
+                    key={`purkupaikka-${trip.kuormaId}`}
+                    position={[trip.originCoords.lat, trip.originCoords.lng]}
                     icon={purkupaikkaIcon}
                 >
-                     <Popup>{trip.originName}</Popup>
+                    <Popup>{trip.originName}</Popup>
                 </Marker>
             ))}
 
-            {driverLocation && ( <Marker position={[driverLocation.lat, driverLocation.lng]} icon={driverIcon}><Popup>{t('yourLocation')}</Popup></Marker> )}
+            {driverLocation && (<Marker position={[driverLocation.lat, driverLocation.lng]} icon={driverIcon}><Popup>{t('yourLocation')}</Popup></Marker>)}
+
+            <MapFocusController trips={puulaanit} {...{ focusedTripId, onFocusCompleteAction }} />
             
-            <MapFocusController trips={puulaanit} {...{focusedTripId, onFocusCompleteAction}} />
+            <GlobalStyles styles={(theme) => ({
+                /* LayersControl container and inner box */
+                '.leaflet-dark .leaflet-control-layers': {
+                    backgroundColor: theme.palette.background.paper,
+                    color: theme.palette.text.primary,
+                    border: `1px solid ${alpha(theme.palette.divider, 0.6)}`,
+                    boxShadow: theme.shadows[4],
+                },
+
+                '.leaflet-dark .leaflet-control-layers-expanded': {
+                    backgroundColor: theme.palette.background.paper,
+                    color: theme.palette.text.primary,
+                },
+
+                '.leaflet-dark .leaflet-control-layers-list label': {
+                    color: theme.palette.text.primary,
+                },
+
+                '.leaflet-dark .leaflet-control-layers-separator': {
+                    borderTop: `1px solid ${alpha(theme.palette.divider, 0.6)}`,
+                },
+
+                /* Radio and checkbox color in dark mode */
+                '.leaflet-dark .leaflet-control-layers-selector': {
+                    accentColor: theme.palette.primary.main,
+                },
+
+                /* The LayersControl toggle button (by default a light PNG) — invert for dark mode */
+                '.leaflet-dark .leaflet-control-layers-toggle': {
+                    filter: 'invert(1) hue-rotate(180deg) brightness(0.85)',
+                    backgroundColor: theme.palette.background.paper,
+                    border: `1px solid ${alpha(theme.palette.divider, 0.6)}`,
+                    boxShadow: theme.shadows[2],
+                },
+
+                /* Other toolbar buttons (zoom, etc.) to match dark mode styling */
+                '.leaflet-dark .leaflet-bar a, .leaflet-dark .leaflet-bar a:hover': {
+                    backgroundColor: theme.palette.background.paper,
+                    color: theme.palette.text.primary,
+                    borderBottom: `1px solid ${alpha(theme.palette.divider, 0.6)}`,
+                },
+                '.leaflet-dark .leaflet-bar a:hover': {
+                    backgroundColor: alpha(theme.palette.action.hover, 0.35),
+                },
+            })} />
+
         </MapContainer>
     );
 }

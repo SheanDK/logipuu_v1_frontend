@@ -12,6 +12,7 @@ import PlayCircleOutlineIcon from '@mui/icons-material/PlayCircleOutline';
 import { useAuth } from '@/contexts/AuthContext';
 import { IWoodEntry, PuulaaniDetails } from '@/types';
 import { useTranslation } from 'react-i18next';
+import { alpha, useTheme } from '@mui/material/styles';
 
 interface PuulaaniDetailsPanelProps {
     details: PuulaaniDetails | null;
@@ -38,6 +39,7 @@ export default function PuulaaniDetailsPanel({
 }: PuulaaniDetailsPanelProps) {
 
     const { user } = useAuth();
+    const theme = useTheme();
     const [editableDetails, setEditableDetails] = useState<PuulaaniDetails | null>(null);
     const [isDirty, setIsDirty] = useState(false);
     const [isSaving, setIsSaving] = useState(false);
@@ -86,9 +88,30 @@ export default function PuulaaniDetailsPanel({
 
     const locale = (i18n.language || 'en').toLowerCase().startsWith('fi') ? 'fi-FI' : 'en-US';
 
+    const glassSurface = alpha(theme.palette.background.paper, theme.palette.mode === 'dark' ? 0.92 : 0.98);
+    const glassBorder = alpha(theme.palette.divider, theme.palette.mode === 'dark' ? 0.7 : 0.4);
+    const glassShadow = theme.palette.mode === 'dark' ? '0px -8px 40px -12px rgba(0,0,0,0.7)' : '0px -8px 40px -12px rgba(0,0,0,0.3)';
 
     return (
-        <Paper elevation={10} sx={{ position: 'absolute', bottom: { xs: 0, sm: 24 }, left: { xs: 0, sm: '50%' }, transform: { xs: 'none', sm: 'translateX(-50%)' }, zIndex: 1050, width: { xs: '100%', sm: 'auto', md: 800 }, maxHeight: { xs: '80vh', sm: '70vh' }, display: 'flex', flexDirection: 'column', backgroundColor: 'rgba(255, 255, 255, 0.98)', backdropFilter: 'blur(8px)', borderRadius: { xs: '16px 16px 0 0', sm: 3 }, borderTop: '1px solid rgba(0,0,0,0.12)', boxShadow: '0px -8px 40px -12px rgba(0,0,0,0.3)' }}>
+        <Paper
+            elevation={10}
+            sx={{
+                position: 'absolute',
+                bottom: { xs: 0, sm: 24 },
+                left: { xs: 0, sm: '50%' },
+                transform: { xs: 'none', sm: 'translateX(-50%)' },
+                zIndex: 1050,
+                width: { xs: '100%', sm: 'auto', md: 800 },
+                maxHeight: { xs: '80vh', sm: '70vh' },
+                display: 'flex',
+                flexDirection: 'column',
+                backgroundColor: glassSurface,
+                backdropFilter: 'blur(8px)',
+                borderRadius: { xs: '16px 16px 0 0', sm: 3 },
+                borderTop: `1px solid ${glassBorder}`,
+                boxShadow: glassShadow,
+            }}
+        >
 
             {/* Header */}
             <Box sx={{ p: 2, display: 'flex', alignItems: 'center', borderBottom: 1, borderColor: 'divider' }}>
