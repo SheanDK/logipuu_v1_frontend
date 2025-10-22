@@ -7,6 +7,8 @@ import { useAuth } from '../../../../contexts/AuthContext';
 import { loginUserApi } from '../../../../services/authService';
 import { UserLoginCredentials } from '../../../../types/auth';
 
+import { useTranslation } from '@/i18n/useTranslation';
+
 import Button from '@mui/material/Button';
 import TextField from '@mui/material/TextField';
 import Box from '@mui/material/Box';
@@ -15,20 +17,24 @@ import Alert from '@mui/material/Alert';
 import Paper from '@mui/material/Paper';
 import { alpha, useTheme } from '@mui/material/styles';
 import Image from 'next/image';
+import { CircularProgress, IconButton, Tooltip } from '@mui/material';
+import SettingsIcon from '@mui/icons-material/Settings';
+import dynamic from 'next/dynamic';
 
-import { useTranslation } from '@/i18n/useTranslation';
 import LanguageSwitcher from '@/components/i18n/LanguageSwitcher';
+
+// Dynamically import the modal to avoid SSR issues with localStorage.
+const SettingsModal = dynamic(() => import('@/components/common/SettingsModal'), { ssr: false });
 
 export default function LoginPage() {
     const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
     const [error, setError] = useState<string | null>(null);
     const [loading, setLoading] = useState(false);
+    const [isSettingsOpen, setIsSettingsOpen] = useState(false); // State for the settings modal
 
     const { t } = useTranslation('login');
-
     const { login } = useAuth();
-    // useRouter is no longer strictly needed for this function, but it's fine to keep it
     const router = useRouter();
     const theme = useTheme();
 
@@ -39,22 +45,17 @@ export default function LoginPage() {
         const credentials: UserLoginCredentials = { username, password };
 
         try {
-            // Step 1: Call API
             const apiResponse = await loginUserApi(credentials);
+            await login(apiResponse); // Context handles token storage and redirection logic.
 
-            // --- THIS IS THE FIX ---
-            // Step 2: Update the context. The `login` function inside AuthContext
-            // now handles ALL redirection logic itself. We don't need to do anything else here.
-            await login(apiResponse);
-
+            // The login function in the context should ideally handle redirection.
+            // But if specific logic is needed here:
             const userRoles = apiResponse.user.roles || [];
             if (userRoles.includes('Kuljettaja')) {
                 router.push('/my-loads');
             } else {
-                router.push('/timber-stacks'); // Or any other default office page
+                router.push('/timber-stacks');
             }
-
-            // Step 3: REMOVED the router.push('/dashboard') call from here.
 
         } catch (err: any) {
             console.error("Login failed:", err);
@@ -65,10 +66,9 @@ export default function LoginPage() {
         }
     };
 
-    // Calculate border radius safely based on the theme.
     const paperBorderRadius = typeof theme.shape.borderRadius === 'number'
         ? theme.shape.borderRadius * 2
-        : parseInt(String(theme.shape.borderRadius).replace('px', '')) * 2;
+        : 16;
 
     return (
         <Box
@@ -79,35 +79,43 @@ export default function LoginPage() {
                 justifyContent: 'center',
                 minHeight: '100vh',
                 width: '100vw',
-                padding: theme.spacing(2),
+                padding: 2,
+                // Apply a background image or gradient if desired
+                 // --- THE FIX IS HERE ---
+                // Re-added the linear-gradient background.
+                // background: `linear-gradient(45deg, ${theme.palette.primary.dark} 0%, ${theme.palette.primary.main} 100%)`,
             }}
         >
-
-            <Box
-                sx={{
-                    position: 'fixed',
-                    top: 12,
-                    right: 12,
-                    zIndex: (t) => t.zIndex.modal + 1,
-                    color: 'text.primary',
-                }}
-            >
+            <Box sx={{ position: 'fixed', top: 16, right: 16, display: 'flex', alignItems: 'center', gap: 1 }}>
                 <LanguageSwitcher />
+                <Tooltip title="Server Settings">
+                    <IconButton 
+                        onClick={() => setIsSettingsOpen(true)}
+                        sx={{ 
+                            color: 'white', 
+                            backgroundColor: 'rgba(0,0,0,0.2)',
+                            '&:hover': {
+                                backgroundColor: 'rgba(0,0,0,0.4)',
+                            }
+                        }}
+                    >
+                        <SettingsIcon />
+                    </IconButton>
+                </Tooltip>
             </Box>
 
             <Paper
-                elevation={6}
+                elevation={12}
                 sx={{
-                    padding: theme.spacing(3, 4),
+                    p: { xs: 3, sm: 4 },
                     display: 'flex',
                     flexDirection: 'column',
                     alignItems: 'center',
                     width: '100%',
                     maxWidth: '420px',
-                    backgroundColor: alpha(theme.palette.background.paper, 0.88),
-                    backdropFilter: 'blur(10px)',
+                    backgroundColor: alpha(theme.palette.background.paper, 0.9),
+                    backdropFilter: 'blur(2px)',
                     borderRadius: paperBorderRadius,
-                    boxShadow: theme.shadows[10],
                 }}
             >
                 <Box sx={{ mb: 2, width: 160 }}>
@@ -121,10 +129,10 @@ export default function LoginPage() {
                     />
                 </Box>
 
-                <Typography component="h1" variant="h5" sx={{ color: theme.palette.text.primary, mb: 1 }}>
+                <Typography component="h1" variant="h5" sx={{ color: 'text.primary', mb: 1 }}>
                     {t('title')}
                 </Typography>
-                <Typography component="p" variant="body2" sx={{ color: theme.palette.text.secondary, mb: 3, textAlign: 'center' }}>
+                <Typography component="p" variant="body2" sx={{ color: 'text.secondary', mb: 3, textAlign: 'center' }}>
                     {t('subtitle')}
                 </Typography>
 
@@ -141,8 +149,6 @@ export default function LoginPage() {
                         value={username}
                         onChange={(e) => setUsername(e.target.value)}
                         disabled={loading}
-                        variant="outlined"
-                        sx={{ mb: 1 }}
                     />
                     <TextField
                         margin="normal"
@@ -156,8 +162,6 @@ export default function LoginPage() {
                         value={password}
                         onChange={(e) => setPassword(e.target.value)}
                         disabled={loading}
-                        variant="outlined"
-                        sx={{ mt: 1 }}
                     />
 
                     {error && (
@@ -170,29 +174,33 @@ export default function LoginPage() {
                         type="submit"
                         fullWidth
                         variant="contained"
-                        color="primary"
-                        sx={{ mt: 3, mb: 2, py: 1.25, fontSize: '1rem' }}
+                        sx={{ mt: 3, mb: 2, py: 1.5, fontSize: '1rem', fontWeight: 'bold' }}
                         disabled={loading}
                     >
-                        {loading ? t('signingIn') : t('signIn')}
+                        {loading ? <CircularProgress size={24} color="inherit" /> : t('signIn')}
                     </Button>
-                    {/* TODO if needed
-                    <Grid container justifyContent="flex-end">
-                        <Box sx={{ mt: 2, textAlign: 'center' }}>
-                            <LinkMaterial href="#" variant="body2" color="primary.dark">
-                                Forgot password?
-                            </LinkMaterial>
-                        </Box>
-                    </Grid>
-                    */}
                 </Box>
             </Paper>
 
-            <Typography variant="body2" sx={{ color: alpha(theme.palette.common.white, 0.85), mt: 'auto', pt: theme.spacing(3), pb: theme.spacing(2) }}>
+            <Typography 
+                variant="body2" 
+                sx={{ 
+                    color: 'text.secondary', // Use the theme's secondary text color (typically a gray)
+                    mt: 'auto', 
+                    pt: 4,
+                    pb: 2 // Add some padding at the bottom
+                }}
+            >
                 {t('copyright', { year: new Date().getFullYear() })}
-                {new Date().getFullYear()}
-                {'.'}
             </Typography>
+
+            {/* Render the modal conditionally */}
+            {isSettingsOpen && (
+                <SettingsModal 
+                    open={isSettingsOpen} 
+                    onCloseAction={() => setIsSettingsOpen(false)}
+                />
+            )}
         </Box>
     );
 }

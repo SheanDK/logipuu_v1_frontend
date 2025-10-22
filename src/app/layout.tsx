@@ -8,6 +8,7 @@ import { LayoutProvider } from '@/contexts/LayoutContext';
 import AppThemeWrapper from '@/components/theme/AppThemeWrapper';
 import { fallbackLng } from '@/i18n/settings';
 import { DriverSessionProvider } from '@/contexts/DriverSessionContext';
+import { SettingsProvider } from '@/contexts/SettingsContext'; // --- Import the provider
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
@@ -17,13 +18,16 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       </head>
       <body>
         <AppRouterCacheProvider>
-          <AuthProvider>
-            <DriverSessionProvider>
-              <LayoutProvider>
-                <AppThemeWrapper>{children}</AppThemeWrapper>
-              </LayoutProvider>
-            </DriverSessionProvider>
-          </AuthProvider>
+          {/* Wrap the entire app so the setting is available everywhere */}
+          <SettingsProvider>
+            <AuthProvider>
+              <DriverSessionProvider>
+                <LayoutProvider>
+                  <AppThemeWrapper>{children}</AppThemeWrapper>
+                </LayoutProvider>
+              </DriverSessionProvider>
+            </AuthProvider>
+          </SettingsProvider>
         </AppRouterCacheProvider>
       </body>
     </html>
