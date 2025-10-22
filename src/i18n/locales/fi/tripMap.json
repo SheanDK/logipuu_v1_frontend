@@ -5,6 +5,7 @@
   "yourLocation": "Nykyinen sijaintisi",
   "layers": {
     "street": "Katu- ja maastokartta",
-    "satellite": "Satelliitti"
+    "satellite": "Satelliitti",
+    "topographic": "Topografinen"
   }
 }

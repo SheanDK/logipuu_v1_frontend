@@ -3,8 +3,7 @@
 
 import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { Box, Paper, CircularProgress, Alert, Button, Stack, List, ListItemText, Divider, Typography, ListItemButton, SpeedDial, SpeedDialAction, SpeedDialIcon } from '@mui/material';
-import { useTheme } from '@mui/material/styles';
-import useMediaQuery from '@mui/material/useMediaQuery';
+import { useTheme, alpha } from '@mui/material/styles';
 import MapIcon from '@mui/icons-material/Map';
 import ListIcon from '@mui/icons-material/List';
 import RestoreIcon from '@mui/icons-material/Restore';
@@ -63,6 +62,11 @@ export default function TimberDashboard({ onBackAction }: TimberDashboardProps) 
     const { selectedVehicleId, setActiveTrip } = useDriverSession();
     const { user, token } = useAuth();
     const { enqueueSnackbar } = useSnackbar();
+    const theme = useTheme();
+    const isDarkMode = theme.palette.mode === 'dark';
+    const controlSurface = alpha(theme.palette.background.paper, isDarkMode ? 0.85 : 0.94);
+    const controlBorder = alpha(theme.palette.divider, isDarkMode ? 0.6 : 0.28);
+    const controlShadow = isDarkMode ? '0 12px 32px rgba(0,0,0,0.65)' : '0 16px 24px rgba(15,23,42,0.16)';
     
     const [view, setView] = useState<'map' | 'list'>('map');
     const [mapData, setMapData] = useState<DriverMapData | null>(null);
@@ -407,8 +411,7 @@ export default function TimberDashboard({ onBackAction }: TimberDashboardProps) 
 
     return (
         <Box sx={{ height: '100%', width: '100%', position: 'relative' }}>
-            
-            {/* --- THIS IS THE FIX: Part 1 - Always render the content first --- */}
+        
             {/* The Map and List views will now take up the entire screen space */}
             <Box sx={{ height: '100%', width: '100%', display: view === 'map' ? 'block' : 'none' }}>
                 <MapView
@@ -436,16 +439,18 @@ export default function TimberDashboard({ onBackAction }: TimberDashboardProps) 
 
             {/* Floating Control Panel for Desktop */}
             <Paper 
-                elevation={4} 
+                elevation={0} 
                 sx={{ 
                     position: 'absolute', 
                     top: 16, 
                     left: 16, 
                     zIndex: 1000, 
                     p: 1, 
-                    backgroundColor: 'rgba(255, 255, 255, 0.9)', 
-                    backdropFilter: 'blur(5px)',
+                    backgroundColor: controlSurface, 
+                    backdropFilter: 'blur(10px)',
                     borderRadius: 2, 
+                    border: `1px solid ${controlBorder}`,
+                    boxShadow: controlShadow,
                     display: { xs: 'none', sm: 'flex' } 
                 }}
             >

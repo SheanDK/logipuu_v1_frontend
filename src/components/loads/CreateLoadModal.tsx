@@ -4,9 +4,9 @@
 import React, { useEffect, useMemo } from 'react';
 import {
     Dialog, DialogTitle, DialogContent, DialogActions, Box, Typography, IconButton, Button,
-    Stack, FormControl, InputLabel, Select, MenuItem, TextField, Divider, Paper,
-    Table, TableBody, TableCell, TableContainer, TableHead, TableRow, FormHelperText,
-    Grid, Chip, Fade
+    FormControl, InputLabel, Select, MenuItem, TextField, Divider, Paper,
+    Table, TableBody, TableCell, TableContainer, TableHead, TableRow,
+    Chip, Fade
 } from '@mui/material';
 import { useForm, Controller, useFieldArray, FormProvider } from 'react-hook-form';
 import CloseIcon from '@mui/icons-material/Close';
@@ -17,6 +17,7 @@ import SaveIcon from '@mui/icons-material/Save';
 import LocalShippingIcon from '@mui/icons-material/LocalShipping';
 import { IWoodEntry, PuulaaniDetails } from '@/types';
 import { useTranslation } from 'react-i18next';
+import { alpha, useTheme } from '@mui/material/styles';
 
 // --- Form Types ---
 interface LoadLegForm {
@@ -42,6 +43,17 @@ interface CreateLoadModalProps {
 export default function CreateLoadModal({ open, onCloseAction, puulaaniDetails, onSubmitAction, initialLoadData }: CreateLoadModalProps) {
     const isEditMode = !!initialLoadData;
     const { t } = useTranslation(['createLoadModal', 'common']);
+    const theme = useTheme();
+    const isDarkMode = theme.palette.mode === 'dark';
+    const dialogSurface = alpha(theme.palette.background.paper, isDarkMode ? 0.94 : 0.98);
+    const headerSurface = alpha(theme.palette.primary.main, isDarkMode ? 0.35 : 0.12);
+    const headerTextColor = theme.palette.getContrastText(theme.palette.primary.main);
+    const contentSurface = alpha(theme.palette.background.paper, isDarkMode ? 0.88 : 0.97);
+    const dividerColor = alpha(theme.palette.divider, isDarkMode ? 0.7 : 0.25);
+    const tableHeaderBg = alpha(theme.palette.primary.main, isDarkMode ? 0.22 : 0.08);
+    const rowHoverBg = alpha(theme.palette.primary.main, isDarkMode ? 0.18 : 0.08);
+    const actionSurface = alpha(theme.palette.background.paper, isDarkMode ? 0.82 : 0.94);
+    const dialogShadow = isDarkMode ? '0px 24px 72px rgba(0,0,0,0.7)' : '0px 20px 48px rgba(15,23,42,0.16)';
 
     // Form for adding/editing a single leg
     const legMethods = useForm<LoadLegForm>({
@@ -110,20 +122,55 @@ export default function CreateLoadModal({ open, onCloseAction, puulaaniDetails, 
     if (!open || (!puulaaniDetails && !isEditMode)) return null;
 
     return (
-        <Dialog open={open} onClose={onCloseAction} fullWidth maxWidth={isEditMode ? "sm" : "md"} TransitionComponent={Fade} PaperProps={{ sx: { background: 'linear-gradient(to top, #eef1f5 0%, #ffffff 100%)', borderRadius: 4, boxShadow: '0 8px 32px 0 rgba(31, 38, 135, 0.37)' } }}>
-            <DialogTitle sx={{ display: 'flex', alignItems: 'center', bgcolor: '#37474f', color: 'white', py: 2 }}>
-                <LocalShippingIcon sx={{ mr: 1.5 }} />
+        <Dialog
+            open={open}
+            onClose={onCloseAction}
+            fullWidth
+            maxWidth={isEditMode ? "sm" : "md"}
+            TransitionComponent={Fade}
+            PaperProps={{
+                sx: {
+                    backgroundColor: dialogSurface,
+                    backdropFilter: 'blur(16px)',
+                    borderRadius: 3,
+                    border: `1px solid ${dividerColor}`,
+                    boxShadow: dialogShadow
+                }
+            }}
+        >
+            <DialogTitle
+                sx={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 1.5,
+                    bgcolor: headerSurface,
+                    color: headerTextColor,
+                    py: 1.75,
+                    position: 'relative'
+                }}
+            >
+                <LocalShippingIcon sx={{ fontSize: 28 }} />
                 <Box>
                     <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>{isEditMode ? t('title.edit') : t('title.create')}</Typography>
-                    {!isEditMode && <Typography variant="caption" sx={{ display: 'block', opacity: 0.8 }}>{t('title.from')} {puulaaniDetails?.puulaani.nimi}</Typography>}
+                    {!isEditMode && <Typography variant="caption" sx={{ display: 'block', opacity: 0.85 }}>{t('title.from')} {puulaaniDetails?.puulaani.nimi}</Typography>}
                 </Box>
-                <IconButton onClick={onCloseAction} sx={{ color: 'white', position: 'absolute', right: 8, top: 8 }}><CloseIcon /></IconButton>
+                <IconButton onClick={onCloseAction} sx={{ color: headerTextColor, position: 'absolute', right: 8, top: 8 }}><CloseIcon /></IconButton>
             </DialogTitle>
-            <DialogContent dividers sx={{ p: { xs: 2, sm: 3 }, backgroundColor: '#f4f6f8' }}>
+            <DialogContent dividers sx={{ p: { xs: 2, sm: 3 }, backgroundColor: contentSurface }}>
                 <FormProvider {...legMethods}>
                     <Box component="form" id="leg-form" onSubmit={isEditMode ? handleLegSubmit(handleUpdateSubmit, onFormError) : handleLegSubmit(handleAddLeg, onFormError)}>
-                        <Paper elevation={0} sx={{ p: 3, mb: 3, background: 'linear-gradient(135deg, #f5f7fa 0%, #ffffff 100%)', border: '1px solid #e0e0e0', borderRadius: 2 }}>
-                            <Typography variant="subtitle1" sx={{ fontWeight: 600, mb: 2.5, color: '#1565c0', display: 'flex', alignItems: 'center', gap: 1 }}> {isEditMode ? t('section.editDetails') : t('section.addLeg')}</Typography>
+                        <Paper
+                            elevation={0}
+                            sx={{
+                                p: 3,
+                                mb: 3,
+                                backgroundColor: contentSurface,
+                                border: `1px solid ${dividerColor}`,
+                                borderRadius: 2,
+                                backdropFilter: 'blur(10px)'
+                            }}
+                        >
+                            <Typography variant="subtitle1" sx={{ fontWeight: 600, mb: 2.5, color: theme.palette.primary.main, display: 'flex', alignItems: 'center', gap: 1 }}> {isEditMode ? t('section.editDetails') : t('section.addLeg')}</Typography>
                             <Box
                                 sx={{
                                     display: 'grid',
@@ -253,7 +300,8 @@ export default function CreateLoadModal({ open, onCloseAction, puulaaniDetails, 
                                     type="submit"
                                     startIcon={<AddCircleIcon />}
                                     variant="contained"
-                                    sx={{ mt: 3, width: '100%', py: 1.5, backgroundColor: '#607d8b', '&:hover': { backgroundColor: '#546e7a' } }}
+                                    color="primary"
+                                    sx={{ mt: 3, width: '100%', py: 1.5 }}
                                     aria-label={t('actions.addToTrip')}
                                 >
                                     {t('actions.addToTrip')}
@@ -264,10 +312,60 @@ export default function CreateLoadModal({ open, onCloseAction, puulaaniDetails, 
                 </FormProvider>
                 {!isEditMode && (<>
                     <Divider sx={{ my: 2 }}><Chip label={t('legs.title')} icon={<LocalShippingIcon fontSize="small" />} /></Divider>
-                    <TableContainer component={Paper} elevation={0} variant='outlined' sx={{ borderRadius: 2 }}><Table size="small"><TableHead><TableRow sx={{ bgcolor: 'action.hover' }}><TableCell>{t('legs.columns.timber')}</TableCell><TableCell align="right">{t('legs.columns.volume')}</TableCell><TableCell>{t('legs.columns.reception')}</TableCell><TableCell align="center">{t('legs.columns.actions')}</TableCell></TableRow></TableHead><TableBody>{(fields as any[]).length > 0 ? (fields as any[]).map((field, index) => (<TableRow key={field.id} hover sx={{ '&:last-child td': { borderBottom: 0 } }}><TableCell sx={{ fontWeight: 500 }}>{field.taskDetails.laji}</TableCell><TableCell align="right" sx={{ fontWeight: 600, color: '#1976d2' }}>{field.volume}</TableCell><TableCell>{field.receptionNo || '—'}</TableCell><TableCell align="center"><IconButton size="small" color="error" title={t('actions.removeLeg')} onClick={() => remove(index)}><DeleteIcon fontSize="small" /></IconButton></TableCell></TableRow>)) : (<TableRow><TableCell colSpan={4} align="center" sx={{ py: 6, color: 'text.secondary', fontStyle: 'italic' }}><Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 1 }}><Typography variant="body2" color="text.secondary">📦 {t('legs.empty.title')}</Typography><Typography variant="caption" color="text.disabled">{t('legs.empty.subtitle')}</Typography></Box></TableCell></TableRow>)}</TableBody></Table></TableContainer>
+                    <TableContainer
+                        component={Paper}
+                        elevation={0}
+                        variant='outlined'
+                        sx={{
+                            borderRadius: 2,
+                            backgroundColor: contentSurface,
+                            border: `1px solid ${dividerColor}`
+                        }}
+                    >
+                        <Table size="small">
+                            <TableHead>
+                                <TableRow sx={{ bgcolor: tableHeaderBg }}>
+                                    <TableCell>{t('legs.columns.timber')}</TableCell>
+                                    <TableCell align="right">{t('legs.columns.volume')}</TableCell>
+                                    <TableCell>{t('legs.columns.reception')}</TableCell>
+                                    <TableCell align="center">{t('legs.columns.actions')}</TableCell>
+                                </TableRow>
+                            </TableHead>
+                            <TableBody>
+                                {(fields as any[]).length > 0 ? (fields as any[]).map((field, index) => (
+                                    <TableRow
+                                        key={field.id}
+                                        hover
+                                        sx={{
+                                            '&:last-child td': { borderBottom: 0 },
+                                            '&:hover': { backgroundColor: rowHoverBg }
+                                        }}
+                                    >
+                                        <TableCell sx={{ fontWeight: 500 }}>{field.taskDetails.laji}</TableCell>
+                                        <TableCell align="right" sx={{ fontWeight: 600, color: theme.palette.primary.main }}>{field.volume}</TableCell>
+                                        <TableCell>{field.receptionNo || '—'}</TableCell>
+                                        <TableCell align="center">
+                                            <IconButton size="small" color="error" title={t('actions.removeLeg')} onClick={() => remove(index)}>
+                                                <DeleteIcon fontSize="small" />
+                                            </IconButton>
+                                        </TableCell>
+                                    </TableRow>
+                                )) : (
+                                    <TableRow>
+                                        <TableCell colSpan={4} align="center" sx={{ py: 6, color: 'text.secondary', fontStyle: 'italic' }}>
+                                            <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 1 }}>
+                                                <Typography variant="body2" color="text.secondary">📦 {t('legs.empty.title')}</Typography>
+                                                <Typography variant="caption" color="text.disabled">{t('legs.empty.subtitle')}</Typography>
+                                            </Box>
+                                        </TableCell>
+                                    </TableRow>
+                                )}
+                            </TableBody>
+                        </Table>
+                    </TableContainer>
                 </>)}
             </DialogContent>
-            <DialogActions sx={{ p: 2, borderTop: '1px solid #e0e0e0', backgroundColor: '#f4f6f8' }}>
+            <DialogActions sx={{ p: 2, borderTop: `1px solid ${dividerColor}`, backgroundColor: actionSurface }}>
                 <Button onClick={onCloseAction} variant="text" color="secondary">{t('common:buttons.cancel')}</Button>
                 {isEditMode ? (<Button variant="contained" color="primary" startIcon={<SaveIcon />} onClick={handleLegSubmit(handleUpdateSubmit)}>{t('common:buttons.save')}</Button>) : (<Button variant="contained" color="success" startIcon={<SendIcon />} onClick={handleMainSubmit(handleFinalCreateSubmit)} disabled={fields.length === 0}>{t('actions.confirmCreate')}</Button>)}
             </DialogActions>
