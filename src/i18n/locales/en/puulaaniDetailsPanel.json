@@ -9,7 +9,7 @@
   },
   "actions": {
     "saveChanges": "Save Changes",
-    "saving": "Saving...",
+    "saving": "Saving…",
     "close": "Close"
   },
   "timber": {
@@ -40,7 +40,9 @@
       "start": "Start Trip",
       "edit": "Edit Load",
       "delete": "Delete Load"
-    }
+    },
+    "offlineNotice": "You are offline. The new load is saved locally and sent automatically once the connection is restored. Actions are limited while offline.",
+    "offlineDisabled": "Actions unavailable while offline"
   },
   "status": {
     "completed": "Completed",
@@ -50,6 +52,8 @@
     "at_origin": "At origin",
     "at_destination": "At destination",
     "paused": "Paused",
-    "na": "—"
+    "offlineMode": "Offline mode",
+    "pending_sync": "Pending sync",
+    "na": "N/A"
   }
 }

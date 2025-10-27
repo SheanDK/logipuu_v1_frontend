@@ -11,20 +11,21 @@
   "form": {
     "timberType": "Puutavaralaji",
     "dropoff": "Purkupaikka",
-    "receptionNo": "Vastaanotto numero",
-    "total": "Yhteensä (m³)",
-    "hauled": "Haettu (m³)",
-    "remaining": "Jäljellä (m³)",
+    "receptionNo": "Vastaanoton numero",
+    "total": "Yhteensä (m3)",
+    "hauled": "Haettu (m3)",
+    "remaining": "Jäljellä (m3)",
     "route": "Reitti",
     "freightKm": "Rahti (km)",
-    "notes": "Lisätiedot"
+    "notes": "Lisätiedot",
+    "offlineUnavailable": "Tiedot eivät saatavilla offline"
   },
   "legs": {
     "title": "Ajon osuudet",
     "tableAria": "Ajon osuuksien taulukko",
     "columns": {
       "timber": "Puutavara",
-      "volume": "Määrä (m³)",
+      "volume": "Määrä (m3)",
       "reception": "Vastaanotto nro",
       "actions": "Toiminnot"
     },
@@ -35,14 +36,16 @@
   },
   "actions": {
     "addToTrip": "Lisää ajoon",
-    "cancel": "Peruuta",
-    "saveChanges": "Tallenna muutokset",
     "confirmCreate": "Vahvista ja luo ajo",
+    "queueCreate": "Luo offline-kuorma",
     "close": "Sulje",
     "removeLeg": "Poista osuus",
     "start": "Aloita ajo",
     "edit": "Muokkaa kuormaa",
     "delete": "Poista kuorma"
+  },
+  "offline": {
+    "notice": "Olet offline-tilassa. Kuorman tiedot tallennetaan paikallisesti ja lähetetään automaattisesti, kun yhteys palautuu."
   },
   "validation": {
     "required": "Pakollinen"

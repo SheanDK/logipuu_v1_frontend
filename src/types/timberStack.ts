@@ -217,6 +217,33 @@ export interface IWoodEntry {
     purkupaikkaName: string;
     purkupaikkaLat?: number | null;
     purkupaikkaLng?: number | null;
+    km?: number | null;
+    notes?: string | null;
+    reitti?: string | null;
+    route?: string | null;
+}
+
+export interface IRelatedLoad {
+    status: string;
+    kuormaId: number;
+    kuljId: number;
+    kuljettajanNimi: string;
+    puutavaralaji: string | null;
+    pvm: string;
+    haettu: string;
+    m3?: number | string | null;
+    jaljella?: string;
+    vastaanottoNro?: string | null;
+    puutavaraId?: number | null;
+    puulaaniId?: number | null;
+    reitti?: string | null;
+    route?: string | null;
+    km?: number | string | null;
+    lisatiedot?: string | null;
+    notes?: string | null;
+    metadata?: any;
+    isOfflineDraft?: boolean;
+    tempId?: string;
 }
 export interface PuulaaniDetails {
     puutavarat: any[];
@@ -244,14 +271,5 @@ export interface PuulaaniDetails {
     };
     autot: number[];
     timberEntries: IWoodEntry[];
-    relatedLoads: {
-        status: string;
-        kuormaId: number;
-        kuljId: number;
-        kuljettajanNimi: string;
-        puutavaralaji: string | null;
-        pvm: string;
-        haettu: string;
-        jaljella(jaljella: any): unknown;
-    }[];
+    relatedLoads: IRelatedLoad[];
 }
