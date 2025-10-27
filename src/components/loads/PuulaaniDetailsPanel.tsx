@@ -181,7 +181,6 @@ export default function PuulaaniDetailsPanel({
                                 size="small"
                                 startIcon={<AddCircleOutlineIcon />}
                                 onClick={() => onCreateLoadAction(editableDetails)}
-                                disabled={!editableDetails.puulaani || isOffline}
                             >
                                 {t('loads.create')}
                             </Button>

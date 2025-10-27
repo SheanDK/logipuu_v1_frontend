@@ -6,7 +6,7 @@ import {
     Dialog, DialogTitle, DialogContent, DialogActions, Box, Typography, IconButton, Button,
     FormControl, InputLabel, Select, MenuItem, TextField, Divider, Paper,
     Table, TableBody, TableCell, TableContainer, TableHead, TableRow,
-    Chip, Fade
+    Chip, Fade, Alert
 } from '@mui/material';
 import { useForm, Controller, useFieldArray, FormProvider } from 'react-hook-form';
 import CloseIcon from '@mui/icons-material/Close';
@@ -38,9 +38,17 @@ interface CreateLoadModalProps {
     puulaaniDetails: PuulaaniDetails | null;
     onSubmitAction: (data: any, isEdit: boolean) => void;
     initialLoadData?: any;
+    isOffline?: boolean;
 }
 
-export default function CreateLoadModal({ open, onCloseAction, puulaaniDetails, onSubmitAction, initialLoadData }: CreateLoadModalProps) {
+export default function CreateLoadModal({
+    open,
+    onCloseAction,
+    puulaaniDetails,
+    onSubmitAction,
+    initialLoadData,
+    isOffline = false,
+}: CreateLoadModalProps) {
     const isEditMode = !!initialLoadData;
     const { t } = useTranslation(['createLoadModal', 'common']);
     const theme = useTheme();
@@ -67,26 +75,35 @@ export default function CreateLoadModal({ open, onCloseAction, puulaaniDetails, 
     const { fields, append, remove } = useFieldArray({ control: mainControl, name: "legs" });
 
     // Directly derive availableTasks from props using useMemo. This is more reliable.
-    const availableTasks: IWoodEntry[] = useMemo(() => puulaaniDetails?.timberEntries || [], [puulaaniDetails]);
-
+    const availableTasks: IWoodEntry[] = useMemo(
+        () => (puulaaniDetails?.timberEntries || []).map(e => JSON.parse(JSON.stringify(e))),
+        [puulaaniDetails]
+    );
     // Watch for changes in the 'Timber Type' dropdown and 'Hauled' input
     const watchedPuutavaraId = watch('puutavaraId');
     const watchedVolume = watch('volume');
 
+    const showOfflinePlaceholders = isOffline && isEditMode;
+    const offlineUnavailableText = t('form.offlineUnavailable', { defaultValue: 'Data unavailable offline' });
+
     // Find the selected task object based on the watched ID
     const selectedTask = useMemo(() => {
+        if (showOfflinePlaceholders) return undefined;
         if (!watchedPuutavaraId) return undefined;
         return availableTasks.find(t => String(t.puutavaraId) === String(watchedPuutavaraId));
-    }, [watchedPuutavaraId, availableTasks]);
+    }, [watchedPuutavaraId, availableTasks, showOfflinePlaceholders]);
 
     // Calculate the new remaining volume in real-time
     const calculatedRemaining = useMemo(() => {
+        if (showOfflinePlaceholders) return offlineUnavailableText;
         if (!selectedTask) return '';
         const originalHauled = isEditMode ? Number(initialLoadData?.m3) || 0 : 0;
         const currentRemaining = Number(selectedTask.jaljella) + originalHauled;
         const newHauled = Number(watchedVolume) || 0;
         return (currentRemaining - newHauled).toFixed(2);
-    }, [selectedTask, watchedVolume, isEditMode, initialLoadData]);
+    }, [selectedTask, watchedVolume, showOfflinePlaceholders, initialLoadData, offlineUnavailableText]);
+
+    const confirmActionLabel = isOffline ? t('actions.queueCreate') : t('actions.confirmCreate');
 
     // Effect to reset forms when the modal's open state or mode changes
     useEffect(() => {
@@ -110,13 +127,63 @@ export default function CreateLoadModal({ open, onCloseAction, puulaaniDetails, 
     const handleAddLeg = (data: LoadLegForm) => {
         const foundTask = availableTasks.find(t => String(t.puutavaraId) === String(data.puutavaraId));
         if (foundTask) {
-            append({ ...data, taskDetails: foundTask });
-            resetLegForm({ puutavaraId: '', receptionNo: '', volume: '', route: '', km: '', notes: '' });
-        }
-    };
+            const taskSnapshot = {
+                asiakasId: Number(foundTask.asiakasId ?? 0),
+                puulaaniId: Number(foundTask.puulaaniId ?? 0),
+                puutavaraId: Number(foundTask.puutavaraId ?? 0),
+                purkupaikkaId: Number(foundTask.purkupaikkaId ?? 0),
+                laji: foundTask.laji ?? '',
+                purkupaikkaName: foundTask.purkupaikkaName ?? '',
+                kuutiot: Number(foundTask.kuutiot ?? 0),
+                haettu: Number(foundTask.haettu ?? 0),
+                jaljella: Number(foundTask.jaljella ?? 0),
+                km: Number(data.km ?? foundTask.km ?? 0),
+                notes: data.notes ?? '',
+                reitti: data.route ?? '',
+            };
 
-    const onFormError = (errors: any) => { console.error("Form validation failed:", errors); };
-    const handleFinalCreateSubmit = (data: CreateLoadForm) => onSubmitAction(data.legs, false);
+            append({ ...data, taskDetails: taskSnapshot }); // no functions/getters
+        resetLegForm({ puutavaraId: '', receptionNo: '', volume: '', route: '', km: '', notes: '' });
+    }
+};
+
+const onFormError = (errors: any) => { console.error("Form validation failed:", errors); };
+    const handleFinalCreateSubmit = (data: CreateLoadForm) => {
+
+        const legs = (data.legs || []).map((l: any) => {
+            const routeValue = l.route ?? l.taskDetails?.reitti ?? l.taskDetails?.route ?? '';
+            const kmValue = l.km ?? l.taskDetails?.km ?? '0';
+            const notesValue = l.notes ?? l.taskDetails?.notes ?? '';
+
+            return {
+                puutavaraId: String(l.puutavaraId ?? l.taskDetails?.puutavaraId ?? ''),
+                receptionNo: l.receptionNo ?? '',
+                volume: String(l.volume ?? ''),
+                route: routeValue,
+                km: String(kmValue),
+                notes: notesValue,
+                taskDetails: l.taskDetails
+                    ? {
+                        asiakasId: Number(l.taskDetails.asiakasId ?? 0),
+                        puulaaniId: Number(l.taskDetails.puulaaniId ?? 0),
+                        puutavaraId: Number(l.taskDetails.puutavaraId ?? 0),
+                        purkupaikkaId: Number(l.taskDetails.purkupaikkaId ?? 0),
+                        laji: l.taskDetails.laji ?? '',
+                        purkupaikkaName: l.taskDetails.purkupaikkaName ?? '',
+                        kuutiot: Number(l.taskDetails.kuutiot ?? 0),
+                        haettu: Number(l.taskDetails.haettu ?? 0),
+                        jaljella: Number(l.taskDetails.jaljella ?? 0),
+                        km: Number(l.taskDetails.km ?? l.km ?? 0),
+                        notes: l.taskDetails.notes ?? l.notes ?? '',
+                        reitti: l.taskDetails.reitti ?? l.route ?? '',
+                        route: l.taskDetails.route ?? l.route ?? '',
+                    }
+                    : undefined,
+            };
+        });
+
+        onSubmitAction(legs, false);
+    };
     const handleUpdateSubmit = (data: LoadLegForm) => onSubmitAction({ ...data, kuormaId: initialLoadData.kuormaId }, true);
 
     if (!open || (!puulaaniDetails && !isEditMode)) return null;
@@ -157,6 +224,11 @@ export default function CreateLoadModal({ open, onCloseAction, puulaaniDetails, 
                 <IconButton onClick={onCloseAction} sx={{ color: headerTextColor, position: 'absolute', right: 8, top: 8 }}><CloseIcon /></IconButton>
             </DialogTitle>
             <DialogContent dividers sx={{ p: { xs: 2, sm: 3 }, backgroundColor: contentSurface }}>
+                {isOffline && (
+                    <Alert severity="warning" color="warning" sx={{ mb: 2 }}>
+                        {t('offline.notice')}
+                    </Alert>
+                )}
                 <FormProvider {...legMethods}>
                     <Box component="form" id="leg-form" onSubmit={isEditMode ? handleLegSubmit(handleUpdateSubmit, onFormError) : handleLegSubmit(handleAddLeg, onFormError)}>
                         <Paper
@@ -175,9 +247,9 @@ export default function CreateLoadModal({ open, onCloseAction, puulaaniDetails, 
                                 sx={{
                                     display: 'grid',
                                     gridTemplateColumns: {
-                                        xs: '1fr',       
-                                        sm: 'repeat(2, 1fr)', 
-                                        md: 'repeat(3, 1fr)'  
+                                        xs: '1fr',
+                                        sm: 'repeat(2, 1fr)',
+                                        md: 'repeat(3, 1fr)'
                                     },
                                     gap: 2.5,
                                     alignItems: 'center'
@@ -189,18 +261,41 @@ export default function CreateLoadModal({ open, onCloseAction, puulaaniDetails, 
                                         name="puutavaraId"
                                         control={legControl}
                                         rules={{ required: t('validation.required') as string }}
-                                        render={({ field, fieldState }) => (
-                                            <FormControl fullWidth error={!!fieldState.error} disabled={isEditMode}>
-                                                <InputLabel>{t('form.timberType')} *</InputLabel>
-                                                <Select {...field} label={`${t('form.timberType')} *`}>
-                                                    {(puulaaniDetails?.timberEntries || []).map(task => (
-                                                        <MenuItem key={task.puutavaraId} value={String(task.puutavaraId)}>
-                                                            {task.laji}
-                                                        </MenuItem>
-                                                    ))}
-                                                </Select>
-                                            </FormControl>
-                                        )}
+                                        render={({ field, fieldState }) => {
+                                            if (showOfflinePlaceholders) {
+                                                return (
+                                                    <>
+                                                        <input
+                                                            type="hidden"
+                                                            name={field.name}
+                                                            value={field.value ?? ''}
+                                                            ref={field.ref}
+                                                            onChange={field.onChange}
+                                                            onBlur={field.onBlur}
+                                                        />
+                                                        <TextField
+                                                            label={`${t('form.timberType')} *`}
+                                                            value={offlineUnavailableText}
+                                                            fullWidth
+                                                            disabled
+                                                            InputProps={{ readOnly: true }}
+                                                        />
+                                                    </>
+                                                );
+                                            }
+                                            return (
+                                                <FormControl fullWidth error={!!fieldState.error} disabled={isEditMode}>
+                                                    <InputLabel>{t('form.timberType')} *</InputLabel>
+                                                    <Select {...field} label={`${t('form.timberType')} *`}>
+                                                        {(puulaaniDetails?.timberEntries || []).map(task => (
+                                                            <MenuItem key={task.puutavaraId} value={String(task.puutavaraId)}>
+                                                                {task.laji}
+                                                            </MenuItem>
+                                                        ))}
+                                                    </Select>
+                                                </FormControl>
+                                            );
+                                        }}
                                     />
                                 </Box>
 
@@ -208,10 +303,11 @@ export default function CreateLoadModal({ open, onCloseAction, puulaaniDetails, 
                                 <Box>
                                     <TextField
                                         label={t('form.dropoff')}
-                                        value={selectedTask?.purkupaikkaName || ''}
+                                        value={showOfflinePlaceholders ? offlineUnavailableText : selectedTask?.purkupaikkaName || ''}
                                         fullWidth
                                         disabled
                                         variant="filled"
+                                        InputProps={{ readOnly: true }}
                                     />
                                 </Box>
 
@@ -228,10 +324,11 @@ export default function CreateLoadModal({ open, onCloseAction, puulaaniDetails, 
                                 <Box>
                                     <TextField
                                         label={t('form.total')}
-                                        value={selectedTask ? Number(selectedTask.kuutiot).toFixed(2) : ''}
+                                        value={showOfflinePlaceholders ? offlineUnavailableText : selectedTask ? Number(selectedTask.kuutiot).toFixed(2) : ''}
                                         fullWidth
                                         disabled
                                         variant="filled"
+                                        InputProps={{ readOnly: true }}
                                     />
                                 </Box>
 
@@ -262,6 +359,7 @@ export default function CreateLoadModal({ open, onCloseAction, puulaaniDetails, 
                                         fullWidth
                                         disabled
                                         variant="filled"
+                                        InputProps={{ readOnly: true }}
                                     />
                                 </Box>
 
@@ -366,9 +464,35 @@ export default function CreateLoadModal({ open, onCloseAction, puulaaniDetails, 
                 </>)}
             </DialogContent>
             <DialogActions sx={{ p: 2, borderTop: `1px solid ${dividerColor}`, backgroundColor: actionSurface }}>
-                <Button onClick={onCloseAction} variant="text" color="secondary">{t('common:buttons.cancel')}</Button>
-                {isEditMode ? (<Button variant="contained" color="primary" startIcon={<SaveIcon />} onClick={handleLegSubmit(handleUpdateSubmit)}>{t('common:buttons.save')}</Button>) : (<Button variant="contained" color="success" startIcon={<SendIcon />} onClick={handleMainSubmit(handleFinalCreateSubmit)} disabled={fields.length === 0}>{t('actions.confirmCreate')}</Button>)}
+                <Button onClick={onCloseAction} variant="text" color="secondary">
+                    {t('common:buttons.cancel')}
+                </Button>
+                {isEditMode ? (
+                    <Button
+                        variant="contained"
+                        color="primary"
+                        startIcon={<SaveIcon />}
+                        onClick={handleLegSubmit(handleUpdateSubmit)}
+
+                    >
+                        {t('common:buttons.save')}
+                    </Button>
+                ) : (
+                    <Button
+                        variant="contained"
+                        color="success"
+                        startIcon={<SendIcon />}
+                        onClick={handleMainSubmit(handleFinalCreateSubmit)}
+                        disabled={fields.length === 0}
+                    >
+                        {confirmActionLabel}
+                    </Button>
+                )}
             </DialogActions>
         </Dialog>
     );
 }
+
+
+
+

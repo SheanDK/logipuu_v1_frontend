@@ -54,7 +54,6 @@
   "devDependencies": {
     "@eslint/eslintrc": "^3",
     "@tailwindcss/postcss": "^4",
-    "@types/axios": "^0.9.36",
     "@types/camelcase-keys": "^4.1.0",
     "@types/follow-redirects": "^1.14.4",
     "@types/hoist-non-react-statics": "^3.3.4",

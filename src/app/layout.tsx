@@ -2,13 +2,15 @@
 import '@/app/globals.css';
 import 'leaflet/dist/leaflet.css';
 import React from 'react';
-import { AppRouterCacheProvider } from '@mui/material-nextjs/v15-appRouter';
-import { AuthProvider } from '@/contexts/AuthContext';
-import { LayoutProvider } from '@/contexts/LayoutContext';
-import AppThemeWrapper from '@/components/theme/AppThemeWrapper';
-import { fallbackLng } from '@/i18n/settings';
-import { DriverSessionProvider } from '@/contexts/DriverSessionContext';
-import { SettingsProvider } from '@/contexts/SettingsContext'; // --- Import the provider
+import { AppRouterCacheProvider } from '@mui/material-nextjs/v15-appRouter';        // MUI provider for App Router – handles Emotion caching and style hydration
+import { AuthProvider } from '@/contexts/AuthContext';                              // Custom authentication context
+import { LayoutProvider } from '@/contexts/LayoutContext';                          // Manages layout state (sidebar, headers, etc.)
+import AppThemeWrapper from '@/components/theme/AppThemeWrapper';                   // Wraps MUI theme and CssBaseline setup
+import { fallbackLng } from '@/i18n/settings';                                      // Default language code for <html lang>
+import { DriverSessionProvider } from '@/contexts/DriverSessionContext';            // Context for driver session / work shift state
+import { SettingsProvider } from '@/contexts/SettingsContext';                      // User/app settings state
+import ConnectivityBoundary from '@/components/providers/ConnectivityBoundary';     // Component that monitors network connectivity 
+import DriverOfflineBootstrap from '@/components/providers/DriverOfflineBootstrap'; // Prepares offline mode
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
@@ -18,13 +20,16 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       </head>
       <body>
         <AppRouterCacheProvider>
-          {/* Wrap the entire app so the setting is available everywhere */}
           <SettingsProvider>
             <AuthProvider>
               <DriverSessionProvider>
-                <LayoutProvider>
-                  <AppThemeWrapper>{children}</AppThemeWrapper>
-                </LayoutProvider>
+                <ConnectivityBoundary>
+                  <DriverOfflineBootstrap>
+                    <LayoutProvider>
+                      <AppThemeWrapper>{children}</AppThemeWrapper>
+                    </LayoutProvider>
+                  </DriverOfflineBootstrap>
+                </ConnectivityBoundary>
               </DriverSessionProvider>
             </AuthProvider>
           </SettingsProvider>

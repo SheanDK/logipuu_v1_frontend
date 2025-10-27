@@ -1,54 +1,72 @@
 {
-  "list": {
-    "header": "Timber Sites"
-  },
-  "errors": {
-    "noVehicle": "No vehicle selected.",
-    "mapLoad": "Failed to load map data."
-  },
-  "toasts": {
-    "puulaaniLoadError": "Failed to load Timber Stacks details.",
-    "editLoadFetchError": "Failed to fetch load details for editing.",
-    "invalidSession": "User or vehicle session is invalid.",
-    "loadUpdated": "Load updated successfully!",
-    "loadUpdateFailed": "Failed to update load.",
-    "loadsCreated": "Load(s) created successfully!",
-    "genericError": "An error occurred.",
-    "statusesUpdated": "Statuses updated successfully!",
-    "saveFailed": "Failed to save changes.",
-    "loadDeleted": "Load deleted successfully!",
-    "deleteFailed": "Failed to delete load.",
-    "tripStarted": "Trip started!",
-    "tripStartFailed": "Failed to start trip.",
-    "tripCompleted": "Trip completed!",
-    "tripStatusUpdated": "Trip status updated to {{status}}",
-    "statusUpdateFailed": "Failed to update status.",
-    "finishActiveTripFirst": "Please complete or cancel the current active trip before starting a new one."
-  },
-  "buttons": {
-    "changeMode": "Change Mode",
-    "showList": "Show List",
-    "showMap": "Show Map",
-    "listView": "List View",
-    "mapView": "Map View",
-    "showActiveTrip": "Show Active Trip"
-  },
-  "dialogs": {
-    "delete": {
-      "title": "Confirm Load Deletion",
-      "message": "Are you sure you want to delete this load? (Timber: {{timber}})",
-      "confirm": "Delete"
-    },
-    "activeTrip": {
-      "title": "Active Trip Warning",
-      "message": "You have an active trip in progress. Changing mode will not stop the trip. Are you sure you want to proceed?",
-      "confirm": "Yes, Proceed"
-    }
-  },
-  "speedDial": {
-    "aria": "Actions"
-  },
-  "common": {
-    "na": "N/A"
-  }
+    "list":  {
+                 "header":  "Timber Sites"
+             },
+    "errors":  {
+                   "noVehicle":  "No vehicle selected.",
+                   "mapLoad":  "Failed to load map data.",
+                   "mapLoadOffline":  "Map data is unavailable offline yet. Reconnect to refresh."
+               },
+    "alerts":  {
+                   "offlineMap":  "You\u0027re offline. Map interactions are limited until the connection returns."
+               },
+    "toasts":  {
+                   "puulaaniLoadError":  "Failed to load timber site details.",
+                   "puulaaniLoadOffline":  "Timber site details aren\u0027t cached yet. Go online to load them.",
+                   "editLoadFetchError":  "Failed to fetch load details for editing.",
+                   "invalidSession":  "User or vehicle session is invalid.",
+                   "loadUpdated":  "Load updated successfully!",
+                   "loadUpdateFailed":  "Failed to update load.",
+                   "loadsCreated":  "Load(s) created successfully!",
+                   "genericError":  "An error occurred.",
+                   "loadQueued":  "Load queued. It will sync automatically once you\u0027re back online.",
+                   "queueFailed":  "Failed to queue the load for sync.",
+                   "noLegs":  "Add at least one timber entry before creating a load.",
+                   "editOfflineNotAvailable":  "Load details are not cached offline yet. Reconnect once to edit this load.",
+                   "editLoadOffline":  "Editing loads offline is not supported.",
+                   "saveOfflineNotAvailable":  "Cannot save changes while offline.",
+                   "statusesUpdated":  "Statuses updated successfully!",
+                   "saveFailed":  "Failed to save changes.",
+                   "puulaaniOfflineMissing":  "Timber site details haven\u0027t finished caching yet. Go online once to load them.",
+                   "loadDeleted":  "Load deleted successfully!",
+                   "deleteFailed":  "Failed to delete load.",
+                   "loadDeleteQueued":  "Load deletion queued. We\u0027ll sync it once the connection returns.",
+                   "tripStarted":  "Trip started!",
+                   "tripStartFailed":  "Failed to start trip.",
+                   "tripCompleted":  "Trip completed!",
+                   "tripQueued":  "Trip start queued. We\u0027ll sync it once you\u0027re back online.",
+                   "tripStatusUpdated":  "Trip status updated to {{status}}",
+                   "statusQueued":  "Status change queued ({{status}}). We\u0027ll sync it once you\u0027re back online.",
+                   "statusUpdateFailed":  "Failed to update status.",
+                   "loadUpdateQueued":  "Load update queued. Changes will sync when the connection returns.",
+                   "finishActiveTripFirst":  "Please complete or cancel the current active trip before starting a new one.",
+                   "editOfflineNotice":  "You are editing while offline. Changes will sync once the connection returns.",
+                   "offlineDraftCancelled":  "Offline draft removed."
+               },
+    "buttons":  {
+                    "changeMode":  "Change Mode",
+                    "showList":  "Show List",
+                    "showMap":  "Show Map",
+                    "listView":  "List View",
+                    "mapView":  "Map View",
+                    "showActiveTrip":  "Show Active Trip"
+                },
+    "dialogs":  {
+                    "delete":  {
+                                   "title":  "Confirm Load Deletion",
+                                   "message":  "Are you sure you want to delete this load? (Timber: {{timber}})",
+                                   "confirm":  "Delete"
+                               },
+                    "activeTrip":  {
+                                       "title":  "Active Trip Warning",
+                                       "message":  "You have an active trip in progress. Changing mode will not stop the trip. Are you sure you want to proceed?",
+                                       "confirm":  "Yes, Proceed"
+                                   }
+                },
+    "speedDial":  {
+                      "aria":  "Actions"
+                  },
+    "common":  {
+                   "na":  "N/A"
+               }
 }

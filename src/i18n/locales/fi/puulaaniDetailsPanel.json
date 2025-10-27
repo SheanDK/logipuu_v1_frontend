@@ -1,15 +1,15 @@
 {
   "common": {
-    "na": "-"
+    "na": "Ei saatavilla"
   },
-  "loading": "Ladataan�",
+  "loading": "Ladataan…",
   "header": {
-    "label": "PUULAANIN TIEDOT",
-    "unknown": "Tuntematon puulaani"
+    "label": "PUULAANIEN TIEDOT",
+    "unknown": "Tuntematon Puulaani"
   },
   "actions": {
     "saveChanges": "Tallenna muutokset",
-    "saving": "Tallennetaan...",
+    "saving": "Tallennetaan…",
     "close": "Sulje"
   },
   "timber": {
@@ -17,9 +17,9 @@
     "tableAria": "Puutavaralajien taulukko",
     "columns": {
       "type": "Laji",
-      "total": "Yhteens� (m�)",
-      "hauled": "Haettu (m�)",
-      "remaining": "J�ljell� (m�)",
+      "total": "Yhteensä (m³)",
+      "hauled": "Kuljetettu (m³)",
+      "remaining": "Jäljellä (m³)",
       "completed": "Valmis"
     },
     "completedAria": "Merkitse {{type}} valmiiksi"
@@ -31,30 +31,29 @@
     "tableAria": "Kuormien taulukko",
     "columns": {
       "timberType": "Puutavaralaji",
-      "date": "P�iv�",
+      "date": "Päivämäärä",
       "driver": "Kuljettaja",
-      "hauled": "Haettu (m�)",
+      "hauled": "Kuljetettu (m³)",
       "actions": "Toiminnot"
     },
     "actions": {
-      "start": "Aloita ajo",
+      "start": "Aloita matka",
       "edit": "Muokkaa kuormaa",
       "delete": "Poista kuorma"
     },
-    "offlineNotice": "Olet offline-tilassa. Uusi kuorma tallennetaan paikallisesti ja n�kyy tilassa \"Odottaa synkronointia\".",
-    "offlineDisabled": "Toiminnot eiv�t ole k�ytett�viss� offline-tilassa"
+    "offlineNotice": "Olet offline-tilassa. Uusi kuorma tallennetaan paikallisesti ja lähetetään automaattisesti, kun yhteys palautuu. Toiminnot ovat rajoitetut.",
+    "offlineDisabled": "Toiminnot eivät ole käytettävissä offline-tilassa"
   },
   "status": {
     "completed": "Valmis",
-    "in_progress": "K�ynniss�",
-    "en_route_to_destination": "Matkalla kohteeseen",
-    "assigned": "Osoitettu",
-    "at_origin": "L�ht�pisteess�",
-    "at_destination": "Kohteessa",
-    "paused": "Keskeytetty",
-    "pending_sync": "Odottaa synkronointia",
+    "in_progress": "Käynnissä",
+    "en_route_to_destination": "Matkalla määränpäähän",
+    "assigned": "Määrätty",
+    "at_origin": "Lähtöpisteessä",
+    "at_destination": "Määränpäässä",
+    "paused": "Tauolla",
     "offlineMode": "Offline-tila",
-    "na": "-"
+    "pending_sync": "Odottaa synkronointia",
+    "na": "Ei saatavilla"
   }
 }
-

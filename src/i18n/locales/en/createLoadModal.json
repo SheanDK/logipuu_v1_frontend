@@ -12,19 +12,20 @@
     "timberType": "Timber Type",
     "dropoff": "Drop-off Location",
     "receptionNo": "Reception Number",
-    "total": "Total (m³)",
-    "hauled": "Hauled (m³)",
-    "remaining": "Remaining (m³)",
+    "total": "Total (m3)",
+    "hauled": "Hauled (m3)",
+    "remaining": "Remaining (m3)",
     "route": "Route",
     "freightKm": "Freight (km)",
-    "notes": "Additional Notes"
+    "notes": "Additional Notes",
+    "offlineUnavailable": "Data unavailable offline"
   },
   "legs": {
     "title": "Trip Legs",
     "tableAria": "Trip legs table",
     "columns": {
       "timber": "Timber",
-      "volume": "Volume (m³)",
+      "volume": "Volume (m3)",
       "reception": "Reception No.",
       "actions": "Actions"
     },
@@ -36,11 +37,15 @@
   "actions": {
     "addToTrip": "Add to Trip",
     "confirmCreate": "Confirm & Create Trip",
+    "queueCreate": "Create offline load",
     "close": "Close",
     "removeLeg": "Remove leg",
     "start": "Start Trip",
     "edit": "Edit Load",
     "delete": "Delete Load"
+  },
+  "offline": {
+    "notice": "You are offline. Load information is stored locally and sent automatically when the connection is restored."
   },
   "validation": {
     "required": "Required"
