@@ -46,14 +46,28 @@ export default function LoginPage() {
 
         try {
             const apiResponse = await loginUserApi(credentials);
-            await login(apiResponse); // Context handles token storage and redirection logic.
+            
+            // --- DEBUGGING STEP ---
+            // Log the entire user object received from the API to check the roles array.
+            console.log("--- User data from API ---", apiResponse.user);
 
-            // The login function in the context should ideally handle redirection.
-            // But if specific logic is needed here:
+            // This is the primary login action that sets the user in the context.
+            await login(apiResponse); 
+
+            // --- THE FIX ---
+            // 1. Get the roles array, defaulting to an empty array if it's missing.
             const userRoles = apiResponse.user.roles || [];
-            if (userRoles.includes('Kuljettaja')) {
+
+            // 2. Check if ANY of the roles, when converted to lowercase, is 'kuljettaja'.
+            // This makes the check case-insensitive.
+            const isDriver = userRoles.some((role: string) => role.toLowerCase() === 'kuljettaja');
+
+            // 3. Redirect based on the result.
+            if (isDriver) {
+                console.log("Redirecting to /my-loads for Driver.");
                 router.push('/my-loads');
             } else {
+                console.log("Redirecting to /timber-stacks for non-Driver.");
                 router.push('/timber-stacks');
             }
 

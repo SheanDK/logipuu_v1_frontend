@@ -46,12 +46,21 @@ const MapView = ({ puulaanit, purkupaikat, onMarkerClick, currentLocation }: {
 };
 
 const ListView = ({ puulaanit, onPuulaaniClick }: { puulaanit: any[], onPuulaaniClick: (id: number) => void }) => (
-    // Corrected layout for ListView
     <Paper sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
         <Typography variant="h6" gutterBottom sx={{ p: 2, pb: 1, flexShrink: 0 }}>Timber Sites (Puulaanit)</Typography>
         <Divider />
         <Box sx={{ flexGrow: 1, overflowY: 'auto' }}>
-            <List>{puulaanit.map((p, index) => (<React.Fragment key={p.id}><ListItemButton onClick={() => onPuulaaniClick(p.id)}><ListItemText primary={p.name} /></ListItemButton>{index < puulaanit.length - 1 && <Divider />}</React.Fragment>))}</List>
+            {/* FIX: The key now includes both the ID and the index to guarantee uniqueness. */}
+            <List>
+                {puulaanit.map((p, index) => (
+                    <React.Fragment key={`${p.id}-${index}`}>
+                        <ListItemButton onClick={() => onPuulaaniClick(p.id)}>
+                            <ListItemText primary={p.name} />
+                        </ListItemButton>
+                        {index < puulaanit.length - 1 && <Divider />}
+                    </React.Fragment>
+                ))}
+            </List>
         </Box>
     </Paper>
 );

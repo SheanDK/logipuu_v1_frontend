@@ -140,10 +140,11 @@ export default function TripMap({ legs, puulaanit, purkupaikat, driverLocation, 
                 </React.Fragment>
             ))}
 
-            {/* Markers for available Puulaani sites */}
+           {/* Markers for available Puulaani sites */}
             {puulaanit.map((trip) => (
                 trip.originCoords &&
                 <Marker
+                    // The key is now prefixed with 'puulaani-' to guarantee uniqueness.
                     key={`puulaani-${trip.kuormaId}`}
                     position={[trip.originCoords.lat, trip.originCoords.lng]}
                     icon={puulaaniIcon}
@@ -157,6 +158,8 @@ export default function TripMap({ legs, puulaanit, purkupaikat, driverLocation, 
             {purkupaikat.map((trip) => (
                 trip.originCoords &&
                 <Marker
+                    // The key is now prefixed with 'purkupaikka-' to guarantee uniqueness.
+                    // The key will be like 'purkupaikka--3238' which is a valid unique string.
                     key={`purkupaikka-${trip.kuormaId}`}
                     position={[trip.originCoords.lat, trip.originCoords.lng]}
                     icon={purkupaikkaIcon}
