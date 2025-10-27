@@ -1,8 +1,8 @@
 {
   "common": {
-    "na": "N/A"
+    "na": "-"
   },
-  "loading": "Ladataanâ€¦",
+  "loading": "Ladataan…",
   "header": {
     "label": "PUULAANIN TIEDOT",
     "unknown": "Tuntematon puulaani"
@@ -17,9 +17,9 @@
     "tableAria": "Puutavaralajien taulukko",
     "columns": {
       "type": "Laji",
-      "total": "YhteensÃ¤ (mÂ³)",
-      "hauled": "Haettu (mÂ³)",
-      "remaining": "JÃ¤ljellÃ¤ (mÂ³)",
+      "total": "Yhteensä (m³)",
+      "hauled": "Haettu (m³)",
+      "remaining": "Jäljellä (m³)",
       "completed": "Valmis"
     },
     "completedAria": "Merkitse {{type}} valmiiksi"
@@ -31,25 +31,30 @@
     "tableAria": "Kuormien taulukko",
     "columns": {
       "timberType": "Puutavaralaji",
-      "date": "PÃ¤ivÃ¤",
+      "date": "Päivä",
       "driver": "Kuljettaja",
-      "hauled": "Haettu (mÂ³)",
+      "hauled": "Haettu (m³)",
       "actions": "Toiminnot"
     },
     "actions": {
       "start": "Aloita ajo",
       "edit": "Muokkaa kuormaa",
       "delete": "Poista kuorma"
-    }
+    },
+    "offlineNotice": "Olet offline-tilassa. Uusi kuorma tallennetaan paikallisesti ja näkyy tilassa \"Odottaa synkronointia\".",
+    "offlineDisabled": "Toiminnot eivät ole käytettävissä offline-tilassa"
   },
   "status": {
     "completed": "Valmis",
-    "in_progress": "KÃ¤ynnissÃ¤",
+    "in_progress": "Käynnissä",
     "en_route_to_destination": "Matkalla kohteeseen",
     "assigned": "Osoitettu",
-    "at_origin": "LÃ¤htÃ¶pisteessÃ¤",
+    "at_origin": "Lähtöpisteessä",
     "at_destination": "Kohteessa",
     "paused": "Keskeytetty",
-    "na": "â€”"
+    "pending_sync": "Odottaa synkronointia",
+    "offlineMode": "Offline-tila",
+    "na": "-"
   }
 }
+

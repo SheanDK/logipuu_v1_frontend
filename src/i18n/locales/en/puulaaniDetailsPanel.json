@@ -40,7 +40,9 @@
       "start": "Start Trip",
       "edit": "Edit Load",
       "delete": "Delete Load"
-    }
+    },
+    "offlineNotice": "You are offline. The new load is stored locally and appear here as “Pending sync”.",
+    "offlineDisabled": "Actions unavailable while offline"
   },
   "status": {
     "completed": "Completed",
@@ -50,6 +52,8 @@
     "at_origin": "At origin",
     "at_destination": "At destination",
     "paused": "Paused",
-    "na": "—"
+    "pending_sync": "Pending sync",
+    "offlineMode": "Offline mode",
+    "na": "N/A"
   }
 }
