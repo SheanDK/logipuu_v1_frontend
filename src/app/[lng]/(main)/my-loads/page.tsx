@@ -1,7 +1,7 @@
 // frontend/src/app/(main)/my-loads/page.tsx
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import dynamic from 'next/dynamic';
 import { Box, CircularProgress } from '@mui/material';
 import { useDriverSession } from '@/contexts/DriverSessionContext';
@@ -16,6 +16,68 @@ const ConsignmentDriverDashboard = dynamic(() => import('../../../../components/
 const ConsignmentDriverForm = dynamic(() => import('../../../../components/drivers/ConsignmentDriverForm'), { ssr: false });
 
 
+// export default function DriverDashboardPage() {
+//     const { selectedVehicleId, selectVehicle } = useDriverSession();
+//     const [view, setView] = useState<'mode-select' | 'timber' | 'consignment-list' | 'consignment-form'>('mode-select');
+//     const [editingConsignmentId, setEditingConsignmentId] = useState<number | null>(null);
+//     const [vehicles, setVehicles] = useState<IVehicleBasicInfo[]>([]);
+//     const [isLoadingVehicles, setIsLoadingVehicles] = useState(true);
+
+//     // This effect runs once to fetch the list of vehicles for the modal.
+//     useEffect(() => {
+//         setIsLoadingVehicles(true);
+//         fetchAllVehicles()
+//             .then((data: IVehicleBackendResponse[]) => {
+//                 const mappedVehicles = data.map(v => ({
+//                     id: String(v.kalustoNro),
+//                     registrationNo: v.rekNro,
+//                     name: v.rekNro,
+//                     vehicleNo: String(v.kalustoNro)
+//                 }));
+//                 setVehicles(mappedVehicles);
+//             })
+//             .catch(err => console.error("Failed to fetch vehicles:", err))
+//             .finally(() => setIsLoadingVehicles(false));
+//     }, []);
+
+//     const handleNavigateToForm = (id: number | null) => {
+//         setEditingConsignmentId(id); // null for create mode, a number for edit mode
+//         setView('consignment-form');
+//     };
+
+//     const handleBackToList = () => {
+//         setEditingConsignmentId(null);
+//         setView('consignment-list');
+//     };
+
+//     // --- RENDER LOGIC ---
+    
+//     if (!selectedVehicleId) {
+//         if (isLoadingVehicles) {
+//             return <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100%' }}><CircularProgress /></Box>;
+//         }
+//         return <SelectVehicleModal open={true} vehicles={vehicles} onVehicleSelectAction={selectVehicle} />;
+//     }
+
+//     // A vehicle IS selected, so proceed with the view logic.
+//     switch (view) {
+//         case 'mode-select':
+//             return <ModeSelection onModeSelectAction={(selectedMode) => setView(selectedMode === 'timber' ? 'timber' : 'consignment-list')} />;
+
+//         case 'timber':
+//             return <TimberDashboard onBackAction={() => setView('mode-select')} />;
+            
+//         case 'consignment-list':
+//             return <ConsignmentDriverDashboard onBackAction={() => setView('mode-select')} onNavigateToFormAction={handleNavigateToForm} />;
+
+//         case 'consignment-form':
+//             return <ConsignmentDriverForm onBackToListAction={handleBackToList} consignmentId={editingConsignmentId} />;
+
+//         default:
+//             return null;
+//     }
+// }
+
 export default function DriverDashboardPage() {
     const { selectedVehicleId, selectVehicle } = useDriverSession();
     const [view, setView] = useState<'mode-select' | 'timber' | 'consignment-list' | 'consignment-form'>('mode-select');
@@ -23,7 +85,6 @@ export default function DriverDashboardPage() {
     const [vehicles, setVehicles] = useState<IVehicleBasicInfo[]>([]);
     const [isLoadingVehicles, setIsLoadingVehicles] = useState(true);
 
-    // This effect runs once to fetch the list of vehicles for the modal.
     useEffect(() => {
         setIsLoadingVehicles(true);
         fetchAllVehicles()
@@ -40,18 +101,24 @@ export default function DriverDashboardPage() {
             .finally(() => setIsLoadingVehicles(false));
     }, []);
 
-    const handleNavigateToForm = (id: number | null) => {
-        setEditingConsignmentId(id); // null for create mode, a number for edit mode
+    // --- THE FIX IS HERE ---
+    // Wrap all handler functions passed as props in useCallback.
+    // This prevents them from being recreated on every render, which stops child components from unmounting.
+    const handleNavigateToForm = useCallback((id: number | null) => {
+        setEditingConsignmentId(id);
         setView('consignment-form');
-    };
+    }, []); // Empty dependency array as it doesn't depend on any state from this component.
 
-    const handleBackToList = () => {
+    const handleBackToList = useCallback(() => {
         setEditingConsignmentId(null);
         setView('consignment-list');
-    };
+    }, []);
 
-    // --- RENDER LOGIC ---
-    
+    const handleBackToModeSelect = useCallback(() => {
+        setView('mode-select');
+    }, []);
+    // --- END OF FIX ---
+
     if (!selectedVehicleId) {
         if (isLoadingVehicles) {
             return <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100%' }}><CircularProgress /></Box>;
@@ -59,16 +126,17 @@ export default function DriverDashboardPage() {
         return <SelectVehicleModal open={true} vehicles={vehicles} onVehicleSelectAction={selectVehicle} />;
     }
 
-    // A vehicle IS selected, so proceed with the view logic.
     switch (view) {
         case 'mode-select':
             return <ModeSelection onModeSelectAction={(selectedMode) => setView(selectedMode === 'timber' ? 'timber' : 'consignment-list')} />;
 
         case 'timber':
-            return <TimberDashboard onBackAction={() => setView('mode-select')} />;
+            // Pass the memoized function as a prop
+            return <TimberDashboard onBackAction={handleBackToModeSelect} />;
             
         case 'consignment-list':
-            return <ConsignmentDriverDashboard onBackAction={() => setView('mode-select')} onNavigateToFormAction={handleNavigateToForm} />;
+            // Pass the memoized functions as props
+            return <ConsignmentDriverDashboard onBackAction={handleBackToModeSelect} onNavigateToFormAction={handleNavigateToForm} />;
 
         case 'consignment-form':
             return <ConsignmentDriverForm onBackToListAction={handleBackToList} consignmentId={editingConsignmentId} />;

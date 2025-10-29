@@ -1,6 +1,8 @@
 {
     "activeTrip": {
         "title": "Active Trip",
+        "currentDestinations": "Current Destination(s)",
+        "unknownDestination": "Unknown Destination",
         "haulingPrefix": "Hauling",
         "from": " from",
         "to": " to",

@@ -1,69 +1,88 @@
 // frontend/src/components/drivers/ActiveTripPanel.tsx
 'use client';
 
-import React from 'react';
-import { Box, Paper, Typography, Stack, Button, IconButton, Chip, CircularProgress, Divider } from '@mui/material';
+import React, { useMemo } from 'react';
+import { Box, Paper, Typography, Stack, Button, IconButton, Chip, CircularProgress, Divider, List, ListItem, ListItemText, ListItemIcon } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
 import NavigationIcon from '@mui/icons-material/Navigation';
 import PauseIcon from '@mui/icons-material/Pause';
 import PlayArrowIcon from '@mui/icons-material/PlayArrow';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
+import FlagIcon from '@mui/icons-material/Flag';
 import { useTranslation } from 'react-i18next';
 
+// Trip leg interface - matches backend snake_case format
+interface TripLeg {
+    kuorma_id: string;
+    status: string;
+    purkupaikka_name: string;  // Backend sends snake_case
+    purkupaikka_lat: string | null;
+    purkupaikka_lng: string | null;
+    puulaani_name?: string;
+    puutavaralaji?: string;
+    ajomaarays_nro?: string;
+}
+
 interface ActiveTripPanelProps {
-    activeLoad: any;
+    activeTrip: {
+        ajomaaraysNro: string | null;
+        legs: TripLeg[];
+    } | null;
     open: boolean;
     onStatusUpdateAction: (newStatus: string) => void;
     onToggleVisibilityAction: () => void;
     isUpdating: boolean;
 }
 
-export default function ActiveTripPanel({ activeLoad, open, onStatusUpdateAction, onToggleVisibilityAction, isUpdating }: ActiveTripPanelProps) {
-    if (!activeLoad) return null;
+export default function ActiveTripPanel({ 
+    activeTrip, 
+    open, 
+    onStatusUpdateAction, 
+    onToggleVisibilityAction, 
+    isUpdating 
+}: ActiveTripPanelProps) {
+    // FIX: ALWAYS call hooks at the top level, BEFORE any conditional returns
     const { t } = useTranslation('activeTripPanel');
 
-    const {
-        puulaaniName,
-        puulaaniLat,
-        puulaaniLng,
-        purkupaikkaName,
-        purkupaikkaLat,
-        purkupaikkaLng,
-        puutavaralaji
-    } = activeLoad.details || {};
+    // FIX: Compute values safely, handling null/undefined cases
+    const primaryLeg = useMemo(() => {
+         if (!activeTrip || !activeTrip.legs || activeTrip.legs.length === 0) return null;
+        return activeTrip.legs.find(leg => leg.status !== 'Assigned') || activeTrip.legs[0];
+    }, [activeTrip]);
 
-    const statusMap: Record<string, string> = {
-        'In Progress': 'inProgress',
-        'Paused': 'paused',
-        'Completed': 'completed',
-        'En Route to Destination': 'enRouteToDestination',
-        'Assigned': 'assigned',
-        'At Origin': 'atOrigin',
-        'At Destination': 'atDestination',
-        'N/A': 'na',
-        '—': 'na'
-    };
+    const overallStatus = primaryLeg?.status || 'Unknown';
 
+    const dropOffGroups = useMemo(() => {
+        if (!activeTrip?.legs || activeTrip.legs.length === 0) return [];
+        
+        const groups = new Map<string, TripLeg[]>();
+        
+        activeTrip.legs.forEach((leg: TripLeg) => {
+            // Use snake_case as backend sends it
+            const dropOffName = leg.purkupaikka_name || t('activeTrip.unknownDestination');
+            
+            if (!groups.has(dropOffName)) {
+                groups.set(dropOffName, []);
+            }
+            groups.get(dropOffName)!.push(leg);
+        });
+        
+        return Array.from(groups.entries());
+    }, [activeTrip, t]);
 
-    const localizedStatus = statusMap[activeLoad.status]
-        ? t(`status.${statusMap[activeLoad.status]}`)
-        : activeLoad.status;
+    // FIX: NOW we can do conditional returns AFTER all hooks
+    if (!activeTrip || !activeTrip.legs || activeTrip.legs.length === 0) {
+        return null;
+    }
 
-    const handleNavigation = (type: 'pickup' | 'dropoff') => {
-        let destination;
-        if (type === 'pickup' && puulaaniLat && puulaaniLng) {
-            destination = `${puulaaniLat},${puulaaniLng}`;
-        } else if (type === 'dropoff' && purkupaikkaLat && purkupaikkaLng) {
-            destination = `${purkupaikkaLat},${purkupaikkaLng}`;
+    const handleNavigation = (lat?: string | null, lng?: string | null) => {
+        if (lat && lng) {
+            const googleMapsUrl = `https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}&travelmode=driving`;
+            window.open(googleMapsUrl, '_blank');
         } else {
             alert(t('activeTrip.alertNoCoords'));
-            return;
         }
-        const googleMapsUrl = `https://www.google.com/maps/dir/?api=1&destination=${destination}&travelmode=driving`;
-        window.open(googleMapsUrl, '_blank');
     };
-
-    const NA = t('activeTrip.na');
 
     return (
         <Paper
@@ -77,18 +96,8 @@ export default function ActiveTripPanel({ activeLoad, open, onStatusUpdateAction
                 borderRadius: { xs: '16px 16px 0 0', sm: 3 },
                 transition: 'transform 0.3s ease-in-out, opacity 0.3s ease-in-out',
                 transform: open
-                    ? (
-                        {
-                            xs: 'translateY(0)',
-                            sm: 'translate(-50%, 0)'
-                        }
-                    )
-                    : (
-                        {
-                            xs: 'translateY(100%)',
-                            sm: 'translate(-50%, calc(100% + 24px))' // Hide it completely below the screen on desktop
-                        }
-                    ),
+                    ? { xs: 'translateY(0)', sm: 'translate(-50%, 0)' }
+                    : { xs: 'translateY(100%)', sm: 'translate(-50%, calc(100% + 24px))' },
                 opacity: open ? 1 : 0,
                 pointerEvents: open ? 'auto' : 'none'
             }}
@@ -96,77 +105,81 @@ export default function ActiveTripPanel({ activeLoad, open, onStatusUpdateAction
             <Box sx={{ p: 2 }}>
                 <Stack direction="row" justifyContent="space-between" alignItems="center" mb={1}>
                     <Typography variant="h6">{t('activeTrip.title')}</Typography>
-                    <Chip label={localizedStatus} color="primary" size="small" />
-                    <IconButton size="small" onClick={onToggleVisibilityAction}><CloseIcon /></IconButton>
+                    <Chip label={overallStatus} color="primary" size="small" />
+                    <IconButton size="small" onClick={onToggleVisibilityAction}>
+                        <CloseIcon />
+                    </IconButton>
                 </Stack>
-                <Typography variant="body2" color="text.secondary">
-                    {t('activeTrip.haulingPrefix')} <b>{puutavaralaji || 'N/A'}</b>
-                    {t('activeTrip.from')} <b>{puulaaniName || 'N/A'}</b>
-                    {t('activeTrip.to')} <b>{purkupaikkaName || 'N/A'}</b>
+                
+                <Typography variant="body2" color="text.secondary" gutterBottom>
+                    {t('activeTrip.currentDestinations')}
                 </Typography>
+
+                <List dense>
+                    {dropOffGroups.map(([dropOffName, legs]) => (
+                        <ListItem 
+                            key={dropOffName}
+                            secondaryAction={
+                                <IconButton 
+                                    edge="end" 
+                                    onClick={() => handleNavigation(legs[0].purkupaikka_lat, legs[0].purkupaikka_lng)}
+                                >
+                                    <NavigationIcon />
+                                </IconButton>
+                            }
+                        >
+                            <ListItemIcon>
+                                <FlagIcon />
+                            </ListItemIcon>
+                            <ListItemText 
+                                primary={dropOffName} 
+                                secondary={`${legs.length} ${legs.length > 1 ? t('activeTrip.loads') : t('activeTrip.load')}`} 
+                            />
+                        </ListItem>
+                    ))}
+                </List>
+
                 <Divider sx={{ my: 2 }} />
 
-                {isUpdating ? <Box sx={{ display: 'flex', justifyContent: 'center' }}>
-                    <CircularProgress size={24} aria-label={t('activeTrip.loading')}
-                    />
-                </Box>
-                    : (
-                        <Stack spacing={1}>
-                            <Stack direction="row" spacing={1}>
-                                <Button 
-                                    fullWidth
-                                    variant="outlined"
-                                    startIcon={<NavigationIcon />}
-                                    onClick={() => handleNavigation('pickup')}
-                                    aria-label={t('activeTrip.toPickupAria')}
-                                >
-                                    {t('activeTrip.toPickup')}
-                                </Button>
-                                <Button
-                                    fullWidth variant="outlined"
-                                    startIcon={<NavigationIcon />}
-                                    onClick={() => handleNavigation('dropoff')}
-                                    aria-label={t('activeTrip.toDropoffAria')}
-                                >
-                                    {t('activeTrip.toDropoff')}
-                                </Button>
-                            </Stack>
-
-                            {activeLoad.status === 'In Progress' &&
-                                <Button
-                                    fullWidth
-                                    variant="contained"
-                                    color="warning"
-                                    startIcon={<PauseIcon />}
-                                    onClick={() => onStatusUpdateAction('Paused')}
-                                    aria-label={t('activeTrip.pauseAria')}
-                                >
-                                    {t('activeTrip.pause')}
-                                </Button>}
-                            {activeLoad.status === 'Paused' &&
-                                <Button
-                                    fullWidth
-                                    variant="contained"
-                                    color="info"
-                                    startIcon={<PlayArrowIcon />}
-                                    onClick={() => onStatusUpdateAction('In Progress')}
-                                    aria-label={t('activeTrip.resumeAria')}
-                                >
-                                    {t('activeTrip.resume')}
-                                </Button>}
-
-                            <Button
-                                fullWidth
-                                variant="contained"
-                                color="success"
-                                startIcon={<CheckCircleIcon />}
-                                onClick={() => onStatusUpdateAction('Completed')}
-                                aria-label={t('activeTrip.completeAria')}
+                {isUpdating ? (
+                    <Box sx={{ display: 'flex', justifyContent: 'center' }}>
+                        <CircularProgress size={24} />
+                    </Box>
+                ) : (
+                    <Stack spacing={1}>
+                        {overallStatus === 'In Progress' && (
+                            <Button 
+                                fullWidth 
+                                variant="contained" 
+                                color="warning" 
+                                startIcon={<PauseIcon />} 
+                                onClick={() => onStatusUpdateAction('Paused')}
                             >
-                                {t('activeTrip.complete')}
+                                {t('activeTrip.pause')}
                             </Button>
-                        </Stack>
-                    )}
+                        )}
+                        {overallStatus === 'Paused' && (
+                            <Button 
+                                fullWidth 
+                                variant="contained" 
+                                color="info" 
+                                startIcon={<PlayArrowIcon />} 
+                                onClick={() => onStatusUpdateAction('In Progress')}
+                            >
+                                {t('activeTrip.resume')}
+                            </Button>
+                        )}
+                        <Button 
+                            fullWidth 
+                            variant="contained" 
+                            color="success" 
+                            startIcon={<CheckCircleIcon />} 
+                            onClick={() => onStatusUpdateAction('Completed')}
+                        >
+                            {t('activeTrip.complete')}
+                        </Button>
+                    </Stack>
+                )}
             </Box>
         </Paper>
     );

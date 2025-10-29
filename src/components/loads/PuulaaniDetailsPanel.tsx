@@ -213,6 +213,13 @@ export default function PuulaaniDetailsPanel({
                                         const statusKey = statusMap[load.status];
                                         const localizedStatus = statusKey ? t(`status.${statusKey}`) : load.status;
 
+                                        const driverNameToDisplay = 
+                                    load.kuljettajanNimi && load.kuljettajanNimi !== 'N/A'
+                                        ? load.kuljettajanNimi
+                                        : isOwner
+                                            ? user?.fullName
+                                            : t('common.na');
+
                                         return (
                                             <TableRow
                                                 key={load.kuormaId}
@@ -238,7 +245,7 @@ export default function PuulaaniDetailsPanel({
                                             >
                                                 <StyledTableCell>{load.puutavaralaji || t('common.na')}</StyledTableCell>
                                                 <StyledTableCell>{new Date(load.pvm).toLocaleDateString('fi-FI')}</StyledTableCell>
-                                                <StyledTableCell>{load.kuljettajanNimi || t('common.na')}</StyledTableCell>
+                                                <StyledTableCell>{driverNameToDisplay}</StyledTableCell>
                                                 <StyledTableCell align="right">{Number(load.haettu).toFixed(2)}</StyledTableCell>
                                                 <StyledTableCell align="center">
                                                     {isActive ? (

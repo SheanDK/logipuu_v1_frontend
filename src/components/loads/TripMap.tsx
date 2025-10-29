@@ -24,7 +24,8 @@ L.Icon.Default.mergeOptions({ iconRetinaUrl: '/images/marker-icon-2x.png', iconU
 const createPickupIcon = (index: number) => L.divIcon({ className: `custom-icon-pickup-${index}`, html: `<div style="background-color: #d32f2f; width: 32px; height: 32px; border-radius: 50%; display: flex; justify-content: center; align-items: center; border: 2px solid white; box-shadow: 0 3px 6px rgba(0,0,0,0.4);"><span style="color: white; font-weight: bold;">${index + 1}</span></div>`, iconSize: [36, 36], iconAnchor: [18, 36], popupAnchor: [0, -36] });
 
 // Icon for the driver's live location (changed color to red)
-const driverIcon = L.divIcon({ className: 'custom-icon-driver', html: renderToStaticMarkup(<NavigationIcon style={{ fontSize: '38px', color: '#ff0000', fill: '#ff0000d0', transform: 'rotate(-45deg)', filter: 'drop-shadow(0 2px 3px rgba(0,0,0,0.6))', stroke: 'white', strokeWidth: 0.5 }} />), iconSize: [38, 38], iconAnchor: [19, 19] });
+const driverIcon = L.divIcon({ className: 'custom-icon-driver', html: renderToStaticMarkup(<NavigationIcon style={{ fontSize: '38px', color: '#f72b07ff', fill: '#ff5e00ff', transform: 'rotate(-45deg)', filter: 'drop-shadow(0 2px 3px rgba(0,0,0,0.6))', stroke: 'white', strokeWidth: 2 }} />), 
+iconSize: [38, 38], iconAnchor: [19, 19] });
 // Icon for Puulaani (Timber Sites / Pickups)
 // const puulaaniIcon = L.divIcon({ className: 'custom-icon-puulaani', html: `<div style="background-color: #1976D2; width: 14px; height: 14px; border-radius: 50%; border: 2px solid white; opacity: 0.9; box-shadow: 0 1px 3px rgba(0,0,0,0.5);"></div>`, iconSize: [18, 18], iconAnchor: [9, 9] });
 const createDynamicPuulaaniIcon = (color?: string) => {
@@ -150,9 +151,12 @@ export default function TripMap({ legs, puulaanit, purkupaikat, driverLocation, 
             zoomControl={false}
         >
             <ZoomControl position="bottomleft" />
-            <LayersControl position="bottomleft" key={`layers-${theme.palette.mode}`}>
+            {/* <LayersControl position="bottomleft" key={`layers-${theme.palette.mode}`}>
+                Street / Standard (OSM) */}
+                <LayersControl position="bottomleft" key={`layers-${theme.palette.mode}`}>
+                
                 {/* Street / Standard (OSM) */}
-                <LayersControl.BaseLayer checked={!isDarkMode} name={t('layers.street')}>
+                <LayersControl.BaseLayer name={t('layers.street')}>
                     <TileLayer
                         attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
                         url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
@@ -160,7 +164,7 @@ export default function TripMap({ legs, puulaanit, purkupaikat, driverLocation, 
                 </LayersControl.BaseLayer>
 
                 {/* Satellite (Google hybrid)*/}
-                <LayersControl.BaseLayer checked={isDarkMode} name={t('layers.satellite')}>
+                <LayersControl.BaseLayer name={t('layers.satellite')}>
                     <TileLayer
                         url="https://{s}.google.com/vt/lyrs=s,h&x={x}&y={y}&z={z}"
                         maxZoom={20}
@@ -169,8 +173,8 @@ export default function TripMap({ legs, puulaanit, purkupaikat, driverLocation, 
                     />
                 </LayersControl.BaseLayer>
 
-                {/* Topographic (OpenTopoMap) */}
-                <LayersControl.BaseLayer name={t('layers.topographic')}>
+                {/* Topographic (OpenTopoMap) - This is now the default */}
+                <LayersControl.BaseLayer checked name={t('layers.topographic')}>
                     <TileLayer
                         url="https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png"
                         maxZoom={17}

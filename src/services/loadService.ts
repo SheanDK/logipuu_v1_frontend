@@ -8,7 +8,6 @@ import {
     ILoadStatusUpdateDto,
     ILoadDetails,
     ITripDetails,
-    // --- STEP 1: Import the new type ---
     ICompleteLoadDto,
     IMapTrip,
 } from '../types';
@@ -22,6 +21,20 @@ export interface ILoadListApiFilters {
     kuljId?: string;
 }
 
+/**
+ * Creates multiple loads (legs) in a single API call.
+ * Corresponds to: POST /api/loads/bulk
+ */
+export const createBulkLoad = async (legs: ICreateLoadDto[]): Promise<{ message: string; loadIds: number[] }> => {
+    try {
+        const payload = { legs };
+        const response = await apiClient.post<{ message: string; loadIds: number[] }>(`${API_ENDPOINT}/bulk`, payload);
+        return response.data;
+    } catch (error) {
+        console.error("SERVICE ERROR: Failed to create bulk loads", error);
+        throw error;
+    }
+};
 // Update the function to use the new, more specific type for its parameter.
 export const fetchAllLoads = async (filters: ILoadListApiFilters): Promise<ILoadListItem[]> => {
     try {
@@ -184,6 +197,16 @@ export const getLoadForEdit = async (id: number): Promise<any> => {
         return response.data;
     } catch (error) {
         console.error(`SERVICE ERROR: Failed to fetch load for edit with ID ${id}`, error);
+        throw error;
+    }
+};
+
+export const updateTripStatus = async (ajomaaraysNro: string, data: ILoadStatusUpdateDto): Promise<{ count: number }> => {
+    try {
+        const response = await apiClient.patch<{ count: number }>(`${API_ENDPOINT}/trip/${ajomaaraysNro}/status`, data);
+        return response.data;
+    } catch (error) {
+        console.error(`SERVICE ERROR: Failed to update status for trip ${ajomaaraysNro}`, error);
         throw error;
     }
 };

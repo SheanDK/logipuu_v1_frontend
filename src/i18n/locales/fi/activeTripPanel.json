@@ -1,6 +1,8 @@
 {
     "activeTrip": {
         "title": "Aktiivinen ajo",
+        "currentDestinations": "Nykyiset määränpäät",
+        "unknownDestination": "Tuntematon määränpää",
         "haulingPrefix": "Kuljetetaan",
         "from": " lähtöpaikasta",
         "to": " kohteeseen",
