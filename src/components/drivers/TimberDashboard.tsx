@@ -16,14 +16,15 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useSnackbar } from 'notistack';
 import { useTranslation } from 'react-i18next';
 
+
 // --- Types ---
 import { TripMapProps, TripLegForMap } from '../loads/TripMap';
 import { PuulaaniDetails, ICreateLoadDto, LoadTypeEnum } from '@/types';
 
 // --- Services ---
-import {  getDriverMapData, DriverMapData, getActiveTripForDriver, updateTimberEntryStatus } from '@/services/driverViewService';
-import { getTimberStackFullDetails, updateTimberStackFull } from '@/services/timberStackService';
-import { createLoad, deleteLoad, getLoadById, getLoadForEdit, updateLoad, updateLoadStatus } from '@/services/loadService';
+import { getDriverMapData, DriverMapData, getActiveTripForDriver, updateTimberEntryStatus } from '@/services/driverViewService';
+import { getTimberStackFullDetails } from '@/services/timberStackService';
+import { createLoad, deleteLoad, getLoadById, getLoadForEdit, updateLoad, updateLoadStatus,  } from '@/services/loadService';
 
 // --- Child Components ---
 const TripMap = dynamic<TripMapProps>(() => import('../loads/TripMap'), { ssr: false, loading: () => <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100%' }}><CircularProgress /></Box> });
@@ -34,15 +35,45 @@ const ConfirmationDialog = dynamic(() => import('../common/ConfirmationDialog'),
 
 // --- Inner Components ---
 const MapView = ({ puulaanit, purkupaikat, onMarkerClick, currentLocation }: {
-    puulaanit: any[],
+    puulaanit: any[], // This 'any' will now receive objects with a 'color' property
     purkupaikat: any[],
     onMarkerClick: (id: number, event: LeafletMouseEvent) => void,
     currentLocation: { lat: number; lng: number } | null
 }) => {
-    const puulaaniMarkers: TripLegForMap[] = useMemo(() => puulaanit.map(p => ({ kuormaId: p.id, originName: p.name, originCoords: { lat: Number(p.latitude), lng: Number(p.longitude) } })), [puulaanit]);
-    const purkupaikkaMarkers: TripLegForMap[] = useMemo(() => purkupaikat.map(p => ({ kuormaId: p.id * -1, originName: p.name, originCoords: { lat: Number(p.latitude), lng: Number(p.longitude) } })), [purkupaikat]);
+    const puulaaniMarkers: TripLegForMap[] = useMemo(() => 
+        puulaanit
+            .filter(p => Number(p.latitude) !== 0 || Number(p.longitude) !== 0)
+            .map(p => ({ 
+                kuormaId: p.id, 
+                originName: p.name, 
+                originCoords: { lat: Number(p.latitude), lng: Number(p.longitude) },
+                // FIX: Pass the color property from the API data to the marker object
+                color: p.color
+            })), 
+    [puulaanit]);
 
-    return (<TripMap legs={[]} puulaanit={puulaaniMarkers} purkupaikat={purkupaikkaMarkers} driverLocation={currentLocation} onMarkerClickAction={onMarkerClick} {...{ focusedTripId: null, onFocusCompleteAction: () => { } }} />);
+    const purkupaikkaMarkers: TripLegForMap[] = useMemo(() => 
+        purkupaikat
+            .filter(p => Number(p.latitude) !== 0 || Number(p.longitude) !== 0)
+            .map(p => ({ 
+                kuormaId: p.id,
+                originName: p.name, 
+                originCoords: { lat: Number(p.latitude), lng: Number(p.longitude) } 
+            })), 
+    [purkupaikat]);
+
+    return (
+    <TripMap 
+    legs={[]} 
+    puulaanit={puulaaniMarkers} 
+    purkupaikat={purkupaikkaMarkers} 
+    driverLocation={currentLocation} 
+    onMarkerClickAction={onMarkerClick} {...{
+         focusedTripId: null, 
+         onFocusCompleteAction: () => { } 
+        }} 
+        />
+    );
 };
 
 const ListView = ({ puulaanit, onPuulaaniClick }: { puulaanit: any[], onPuulaaniClick: (id: number) => void }) => (
@@ -59,15 +90,16 @@ const ListView = ({ puulaanit, onPuulaaniClick }: { puulaanit: any[], onPuulaani
 interface TimberDashboardProps { onBackAction: () => void; }
 
 export default function TimberDashboard({ onBackAction }: TimberDashboardProps) {
+    // --- FIX: All hooks are now called at the top level in a consistent order ---
     const { selectedVehicleId, setActiveTrip } = useDriverSession();
     const { user, token } = useAuth();
     const { enqueueSnackbar } = useSnackbar();
     const theme = useTheme();
-    const isDarkMode = theme.palette.mode === 'dark';
-    const controlSurface = alpha(theme.palette.background.paper, isDarkMode ? 0.85 : 0.94);
-    const controlBorder = alpha(theme.palette.divider, isDarkMode ? 0.6 : 0.28);
-    const controlShadow = isDarkMode ? '0 12px 32px rgba(0,0,0,0.65)' : '0 16px 24px rgba(15,23,42,0.16)';
-    
+    const { t } = useTranslation('timberDashboard');
+    const socketRef = useRef<Socket | null>(null);
+    const watchIdRef = useRef<number | null>(null);
+
+    // --- State declarations ---
     const [view, setView] = useState<'map' | 'list'>('map');
     const [mapData, setMapData] = useState<DriverMapData | null>(null);
     const [isLoading, setIsLoading] = useState(true);
@@ -82,13 +114,14 @@ export default function TimberDashboard({ onBackAction }: TimberDashboardProps) 
     const [isDeleting, setIsDeleting] = useState(false);
     const [activeLoad, setActiveLoad] = useState<any | null>(null);
     const [isConfirmationOpen, setIsConfirmationOpen] = useState(false);
-    const [confirmationState, setConfirmationState] = useState({ title: '', message: '', onConfirm: () => {} });
     const [isUpdatingStatus, setIsUpdatingStatus] = useState(false);
     const [isTripPanelVisible, setIsTripPanelVisible] = useState(true);
-    const { t } = useTranslation('timberDashboard');
 
-    const socketRef = useRef<Socket | null>(null);
-    const watchIdRef = useRef<number | null>(null);
+    // --- Style calculations can come after hooks and state ---
+    const isDarkMode = theme.palette.mode === 'dark';
+    const controlSurface = alpha(theme.palette.background.paper, isDarkMode ? 0.85 : 0.94);
+    const controlBorder = alpha(theme.palette.divider, isDarkMode ? 0.6 : 0.28);
+    const controlShadow = isDarkMode ? '0 12px 32px rgba(0,0,0,0.65)' : '0 16px 24px rgba(15,23,42,0.16)';
 
     const fetchMapData = useCallback(() => {
         if (!selectedVehicleId) { setError(t('errors.noVehicle'));  setIsLoading(false); return; }
@@ -384,26 +417,21 @@ export default function TimberDashboard({ onBackAction }: TimberDashboardProps) 
     const handleNewLoadRequest = (details: PuulaaniDetails) => {
         // --- THIS IS THE FIX ---
         // Check if a trip is already active
-        if (activeLoad) {
+        //if (activeLoad) {
             // If active, show a warning instead of opening the create modal
-            enqueueSnackbar("Please complete or cancel the current active trip before starting a new one.", { variant: 'warning' });
-        } else {
+            //enqueueSnackbar("Please complete or cancel the current active trip before starting a new one.", { variant: 'warning' });
+        //} else {
             setSelectedPuulaaniDetails(details);
             setIsCreateLoadModalOpen(true);
-        }
+        //}
     };
 
 
 
-    // --- FIX: 'actions' variable was declared twice ---
-    const speedDialActions = [
-        { icon: <ArrowBackIcon />, name: 'Change Mode', handler: onBackAction },
-        { icon: view === 'map' ? <ListIcon /> : <MapIcon />, name: view === 'map' ? 'Show List' : 'Show Map', handler: () => handleViewChange(view === 'map' ? 'list' : 'map') },
-    ];
-
+    // FIX: Remove the duplicate 'speedDialActions' and only keep 'actions'.
     const actions = [
-        { icon: <ArrowBackIcon />, name: 'Change Mode', handler: onBackAction },
-        { icon: view === 'map' ? <ListIcon /> : <MapIcon />, name: view === 'map' ? 'Show List' : 'Show Map', handler: () => handleViewChange(view === 'map' ? 'list' : 'map') }
+        { icon: <ArrowBackIcon />, name: t('buttons.changeMode'), handler: onBackAction },
+        { icon: view === 'map' ? <ListIcon /> : <MapIcon />, name: view === 'map' ? t('buttons.listView') : t('buttons.mapView'), handler: () => handleViewChange(view === 'map' ? 'list' : 'map') }
     ];
 
     if (isLoading) { return <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100%' }}><CircularProgress /></Box>; }

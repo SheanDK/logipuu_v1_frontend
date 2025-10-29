@@ -26,10 +26,56 @@ const createPickupIcon = (index: number) => L.divIcon({ className: `custom-icon-
 // Icon for the driver's live location (changed color to red)
 const driverIcon = L.divIcon({ className: 'custom-icon-driver', html: renderToStaticMarkup(<NavigationIcon style={{ fontSize: '38px', color: '#ff0000', fill: '#ff0000d0', transform: 'rotate(-45deg)', filter: 'drop-shadow(0 2px 3px rgba(0,0,0,0.6))', stroke: 'white', strokeWidth: 0.5 }} />), iconSize: [38, 38], iconAnchor: [19, 19] });
 // Icon for Puulaani (Timber Sites / Pickups)
-const puulaaniIcon = L.divIcon({ className: 'custom-icon-puulaani', html: `<div style="background-color: #1976D2; width: 14px; height: 14px; border-radius: 50%; border: 2px solid white; opacity: 0.9; box-shadow: 0 1px 3px rgba(0,0,0,0.5);"></div>`, iconSize: [18, 18], iconAnchor: [9, 9] });
+// const puulaaniIcon = L.divIcon({ className: 'custom-icon-puulaani', html: `<div style="background-color: #1976D2; width: 14px; height: 14px; border-radius: 50%; border: 2px solid white; opacity: 0.9; box-shadow: 0 1px 3px rgba(0,0,0,0.5);"></div>`, iconSize: [18, 18], iconAnchor: [9, 9] });
+const createDynamicPuulaaniIcon = (color?: string) => {
+    const markerColor = color || '#1976D2'; // Default to blue if no color is provided
+    const html = `
+        <div style="
+            background-color: ${markerColor};
+            width: 20px;
+            height: 20px;
+            border-radius: 50% 50% 50% 0;
+            transform: rotate(-45deg);
+            border: 2px solid #ffffff;
+            box-shadow: 0 3px 6px rgba(0,0,0,0.4);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        ">
+            <div style="
+                transform: rotate(45deg);
+                width: 8px;
+                height: 8px;
+                background-color: rgba(255,255,255,0.7);
+                border-radius: 50%;
+            "></div>
+        </div>
+    `;
+    return L.divIcon({
+        className: 'custom-puulaani-pin-icon',
+        html: html,
+        iconSize: [28, 28],
+        iconAnchor: [14, 28], // Anchor point at the bottom tip of the pin
+        popupAnchor: [0, -28]
+    });
+};
 
 // Icon for Purkupaikka (Drop-off Locations)
-const purkupaikkaIcon = L.divIcon({ className: 'custom-icon-purkupaikka', html: renderToStaticMarkup(<FlagIcon style={{ fontSize: '24px', color: '#000000ff', filter: 'drop-shadow(0 1px 2px rgba(0,0,0,0.6))', stroke: 'white', strokeWidth: 0.5 }} />), iconSize: [24, 24], iconAnchor: [4, 24], popupAnchor: [8, -24] });
+const purkupaikkaIcon = L.divIcon({ 
+    className: 'custom-icon-purkupaikka', 
+    html: renderToStaticMarkup(<FlagIcon 
+        style={{ 
+            fontSize: '20px', 
+            color: '#000000ff', 
+            filter: 'drop-shadow(0 0.5px 1px rgba(0, 0, 0, 0))', 
+            stroke: 'white', strokeWidth: 0.5 
+        }} 
+        />
+    ), 
+    iconSize: [24, 24], 
+    iconAnchor: [4, 24], 
+    popupAnchor: [8, -24] 
+});
 
 
 export interface TripLegForMap {
@@ -38,6 +84,7 @@ export interface TripLegForMap {
     originCoords: { lat: number; lng: number; };
     destinationName?: string;
     destinationCoords?: { lat: number; lng: number; } | null;
+    color?: string;
 }
 
 export interface TripMapProps {
@@ -143,11 +190,11 @@ export default function TripMap({ legs, puulaanit, purkupaikat, driverLocation, 
            {/* Markers for available Puulaani sites */}
             {puulaanit.map((trip) => (
                 trip.originCoords &&
-                <Marker
-                    // The key is now prefixed with 'puulaani-' to guarantee uniqueness.
+                 <Marker
                     key={`puulaani-${trip.kuormaId}`}
                     position={[trip.originCoords.lat, trip.originCoords.lng]}
-                    icon={puulaaniIcon}
+                    //  Use the new dynamic icon function
+                    icon={createDynamicPuulaaniIcon(trip.color)}
                     eventHandlers={{ click: (e) => onMarkerClickAction(trip.kuormaId, e) }}
                 >
                     <Popup>{trip.originName}</Popup>
