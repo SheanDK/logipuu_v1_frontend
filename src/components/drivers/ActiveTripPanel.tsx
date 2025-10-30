@@ -105,7 +105,7 @@ export default function ActiveTripPanel({
             <Box sx={{ p: 2 }}>
                 <Stack direction="row" justifyContent="space-between" alignItems="center" mb={1}>
                     <Typography variant="h6">{t('activeTrip.title')}</Typography>
-                    <Chip label={overallStatus} color="primary" size="small" />
+                    <Chip label={overallStatus} color="error" size="medium" />
                     <IconButton size="small" onClick={onToggleVisibilityAction}>
                         <CloseIcon />
                     </IconButton>
