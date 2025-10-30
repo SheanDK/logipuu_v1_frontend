@@ -18,18 +18,44 @@ import { alpha } from '@mui/material/styles';
 // --- Leaflet Icon setup ---
 // @ts-ignore
 delete L.Icon.Default.prototype._getIconUrl;
-L.Icon.Default.mergeOptions({ iconRetinaUrl: '/images/marker-icon-2x.png', iconUrl: '/images/marker-icon.png', shadowUrl: '/images/marker-shadow.png' });
+L.Icon.Default.mergeOptions({ 
+    iconRetinaUrl: '/images/marker-icon-2x.png', 
+    iconUrl: '/images/marker-icon.png', 
+    shadowUrl: '/images/marker-shadow.png' 
+});
 
 // Specific icon for an active trip's numbered pickup points
-const createPickupIcon = (index: number) => L.divIcon({ className: `custom-icon-pickup-${index}`, html: `<div style="background-color: #d32f2f; width: 32px; height: 32px; border-radius: 50%; display: flex; justify-content: center; align-items: center; border: 2px solid white; box-shadow: 0 3px 6px rgba(0,0,0,0.4);"><span style="color: white; font-weight: bold;">${index + 1}</span></div>`, iconSize: [36, 36], iconAnchor: [18, 36], popupAnchor: [0, -36] });
+const createPickupIcon = (index: number) => L.divIcon({ 
+    className: `custom-icon-pickup-${index}`, 
+    html: `<div style="background-color: #d32f2f; width: 32px; height: 32px; border-radius: 50%; display: flex; justify-content: center; align-items: center; border: 2px solid white; box-shadow: 0 3px 6px rgba(0,0,0,0.4);"><span style="color: white; font-weight: bold;">${index + 1}</span></div>`, 
+    iconSize: [36, 36], 
+    iconAnchor: [18, 36], 
+    popupAnchor: [0, -36] 
+});
 
-// Icon for the driver's live location (changed color to red)
-const driverIcon = L.divIcon({ className: 'custom-icon-driver', html: renderToStaticMarkup(<NavigationIcon style={{ fontSize: '38px', color: '#f72b07ff', fill: '#ff5e00ff', transform: 'rotate(-45deg)', filter: 'drop-shadow(0 2px 3px rgba(0,0,0,0.6))', stroke: 'white', strokeWidth: 2 }} />), 
-iconSize: [38, 38], iconAnchor: [19, 19] });
-// Icon for Puulaani (Timber Sites / Pickups)
-// const puulaaniIcon = L.divIcon({ className: 'custom-icon-puulaani', html: `<div style="background-color: #1976D2; width: 14px; height: 14px; border-radius: 50%; border: 2px solid white; opacity: 0.9; box-shadow: 0 1px 3px rgba(0,0,0,0.5);"></div>`, iconSize: [18, 18], iconAnchor: [9, 9] });
+// Icon for the driver's live location (red navigation icon)
+const driverIcon = L.divIcon({ 
+    className: 'custom-icon-driver', 
+    html: renderToStaticMarkup(
+        <NavigationIcon 
+            style={{ 
+                fontSize: '38px', 
+                color: '#f72b07ff', 
+                fill: '#ff5e00ff', 
+                transform: 'rotate(-45deg)', 
+                filter: 'drop-shadow(0 2px 3px rgba(0,0,0,0.6))', 
+                stroke: 'white', 
+                strokeWidth: 2 
+            }} 
+        />
+    ), 
+    iconSize: [38, 38], 
+    iconAnchor: [19, 19] 
+});
+
+// Icon for Puulaani (Timber Sites / Pickups) with dynamic color
 const createDynamicPuulaaniIcon = (color?: string) => {
-    const markerColor = color || '#1976D2'; // Default to blue if no color is provided
+    const markerColor = color || '#1976D2';
     const html = `
         <div style="
             background-color: ${markerColor};
@@ -42,6 +68,7 @@ const createDynamicPuulaaniIcon = (color?: string) => {
             display: flex;
             justify-content: center;
             align-items: center;
+            transition: all 0.3s ease;
         ">
             <div style="
                 transform: rotate(45deg);
@@ -56,28 +83,81 @@ const createDynamicPuulaaniIcon = (color?: string) => {
         className: 'custom-puulaani-pin-icon',
         html: html,
         iconSize: [28, 28],
-        iconAnchor: [14, 28], // Anchor point at the bottom tip of the pin
+        iconAnchor: [14, 28],
         popupAnchor: [0, -28]
+    });
+};
+
+// Highlighted version for focused puulaani (pulsing animation)
+const createHighlightedPuulaaniIcon = (color?: string) => {
+    const markerColor = color || '#1976D2';
+    const html = `
+        <div style="
+            position: relative;
+        ">
+            <div style="
+                position: absolute;
+                background-color: ${markerColor};
+                width: 20px;
+                height: 20px;
+                border-radius: 50% 50% 50% 0;
+                transform: rotate(-45deg);
+                border: 3px solid #ffffff;
+                box-shadow: 0 0 20px rgba(255,255,255,0.8), 0 4px 10px rgba(0,0,0,0.6);
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                animation: pulse 1.5s ease-in-out infinite;
+            ">
+                <div style="
+                    transform: rotate(45deg);
+                    width: 10px;
+                    height: 10px;
+                    background-color: rgba(255,255,255,0.9);
+                    border-radius: 50%;
+                "></div>
+            </div>
+        </div>
+        <style>
+            @keyframes pulse {
+                0%, 100% { 
+                    transform: rotate(-45deg) scale(1); 
+                    opacity: 1; 
+                }
+                50% { 
+                    transform: rotate(-45deg) scale(1.15); 
+                    opacity: 0.9; 
+                }
+            }
+        </style>
+    `;
+    return L.divIcon({
+        className: 'custom-puulaani-pin-icon-highlighted',
+        html: html,
+        iconSize: [32, 32],
+        iconAnchor: [16, 32],
+        popupAnchor: [0, -32]
     });
 };
 
 // Icon for Purkupaikka (Drop-off Locations)
 const purkupaikkaIcon = L.divIcon({ 
     className: 'custom-icon-purkupaikka', 
-    html: renderToStaticMarkup(<FlagIcon 
-        style={{ 
-            fontSize: '20px', 
-            color: '#000000ff', 
-            filter: 'drop-shadow(0 0.5px 1px rgba(0, 0, 0, 0))', 
-            stroke: 'white', strokeWidth: 0.5 
-        }} 
+    html: renderToStaticMarkup(
+        <FlagIcon 
+            style={{ 
+                fontSize: '20px', 
+                color: '#000000ff', 
+                filter: 'drop-shadow(0 0.5px 1px rgba(0, 0, 0, 0))', 
+                stroke: 'white', 
+                strokeWidth: 0.5 
+            }} 
         />
     ), 
     iconSize: [24, 24], 
     iconAnchor: [4, 24], 
     popupAnchor: [8, -24] 
 });
-
 
 export interface TripLegForMap {
     kuormaId: number;
@@ -98,22 +178,51 @@ export interface TripMapProps {
     onMarkerClickAction: (tripId: number, event: LeafletMouseEvent) => void;
 }
 
-const MapFocusController = ({ focusedTripId, trips, onFocusCompleteAction }:
-    { focusedTripId: number | null | undefined, trips: TripLegForMap[], onFocusCompleteAction: () => void }) => {
+const MapFocusController = ({ 
+    focusedTripId, 
+    trips, 
+    onFocusCompleteAction 
+}: { 
+    focusedTripId: number | null | undefined;
+    trips: TripLegForMap[];
+    onFocusCompleteAction: () => void;
+}) => {
     const map = useMap();
+    
     useEffect(() => {
         if (typeof focusedTripId === 'number') {
             const selectedTrip = trips.find(t => t.kuormaId === focusedTripId);
             if (selectedTrip?.originCoords) {
-                map.flyTo([selectedTrip.originCoords.lat, selectedTrip.originCoords.lng], 14);
-                onFocusCompleteAction();
+                // Smooth fly animation with optimal duration and easing
+                map.flyTo(
+                    [selectedTrip.originCoords.lat, selectedTrip.originCoords.lng], 
+                    16, // Zoom level for detail view
+                    {
+                        duration: 1.2, // Smooth animation duration in seconds
+                        easeLinearity: 0.25 // Smooth easing curve
+                    }
+                );
+                
+                // Notify parent when animation completes
+                setTimeout(() => {
+                    onFocusCompleteAction();
+                }, 1200);
             }
         }
     }, [focusedTripId, trips, map, onFocusCompleteAction]);
+    
     return null;
 };
 
-export default function TripMap({ legs, puulaanit, purkupaikat, driverLocation, focusedTripId, onFocusCompleteAction, onMarkerClickAction }: TripMapProps) {
+export default function TripMap({ 
+    legs, 
+    puulaanit, 
+    purkupaikat, 
+    driverLocation, 
+    focusedTripId, 
+    onFocusCompleteAction, 
+    onMarkerClickAction 
+}: TripMapProps) {
     const { t } = useTranslation('tripMap');
     const theme = useTheme();
     const isDarkMode = theme.palette.mode === 'dark';
@@ -122,12 +231,20 @@ export default function TripMap({ legs, puulaanit, purkupaikat, driverLocation, 
 
     const bounds = useMemo(() => {
         const allCoords: LatLngTuple[] = [];
+        
         legs.forEach(leg => {
             if (leg.originCoords) allCoords.push([leg.originCoords.lat, leg.originCoords.lng]);
             if (leg.destinationCoords) allCoords.push([leg.destinationCoords.lat, leg.destinationCoords.lng]);
         });
-        puulaanit.forEach(trip => { if (trip.originCoords) allCoords.push([trip.originCoords.lat, trip.originCoords.lng]); });
-        purkupaikat.forEach(trip => { if (trip.originCoords) allCoords.push([trip.originCoords.lat, trip.originCoords.lng]); });
+        
+        puulaanit.forEach(trip => { 
+            if (trip.originCoords) allCoords.push([trip.originCoords.lat, trip.originCoords.lng]); 
+        });
+        
+        purkupaikat.forEach(trip => { 
+            if (trip.originCoords) allCoords.push([trip.originCoords.lat, trip.originCoords.lng]); 
+        });
+        
         if (driverLocation) allCoords.push([driverLocation.lat, driverLocation.lng]);
 
         return allCoords.length > 0 ? L.latLngBounds(allCoords) : undefined;
@@ -135,7 +252,16 @@ export default function TripMap({ legs, puulaanit, purkupaikat, driverLocation, 
 
     if (!bounds) {
         return (
-            <Box sx={{ height: '100%', width: '100%', bgcolor: isDarkMode ? 'background.paper' : 'grey.300', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <Box 
+                sx={{ 
+                    height: '100%', 
+                    width: '100%', 
+                    bgcolor: isDarkMode ? 'background.paper' : 'grey.300', 
+                    display: 'flex', 
+                    alignItems: 'center', 
+                    justifyContent: 'center' 
+                }}
+            >
                 <Typography color="text.secondary">{t('noLocations')}</Typography>
             </Box>
         );
@@ -151,10 +277,8 @@ export default function TripMap({ legs, puulaanit, purkupaikat, driverLocation, 
             zoomControl={false}
         >
             <ZoomControl position="bottomleft" />
-            {/* <LayersControl position="bottomleft" key={`layers-${theme.palette.mode}`}>
-                Street / Standard (OSM) */}
-                <LayersControl position="bottomleft" key={`layers-${theme.palette.mode}`}>
-                
+            
+            <LayersControl position="bottomleft" key={`layers-${theme.palette.mode}`}>
                 {/* Street / Standard (OSM) */}
                 <LayersControl.BaseLayer name={t('layers.street')}>
                     <TileLayer
@@ -163,7 +287,7 @@ export default function TripMap({ legs, puulaanit, purkupaikat, driverLocation, 
                     />
                 </LayersControl.BaseLayer>
 
-                {/* Satellite (Google hybrid)*/}
+                {/* Satellite (Google hybrid) */}
                 <LayersControl.BaseLayer name={t('layers.satellite')}>
                     <TileLayer
                         url="https://{s}.google.com/vt/lyrs=s,h&x={x}&y={y}&z={z}"
@@ -173,7 +297,7 @@ export default function TripMap({ legs, puulaanit, purkupaikat, driverLocation, 
                     />
                 </LayersControl.BaseLayer>
 
-                {/* Topographic (OpenTopoMap) - This is now the default */}
+                {/* Topographic (OpenTopoMap) - Default */}
                 <LayersControl.BaseLayer checked name={t('layers.topographic')}>
                     <TileLayer
                         url="https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png"
@@ -186,79 +310,110 @@ export default function TripMap({ legs, puulaanit, purkupaikat, driverLocation, 
             {/* Markers for the active trip's route */}
             {legs.map((leg, index) => (
                 <React.Fragment key={`leg-${leg.kuormaId}`}>
-                    {leg.originCoords && <Marker position={[leg.originCoords.lat, leg.originCoords.lng]} icon={createPickupIcon(index)}><Popup><b>{t('pickup', { index: index + 1 })}</b><br />{leg.originName}</Popup></Marker>}
-                    {leg.destinationCoords && <Marker position={[leg.originCoords.lat, leg.destinationCoords.lng]} icon={purkupaikkaIcon}><Popup><b>{t('destination')}</b><br />{leg.destinationName}</Popup></Marker>}
+                    {leg.originCoords && (
+                        <Marker 
+                            position={[leg.originCoords.lat, leg.originCoords.lng]} 
+                            icon={createPickupIcon(index)}
+                        >
+                            <Popup>
+                                <b>{t('pickup', { index: index + 1 })}</b>
+                                <br />
+                                {leg.originName}
+                            </Popup>
+                        </Marker>
+                    )}
+                    {leg.destinationCoords && (
+                        <Marker 
+                            position={[leg.destinationCoords.lat, leg.destinationCoords.lng]} 
+                            icon={purkupaikkaIcon}
+                        >
+                            <Popup>
+                                <b>{t('destination')}</b>
+                                <br />
+                                {leg.destinationName}
+                            </Popup>
+                        </Marker>
+                    )}
                 </React.Fragment>
             ))}
 
-           {/* Markers for available Puulaani sites */}
+            {/* Markers for available Puulaani sites with highlight for focused item */}
             {puulaanit.map((trip) => (
-                trip.originCoords &&
-                 <Marker
-                    key={`puulaani-${trip.kuormaId}`}
-                    position={[trip.originCoords.lat, trip.originCoords.lng]}
-                    //  Use the new dynamic icon function
-                    icon={createDynamicPuulaaniIcon(trip.color)}
-                    eventHandlers={{ click: (e) => onMarkerClickAction(trip.kuormaId, e) }}
-                >
-                    <Popup>{trip.originName}</Popup>
-                </Marker>
+                trip.originCoords && (
+                    <Marker
+                        key={`puulaani-${trip.kuormaId}`}
+                        position={[trip.originCoords.lat, trip.originCoords.lng]}
+                        icon={
+                            focusedTripId === trip.kuormaId 
+                                ? createHighlightedPuulaaniIcon(trip.color)
+                                : createDynamicPuulaaniIcon(trip.color)
+                        }
+                        eventHandlers={{ 
+                            click: (e) => onMarkerClickAction(trip.kuormaId, e) 
+                        }}
+                    >
+                        <Popup>{trip.originName}</Popup>
+                    </Marker>
+                )
             ))}
 
             {/* Markers for available Purkupaikka sites */}
             {purkupaikat.map((trip) => (
-                trip.originCoords &&
-                <Marker
-                    // The key is now prefixed with 'purkupaikka-' to guarantee uniqueness.
-                    // The key will be like 'purkupaikka--3238' which is a valid unique string.
-                    key={`purkupaikka-${trip.kuormaId}`}
-                    position={[trip.originCoords.lat, trip.originCoords.lng]}
-                    icon={purkupaikkaIcon}
-                >
-                    <Popup>{trip.originName}</Popup>
-                </Marker>
+                trip.originCoords && (
+                    <Marker
+                        key={`purkupaikka-${trip.kuormaId}`}
+                        position={[trip.originCoords.lat, trip.originCoords.lng]}
+                        icon={purkupaikkaIcon}
+                    >
+                        <Popup>{trip.originName}</Popup>
+                    </Marker>
+                )
             ))}
 
-            {driverLocation && (<Marker position={[driverLocation.lat, driverLocation.lng]} icon={driverIcon}><Popup>{t('yourLocation')}</Popup></Marker>)}
+            {/* Driver location marker */}
+            {driverLocation && (
+                <Marker 
+                    position={[driverLocation.lat, driverLocation.lng]} 
+                    icon={driverIcon}
+                >
+                    <Popup>{t('yourLocation')}</Popup>
+                </Marker>
+            )}
 
-            <MapFocusController trips={puulaanit} {...{ focusedTripId, onFocusCompleteAction }} />
+            {/* Focus controller for smooth zoom animations */}
+            <MapFocusController 
+                trips={puulaanit} 
+                focusedTripId={focusedTripId}
+                onFocusCompleteAction={onFocusCompleteAction}
+            />
             
+            {/* Dark mode styling for map controls */}
             <GlobalStyles styles={(theme) => ({
-                /* LayersControl container and inner box */
                 '.leaflet-dark .leaflet-control-layers': {
                     backgroundColor: theme.palette.background.paper,
                     color: theme.palette.text.primary,
                     border: `1px solid ${alpha(theme.palette.divider, 0.6)}`,
                     boxShadow: theme.shadows[4],
                 },
-
                 '.leaflet-dark .leaflet-control-layers-expanded': {
                     backgroundColor: theme.palette.background.paper,
                     color: theme.palette.text.primary,
                 },
-
                 '.leaflet-dark .leaflet-control-layers-list label': {
                     color: theme.palette.text.primary,
                 },
-
                 '.leaflet-dark .leaflet-control-layers-separator': {
                     borderTop: `1px solid ${alpha(theme.palette.divider, 0.6)}`,
                 },
-
-                /* Radio and checkbox color in dark mode */
                 '.leaflet-dark .leaflet-control-layers-selector': {
                     accentColor: theme.palette.primary.main,
                 },
-
-                /* The LayersControl toggle button (by default a light PNG) — invert for dark mode */
                 '.leaflet-dark .leaflet-control-layers-toggle': {
                     filter: 'invert(1) hue-rotate(180deg) brightness(0.85)',
                     backgroundColor: theme.palette.background.paper,
                     border: `1px solid ${alpha(theme.palette.divider, 0.6)}`,
                     boxShadow: theme.shadows[2],
                 },
-
-                /* Other toolbar buttons (zoom, etc.) to match dark mode styling */
                 '.leaflet-dark .leaflet-bar a, .leaflet-dark .leaflet-bar a:hover': {
                     backgroundColor: theme.palette.background.paper,
                     color: theme.palette.text.primary,
@@ -268,7 +423,6 @@ export default function TripMap({ legs, puulaanit, purkupaikat, driverLocation, 
                     backgroundColor: alpha(theme.palette.action.hover, 0.35),
                 },
             })} />
-
         </MapContainer>
     );
 }
