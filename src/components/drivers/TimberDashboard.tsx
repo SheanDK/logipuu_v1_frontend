@@ -23,7 +23,7 @@ import { PuulaaniDetails, ICreateLoadDto, LoadTypeEnum } from '@/types';
 // --- Services ---
 import { getDriverMapData, DriverMapData, getActiveTripForDriver, updateTimberEntryStatus } from '@/services/driverViewService';
 import { getTimberStackFullDetails } from '@/services/timberStackService';
-import { createLoad, deleteLoad, getLoadForEdit, updateLoad, updateLoadStatus, createBulkLoad, updateTripStatus } from '@/services/loadService';
+import { createBulkLoad, deleteLoad, getLoadForEdit, updateLoad, updateLoadStatus, updateTripStatus } from '@/services/loadService';
 
 // --- Child Components ---
 const TripMap = dynamic<TripMapProps>(
@@ -42,25 +42,29 @@ const CreateLoadModal = dynamic(() => import('../loads/CreateLoadModal'), { ssr:
 const ActiveTripPanel = dynamic(() => import('./ActiveTripPanel'), { ssr: false });
 const ConfirmationDialog = dynamic(() => import('../common/ConfirmationDialog'), { ssr: false });
 
-const MapView = ({ puulaanit, purkupaikat, onMarkerClick, currentLocation, focusedPuulaaniId, onFocusComplete }: {
-    puulaanit: any[],
-    purkupaikat: any[],
+// --- Inner Components (Defined outside the main component to prevent re-creation) ---
+
+const MapView = ({ puulaanit, purkupaikat, activeTripLegs, onMarkerClick, currentLocation, focusedPuulaaniId, onFocusComplete, markerFilters, onFilterChangeAction }: {
+    puulaanit: TripLegForMap[],
+    purkupaikat: TripLegForMap[],
+    activeTripLegs: TripLegForMap[],
     onMarkerClick: (id: number) => void,
     currentLocation: { lat: number; lng: number } | null,
     focusedPuulaaniId: number | null,
-    onFocusComplete: () => void
+    onFocusComplete: () => void,
+    markerFilters: { showPuulaanit: boolean; showPurkupaikat: boolean; },
+    onFilterChangeAction: (filterName: 'showPuulaanit' | 'showPurkupaikat') => void,
 }) => {
-    const puulaaniMarkers: TripLegForMap[] = useMemo(() => puulaanit.filter(p => Number(p.latitude) !== 0 || Number(p.longitude) !== 0).map(p => ({ kuormaId: p.id, originName: p.name, originCoords: { lat: Number(p.latitude), lng: Number(p.longitude) }, color: p.color })), [puulaanit]);
-    const purkupaikkaMarkers: TripLegForMap[] = useMemo(() => purkupaikat.filter(p => Number(p.latitude) !== 0 || Number(p.longitude) !== 0).map(p => ({ kuormaId: p.id, originName: p.name, originCoords: { lat: Number(p.latitude), lng: Number(p.longitude) } })), [purkupaikat]);
-    
     return (<TripMap 
-        legs={[]} 
-        puulaanit={puulaaniMarkers} 
-        purkupaikat={purkupaikkaMarkers} 
+        legs={activeTripLegs} 
+        puulaanit={puulaanit} 
+        purkupaikat={purkupaikat} 
         driverLocation={currentLocation} 
-        onMarkerClickAction={onMarkerClick} 
+        onMarkerClickAction={onMarkerClick as any} 
         focusedTripId={focusedPuulaaniId} 
-        onFocusCompleteAction={onFocusComplete} 
+        onFocusCompleteAction={onFocusComplete}
+        markerFilters={markerFilters}
+        onFilterChangeAction={onFilterChangeAction}
     />);
 };
 
@@ -82,7 +86,6 @@ const ListView = ({ puulaanit, onPuulaaniClick }: { puulaanit: any[], onPuulaani
         </Box>
     </Paper>
 );
-
 
 interface TimberDashboardProps { onBackAction: () => void; }
 
@@ -111,16 +114,19 @@ export default function TimberDashboard({ onBackAction }: TimberDashboardProps) 
     const [activeTrip, setActiveTrip] = useState<any | null>(null); 
     const [isConfirmationOpen, setIsConfirmationOpen] = useState(false);
     const [isUpdatingStatus, setIsUpdatingStatus] = useState(false);
+    const [isCompleteConfirmationOpen, setIsCompleteConfirmationOpen] = useState(false);
     const [isTripPanelVisible, setIsTripPanelVisible] = useState(true);
-    
-    // New state for smooth transition
     const [focusedPuulaaniId, setFocusedPuulaaniId] = useState<number | null>(null);
-    const [isTransitioning, setIsTransitioning] = useState(false);
+    const [markerFilters, setMarkerFilters] = useState({ showPuulaanit: true, showPurkupaikat: true });
 
     const isDarkMode = theme.palette.mode === 'dark';
     const controlSurface = alpha(theme.palette.background.paper, isDarkMode ? 0.85 : 0.94);
     const controlBorder = alpha(theme.palette.divider, isDarkMode ? 0.6 : 0.28);
     const controlShadow = isDarkMode ? '0 12px 32px rgba(0,0,0,0.65)' : '0 16px 24px rgba(15,23,42,0.16)';
+
+    const handleFilterChange = (filterName: 'showPuulaanit' | 'showPurkupaikat') => {
+        setMarkerFilters(prev => ({ ...prev, [filterName]: !prev[filterName] }));
+    };
 
     const fetchMapData = useCallback(() => {
         if (!selectedVehicleId) { 
@@ -244,14 +250,11 @@ export default function TimberDashboard({ onBackAction }: TimberDashboardProps) 
         setView(newView);
     };
 
-    // This function is now the SINGLE source of truth for opening the details panel.
     const openDetailsPanel = useCallback(async (puulaaniId: number) => {
         if (puulaaniId < 0 || isPanelLoading) return;
-        
         setIsTripPanelVisible(false);
         setIsPanelLoading(true);
         setSelectedPuulaaniDetails(null);
-        
         try {
             const puulaaniData = await getTimberStackFullDetails(puulaaniId);
             setSelectedPuulaaniDetails(puulaaniData);
@@ -262,30 +265,21 @@ export default function TimberDashboard({ onBackAction }: TimberDashboardProps) 
         }
     }, [isPanelLoading, enqueueSnackbar, t]);
 
-    // --- NEW, SIMPLIFIED CLICK HANDLERS ---
-
-    // 1. Handler for when a user clicks an item in the LIST VIEW.
     const handleListItemClick = (id: number) => {
-        console.log(`List item clicked. Focusing on Puulaani ID: ${id}`); // Your debug log
         setSelectedPuulaaniDetails(null);
         setFocusedPuulaaniId(id);
         setView('map');
     };
 
-    // 2. Handler for when a user clicks a marker on the MAP.
     const handleMapMarkerClick = (clickedId: number) => {
-        // If the panel is already open for this marker, just close it.
         if (selectedPuulaaniDetails?.puulaani.puulaaniId === clickedId) {
             setSelectedPuulaaniDetails(null);
             return;
         }
-        // Otherwise, open the panel for the clicked marker.
         openDetailsPanel(clickedId);
     };
 
-    // 3. Handler for when the map's focus/zoom animation is complete.
     const handleFocusComplete = useCallback(() => {
-        // After zooming, we no longer need to keep the "focused" state active.
         setFocusedPuulaaniId(null);
     }, []);
     
@@ -447,6 +441,7 @@ export default function TimberDashboard({ onBackAction }: TimberDashboardProps) 
             enqueueSnackbar('Active trip information is missing.', { variant: 'error' });
             return;
         }
+        setIsCompleteConfirmationOpen(false);
         setIsUpdatingStatus(true);
         try {
             await updateTripStatus(activeTrip.ajomaaraysNro, { status: newStatus });
@@ -468,46 +463,87 @@ export default function TimberDashboard({ onBackAction }: TimberDashboardProps) 
         }
     };
 
+    // --- NEW HANDLER to open the confirmation dialog ---
+    const handleCompleteTripRequest = () => {
+        setIsCompleteConfirmationOpen(true);
+    };
+
     const handleNewLoadRequest = (details: PuulaaniDetails) => {
         setSelectedPuulaaniDetails(details);
         setIsCreateLoadModalOpen(true);
     };
 
-    const actions = [
+
+     const actions = [
         { icon: <ArrowBackIcon />, name: t('buttons.changeMode'), handler: onBackAction },
         { icon: view === 'map' ? <ListIcon /> : <MapIcon />, name: view === 'map' ? t('buttons.listView') : t('buttons.mapView'), handler: () => handleViewChange(view === 'map' ? 'list' : 'map') }
     ];
-
-    if (isLoading) { 
-        return (
-            <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100%' }}>
-                <CircularProgress />
-            </Box>
-        ); 
-    }
     
-    if (error) { 
-        return <Alert severity="error" sx={{ m: 2 }}>{error}</Alert>; 
-    }
+    // --- FINAL FIX FOR FILTERING LOGIC ---
+    const { finalPuulaanit, finalPurkupaikat, activeTripLegs } = useMemo(() => {
+        const allPuulaanit = mapData?.puulaanit || [];
+        const allPurkupaikat = mapData?.purkupaikat || [];
+        
+        let legs: TripLegForMap[] = [];
+        const activeTripPuulaaniIds = new Set<number>();
+        const activeTripPurkupaikkaIds = new Set<number>();
+
+        if (activeTrip && activeTrip.legs) {
+            legs = activeTrip.legs.map((leg: any) => {
+                if (leg.puulaaniId) activeTripPuulaaniIds.add(leg.puulaaniId);
+                const purkupaikka = allPurkupaikat.find(p => p.name === leg.purkupaikkaName);
+                if (purkupaikka) activeTripPurkupaikkaIds.add(purkupaikka.id);
+                
+                return {
+                    kuormaId: leg.kuormaId,
+                    originName: leg.puulaaniName,
+                    originCoords: (leg.puulaaniLat && leg.puulaaniLng) ? { lat: Number(leg.puulaaniLat), lng: Number(leg.puulaaniLng) } : { lat: 0, lng: 0 },
+                    destinationName: leg.purkupaikkaName,
+                    destinationCoords: (leg.purkupaikkaLat && leg.purkupaikkaLng) ? { lat: Number(leg.purkupaikkaLat), lng: Number(leg.purkupaikkaLng) } : null,
+                };
+            }).filter((leg: any) => leg.originCoords.lat !== 0); 
+        }
+
+        const generalPuulaanit = allPuulaanit.filter(p => !activeTripPuulaaniIds.has(p.id));
+        const generalPurkupaikat = allPurkupaikat.filter(p => !activeTripPurkupaikkaIds.has(p.id));
+        
+        const mapToTripLeg = (p: any): TripLegForMap => ({
+            kuormaId: p.id,
+            originName: p.name,
+            originCoords: { lat: Number(p.latitude), lng: Number(p.longitude) },
+            color: p.color
+        });
+
+        return { 
+            finalPuulaanit: markerFilters.showPuulaanit ? generalPuulaanit.map(mapToTripLeg) : [], 
+            finalPurkupaikat: markerFilters.showPurkupaikat ? generalPurkupaikat.map(mapToTripLeg) : [],
+            activeTripLegs: legs 
+        };
+    }, [mapData, activeTrip, markerFilters]);
+
+    if (isLoading) { return <CircularProgress />; }
+    if (error) { return <Alert severity="error">{error}</Alert>; }
 
     return (
         <Box sx={{ height: '100%', width: '100%', position: 'relative' }}>
              <Box sx={{ height: '100%', width: '100%', display: view === 'map' ? 'block' : 'none' }}>
-                <MapView
-                    puulaanit={mapData?.puulaanit || []}
-                    purkupaikat={mapData?.purkupaikat || []}
-                    onMarkerClick={handleMapMarkerClick} // Use the new map handler
+                 <MapView
+                    puulaanit={finalPuulaanit}
+                    purkupaikat={finalPurkupaikat}
+                    activeTripLegs={activeTripLegs}
+                    onMarkerClick={handleMapMarkerClick}
                     currentLocation={currentLocation}
                     focusedPuulaaniId={focusedPuulaaniId}
-                    onFocusComplete={handleFocusComplete} // Pass the completion handler
+                    onFocusComplete={handleFocusComplete}
+                    markerFilters={markerFilters}
+                    onFilterChangeAction={handleFilterChange}
                 />
             </Box>
-
             <Box sx={{ height: '100%', display: view === 'list' ? 'block' : 'none' }}>
                 <Box sx={{ pt: {xs: 8, sm: 10}, height: '100%', p: {xs: 1, sm: 2} }}>
                     <ListView 
                         puulaanit={mapData?.puulaanit || []} 
-                        onPuulaaniClick={handleListItemClick} // Use the new list handler
+                        onPuulaaniClick={handleListItemClick}
                     />
                 </Box>
             </Box>
@@ -595,6 +631,7 @@ export default function TimberDashboard({ onBackAction }: TimberDashboardProps) 
                 onToggleVisibilityAction={() => setIsTripPanelVisible((prev) => !prev)} 
                 onStatusUpdateAction={handleStatusUpdate} 
                 isUpdating={isUpdatingStatus} 
+                onConfirmCompleteAction={handleCompleteTripRequest}
             />
             
             {/* Delete Confirmation Dialog */}
@@ -622,6 +659,20 @@ export default function TimberDashboard({ onBackAction }: TimberDashboardProps) 
                 confirmButtonText="Yes, Proceed"
                 confirmButtonColor="warning"
             />
+
+           
+            <ConfirmationDialog
+                open={isCompleteConfirmationOpen}
+                onClose={() => setIsCompleteConfirmationOpen(false)}
+                // When confirmed, call the actual status update function
+                onConfirm={() => handleStatusUpdate('Completed')}
+                title={t('dialogs.complete.title', 'Confirm Trip Completion')}
+                message={t('dialogs.complete.message', 'Are you sure you want to mark this entire trip as completed?')}
+                isConfirming={isUpdatingStatus}
+                confirmButtonText={t('dialogs.complete.confirm', 'Yes, Complete')}
+                confirmButtonColor="success"
+            />
+            
             
             {/* Mobile Speed Dial */}
             <SpeedDial

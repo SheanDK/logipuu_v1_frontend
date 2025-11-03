@@ -32,6 +32,7 @@ interface ActiveTripPanelProps {
     onStatusUpdateAction: (newStatus: string) => void;
     onToggleVisibilityAction: () => void;
     isUpdating: boolean;
+    onConfirmCompleteAction: () => void;
 }
 
 export default function ActiveTripPanel({ 
@@ -39,7 +40,8 @@ export default function ActiveTripPanel({
     open, 
     onStatusUpdateAction, 
     onToggleVisibilityAction, 
-    isUpdating 
+    isUpdating,
+    onConfirmCompleteAction  
 }: ActiveTripPanelProps) {
     // FIX: ALWAYS call hooks at the top level, BEFORE any conditional returns
     const { t } = useTranslation('activeTripPanel');
@@ -53,7 +55,8 @@ export default function ActiveTripPanel({
     const overallStatus = primaryLeg?.status || 'Unknown';
 
     const dropOffGroups = useMemo(() => {
-        if (!activeTrip?.legs || activeTrip.legs.length === 0) return [];
+        if (!activeTrip?.legs || activeTrip.legs.length === 0) 
+            return [];
         
         const groups = new Map<string, TripLeg[]>();
         
@@ -173,8 +176,9 @@ export default function ActiveTripPanel({
                             fullWidth 
                             variant="contained" 
                             color="success" 
-                            startIcon={<CheckCircleIcon />} 
-                            onClick={() => onStatusUpdateAction('Completed')}
+                            startIcon={<CheckCircleIcon />}
+                            onClick={onConfirmCompleteAction} 
+                            //onClick={() => onStatusUpdateAction('Completed')}
                         >
                             {t('activeTrip.complete')}
                         </Button>

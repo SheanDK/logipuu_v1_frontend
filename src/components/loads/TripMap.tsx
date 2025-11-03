@@ -1,19 +1,30 @@
 // frontend/src/components/loads/TripMap.tsx
 'use client';
 
-import React, { useEffect, useMemo } from 'react';
+import React, { useEffect, useMemo, useCallback } from 'react';
 import { Box, Typography } from '@mui/material';
-import { useTheme } from '@mui/material/styles';
+import { useTheme, alpha } from '@mui/material/styles';
 import L, { LatLngTuple, LeafletMouseEvent } from 'leaflet';
 import 'leaflet/dist/leaflet.css';
-import { MapContainer, TileLayer, Marker, Popup, useMap, LayersControl, ZoomControl } from 'react-leaflet';
+import { MapContainer, TileLayer, Marker, Popup, useMap, LayersControl, ZoomControl, Pane, LayerGroup } from 'react-leaflet';
 import FlagIcon from '@mui/icons-material/Flag';
 import NavigationIcon from '@mui/icons-material/Navigation';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { useTranslation } from 'react-i18next';
 import { useLeafletPopupTheme } from '@/utils/useLeafletPopupTheme';
 import { GlobalStyles } from '@mui/material';
-import { alpha } from '@mui/material/styles';
+
+// --- Helper function to format color codes ---
+const formatHexColor = (colorString?: string): string => {
+    if (!colorString) {
+        return '#1976D2'; // Default blue color
+    }
+    const trimmedColor = colorString.trim();
+    if (trimmedColor.startsWith('#')) {
+        return trimmedColor;
+    }
+    return `#${trimmedColor}`;
+};
 
 // --- Leaflet Icon setup ---
 // @ts-ignore
@@ -52,6 +63,34 @@ const driverIcon = L.divIcon({
     iconSize: [38, 38], 
     iconAnchor: [19, 19] 
 });
+
+const LayerControlEventHandler = ({ onFilterChange }: { onFilterChange: (name: string, added: boolean) => void }) => {
+    const map = useMap();
+    const { t } = useTranslation('tripMap');
+
+    useEffect(() => {
+        const handleOverlayAdd = (e: L.LayersControlEvent) => {
+            if (e.name === t('layers.puulaanit', 'Timber Sites')) onFilterChange('showPuulaanit', true);
+            if (e.name === t('layers.purkupaikat', 'Drop-off Sites')) onFilterChange('showPurkupaikat', true);
+        };
+        const handleOverlayRemove = (e: L.LayersControlEvent) => {
+            if (e.name === t('layers.puulaanit', 'Timber Sites')) onFilterChange('showPuulaanit', false);
+            if (e.name === t('layers.purkupaikat', 'Drop-off Sites')) onFilterChange('showPurkupaikat', false);
+        };
+
+        map.on('overlayadd', handleOverlayAdd);
+        map.on('overlayremove', handleOverlayRemove);
+
+        return () => {
+            map.off('overlayadd', handleOverlayAdd);
+            map.off('overlayremove', handleOverlayRemove);
+        };
+    }, [map, onFilterChange, t]);
+
+    return null;
+};
+
+
 
 // Icon for Puulaani (Timber Sites / Pickups) with dynamic color
 const createDynamicPuulaaniIcon = (color?: string) => {
@@ -176,53 +215,36 @@ export interface TripMapProps {
     focusedTripId?: number | null;
     onFocusCompleteAction: () => void;
     onMarkerClickAction: (tripId: number, event: LeafletMouseEvent) => void;
+    markerFilters: { showPuulaanit: boolean; showPurkupaikat: boolean; };
+    onFilterChangeAction: (filterName: 'showPuulaanit' | 'showPurkupaikat') => void;
 }
 
-const MapFocusController = ({ 
-    focusedTripId, 
-    trips, 
-    onFocusCompleteAction 
-}: { 
-    focusedTripId: number | null | undefined;
-    trips: TripLegForMap[];
-    onFocusCompleteAction: () => void;
-}) => {
+const MapFocusController = ({ focusedTripId, trips, onFocusCompleteAction }: { focusedTripId: number | null | undefined; trips: TripLegForMap[]; onFocusCompleteAction: () => void; }) => {
     const map = useMap();
-    
     useEffect(() => {
         if (typeof focusedTripId === 'number') {
             const selectedTrip = trips.find(t => t.kuormaId === focusedTripId);
             if (selectedTrip?.originCoords) {
-                // Smooth fly animation with optimal duration and easing
-                map.flyTo(
-                    [selectedTrip.originCoords.lat, selectedTrip.originCoords.lng], 
-                    16, // Zoom level for detail view
-                    {
-                        duration: 1.2, // Smooth animation duration in seconds
-                        easeLinearity: 0.25 // Smooth easing curve
-                    }
-                );
-                
-                // Notify parent when animation completes
-                setTimeout(() => {
+                const targetLatLng: L.LatLngTuple = [selectedTrip.originCoords.lat, selectedTrip.originCoords.lng];
+                const onFlyEnd = () => {
+                    L.popup().setLatLng(targetLatLng).setContent(selectedTrip.originName).openOn(map);
                     onFocusCompleteAction();
-                }, 1200);
+                    map.off('moveend', onFlyEnd);
+                };
+                map.on('moveend', onFlyEnd);
+                map.flyTo(targetLatLng, 16, { duration: 1.2 });
             }
         }
     }, [focusedTripId, trips, map, onFocusCompleteAction]);
-    
     return null;
 };
 
 export default function TripMap({ 
-    legs, 
-    puulaanit, 
-    purkupaikat, 
-    driverLocation, 
-    focusedTripId, 
-    onFocusCompleteAction, 
-    onMarkerClickAction 
+    legs, puulaanit, purkupaikat, driverLocation, 
+    focusedTripId, onFocusCompleteAction, onMarkerClickAction,
+    markerFilters, onFilterChangeAction 
 }: TripMapProps) {
+    
     const { t } = useTranslation('tripMap');
     const theme = useTheme();
     const isDarkMode = theme.palette.mode === 'dark';
@@ -267,6 +289,11 @@ export default function TripMap({
         );
     }
 
+    const handleFilterEvent = useCallback((filterName: 'showPuulaanit' | 'showPurkupaikat') => {
+        // This function now directly calls the action from the parent.
+        onFilterChangeAction(filterName);
+    }, [onFilterChangeAction]);
+
     return (
         <MapContainer
             bounds={bounds}
@@ -277,6 +304,8 @@ export default function TripMap({
             zoomControl={false}
         >
             <ZoomControl position="bottomleft" />
+
+            {/* <LayerControlEventHandler onFilterChange={handleFilterEvent} /> */}
             
             <LayersControl position="bottomleft" key={`layers-${theme.palette.mode}`}>
                 {/* Street / Standard (OSM) */}
@@ -305,6 +334,44 @@ export default function TripMap({
                         attribution='Map data: &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors, <a href="http://viewfinderpanoramas.org">SRTM</a> | Map style: &copy; <a href="https://opentopomap.org">OpenTopoMap</a> (<a href="https://creativecommons.org/licenses/by-sa/3.0/">CC-BY-SA</a>)'
                     />
                 </LayersControl.BaseLayer>
+
+                 {/* --- Overlays --- */}
+                <LayersControl.Overlay checked={markerFilters.showPuulaanit} name={t('layers.puulaanit', 'Timber Sites')}>
+                    <LayerGroup>
+                        {puulaanit.map((trip) => (
+                            trip.originCoords && (
+                                <Marker
+                                    key={`puulaani-${trip.kuormaId}`}
+                                    position={[trip.originCoords.lat, trip.originCoords.lng]}
+                                    icon={
+                                        focusedTripId === trip.kuormaId 
+                                            ? createHighlightedPuulaaniIcon(trip.color)
+                                            : createDynamicPuulaaniIcon(trip.color)
+                                    }
+                                    eventHandlers={{ click: (e) => onMarkerClickAction(trip.kuormaId, e) }}
+                                >
+                                    <Popup>{trip.originName}</Popup>
+                                </Marker>
+                            )
+                        ))}
+                    </LayerGroup>
+                </LayersControl.Overlay>
+                
+                <LayersControl.Overlay checked={markerFilters.showPurkupaikat} name={t('layers.purkupaikat', 'Drop-off Sites')}>
+                    <LayerGroup>
+                        {purkupaikat.map((trip) => (
+                            trip.originCoords && (
+                                <Marker
+                                    key={`purkupaikka-${trip.kuormaId}`}
+                                    position={[trip.originCoords.lat, trip.originCoords.lng]}
+                                    icon={purkupaikkaIcon}
+                                >
+                                    <Popup>{trip.originName}</Popup>
+                                </Marker>
+                            )
+                        ))}
+                    </LayerGroup>
+                </LayersControl.Overlay>
             </LayersControl>
 
             {/* Markers for the active trip's route */}
@@ -380,13 +447,8 @@ export default function TripMap({
                 </Marker>
             )}
 
-            {/* Focus controller for smooth zoom animations */}
-            <MapFocusController 
-                trips={puulaanit} 
-                focusedTripId={focusedTripId}
-                onFocusCompleteAction={onFocusCompleteAction}
-            />
-            
+            <MapFocusController trips={puulaanit} focusedTripId={focusedTripId} onFocusCompleteAction={onFocusCompleteAction} />
+            <LayerControlEventHandler onFilterChange={handleFilterEvent as any} />
             {/* Dark mode styling for map controls */}
             <GlobalStyles styles={(theme) => ({
                 '.leaflet-dark .leaflet-control-layers': {
