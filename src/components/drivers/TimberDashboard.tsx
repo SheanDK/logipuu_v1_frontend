@@ -41,6 +41,7 @@ const PuulaaniDetailsPanel = dynamic(() => import('../loads/PuulaaniDetailsPanel
 const CreateLoadModal = dynamic(() => import('../loads/CreateLoadModal'), { ssr: false });
 const ActiveTripPanel = dynamic(() => import('./ActiveTripPanel'), { ssr: false });
 const ConfirmationDialog = dynamic(() => import('../common/ConfirmationDialog'), { ssr: false });
+const ActiveTripDetailsModal = dynamic(() => import('./ActiveTripDetailsModal'), { ssr: false });
 
 // --- Inner Components (Defined outside the main component to prevent re-creation) ---
 
@@ -118,6 +119,7 @@ export default function TimberDashboard({ onBackAction }: TimberDashboardProps) 
     const [isTripPanelVisible, setIsTripPanelVisible] = useState(true);
     const [focusedPuulaaniId, setFocusedPuulaaniId] = useState<number | null>(null);
     const [markerFilters, setMarkerFilters] = useState({ showPuulaanit: true, showPurkupaikat: true });
+    const [isTripDetailsModalOpen, setIsTripDetailsModalOpen] = useState(false);
 
     const isDarkMode = theme.palette.mode === 'dark';
     const controlSurface = alpha(theme.palette.background.paper, isDarkMode ? 0.85 : 0.94);
@@ -235,6 +237,10 @@ export default function TimberDashboard({ onBackAction }: TimberDashboardProps) 
         };
 
     }, [activeTrip, token, selectedVehicleId, enqueueSnackbar]);
+
+    const handleToggleTripDetails = () => {
+        setIsTripDetailsModalOpen(prev => !prev);
+    };
 
     const handleBackActionWithConfirmation = () => {
         if (activeTrip) {
@@ -632,6 +638,7 @@ export default function TimberDashboard({ onBackAction }: TimberDashboardProps) 
                 onStatusUpdateAction={handleStatusUpdate} 
                 isUpdating={isUpdatingStatus} 
                 onConfirmCompleteAction={handleCompleteTripRequest}
+                onOpenDetailsAction={handleToggleTripDetails}
             />
             
             {/* Delete Confirmation Dialog */}
@@ -671,6 +678,12 @@ export default function TimberDashboard({ onBackAction }: TimberDashboardProps) 
                 isConfirming={isUpdatingStatus}
                 confirmButtonText={t('dialogs.complete.confirm', 'Yes, Complete')}
                 confirmButtonColor="success"
+            />
+            
+             <ActiveTripDetailsModal
+                open={isTripDetailsModalOpen}
+                onCloseAction={handleToggleTripDetails}
+                activeTrip={activeTrip}
             />
             
             

@@ -2,7 +2,7 @@
 'use client';
 
 import React, { useMemo } from 'react';
-import { Box, Paper, Typography, Stack, Button, IconButton, Chip, CircularProgress, Divider, List, ListItem, ListItemText, ListItemIcon } from '@mui/material';
+import { Box, Paper, Typography, Stack, Button, IconButton, Chip, CircularProgress, Divider, List, ListItem, ListItemText, ListItemIcon, ListItemButton } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
 import NavigationIcon from '@mui/icons-material/Navigation';
 import PauseIcon from '@mui/icons-material/Pause';
@@ -33,6 +33,7 @@ interface ActiveTripPanelProps {
     onToggleVisibilityAction: () => void;
     isUpdating: boolean;
     onConfirmCompleteAction: () => void;
+    onOpenDetailsAction: () => void;
 }
 
 export default function ActiveTripPanel({ 
@@ -41,14 +42,16 @@ export default function ActiveTripPanel({
     onStatusUpdateAction, 
     onToggleVisibilityAction, 
     isUpdating,
-    onConfirmCompleteAction  
+    onConfirmCompleteAction,
+    onOpenDetailsAction  
 }: ActiveTripPanelProps) {
     // FIX: ALWAYS call hooks at the top level, BEFORE any conditional returns
     const { t } = useTranslation('activeTripPanel');
 
     // FIX: Compute values safely, handling null/undefined cases
     const primaryLeg = useMemo(() => {
-         if (!activeTrip || !activeTrip.legs || activeTrip.legs.length === 0) return null;
+         if (!activeTrip || !activeTrip.legs || activeTrip.legs.length === 0) 
+            return null;
         return activeTrip.legs.find(leg => leg.status !== 'Assigned') || activeTrip.legs[0];
     }, [activeTrip]);
 
@@ -120,24 +123,34 @@ export default function ActiveTripPanel({
 
                 <List dense>
                     {dropOffGroups.map(([dropOffName, legs]) => (
-                        <ListItem 
+                        // --- THE FIX IS HERE ---
+                        // 1. Wrap the content in a <ListItemButton> to make it clickable.
+                        // 2. The outer <ListItem> handles the secondary action layout.
+                        <ListItem
                             key={dropOffName}
+                            disablePadding // Remove default padding as ListItemButton will have it
                             secondaryAction={
                                 <IconButton 
                                     edge="end" 
-                                    onClick={() => handleNavigation(legs[0].purkupaikka_lat, legs[0].purkupaikka_lng)}
+                                    aria-label="navigate"
+                                    onClick={(e) => {
+                                        // No need for stopPropagation as the button is outside the clickable area
+                                        handleNavigation(legs[0].purkupaikka_lat, legs[0].purkupaikka_lng);
+                                    }}
                                 >
                                     <NavigationIcon />
                                 </IconButton>
                             }
                         >
-                            <ListItemIcon>
-                                <FlagIcon />
-                            </ListItemIcon>
-                            <ListItemText 
-                                primary={dropOffName} 
-                                secondary={`${legs.length} ${legs.length > 1 ? t('activeTrip.loads') : t('activeTrip.load')}`} 
-                            />
+                            <ListItemButton onClick={onOpenDetailsAction}>
+                                <ListItemIcon>
+                                    <FlagIcon />
+                                </ListItemIcon>
+                                <ListItemText 
+                                    primary={dropOffName} 
+                                    secondary={`${legs.length} ${legs.length > 1 ? t('activeTrip.loads') : t('activeTrip.load')}`} 
+                                />
+                            </ListItemButton>
                         </ListItem>
                     ))}
                 </List>
