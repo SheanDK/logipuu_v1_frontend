@@ -88,7 +88,17 @@ const ListView = ({ puulaanit, onPuulaaniClick }: { puulaanit: any[], onPuulaani
     </Paper>
 );
 
+// --- FIX: Define the interface for the Active Trip object used in this component ---
+interface ActiveTripForDashboard {
+    status: string;
+    ajomaaraysNro: string | null;
+    asiakkaanNimi: string;
+    rekNro: string;
+    legs: any[]; // Keep as 'any[]' to accept raw backend data
+}
+
 interface TimberDashboardProps { onBackAction: () => void; }
+
 
 export default function TimberDashboard({ onBackAction }: TimberDashboardProps) {
     const { selectedVehicleId, setActiveTrip: setContextActiveTrip } = useDriverSession();
@@ -112,7 +122,7 @@ export default function TimberDashboard({ onBackAction }: TimberDashboardProps) 
     const [loadToEdit, setLoadToEdit] = useState<any | null>(null);
     const [loadToDelete, setLoadToDelete] = useState<any | null>(null);
     const [isDeleting, setIsDeleting] = useState(false);
-    const [activeTrip, setActiveTrip] = useState<any | null>(null); 
+    const [activeTrip, setActiveTrip] = useState<ActiveTripForDashboard | null>(null); 
     const [isConfirmationOpen, setIsConfirmationOpen] = useState(false);
     const [isUpdatingStatus, setIsUpdatingStatus] = useState(false);
     const [isCompleteConfirmationOpen, setIsCompleteConfirmationOpen] = useState(false);

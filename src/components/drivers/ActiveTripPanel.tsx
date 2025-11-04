@@ -11,22 +11,50 @@ import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import FlagIcon from '@mui/icons-material/Flag';
 import { useTranslation } from 'react-i18next';
 
-// Trip leg interface - matches backend snake_case format
+// This interface should match the camelCased data structure from the backend.
 interface TripLeg {
-    kuorma_id: string;
+    kuormaId: string;
     status: string;
-    purkupaikka_name: string;  // Backend sends snake_case
-    purkupaikka_lat: string | null;
-    purkupaikka_lng: string | null;
-    puulaani_name?: string;
+    purkupaikkaName: string;
+    purkupaikkaLat: string | null; // <-- Should be camelCase
+    purkupaikkaLng: string | null; // <-- Should be camelCase
+    puulaaniName?: string;
     puutavaralaji?: string;
-    ajomaarays_nro?: string;
+    ajomaaraysNro?: string;
 }
 
 interface ActiveTripPanelProps {
     activeTrip: {
         ajomaaraysNro: string | null;
-        legs: TripLeg[];
+        legs: TripLeg[]; // Use the strongly typed interface
+    } | null;
+    open: boolean;
+    onStatusUpdateAction: (newStatus: string) => void;
+    onToggleVisibilityAction: () => void;
+    isUpdating: boolean;
+    onConfirmCompleteAction: () => void;
+    onOpenDetailsAction: () => void;
+}
+
+// --- THE FIX IS HERE: Manually convert snake_case to camelCase ---
+    // const processedLegs: TripLeg[] = useMemo(() => {
+    //     if (!activeTrip?.legs) return [];
+    //     return activeTrip.legs.map(leg => ({
+    //         kuormaId: leg.kuorma_id,
+    //         status: leg.status,
+    //         purkupaikkaName: leg.purkupaikka_name,
+    //         purkupaikkaLat: leg.purkupaikka_lat,
+    //         purkupaikkaLng: leg.purkupaikka_lng,
+    //         puulaaniName: leg.puulaani_name,
+    //         puutavaralaji: leg.puutavaralaji,
+    //         ajomaaraysNro: leg.ajomaarays_nro
+    //     }));
+    // }, [activeTrip]);
+
+interface ActiveTripPanelProps {
+    activeTrip: {
+        ajomaaraysNro: string | null;
+        legs: TripLeg[]; // Use the strongly typed interface
     } | null;
     open: boolean;
     onStatusUpdateAction: (newStatus: string) => void;
@@ -37,47 +65,36 @@ interface ActiveTripPanelProps {
 }
 
 export default function ActiveTripPanel({ 
-    activeTrip, 
-    open, 
-    onStatusUpdateAction, 
-    onToggleVisibilityAction, 
-    isUpdating,
-    onConfirmCompleteAction,
-    onOpenDetailsAction  
+    activeTrip, open, onStatusUpdateAction, onToggleVisibilityAction, 
+    isUpdating, onConfirmCompleteAction, onOpenDetailsAction
 }: ActiveTripPanelProps) {
-    // FIX: ALWAYS call hooks at the top level, BEFORE any conditional returns
+    
     const { t } = useTranslation('activeTripPanel');
 
-    // FIX: Compute values safely, handling null/undefined cases
+    // The component now receives and uses a strongly-typed 'legs' array.
+    const processedLegs: TripLeg[] = activeTrip?.legs || [];
+
     const primaryLeg = useMemo(() => {
-         if (!activeTrip || !activeTrip.legs || activeTrip.legs.length === 0) 
-            return null;
-        return activeTrip.legs.find(leg => leg.status !== 'Assigned') || activeTrip.legs[0];
-    }, [activeTrip]);
+        if (processedLegs.length === 0) return null;
+        return processedLegs.find(leg => leg.status !== 'Assigned') || processedLegs[0];
+    }, [processedLegs]);
 
     const overallStatus = primaryLeg?.status || 'Unknown';
 
     const dropOffGroups = useMemo(() => {
-        if (!activeTrip?.legs || activeTrip.legs.length === 0) 
-            return [];
-        
+        if (processedLegs.length === 0) return [];
         const groups = new Map<string, TripLeg[]>();
-        
-        activeTrip.legs.forEach((leg: TripLeg) => {
-            // Use snake_case as backend sends it
-            const dropOffName = leg.purkupaikka_name || t('activeTrip.unknownDestination');
-            
+        processedLegs.forEach((leg) => {
+            const dropOffName = leg.purkupaikkaName || t('activeTrip.unknownDestination');
             if (!groups.has(dropOffName)) {
                 groups.set(dropOffName, []);
             }
             groups.get(dropOffName)!.push(leg);
         });
-        
         return Array.from(groups.entries());
-    }, [activeTrip, t]);
+    }, [processedLegs, t]);
 
-    // FIX: NOW we can do conditional returns AFTER all hooks
-    if (!activeTrip || !activeTrip.legs || activeTrip.legs.length === 0) {
+    if (!activeTrip || processedLegs.length === 0) {
         return null;
     }
 
@@ -122,20 +139,18 @@ export default function ActiveTripPanel({
                 </Typography>
 
                 <List dense>
-                    {dropOffGroups.map(([dropOffName, legs]) => (
-                        // --- THE FIX IS HERE ---
-                        // 1. Wrap the content in a <ListItemButton> to make it clickable.
-                        // 2. The outer <ListItem> handles the secondary action layout.
+                    {dropOffGroups.map(([dropOffName, legsInGroup]) => (
                         <ListItem
                             key={dropOffName}
-                            disablePadding // Remove default padding as ListItemButton will have it
+                            disablePadding
                             secondaryAction={
                                 <IconButton 
                                     edge="end" 
                                     aria-label="navigate"
-                                    onClick={(e) => {
-                                        // No need for stopPropagation as the button is outside the clickable area
-                                        handleNavigation(legs[0].purkupaikka_lat, legs[0].purkupaikka_lng);
+                                    onClick={() => {
+                                        // --- THE FIX IS HERE ---
+                                        // Use the correct camelCase property names.
+                                        handleNavigation(legsInGroup[0].purkupaikkaLat, legsInGroup[0].purkupaikkaLng);
                                     }}
                                 >
                                     <NavigationIcon />
@@ -143,12 +158,10 @@ export default function ActiveTripPanel({
                             }
                         >
                             <ListItemButton onClick={onOpenDetailsAction}>
-                                <ListItemIcon>
-                                    <FlagIcon />
-                                </ListItemIcon>
+                                <ListItemIcon><FlagIcon /></ListItemIcon>
                                 <ListItemText 
                                     primary={dropOffName} 
-                                    secondary={`${legs.length} ${legs.length > 1 ? t('activeTrip.loads') : t('activeTrip.load')}`} 
+                                    secondary={`${legsInGroup.length} ${legsInGroup.length > 1 ? t('activeTrip.loads') : t('activeTrip.load')}`} 
                                 />
                             </ListItemButton>
                         </ListItem>
