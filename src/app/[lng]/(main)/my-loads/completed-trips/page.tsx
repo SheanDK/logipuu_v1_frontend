@@ -109,17 +109,32 @@ export default function CompletedTripsPage() {
 
     return (
         <Box sx={{ p: { xs: 1, sm: 3 }, height: 'calc(100vh - 64px)', display: 'flex', flexDirection: 'column' }}>
+
             <Box sx={{ mb: 2, display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexShrink: 0 }}>
-                <Typography variant="h5" component="h1">
+                {/* FIX 1: Make the main title bold */}
+                <Typography variant="h5" component="h1" sx={{ fontWeight: 'bold' }}>
                     {t('title', { ns: 'completedTrips' })}
                 </Typography>
             </Box>
             
             <Paper sx={{ flexGrow: 1, width: '100%', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
                 <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
-                    <Tabs value={currentTab} onChange={handleTabChange} aria-label={t('ariaTabs', { ns: 'completedTrips' })}>
-                        <Tab label={t('tabs.timberWithCount', { ns: 'completedTrips', count: timberTrips.length })} id="completed-trips-tab-0" />
-                        <Tab label={t('tabs.consignmentsWithCount', { ns: 'completedTrips', count: consignmentTrips.length })} id="completed-trips-tab-1" />
+                    <Tabs 
+                        value={currentTab} 
+                        onChange={handleTabChange} 
+                        aria-label={t('ariaTabs', { ns: 'completedTrips' })}
+                    >
+                        {/* FIX 2: Make the Tab labels bold */}
+                        <Tab 
+                            label={t('tabs.timberWithCount', { ns: 'completedTrips', count: timberTrips.length })} 
+                            id="completed-trips-tab-0" 
+                            sx={{ fontWeight: 'bold' }} 
+                        />
+                        <Tab 
+                            label={t('tabs.consignmentsWithCount', { ns: 'completedTrips', count: consignmentTrips.length })} 
+                            id="completed-trips-tab-1" 
+                            sx={{ fontWeight: 'bold' }} 
+                        />
                     </Tabs>
                 </Box>
 
@@ -134,8 +149,17 @@ export default function CompletedTripsPage() {
                                 getRowId={(row) => row.kuormaId}
                                 initialState={{ sorting: { sortModel: [{ field: 'pvm', sort: 'desc' }] } }}
                                 disableRowSelectionOnClick
-                                sx={{ border: 0 }}
-                                slots={{ toolbar: GridToolbar, noRowsOverlay: () => <CustomNoRowsOverlay message={t('noTimber', { ns: 'completedTrips' })} /> }}
+                                // FIX 3: Make the column headers bold
+                                sx={{ 
+                                    '& .MuiDataGrid-columnHeaderTitle': {
+                                        fontWeight: 'bold'
+                                    },
+                                    border: 0 
+                                }}
+                                slots={{
+                                    toolbar: GridToolbar,
+                                    noRowsOverlay: () => <CustomNoRowsOverlay message={t('noTimber', { ns: 'completedTrips' })} />
+                                }}
                             />
                         </TabPanel>
 
@@ -146,8 +170,17 @@ export default function CompletedTripsPage() {
                                 getRowId={(row) => row.kuormaId}
                                 initialState={{ sorting: { sortModel: [{ field: 'pvm', sort: 'desc' }] } }}
                                 disableRowSelectionOnClick
-                                sx={{ border: 0 }}
-                                slots={{ toolbar: GridToolbar, noRowsOverlay: () => <CustomNoRowsOverlay message={t('noConsignments', { ns: 'completedTrips' })}/> }}
+                                // FIX 3: Make the column headers bold
+                                sx={{ 
+                                    '& .MuiDataGrid-columnHeaderTitle': {
+                                        fontWeight: 'bold'
+                                    },
+                                    border: 0 
+                                }}
+                                slots={{
+                                    toolbar: GridToolbar,
+                                    noRowsOverlay: () => <CustomNoRowsOverlay message={t('noConsignments', { ns: 'completedTrips' })}/>
+                                }}
                             />  
                         </TabPanel>
                     </>
