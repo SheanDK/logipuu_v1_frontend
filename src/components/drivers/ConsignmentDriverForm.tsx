@@ -194,36 +194,36 @@ export default function ConsignmentDriverForm({ onBackToListAction, consignmentI
             setIsLoading(true);
             getConsignmentById(consignmentId)
                 .then((data) => {
-                    // --- THE FINAL FIX ---
-                    // The data from the backend is already camelCased by our db wrapper.
-                    // We must access the correct camelCased property name.
+                    // Map waybills, ensuring all properties are defined and are strings where needed
                     const formattedWaybills = (data.rahtikirjat || []).map((wb: any) => ({
-                        rahtiId: wb.rahtiId,
-                        // FIX: Use 'rahtikirjanNro' (camelCase) which comes from the backend.
-                        rahtikirjanNumero: wb.rahtikirjanNro,
-                        reitti: wb.reitti,
-                        m3: wb.m3,
-                        km: wb.km,
-                        kpl: wb.kpl,
-                        jako: wb.jako,
-                        tievero: wb.tievero,
-                        lisatiedot: wb.lisatiedot
+                        rahtiId: wb.rahtiId ?? null,
+                        rahtikirjanNumero: wb.rahtikirjanNro ?? '',
+                        reitti: wb.reitti ?? '',
+                        m3: String(wb.m3 ?? ''),
+                        km: String(wb.km ?? ''),
+                        kpl: String(wb.kpl ?? ''),
+                        jako: String(wb.jako ?? ''),
+                        tievero: String(wb.tievero ?? ''),
+                        lisatiedot: wb.lisatiedot ?? ''
                     }));
 
-                    const formattedData = {
-                        ...data,
-                        pvm: data.pvm.split('T')[0],
-                        rahtikirjat: formattedWaybills
+                    // Prepare the final data object for the form, ensuring no null values for text fields.
+                    const formattedData = { 
+                        ...data, 
+                        pvm: data.pvm ? data.pvm.split('T')[0] : defaultDate,
+                        // Ensure 'lisatiedot' is a string, not null.
+                        lisatiedot: data.lisatiedot ?? '', 
+                        rahtikirjat: formattedWaybills 
                     };
+                    
                     reset(formattedData);
-
                 })
-                .catch(() => enqueueSnackbar(t('errors.customersLoadFailed'), { variant: 'error' }))
+                .catch(() => enqueueSnackbar(t('errors.loadFailed'), { variant: 'error' }))
                 .finally(() => setIsLoading(false));
         } else {
             reset({ asiakasId: '', pvm: defaultDate, lisatiedot: '', rahtikirjat: [] });
         }
-    }, [consignmentId, isEditMode, reset, enqueueSnackbar, defaultDate]);
+    }, [consignmentId, isEditMode, reset, enqueueSnackbar, defaultDate, t]);
 
     const onFormSubmit: SubmitHandler<IConsignmentForm> = async (data) => {
         try {

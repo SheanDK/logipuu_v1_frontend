@@ -3,14 +3,16 @@
 
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { Box, Typography, Paper, Tabs, Tab } from '@mui/material';
-import { DataGrid, GridColDef, GridToolbar } from '@mui/x-data-grid';
-
+import { DataGrid, GridColDef, GridToolbar, GridRowParams } from '@mui/x-data-grid'; // Import GridRowParams
 import { ILoadListItem } from '@/types';
 import { fetchMyCompletedLoads } from '@/services/loadService';
+import { getCompletedTripDetails } from '@/services/driverViewService'; // Import the new service
 import { useTranslation } from '@/i18n/useTranslation';
 import TableSkeletonLoader from '@/components/common/TableSkeletonLoader';
 import CustomNoRowsOverlay from '@/components/common/CustomNoRowsOverlay';
-import ErrorDisplay from '@/components/common/ErrorDisplay'; 
+import ErrorDisplay from '@/components/common/ErrorDisplay';
+import CompletedTripDetailsModal from '@/components/drivers/CompletedTripDetailsModal'; // Import the new modal
+import { useSnackbar } from 'notistack';
 
 interface TabPanelProps {
   children?: React.ReactNode;
@@ -44,6 +46,12 @@ export default function CompletedTripsPage() {
     const [error, setError] = useState<string | null>(null);
     const { t } = useTranslation(['completedTrips', 'common']);
     const [currentTab, setCurrentTab] = useState(0);
+
+    const [isModalOpen, setIsModalOpen] = useState(false);
+    const [selectedTripDetails, setSelectedTripDetails] = useState<any | null>(null);
+    const [isModalLoading, setIsModalLoading] = useState(false);
+    const { enqueueSnackbar } = useSnackbar();
+
 
     // --- DEBUGGING STEP 1 ---
     console.log('--- CompletedTripsPage Rendering ---');
@@ -86,6 +94,26 @@ export default function CompletedTripsPage() {
         timber: timberTrips.length,
         consignments: consignmentTrips.length
     });
+
+     const handleRowClick = useCallback(async (params: GridRowParams) => {
+        setIsModalOpen(true);
+        setIsModalLoading(true);
+        try {
+            const data = await getCompletedTripDetails(params.row.kuormaId);
+            setSelectedTripDetails(data);
+        } catch (err) {
+            enqueueSnackbar('Failed to load trip details.', { variant: 'error' });
+            setIsModalOpen(false);
+        } finally {
+            setIsModalLoading(false);
+        }
+    }, [enqueueSnackbar]); // Assuming enqueueSnackbar is available from useSnackbar
+
+    const handleCloseModal = () => {
+        setIsModalOpen(false);
+        setSelectedTripDetails(null);
+    };
+
 
     const columns = useMemo((): GridColDef[] => [
         {
@@ -149,6 +177,7 @@ export default function CompletedTripsPage() {
                                 getRowId={(row) => row.kuormaId}
                                 initialState={{ sorting: { sortModel: [{ field: 'pvm', sort: 'desc' }] } }}
                                 disableRowSelectionOnClick
+                                onRowClick={handleRowClick} // Add the click handler
                                 // FIX 3: Make the column headers bold
                                 sx={{ 
                                     '& .MuiDataGrid-columnHeaderTitle': {
@@ -170,6 +199,7 @@ export default function CompletedTripsPage() {
                                 getRowId={(row) => row.kuormaId}
                                 initialState={{ sorting: { sortModel: [{ field: 'pvm', sort: 'desc' }] } }}
                                 disableRowSelectionOnClick
+                                onRowClick={handleRowClick} // Add the click handler
                                 // FIX 3: Make the column headers bold
                                 sx={{ 
                                     '& .MuiDataGrid-columnHeaderTitle': {
@@ -186,6 +216,12 @@ export default function CompletedTripsPage() {
                     </>
                 )}
             </Paper>
+            <CompletedTripDetailsModal
+                open={isModalOpen}
+                onCloseAction={handleCloseModal}
+                tripDetails={selectedTripDetails}
+                isLoading={isModalLoading}
+            />
         </Box>
     );
 }

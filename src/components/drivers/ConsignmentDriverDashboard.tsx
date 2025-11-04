@@ -73,26 +73,24 @@ export default function ConsignmentDriverDashboard({ onBackAction, onNavigateToF
 
     return (
         // FIX: Changed layout to fit within the main application area instead of 100vh
-        <Box sx={{ p: { xs: 1, sm: 3 }, height: '100%', display: 'flex', flexDirection: 'column' }}>
+         <Box sx={{ p: { xs: 1, sm: 3 }, height: '100%', display: 'flex', flexDirection: 'column' }}>
 
-            {/* FIX: Added a header section for the title and buttons */}
-            <Stack direction="row" justifyContent="space-between" alignItems="center" mb={2}>
-                <Typography variant="h5" component="h1">{t('title', { ns: 'consignmentDriver' })}</Typography>
+            <Stack direction="row" justifyContent="space-between" alignItems="center" mb={2} sx={{ flexShrink: 0 }}>
+                <Typography variant="h5" component="h1" sx={{ fontWeight: 'bold' }}>{t('title')}</Typography>
                 <Stack direction="row" spacing={1}>
                     <Button variant="contained" startIcon={<AddIcon />} onClick={() => onNavigateToFormAction(null)}>
-                        {t('buttons.newConsignment', { ns: 'consignmentDriver' })}
+                        {t('buttons.newConsignment')}
                     </Button>
                     <Button startIcon={<ArrowBackIcon />} onClick={onBackAction}>
-                        {t('buttons.changeMode', { ns: 'consignmentDriver' })}
+                        {t('buttons.changeMode')}
                     </Button>
                 </Stack>
             </Stack>
 
-            {/* The table */}
-            <Paper sx={{ flexGrow: 1, height: '100%' }}>
-
+            {/* FIX: The Paper component will grow to fill the remaining space. */}
+            <Paper sx={{ flexGrow: 1, width: '100%', height: '100%', minHeight: 0 }}>
                 {isLoading ? (
-                    <TableSkeletonLoader rows={8} />
+                    <TableSkeletonLoader rows={10} />
                 ) : (
                     <DataGrid
                         rows={consignments}
@@ -100,27 +98,18 @@ export default function ConsignmentDriverDashboard({ onBackAction, onNavigateToF
                         getRowId={(row) => row.kuormaId}
                         onRowClick={(params) => onNavigateToFormAction(params.row.kuormaId)}
                         initialState={{
-                            pagination: {
-                                paginationModel: { page: 0, pageSize: 25 },
-                            },
-                            sorting: {
-                                sortModel: [{ field: 'pvm', sort: 'desc' }], // Default sort by date descending
-                            },
+                            pagination: { paginationModel: { pageSize: 25 } },
+                            sorting: { sortModel: [{ field: 'pvm', sort: 'desc' }] },
                         }}
-                        pageSizeOptions={[10, 25, 50]}
+                        pageSizeOptions={[10, 25, 50, 100]}
                         disableRowSelectionOnClick
                         sx={{
-
-                            // Target the column header class to apply bold font weight.
-                            '& .MuiDataGrid-columnHeaderTitle': {
-                                fontWeight: 'bold',
-                            },
-                            '& .MuiDataGrid-row:hover': {
-                                cursor: 'pointer',
-                            },
+                            border: 0,
+                            '& .MuiDataGrid-columnHeaderTitle': { fontWeight: 'bold' },
+                            '& .MuiDataGrid-row:hover': { cursor: 'pointer' },
                         }}
                         slots={{
-                            noRowsOverlay: () => <CustomNoRowsOverlay message={t('noRowsSelectedVehicle', { ns: 'consignmentDriver' })} />
+                            noRowsOverlay: () => <CustomNoRowsOverlay message={t('noRowsSelectedVehicle')} />
                         }}
                     />
                 )}

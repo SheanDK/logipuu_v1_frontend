@@ -45,3 +45,18 @@ export const updateTimberEntryStatus = async (puulaaniId: number, timberEntries:
         throw error;
     }
 };
+
+/**
+ * --- NEW FUNCTION ---
+ * Fetches the full details of a single completed load.
+ * Corresponds to: GET /api/driver/completed-trips/:id
+ */
+export const getCompletedTripDetails = async (id: number): Promise<any> => {
+    try {
+        const response = await apiClient.get(`/driver/completed-trips/${id}`);
+        return response.data;
+    } catch (error) {
+        console.error(`SERVICE ERROR: Failed to fetch completed trip details for ID ${id}`, error);
+        throw error;
+    }
+};
