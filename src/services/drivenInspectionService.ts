@@ -2,7 +2,12 @@
 'use client'; 
 
 import apiClient from './apiClient';
-import { IDrivenInspectionListItem, IDrivenInspectionFilters, IUpdateDrivenInspectionRowDto, ICreateKuormaFromPtlDto } from '@/types';
+import { 
+    ILoadListItem, 
+    IDrivenInspectionFilters, 
+    IUpdateDrivenInspectionRowDto, 
+    ICreateKuormaFromPtlDto 
+} from '@/types';
 import dayjs from 'dayjs';
 
 const API_ENDPOINT = '/driven-inspection';
@@ -15,14 +20,14 @@ interface IAcceptEntriesResponse {
 
 
 // ... fetchDrivenInspectionList and updateDrivenInspectionRow remain the same ...
-export const fetchDrivenInspectionList = async (filters: Partial<IDrivenInspectionFilters>): Promise<IDrivenInspectionListItem[]> => {
+export const fetchDrivenInspectionList = async (filters: Partial<IDrivenInspectionFilters>): Promise<IDrivenInspectionFilters[]> => {
     try {
         const params = {
             ...filters,
             startDate: filters.startDate ? dayjs(filters.startDate).format('YYYY-MM-DD') : undefined,
             endDate: filters.endDate ? dayjs(filters.endDate).format('YYYY-MM-DD') : undefined,
         };
-        const response = await apiClient.get<IDrivenInspectionListItem[]>(`${API_ENDPOINT}/list`, { 
+        const response = await apiClient.get<IDrivenInspectionFilters[]>(`${API_ENDPOINT}/list`, { 
             params: params 
         });
         return response.data;

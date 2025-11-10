@@ -1,8 +1,7 @@
 // frontend/src/services/apiClient.ts
-import axios from 'axios';
+import axios, { AxiosHeaders } from 'axios'; // FIX: Import AxiosHeaders
 
 const getApiBaseUrl = (): string => {
-    // This function safely gets the URL, even during Server-Side Rendering where localStorage is not available.
     if (typeof window === 'undefined') {
         return process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:5000';
     }
@@ -16,26 +15,24 @@ const getApiBaseUrl = (): string => {
 };
 
 const apiClient = axios.create({
-    // The initial baseURL is set here but will be updated by the interceptor before each request.
     baseURL: `${getApiBaseUrl()}/api`,
 });
 
 apiClient.interceptors.request.use(
     (config) => {
-        // Always set the most up-to-date baseURL before the request is sent.
         config.baseURL = `${getApiBaseUrl()}/api`;
 
-        // --- THE FIX IS HERE ---
-        // Ensure config.headers is defined before trying to set a property on it.
+        // Ensure config.headers is a valid AxiosHeaders object.
         if (!config.headers) {
-            config.headers = {};
+            // FIX: Initialize with a new AxiosHeaders instance instead of a plain object.
+            config.headers = new AxiosHeaders();
         }
 
-        // Safely get the token and add it to the headers.
         if (typeof window !== 'undefined') {
             const token = localStorage.getItem('authToken');
             if (token) {
-                config.headers.Authorization = `Bearer ${token}`;
+                // Use the .set() method, which is the standard way to add headers.
+                config.headers.set('Authorization', `Bearer ${token}`);
             }
         }
         

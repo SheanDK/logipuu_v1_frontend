@@ -16,8 +16,7 @@ import { useWatch } from "react-hook-form";
 import LocationPicker from '@/components/common/LocationPicker';
 
 import {
-    IMapTimberStack, IVehicleBasicInfo, IMapDropoffLocation, IPuutavaraItem,
-    ITimberStackWoodEntry, IUpdateTimberStackFullDto, IAddTimberStackWoodEntryFormData,
+    IMapTimberStack, IVehicleBasicInfo, IMapDropoffLocation, IPuutavaraItem, IUpdateTimberStackFullDto, IAddTimberStackWoodEntryFormData,
     PendingPuulaaniData, ICreateTimberStackDto, IClientBasicInfo, PuulaaniFormData
 } from '../../../types';
 import { useMessage } from '@/utils/useMessage';
@@ -89,7 +88,7 @@ export default function PuulaaniDetailsModal({
     const isActive = useWatch({ control, name: "isActive" });
     const isCompleted = useWatch({ control, name: "isCompleted" });
 
-    const { fields: woodEntryFields, append, remove, update, replace } = useFieldArray({ control, name: "woodEntries", keyName: "keyId" });
+    const { fields: woodEntryFields, append, remove, update } = useFieldArray({ control, name: "woodEntries", keyName: "keyId" });
 
     const selectedAutoIds = watch('selectedAutoIds', []);
     useEffect(() => {
@@ -132,31 +131,32 @@ export default function PuulaaniDetailsModal({
             // --- THIS IS THE FIX ---
             // Prepare the data structure that the 'reset' function expects.
             const formDataForReset = {
-                name: details.puulaani.nimi,
-                date: details.puulaani.pvm ? dayjs(details.puulaani.pvm) : null,
-                dispatchOrderNo: details.puulaani.ajomaaraysnro,
-                kilometers: details.puulaani.km,
-                isActive: details.puulaani.aktiivinen,
-                isCompleted: details.puulaani.valmis,
-                additionalInfo: details.puulaani.lisatiedot,
-                autoNro: details.puulaani.autoNro || '',
-                // `details.autot` is already an array of numbers [101, 102] from the backend fix
-                selectedAutoIds: details.autot,
-                latitude: Number(details.puulaani.sijaintiLat),
-                longitude: Number(details.puulaani.sijaintiLong),
-                // Use 'timberEntries' from the backend response
-                woodEntries: details.timberEntries.map((p: any) => ({
-                    id: p.puutavaraId,
-                    puutavaraId: p.puutavaraId,
-                    woodTypeId: Number(p.puutavaraNro),
-                    dropoffLocationId: Number(p.purkupaikkaId),
-                    totalVolume: Number(p.kuutiot),
-                    fetchedVolume: Number(p.haettu),
-                    remainingVolume: Number(p.jaljella)
-                }))
-            };
-            
-            reset(formDataForReset);
+                    name: details.puulaani.nimi,
+                    date: details.puulaani.pvm ? dayjs(details.puulaani.pvm) : null,
+                    dispatchOrderNo: details.puulaani.ajomaaraysnro,
+                    // Convert the 'km' string from the backend to a number for the form.
+                    // Use parseFloat and provide a fallback of null if it's not a valid number.
+                    kilometers: details.puulaani.km ? parseFloat(details.puulaani.km) : null,
+                    isActive: details.puulaani.aktiivinen,
+                    isCompleted: details.puulaani.valmis,
+                    additionalInfo: details.puulaani.lisatiedot,
+                    autoNro: details.puulaani.autoNro || '',
+                    selectedAutoIds: details.autot,
+                    latitude: Number(details.puulaani.sijaintiLat),
+                    longitude: Number(details.puulaani.sijaintiLong),
+                    woodEntries: details.timberEntries.map((p: any) => ({
+                        id: p.puutavaraId,
+                        puutavaraId: p.puutavaraId,
+                        woodTypeId: Number(p.puutavaraNro),
+                        dropoffLocationId: Number(p.purkupaikkaId),
+                        totalVolume: Number(p.kuutiot),
+                        fetchedVolume: Number(p.haettu),
+                        remainingVolume: Number(p.jaljella)
+                    }))
+                };
+                
+                reset(formDataForReset);
+
 
         // Handle Create Mode (from a map click with pending data)
         } else if (!isEditMode && initialData) {

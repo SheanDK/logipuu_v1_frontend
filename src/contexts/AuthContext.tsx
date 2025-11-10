@@ -5,7 +5,7 @@ import React, { createContext, useContext, useState, useEffect, ReactNode } from
 import { jwtDecode } from 'jwt-decode';
 import { useRouter } from 'next/navigation';
 
-import { AuthState, AuthContextType, LoginApiResponse, IUser, UserProfileResponseDto } from '../types'; 
+import { AuthState, AuthContextType, LoginApiResponse, IUser } from '../types'; 
 import apiClient from '../services/apiClient';
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);

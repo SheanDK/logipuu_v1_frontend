@@ -1,7 +1,7 @@
 // frontend/src/services/vehicleService.ts
 
 import apiClient from './apiClient';
-import { IVehicle, ICreateVehicleDto, IUpdateVehicleDto, IVehicleBasicInfo, IVehicleBackendResponse } from '../types/vehicle';
+import { IVehicle, ICreateVehicleDto, IUpdateVehicleDto, IVehicleBasicInfo, IVehicleBackendResponse } from '../types';
 
 const API_ENDPOINT = '/vehicles';
 

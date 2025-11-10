@@ -17,7 +17,7 @@ import { fetchVehiclesListApi } from '@/services/vehicleService';
 import { fetchAllWoodTypes } from '@/services/woodCategoriesServices';
 
 import type { IClientBasicInfo } from '@/types';
-import type { IVehicleBasicInfo } from '@/types/vehicle';
+import type { IVehicleBasicInfo } from '@/types';
 import type { IWoodCategory } from '@/services/woodCategoriesServices';
 
 /** Exact params our backend search expects. */

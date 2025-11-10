@@ -12,7 +12,7 @@ import { useTranslation } from '@/i18n/useTranslation';
 import { fetchClientsListApi } from '@/services/clientService';
 import { fetchVehiclesListApi } from '@/services/vehicleService';
 import type { IClientBasicInfo } from '@/types';
-import type { IVehicleBasicInfo } from '@/types/vehicle';
+import type { IVehicleBasicInfo } from '@/types';
 
 /* -----------------------------------------------------------------------------
  * Types

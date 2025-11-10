@@ -94,7 +94,7 @@ export default function EditLoadModal({ open, onCloseAction, onSaveSuccessAction
                 pvm: dayjs(loadToEdit.pvm).toDate(),
                 vastaanottoNro: (loadToEdit as any).vastaanottoNro || '',
                 reitti: (loadToEdit as any).reitti || '',
-                m3: loadToEdit.m3 || 0,
+                m3: Number(loadToEdit.m3) || 0,
                 km: (loadToEdit as any).km || 0,
                 tunnit: (loadToEdit as any).tunnit || 0,
                 kpl: (loadToEdit as any).kpl || 0,

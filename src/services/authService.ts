@@ -1,6 +1,6 @@
 // frontend/src/services/authService.ts
 import apiClient from './apiClient';
-import { UserLoginCredentials, LoginApiResponse } from '../types/auth';
+import { UserLoginCredentials, LoginApiResponse } from '../types';
 
 /**
  * Calls the backend API to log in a user.

@@ -5,7 +5,7 @@ import React, { useState, FormEvent } from 'react';
 import { useRouter } from 'next/navigation'; // Keep useRouter if you have other navigation needs
 import { useAuth } from '../../../../contexts/AuthContext';
 import { loginUserApi } from '../../../../services/authService';
-import { UserLoginCredentials } from '../../../../types/auth';
+import { UserLoginCredentials } from '../../../../types';
 
 import { useTranslation } from '@/i18n/useTranslation';
 
@@ -22,6 +22,7 @@ import SettingsIcon from '@mui/icons-material/Settings';
 import dynamic from 'next/dynamic';
 
 import LanguageSwitcher from '@/components/i18n/LanguageSwitcher';
+import axios from 'axios';
 
 // Dynamically import the modal to avoid SSR issues with localStorage.
 const SettingsModal = dynamic(() => import('@/components/common/SettingsModal'), { ssr: false });
@@ -71,10 +72,17 @@ export default function LoginPage() {
                 router.push('/timber-stacks');
             }
 
-        } catch (err: any) {
-            console.error("Login failed:", err);
-            const message = err.response?.data?.message || err.message || t('errorGeneric');
-            setError(message);
+         } catch (err: unknown) { // Use 'unknown' instead of 'any'
+        console.error("Login failed:", err);
+        let message: string;
+        if (axios.isAxiosError(err) && err.response) {
+            message = err.response.data.message || t('errorGeneric');
+        } else if (err instanceof Error) {
+            message = err.message;
+        } else {
+            message = t('errorGeneric');
+        }
+        setError(message);
         } finally {
             setLoading(false);
         }

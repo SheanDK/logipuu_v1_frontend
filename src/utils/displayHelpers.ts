@@ -1,8 +1,7 @@
 // src/utils/displayHelpers.ts
 
 // CORRECTED: Import the correct enum name and basic info types
-import { ClientTypeEnum } from '../types/client';
-import { IClientBasicInfo, IDriverBasicInfo, IVehicleBasicInfo } from '../types';
+import { ClientTypeEnum } from '../types';
 
 /**
  * Converts a numeric client type enum into a human-readable string.

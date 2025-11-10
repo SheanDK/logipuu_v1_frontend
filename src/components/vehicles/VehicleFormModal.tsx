@@ -11,7 +11,7 @@ import { useForm, Controller, SubmitHandler } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
 import * as yup from 'yup';
 
-import { IVehicle, ICreateVehicleDto, IUpdateVehicleDto, IVehicleFormData } from '../../types/vehicle';
+import { IVehicle, ICreateVehicleDto, IUpdateVehicleDto, IVehicleFormData } from '../../types';
 import { checkRegistrationNoExists } from '../../services/vehicleService';
 import { useTranslation } from '@/i18n/useTranslation';
 import dayjs from 'dayjs';

@@ -1,17 +1,20 @@
+// frontend/src/app/[lng]/(main)/drivers/page.tsx
 'use client';
 
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
-import {
-    Box, Typography, Button, CircularProgress, Alert, Paper, Chip, AlertColor, Tooltip
-} from '@mui/material';
-import { DataGrid, GridColDef, GridActionsCellItem, GridRowParams, GridToolbar } from '@mui/x-data-grid';
+import { Box, Typography, Button, Paper, Tooltip, Chip, Alert, CircularProgress, AlertColor } from '@mui/material';
+// FIX: Removed unused 'GridRowParams'. GridRenderCellParams is used for renderCell.
+import { DataGrid, GridColDef, GridActionsCellItem, GridRenderCellParams, GridToolbar } from '@mui/x-data-grid';
+import { useSnackbar } from 'notistack';
 import AddIcon from '@mui/icons-material/Add';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import CancelIcon from '@mui/icons-material/Cancel';
+import axios from 'axios';
 
 import { useAuth } from '../../../../contexts/AuthContext';
+// FIX: Make sure all necessary types are imported
 import { IDriver, IDriverGridRow, ICreateDriverDto, IUpdateDriverDto, IBackendDriver } from '../../../../types';
 import { fetchAllDrivers, createDriver, updateDriver, deleteDriver } from '../../../../services/driverService';
 import DriverFormModal from '../../../../components/drivers/DriverFormModal';
@@ -20,12 +23,12 @@ import { useTranslation } from '@/i18n/useTranslation';
 
 export default function DriversPage() {
     const { user } = useAuth();
+    const { enqueueSnackbar } = useSnackbar(); // Using enqueueSnackbar for feedback
     const [drivers, setDrivers] = useState<IDriver[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [isSaving, setIsSaving] = useState(false);
     const [feedback, setFeedback] = useState<{ type: AlertColor; message: string } | null>(null);
     const [modalError, setModalError] = useState<string | null>(null);
-
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [editingDriver, setEditingDriver] = useState<IDriver | null>(null);
     const [deleteTarget, setDeleteTarget] = useState<IDriver | null>(null);
@@ -46,23 +49,21 @@ export default function DriversPage() {
         setIsLoading(true);
         try {
             const rawData: IBackendDriver[] = await fetchAllDrivers();
-
-            const transformedDrivers: IDriver[] = rawData.map((backendDriver: IBackendDriver) => ({
+            const transformedDrivers: IDriver[] = rawData.map((backendDriver) => ({
                 driverId: backendDriver.kuljId,
                 name: backendDriver.nimi,
                 phoneNo: backendDriver.puhelinNro,
                 email: backendDriver.email,
                 hasAlerts: backendDriver.halytys,
             }));
-
             setDrivers(transformedDrivers);
-
-        } catch (err: any) {
-            setFeedback({ type: 'error', message: err.response?.data?.message || t('feedback.loadFailed') });
+        } catch (error: unknown) { // FIX: Use 'unknown' for error
+            const message = axios.isAxiosError(error) ? error.response?.data?.message : t('feedback.loadFailed');
+            setFeedback({ type: 'error', message: message || t('feedback.loadFailed') });
         } finally {
             setIsLoading(false);
         }
-    }, [canView]);
+    }, [canView, t]);
 
     useEffect(() => {
         if (user) {
@@ -90,15 +91,15 @@ export default function DriversPage() {
         setIsModalOpen(true);
     };
 
-    const handleOpenModalForEdit = (row: IDriverGridRow) => {
+    const handleOpenModalForEdit = useCallback((row: IDriverGridRow) => {
         setEditingDriver(row);
         setModalError(null);
         setIsModalOpen(true);
-    };
+    }, []);
 
-    const handleDeleteClick = (row: IDriverGridRow) => {
+    const handleDeleteClick = useCallback((row: IDriverGridRow) => {
         setDeleteTarget(row);
-    };
+    }, []);
 
     const handleSave = async (data: ICreateDriverDto | IUpdateDriverDto, driverId?: number) => {
         setIsSaving(true);
@@ -106,15 +107,16 @@ export default function DriversPage() {
         try {
             if (driverId) {
                 await updateDriver(driverId, data as IUpdateDriverDto);
-                setFeedback({ type: 'success', message: t('feedback.updateSuccess') });
+                enqueueSnackbar(t('feedback.updateSuccess'), { variant: 'success' });
             } else {
                 await createDriver(data as ICreateDriverDto);
-                setFeedback({ type: 'success', message: t('feedback.createSuccess') });
+                enqueueSnackbar(t('feedback.createSuccess'), { variant: 'success' });
             }
             setIsModalOpen(false);
             await loadDrivers();
-        } catch (err: any) {
-            setModalError(err.response?.data?.message || t('feedback.saveFailed'));
+        } catch (error: unknown) { // FIX: Use 'unknown' for error
+            const message = axios.isAxiosError(error) ? error.response?.data?.message : t('feedback.saveFailed');
+            setModalError(message || t('feedback.saveFailed'));
         } finally {
             setIsSaving(false);
         }
@@ -123,12 +125,12 @@ export default function DriversPage() {
     const handleDeleteConfirm = async () => {
         if (!deleteTarget) return;
         setIsSaving(true);
-        setFeedback(null);
         try {
             await deleteDriver(deleteTarget.driverId);
-            setFeedback({ type: 'success', message: t('feedback.deleteSuccess', { name: deleteTarget.name }) });
-        } catch (err: any) {
-            setFeedback({ type: 'error', message: err.response?.data?.message || t('feedback.saveFailed') });
+            enqueueSnackbar(t('feedback.deleteSuccess', { name: deleteTarget.name }), { variant: 'success' });
+        } catch (error: unknown) { // FIX: Use 'unknown' for error
+            const message = axios.isAxiosError(error) ? error.response?.data?.message : t('feedback.deleteFailed');
+            enqueueSnackbar(message || t('feedback.deleteFailed'), { variant: 'error' });
         } finally {
             setIsSaving(false);
             setDeleteTarget(null);
@@ -146,12 +148,10 @@ export default function DriversPage() {
                 field: 'hasAlerts',
                 headerName: t('columns.status'), 
                 width: 120,
-                renderCell: (params) => (
+                renderCell: (params: GridRenderCellParams<IDriverGridRow, boolean>) => ( // FIX: Strong type for params
                     <Chip
                         icon={params.value ? <CheckCircleIcon /> : <CancelIcon />}
-                        // --- KEY CORRECTION: Change label text here ---
                         label={params.value ? t('status.active') : t('status.inactive')}
-                        // --- END CORRECTION ---
                         color={params.value ? 'success' : 'default'}
                         size="small"
                         variant="outlined"
@@ -159,14 +159,13 @@ export default function DriversPage() {
                 ),
             },
         ];
-
         if (canEdit || canDelete) {
             baseColumns.push({
                 field: 'actions',
                 type: 'actions',
                 headerName: t('columns.actions'),
                 width: 100,
-                getActions: ({ row }) => {
+                getActions: ({ row }: { row: IDriverGridRow }) => { // FIX: Strong type for row
                     const actions = [];
                     if (canEdit) {
                         actions.push(<GridActionsCellItem key={`edit-${row.id}`} icon={<Tooltip title={t('actions.edit')}><EditIcon /></Tooltip>} label={t('actions.edit')} onClick={() => handleOpenModalForEdit(row)} />);
@@ -179,7 +178,7 @@ export default function DriversPage() {
             });
         }
         return baseColumns;
-    }, [canEdit, canDelete, handleOpenModalForEdit, handleDeleteClick]);
+    }, [canEdit, canDelete, handleOpenModalForEdit, handleDeleteClick, t]);
 
     if (isLoading || !user) {
         return <Box sx={{ display: 'flex', justifyContent: 'center', p: 4 }}><CircularProgress /></Box>;

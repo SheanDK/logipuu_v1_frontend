@@ -1,7 +1,7 @@
 // frontend/src/services/driverService.ts
 
 import apiClient from './apiClient';
-import { IDriver, ICreateDriverDto, IUpdateDriverDto, IDriverBasicInfo, IBackendDriver } from '../types/driver';
+import { IDriver, ICreateDriverDto, IUpdateDriverDto, IDriverBasicInfo, IBackendDriver } from '../types';
 
 const API_ENDPOINT = '/drivers';
 

@@ -11,7 +11,7 @@ import { yupResolver } from '@hookform/resolvers/yup';
 import * as yup from 'yup';
 import { useTranslation } from '@/i18n/useTranslation';
 
-import { IDriver, ICreateDriverDto, IUpdateDriverDto, IDriverFormData } from '../../types/driver';
+import { IDriver, ICreateDriverDto, IUpdateDriverDto, IDriverFormData } from '../../types/index';
 
 const normalizePhone = (raw: unknown) => {
   if (typeof raw !== 'string') return raw;
@@ -148,10 +148,10 @@ const DriverFormModal: React.FC<DriverFormModalProps> = ({
       <DialogContent dividers>
         {apiError && <Alert severity="error" sx={{ mb: 2 }}>{apiError}</Alert>}
         <Box component="form" onSubmit={handleSubmit(onSubmitHandler)} id="driver-form" noValidate sx={{ mt: 1 }}>
-          {/* Row 1: Name (full width) */}
           <Box sx={{ mb: 2 }}>
             <Controller
-              name="Age"
+              // --- THE FIX IS HERE ---
+              name="name" // Changed from "Age" to "name"
               control={control}
               render={({ field }) => (
                 <TextField

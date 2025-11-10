@@ -2,7 +2,7 @@
 'use client';
 
 import React, { useEffect, useState, useCallback, useMemo } from 'react';
-import { Box, Typography, Paper, Alert, CircularProgress, Button, IconButton, Tooltip, Snackbar, Chip, Stack, Divider } from '@mui/material';
+import { Box, Typography, Paper, Alert, Button, IconButton, Tooltip, Snackbar, Chip, Stack, Divider } from '@mui/material';
 import type { AlertColor } from '@mui/material';
 import { DataGrid, GridColDef, GridRenderCellParams, GridRowId, GridRowModel } from '@mui/x-data-grid';
 import EditIcon from '@mui/icons-material/Edit';
@@ -18,7 +18,7 @@ import type { ChipProps } from '@mui/material/Chip';
 import EditLoadModal from '../../../../components/loads/EditLoadModal';
 import ConfirmationDialog from '../../../../components/common/ConfirmationDialog';
 import InspectionFilterBar, { ILoadFilters } from '../../../../components/loads/InspectionFilterBar';
-import { ILoadListItem, ILoad, IClientBasicInfo, IVehicleBasicInfo, IDriver, IBackendClient, IVehicleBackendResponse, IBackendDriver, ITripDetails, IUpdateLoadDto } from '../../../../types';
+import { ILoadListItem, IClientBasicInfo, IVehicleBasicInfo, IDriver, IBackendClient, IVehicleBackendResponse, IBackendDriver, ITripDetails, IUpdateLoadDto } from '../../../../types';
 import { fetchAllLoads, getTripById, deleteLoad, updateLoad, fetchLoadsForInspection, acceptLoadsForInvoicing, ILoadListApiFilters } from '../../../../services/loadService';
 import { fetchAllClients } from '@/services/clientService';
 import { fetchAllVehicles } from '@/services/vehicleService';

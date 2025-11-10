@@ -2,21 +2,18 @@
 'use client';
 
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
-import {
-    Box, Typography, Button, CircularProgress, Alert, AlertColor, Paper, Chip
-} from '@mui/material';
+import { Box, Typography, Button, Paper, CircularProgress, Alert, AlertColor } from '@mui/material';
+import { DataGrid, GridColDef, GridRenderCellParams, GridActionsCellItem, GridToolbar, GridRowParams } from '@mui/x-data-grid';
 import AddIcon from '@mui/icons-material/Add';
-import { DataGrid, GridColDef, GridRenderCellParams, GridActionsCellItem } from '@mui/x-data-grid';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
+import axios from 'axios';
 
 import { useAuth } from '../../../../contexts/AuthContext';
-import { IClient, IBackendClient, ICreateClientDto, IUpdateClientDto, ClientTypeEnum } from '../../../../types';
+import { IClient, IBackendClient, ICreateClientDto, IUpdateClientDto } from '../../../../types';
 import { fetchAllClients, createClient, updateClient, deleteClient } from '../../../../services/clientService';
 import ClientFormModal from '../../../../components/clients/ClientFormModal';
 import ConfirmationDialog from '../../../../components/common/ConfirmationDialog';
-//import { getClientTypeString } from '../../../../utils/displayHelpers';
-import { GridToolbar } from '@mui/x-data-grid';
 import { useTranslation } from '@/i18n/useTranslation';
 
 export default function ClientsPage() {
@@ -26,13 +23,10 @@ export default function ClientsPage() {
     const [isSaving, setIsSaving] = useState(false);
     const [feedback, setFeedback] = useState<{ type: AlertColor; message: string } | null>(null);
     const [modalError, setModalError] = useState<string | null>(null);
-
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [editingClient, setEditingClient] = useState<IClient | null>(null);
-
     const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
     const [clientToDelete, setClientToDelete] = useState<IClient | null>(null);
-
     const { t } = useTranslation(['clients', 'common']);
 
     const canView = useMemo(() => user?.permissions?.includes('clients_view'), [user]);
@@ -48,7 +42,6 @@ export default function ClientsPage() {
         setIsLoading(true);
         try {
             const rawData: IBackendClient[] = await fetchAllClients();
-
             const transformedClients: IClient[] = rawData.map(c => ({
                 id: String(c.asiakkaanId),
                 clientId: String(c.asiakkaanId),
@@ -66,13 +59,16 @@ export default function ClientsPage() {
                 additionalInfo: c.lisatietoja,
             }));
             setClients(transformedClients);
-
-        } catch (err: any) {
-            setFeedback({ type: 'error', message: err.response?.data?.message || t('feedback.loadFailed') });
+        } catch (error: unknown) { // FIX: Use 'unknown'
+            let message = t('feedback.loadFailed');
+            if (axios.isAxiosError(error) && error.response) {
+                message = error.response.data.message || message;
+            }
+            setFeedback({ type: 'error', message });
         } finally {
             setIsLoading(false);
         }
-    }, [canView]);
+    }, [canView, t]); // FIX: Added 't' to dependency array
 
     useEffect(() => {
         if (!authLoadingState && user) { loadClients(); }
@@ -108,8 +104,12 @@ export default function ClientsPage() {
             }
             handleCloseModal();
             await loadClients();
-        } catch (err: any) {
-            setModalError(err.response?.data?.message || t('feedback.saveFailed'));
+        } catch  (error: unknown) { // FIX: Use 'unknown'
+            let message = t('feedback.saveFailed');
+            if (axios.isAxiosError(error) && error.response) {
+                message = error.response.data.message || message;
+            }
+            setModalError(message);
         } finally {
             setIsSaving(false);
         }
@@ -129,8 +129,12 @@ export default function ClientsPage() {
             setDeleteConfirmOpen(false);
             setClientToDelete(null);
             await loadClients();
-        } catch (err: any) {
-            setFeedback({ type: 'error', message: err.response?.data?.message || t('feedback.deleteFailed') });
+        } catch (error: unknown) { // FIX: Use 'unknown'
+            let message = t('feedback.deleteFailed');
+            if (axios.isAxiosError(error) && error.response) {
+                message = error.response.data.message || message;
+            }
+            setFeedback({ type: 'error', message });
             setDeleteConfirmOpen(false);
             setClientToDelete(null);
         } finally {
@@ -138,12 +142,10 @@ export default function ClientsPage() {
         }
     };
 
-    // Normalizes whatever backend sends (enum number or FI text) to i18n key
     const typeToKey = (raw: unknown): 'puulaani' | 'rahtikirja' | 'both' | 'unknown' => {
         const s = String(raw ?? '').toLowerCase();
         if (raw === 0 || s === 'puulaani') return 'puulaani';
         if (raw === 1 || s === 'rahtikirja') return 'rahtikirja';
-        // support 2, “Puulaani & Rahtikirja”, “both”, etc.
         if (raw === 2 || s.includes('&') || s.includes('both')) return 'both';
         return 'unknown';
     };
@@ -156,7 +158,7 @@ export default function ClientsPage() {
             field: 'type',
             headerName: t('columns.type'),
             width: 180,
-            renderCell: (params) => {
+            renderCell: (params: GridRenderCellParams<IClient, unknown>) => { // FIX: Type 'params'
                 const key = typeToKey(params.value);
                 return t(`type.${key}`);  
             },
@@ -170,24 +172,9 @@ export default function ClientsPage() {
             renderCell: (params: GridRenderCellParams<IClient, string | null>) => {
                 const colorValue = params.value;
                 if (!colorValue) return '–';
-
                 return (
-                    <Box
-                        sx={{
-                            width: '100%',
-                            height: '100%',
-                            display: 'flex',
-                            alignItems: 'center',
-                        }}
-                    >
-                        <Box
-                            sx={{
-                                width: '80%',
-                                height: 22,
-                                bgcolor: colorValue,
-                                borderRadius: 1,
-                            }}
-                        />
+                    <Box sx={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center' }}>
+                        <Box sx={{ width: '80%', height: 22, bgcolor: colorValue, borderRadius: 1 }} />
                     </Box>
                 );
             },
@@ -198,7 +185,7 @@ export default function ClientsPage() {
             type: 'actions',
             headerName: t('columns.actions'),
             width: 100,
-            getActions: ({ row }) => {
+            getActions: ({ row }: GridRowParams<IClient>) => { // FIX: Type '{ row }'
                 const actions = [];
                 if (canEdit) {
                     actions.push(<GridActionsCellItem icon={<EditIcon />} label="Edit" onClick={() => handleOpenEditModal(row)} />);
@@ -209,7 +196,7 @@ export default function ClientsPage() {
                 return actions;
             },
         },
-    ], [canEdit, canDelete]);
+    ], [canEdit, canDelete, t]); // FIX: Added 't' to dependency array
 
     if (isLoading || authLoadingState) {
         return <Box sx={{ display: 'flex', justifyContent: 'center', p: 4 }}><CircularProgress /></Box>;
@@ -229,9 +216,7 @@ export default function ClientsPage() {
                     </Button>
                 )}
             </Box>
-
             {feedback && <Alert severity={feedback.type} onClose={() => setFeedback(null)} sx={{ mb: 2 }}>{feedback.message}</Alert>}
-
             <Box sx={{ height: `calc(100% - ${feedback ? '112px' : '56px'})`, width: '100%' }}>
                 <DataGrid
                     rows={clients}
@@ -243,7 +228,6 @@ export default function ClientsPage() {
                     slots={{ toolbar: GridToolbar }}
                 />
             </Box>
-
             {isModalOpen && (
                 <ClientFormModal
                     open={isModalOpen}
@@ -252,12 +236,10 @@ export default function ClientsPage() {
                     initialData={editingClient}
                     isSaving={isSaving}
                     apiError={modalError}
-                    // Pass the necessary props that were missing before
                     usedColors={clients.map(c => c.targetColor).filter(Boolean) as string[]}
                     currentClientColor={editingClient?.targetColor || null}
                 />
             )}
-
             {deleteConfirmOpen && (
                 <ConfirmationDialog
                     open={deleteConfirmOpen}

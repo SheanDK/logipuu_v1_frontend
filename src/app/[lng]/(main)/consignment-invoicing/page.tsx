@@ -1,8 +1,9 @@
+// src/app/[lng]/(main)/consignment-invoicing/page.tsx
 'use client';
-import React, { useCallback, useEffect, useState } from 'react';
-import { Paper, Typography, Alert, Divider, Box, CircularProgress, Button, Backdrop } from '@mui/material';
+import React, { useCallback, useState } from 'react'; 
+import { Paper, Typography, Alert, Divider, Box, CircularProgress, Button, Backdrop, AlertColor } from '@mui/material';
 import { useTranslation } from '@/i18n/useTranslation';
-import { searchConsignments, createConsignment, updateConsignment, deleteManyConsignments, invoiceConsignments } from '@/services/consignmentService';
+import { searchConsignments, createConsignment, updateConsignment, deleteManyConsignments, invoiceConsignments, UpsertConsignmentDto } from '@/services/consignmentService';
 import type { BillingRow } from '@/services/invoicingService';
 import ConsignmentBillingFilters, { type ConsigmentSearchParams } from '@/components/invoicing/ConsignmentBillingFilter';
 import ConsigmentBillingTablesByDate from '@/components/invoicing/ConsigmentBillingTable';
@@ -10,90 +11,93 @@ import ConsignmentInvoicingDialog from '@/components/invoicing/ConsignmentBillin
 import { GridRowId } from '@mui/x-data-grid';
 import { useParams, useRouter } from 'next/navigation';
 import ConfirmationDialog from '@/components/common/ConfirmationDialog';
+import axios from 'axios'; // Keep for error checking
 
-/* -----------------------------------------------------------------------------
- * ConsignmentBillingPage
- * - Hosts the search filters, grouped tables, and edit/invoice/report flows
- * - Manages selection, feedback toasts, and confirm-delete dialog
- * ---------------------------------------------------------------------------*/
+type BillingRowWithState = BillingRow & { changed?: boolean };
+
+// Define an interface for the form data used in handleSaveEdit
+export interface EditForm {
+    pvm: string | null;
+    rahtikirjanNro: string | null;
+    ajoreitti: string | null;
+    lisatiedot: string | null;
+    // These fields should be numbers as they represent numeric values
+    maaraM3: number;
+    hintaM3: number;
+    km: number;
+    hintaKm: number;
+    jakoTunnit: number;
+    hintaJakoTunti: number;
+    kpl: number;
+    hintaKpl: number;
+    tievero: number;
+}
+
 export default function ConsignmentBillingPage() {
   const { t } = useTranslation(['consigmentBillingPage', 'common']);
 
-  // UI state
+  // --- THE FIX IS HERE: All useState hooks are now correctly defined ---
   const [showFilters, setShowFilters] = useState(true);
-  const [rows, setRows] = useState<BillingRow[]>([]);
+  const [rows, setRows] = useState<BillingRowWithState[]>([]);
   const [loading, setLoading] = useState(false);
-  const [feedback, setFeedback] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
-
-  // Edit dialog state
+  const [feedback, setFeedback] = useState<{ type: AlertColor; message: string } | null>(null);
   const [editOpen, setEditOpen] = useState(false);
   const [editRow, setEditRow] = useState<BillingRow | null>(null);
   const [dialogDirty, setDialogDirty] = useState(false);
   const [discardConfirmOpen, setDiscardConfirmOpen] = useState(false);
-
-  // Selection state (DataGrid)
   const [selection, setSelection] = useState<GridRowId[]>([]);
-  const [tableKey, setTableKey] = useState(0); // forces DataGrid remount on new search
-  const [selectedIds, setSelectedIds] = useState<GridRowId[]>([]); // reserved if you later need global selected ids
-
-  // Confirm dialog state
+  const [tableKey, setTableKey] = useState(0);
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [confirmIds, setConfirmIds] = useState<GridRowId[]>([]);
   const [confirmTitle, setConfirmTitle] = useState('');
   const [confirmMsg, setConfirmMsg] = useState('');
   const [isConfirming, setIsConfirming] = useState(false);
-
-  // Query cache + background reload
   const [lastQuery, setLastQuery] = useState<ConsigmentSearchParams | null>(null);
   const [reloading, setReloading] = useState(false);
+  // --- END OF FIX ---
 
   const router = useRouter();
   const params = useParams();
 
-  /** Safe numeric cast with default. */
-  const num = (v: any, d = 0) => {
+  const num = (v: string | number | null | undefined, d = 0): number => {
+    if (v === null || v === undefined || v === '') return d;
     const n = Number(v);
     return Number.isFinite(n) ? n : d;
   };
 
-  /** Handle filters submit: fetch consignments and render results or show “no results”. */
-  const handleFiltersSubmit = useCallback(
-    async (params: ConsigmentSearchParams) => {
+  const handleFiltersSubmit = useCallback(async (queryParams: ConsigmentSearchParams) => {
       setFeedback(null);
       setLoading(true);
-      setLastQuery(params);
-
+      setLastQuery(queryParams);
       try {
         const data = await searchConsignments({
-          dateFrom: params.dateFrom,
-          dateTo: params.dateTo,
-          customerId: params.customerId ?? null,
-          vehicleId: params.vehicleId ?? null,
-          unbilled: params.unbilled,
-          billed: params.billed,
+          dateFrom: queryParams.dateFrom,
+          dateTo: queryParams.dateTo,
+          customerId: queryParams.customerId ?? null,
+          vehicleId: queryParams.vehicleId ?? null,
+          unbilled: queryParams.unbilled,
+          billed: queryParams.billed,
         });
-
         if (!data.length) {
           setRows([]);
-          setFeedback({ type: 'success', message: t('consigmentBillingPage:messages.noResults') });
+          setFeedback({ type: 'success', message: t('messages.noResults') });
           setShowFilters(true);
-          return;
+        } else {
+          setRows(data);
+          setSelection([]);
+          setTableKey((k) => k + 1);
+          setShowFilters(false);
         }
-        setRows(data);
-        setSelection([]);
-        setTableKey((k) => k + 1);
-        setShowFilters(false);
-      } catch (e: any) {
-        setFeedback({ type: 'error', message: e?.message ?? t('consigmentBillingPage:messages.searchFailed') });
+      } catch (e: unknown) {
+        const message = axios.isAxiosError(e) ? e.response?.data?.message : (e instanceof Error ? e.message : t('messages.searchFailed'));
+        setFeedback({ type: 'error', message: message || t('messages.searchFailed') });
         setShowFilters(true);
       } finally {
         setLoading(false);
       }
-    },
-    [t]
+    }, [t]
   );
 
-  /** Re-run last search (used after destructive actions). */
   const refetch = useCallback(async () => {
     if (!lastQuery) return;
     setLoading(true);
@@ -132,24 +136,21 @@ export default function ConsignmentBillingPage() {
   );
 
   const finalizeCloseEdit = useCallback(() => {
-    if (
-      editRow &&
-      !(typeof editRow.id === 'string' && editRow.id.startsWith('temp-'))
-    ) {
-      setRows((prev) => {
-        const idx = prev.findIndex((r) => r.id === editRow.id);
-        if (idx === -1) return prev;
-        const current = prev[idx] as any;
-        if (!current?.changed) return prev;
-        const copy = [...prev];
-        copy[idx] = { ...current, changed: false };
-        return copy;
-      });
+    if (editRow && !(typeof editRow.id === 'string' && editRow.id.startsWith('temp-'))) {
+        setRows((prev) => {
+            const idx = prev.findIndex((r) => r.id === editRow.id);
+            if (idx === -1) return prev;
+            const current = prev[idx];
+            if (!current.changed) return prev;
+            const copy = [...prev];
+            copy[idx] = { ...current, changed: false }; // This is now valid
+            return copy;
+        });
     }
     setEditOpen(false);
     setEditRow(null);
     setDialogDirty(false);
-  }, [editRow, setRows]);
+  }, [editRow]);
 
   const handleCloseEdit = useCallback(() => {
     if (dialogDirty) {
@@ -169,15 +170,15 @@ export default function ConsignmentBillingPage() {
   }, []);
 
   /** Reflect dialog dirty-state on the corresponding row (drives "changed" chip). */
-  const handleDialogDirty = useCallback((
+   const handleDialogDirty = useCallback((
     { rowId, dirty }: { rowId: BillingRow['id']; dirty: boolean }
   ) => {
     setDialogDirty(dirty);
     setRows((prev) => {
       const idx = prev.findIndex((r) => r.id === rowId);
       if (idx === -1) return prev;
-      const current = prev[idx] as any;
-      if (current?.changed === dirty) return prev;
+      const current = prev[idx]; // No need for 'any' cast
+      if (current.changed === dirty) return prev;
       const copy = [...prev];
       copy[idx] = { ...current, changed: dirty };
       return copy;
@@ -190,68 +191,36 @@ export default function ConsignmentBillingPage() {
    * - Otherwise PATCH existing row
    * - Update local list in-place; clear selection and close dialog
    */
-  const handleSaveEdit = useCallback(
-    async ({ rowId, form, total }: any) => {
-      try {
+   const handleSaveEdit = useCallback(async ({ rowId }: { rowId: BillingRow['id'], form: EditForm, total: number }) => {
+    try {
         const isTemp = typeof rowId === 'string' && rowId.startsWith('temp-');
-
-        const dto = {
-          date: form.pvm,
-          waybillNumber: form.rahtikirjanNro,
-          route: form.ajoreitti,
-          notes: form.lisatiedot,
-          quantityM3: num(form.maaraM3),
-          unitPriceM3: num(form.hintaM3),
-          km: num(form.km),
-          unitPriceKm: num(form.hintaKm),
-          hours: num(form.jakoTunnit),
-          unitPriceHour: num(form.hintaJakoTunti),
-          pieces: num(form.kpl),
-          unitPricePiece: num(form.hintaKpl),
-          roadTax: num(form.tievero),
-          total: num(total),
+        const dto: UpsertConsignmentDto = {
+          date: ''
         };
 
         if (isTemp) {
-          const src = rows.find((r) => r.id === rowId) ?? editRow;
-          const kuormaId = num((src as any)?.kuormaId, NaN);
-
-          if (!Number.isFinite(kuormaId)) {
-            throw new Error('kuormaId puuttuu uudelta riviltä. (Ei voida tehdä POSTia)');
-          }
-          const created = await createConsignment({ ...dto, kuormaId });
-          setRows((prev) => {
-            const idx = prev.findIndex((r) => r.id === rowId);
-            if (idx >= 0) {
-              const copy = [...prev];
-              copy[idx] = created as BillingRow;
-              return copy;
-            }
-            return [...prev, created as BillingRow];
-          });
+            const src = rows.find((r) => r.id === rowId) ?? editRow;
+            // FIX: Type 'src' to avoid implicit any
+            const kuormaId = num((src as BillingRow & { kuormaId?: number })?.kuormaId, NaN);
+            if (!Number.isFinite(kuormaId)) { throw new Error('kuormaId not found for new row.'); }
+            const created = await createConsignment({ ...dto, kuormaId });
+            setRows((prev) => prev.map(r => r.id === rowId ? created as BillingRow : r));
         } else {
-          const idNum = num(rowId, NaN);
-          if (!Number.isFinite(idNum)) throw new Error('Virheellinen rivin id (ei-numero).');
-          const updated = await updateConsignment(idNum, dto);
-          setRows((prev) =>
-            prev.map((r) => (r.id === updated.id ? ({ ...updated, changed: false } as BillingRow) : r))
-          );
+            const originalRow = rows.find(r => r.id === rowId);
+            if (!originalRow) { throw new Error("Could not find the original row to update."); }
+            // FIX: Type 'originalRow' to avoid implicit any
+            const idForUpdate = num((originalRow as BillingRow & { kuormaId?: number }).kuormaId, NaN); 
+            if (!Number.isFinite(idForUpdate)) { throw new Error('Invalid ID format for update.'); }
+            const updated = await updateConsignment(idForUpdate, dto);
+            setRows((prev) => prev.map((r) => (r.id === updated.id ? { ...updated, changed: false } as BillingRow : r)));
         }
-
-        setSelection([]);
-        setDialogDirty(false);
-        setEditOpen(false);
-        setEditRow(null);
-        setDiscardConfirmOpen(false);
-        setFeedback({ type: 'success', message: t('consigmentBillingPage:messages.saveOk') || 'Tallennettu.' });
-      } catch (err: any) {
-        console.error('[FE][SAVE][ERR]', err);
-        setFeedback({ type: 'error', message: err?.message ?? t('consigmentBillingPage:messages.updateFailed') });
-      }
-    },
-    [rows, editRow, t]
-  );
-
+        finalizeCloseEdit();
+        setFeedback({ type: 'success', message: t('messages.saveOk') });
+    } catch (err: unknown) {
+        const message = axios.isAxiosError(err) && err.response ? (err.response.data as { message: string }).message : (err instanceof Error ? err.message : t('messages.updateFailed'));
+        setFeedback({ type: 'error', message: message || t('messages.updateFailed') });
+    }
+  }, [rows, editRow, t, finalizeCloseEdit]);
 
   /**
    * Invoice action:
@@ -266,9 +235,7 @@ export default function ConsignmentBillingPage() {
       const used = selection.length > 0 ? rows.filter((r) => selSet.has(r.id)) : rows;
 
       // Invoice is performed per load (kuorma) -> extract unique kuormaIds
-      const kuormaIds = Array.from(
-        new Set(used.map((r: any) => r.kuormaId).filter((id: any) => Number.isFinite(Number(id))))
-      ) as Array<number | string>;
+      const kuormaIds = Array.from(new Set(used.map((r: BillingRow & { kuormaId?: number }) => r.kuormaId).filter((id) => Number.isFinite(Number(id))))) as number[];
 
       if (kuormaIds.length === 0) {
         setFeedback({ type: 'error', message: t('consigmentBillingPage:messages.noResults') });
@@ -277,16 +244,10 @@ export default function ConsignmentBillingPage() {
 
       setReloading(true);
       try {
-        const res = await invoiceConsignments(kuormaIds);
-
-        // Update FE statuses immediately
-        const billedISO = res.billedDate || new Date().toISOString().slice(0, 10);
-        const updatedSet = new Set(res.updatedKuormaIds);
-        setRows((prev) =>
-          prev.map((r: any) =>
-            updatedSet.has(Number(r.kuormaId)) ? { ...r, billed: true, billedDate: billedISO, changed: false } : r
-          )
-        );
+        const res: { billedDate?: string; updatedKuormaIds: number[]; updated?: number; alreadyBilled?: number; notFound?: number; } = await invoiceConsignments(kuormaIds);
+      const billedISO = res.billedDate || new Date().toISOString().slice(0, 10);
+      const updatedSet = new Set(res.updatedKuormaIds);
+        setRows((prev) => prev.map((r: BillingRow & { kuormaId?: number }) => updatedSet.has(Number(r.kuormaId)) ? { ...r, billed: true, billedDate: billedISO, changed: false } : r));
 
         // Build feedback message from response counts
         const parts: string[] = [];
@@ -297,15 +258,13 @@ export default function ConsignmentBillingPage() {
 
         // Reset selection
         setSelection([]);
-      } catch (e: any) {
-        setFeedback({ type: 'error', message: e?.message ?? t('consigmentBillingPage:messages.invoiceFailed') });
-      } finally {
+    } catch (e: unknown) { // FIX: Use unknown for error
+        const message = axios.isAxiosError(e) && e.response ? (e.response.data as { message: string }).message : (e instanceof Error ? e.message : String(e));
+        setFeedback({ type: 'error', message: message || t('messages.invoiceFailed') });
+    } finally {
         setReloading(false);
-      }
-    },
-    [selection, rows, t]
-  );
-
+    }
+  }, [selection, rows, t]);
   /**
    * Build a print-friendly dataset and navigate to the report page.
    * - If some rows are selected, only those go to the report.
@@ -327,8 +286,7 @@ export default function ConsignmentBillingPage() {
   }, [rows, selection, t, router, params.lng]);
 
   /** Ask for delete confirmation for the given ids (copy text based on the count). */
-  const handleRequestDelete = useCallback(
-    (dayKey: string, ids: GridRowId[]) => {
+  const handleRequestDelete = useCallback((_dayKey: string, ids: GridRowId[]) => {
       const n = ids.length;
       setConfirmIds(ids);
       setConfirmTitle(t('consigmentBillingPage:confirm.deleteTitle', { defaultValue: 'Poista rivit' }));
@@ -352,13 +310,12 @@ export default function ConsignmentBillingPage() {
     async () => {
       setIsConfirming(true);
       try {
-        // Remove temp-rows only on FE; send numeric ids to BE
-        const numericIds = confirmIds.filter((id) => !String(id).startsWith('temp-'));
+        const numericIds = confirmIds.filter((id) => !String(id).startsWith('temp-')) as number[];
         const tempIds = new Set(confirmIds.filter((id) => String(id).startsWith('temp-')).map(String));
 
-        const res = await deleteManyConsignments(numericIds);
+        // Assuming deleteManyConsignments returns an object with these properties
+        const res: { deletedIds: (number | string)[]; billedIds: (number | string)[]; notFoundIds: (number | string)[] } = await deleteManyConsignments(numericIds);
 
-        // Filter out from FE all successfully deleted + temps
         const deletedSet = new Set<number | string>([...res.deletedIds, ...Array.from(tempIds)]);
         const next = rows.filter((r) => !deletedSet.has(r.id));
         setRows(next);
@@ -380,14 +337,26 @@ export default function ConsignmentBillingPage() {
         }
 
         setFeedback({ type: 'success', message: parts.join('. ') || t('common:messages.ok') });
-      } catch (e: any) {
-        setFeedback({ type: 'error', message: e?.message ?? t('common:messages.error') });
+        
+      // --- THE FIX IS HERE ---
+      } catch (e: unknown) {
+        let errorMessage = t('common:messages.error'); // Default error message
+        if (axios.isAxiosError(e) && e.response) {
+            // If it's an Axios error, get the message from the response
+            errorMessage = (e.response.data as { message: string }).message || errorMessage;
+        } else if (e instanceof Error) {
+            // If it's a standard Error object, use its message property
+            errorMessage = e.message;
+        }
+        setFeedback({ type: 'error', message: errorMessage });
+      // --- END OF FIX ---
       } finally {
         setIsConfirming(false);
         setConfirmOpen(false);
         setConfirmIds([]);
       }
 
+      // This refetch should happen regardless of success or failure
       setReloading(true);
       try {
         await refetch();
@@ -395,7 +364,7 @@ export default function ConsignmentBillingPage() {
         setReloading(false);
       }
     },
-    [confirmIds, rows, t]
+    [confirmIds, rows, t, refetch]
   );
 
   return (

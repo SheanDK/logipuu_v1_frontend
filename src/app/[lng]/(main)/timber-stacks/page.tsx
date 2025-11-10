@@ -16,12 +16,9 @@ import { useLayout } from '../../../../contexts/LayoutContext';
 import useSocket from '../../../../hooks/useSocket';
 import { useMapData } from '../../../../hooks/useMapData';
 import {
-    IClientBasicInfo, IVehicleBasicInfo, IMapTimberStack, IMapDropoffLocation, IMapOtherMarker,
-    IMapFilterState, IVehicleLocation, MarkerType, ICreateTimberStackDto,
-    ICreatePurkupaikkaDto, ICreateOtherMarkerDto, PendingPuulaaniData, PuulaaniBasicDetailsFormData,
-    IUpdatePurkupaikkaDto, IUpdateOtherMarkerDto, IBackendPurkupaikkaResponse
+    IClientBasicInfo, IMapTimberStack, IMapDropoffLocation, IMapOtherMarker, // Changed from IMapFilterState
+    IVehicleLocation, MarkerType, ICreateOtherMarkerDto, PendingPuulaaniData, PuulaaniBasicDetailsFormData, IUpdateOtherMarkerDto, IMapFilterState
 } from '../../../../types';
-
 import { updateTimberStackLocation, createTimberStack, deleteTimberStack } from '../../../../services/timberStackService';
 import { deleteDropoffLocation } from '../../../../services/unloadingSiteService';
 import { createOtherMarker, deleteOtherMarker, updateOtherMarker } from '../../../../services/otherInfoService';
@@ -128,15 +125,22 @@ export default function TimberStacksPage() {
         }
     };
 
+    
     useEffect(() => {
-        if (lastLocationUpdate) {
+        if (lastLocationUpdate && lastLocationUpdate.vehicleId) {
+            
+            const vehicleIdKey = String(lastLocationUpdate.vehicleId);
+
+            // FIX: Ensure the timestamp is always stored as a string.
             const newLocation: IVehicleLocation = {
                 id: lastLocationUpdate.vehicleId,
                 lat: lastLocationUpdate.lat,
                 lng: lastLocationUpdate.lng,
-                timestamp: lastLocationUpdate.timestamp
+                // Convert the incoming timestamp to a string, providing a fallback.
+                timestamp: String(lastLocationUpdate.timestamp || new Date().toISOString())
             };
-            setVehicleLocations(prev => ({ ...prev, [lastLocationUpdate.vehicleId]: newLocation }));
+
+            setVehicleLocations(prev => ({ ...prev, [vehicleIdKey]: newLocation }));
         }
     }, [lastLocationUpdate]);
 

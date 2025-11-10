@@ -2,8 +2,8 @@
 'use client';
 
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
-import { Box, Typography, Paper, CircularProgress, Alert, IconButton, Tooltip, Button, Snackbar, AlertColor } from '@mui/material';
-import { DataGrid, GridColDef, GridFooterContainer, GridFooter, GridValueFormatter } from '@mui/x-data-grid';
+import { Box, Typography, Paper, Alert, IconButton, Tooltip, Button, Snackbar, AlertColor } from '@mui/material';
+import { DataGrid, GridColDef, GridFooterContainer, GridFooter } from '@mui/x-data-grid';
 import dayjs from 'dayjs';
 import dynamic from 'next/dynamic';
 
@@ -14,7 +14,7 @@ import DeleteIcon from '@mui/icons-material/Delete';
 import { useAuth } from '@/contexts/AuthContext';
 import PuulaaniFilterBar from '@/components/timber-management/dialogs/PuulaaniFilterBar'; 
 
-import { ITimberStackListItem, ITimberStackListFilters, IMapTimberStack, IEditablePuulaani, IClientBasicInfo, IBackendClient, IVehicleBasicInfo, IPuutavaraItem, PendingPuulaaniData } from '@/types';
+import { ITimberStackListItem, ITimberStackListFilters, IEditablePuulaani, IClientBasicInfo, IVehicleBasicInfo, IPuutavaraItem, PendingPuulaaniData } from '@/types';
 import { fetchTimberStackList, deleteTimberStack, fetchTimberStackFullDetails } from '@/services/timberStackService';
 import { fetchAllClients } from '@/services/clientService'; 
 import { fetchVehiclesListApi } from '@/services/vehicleService'; 
@@ -183,6 +183,11 @@ export default function PuulaaniListPage() {
     };
 
     const handleEditClick = async (puulaaniListItem: ITimberStackListItem) => {
+
+         if (puulaaniListItem.puulaaniId === undefined) {
+            setSnackbar({ open: true, message: 'Invalid item selected.', severity: 'error' });
+            return;
+        }
         try {
             const fullDetails = await fetchTimberStackFullDetails(puulaaniListItem.puulaaniId);
             if (fullDetails && fullDetails.puulaani) {
@@ -205,7 +210,7 @@ export default function PuulaaniListPage() {
                     dispatchOrderNo: rawPuulaani.ajomaaraysnro,
                     additionalInfo: rawPuulaani.lisatiedot,
                     autot: fullDetails.autot,
-                    puutavarat: fullDetails.puutavarat,
+                    timberEntries: fullDetails.timberEntries, 
                 };
                 
                 setPuulaaniForEdit(puulaaniDataForModal);
@@ -221,11 +226,12 @@ export default function PuulaaniListPage() {
     const handleDeleteClick = (puulaani: ITimberStackListItem) => { setDeleteTarget(puulaani); };
     
     const confirmDelete = async () => {
-        if (!deleteTarget) return;
+        if (!deleteTarget || deleteTarget.puulaaniId === undefined) return;
         setIsSaving(true);
         try {
+            // FIX: Add a check to ensure deleteTarget.puulaaniId is not undefined.
             await deleteTimberStack(deleteTarget.puulaaniId);
-            setSnackbar({ open: true, message: t('snackbar.deleted', { name: deleteTarget.nimi }), severity: 'success' });
+            setSnackbar({ open: true, message: t('snackbar.deleted', { name: deleteTarget.nimi ?? '' }), severity: 'success' });
             setDeleteTarget(null);
             loadData();
         } catch (err: any) {

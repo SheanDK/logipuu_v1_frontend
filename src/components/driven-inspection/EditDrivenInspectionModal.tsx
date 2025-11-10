@@ -7,26 +7,21 @@ import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 
 import React, { useEffect, useState } from 'react';
 import {
-    Dialog,
-    DialogTitle,
-    DialogContent,
-    DialogActions,
-    Button,
-    Typography,
-    IconButton,
-    Grid,
-    TextField,
-    CircularProgress,
-    Alert,
-    Box,
-    Stack
+    Dialog, DialogTitle, DialogContent, DialogActions, Button,
+    Typography, IconButton, TextField, CircularProgress, Alert, Box
 } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
 import { useForm, Controller, SubmitHandler } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 
-import { ICreateKuormaFromPtlDto, IDrivenInspectionListItem, IUpdateDrivenInspectionRowDto } from '@/types';
+// --- THE FIX IS HERE ---
+// Use the unified ILoadListItem instead of the non-existent IDrivenInspectionListItem.
+import { 
+    ICreateKuormaFromPtlDto, 
+    ILoadListItem, 
+    IUpdateDrivenInspectionRowDto 
+} from '@/types';
 import { createDrivenInspectionEntry, updateDrivenInspectionRow } from '@/services/drivenInspectionService';
 
 const validationSchema = z.object({
@@ -44,12 +39,17 @@ type FormData = z.infer<typeof validationSchema>;
 
 interface EditInspectionModalProps {
     open: boolean;
-    initialData: IDrivenInspectionListItem;
+    initialData: ILoadListItem; // Use the correct, unified type
     onClose: () => void;
     onSaveSuccess: (updatedItem: any) => void;
 }
 
-const EditInspectionModal: React.FC<EditInspectionModalProps> = ({ open, initialData, onClose, onSaveSuccess }) => {
+const EditInspectionModal: React.FC<EditInspectionModalProps> = ({ 
+    open, 
+    initialData, 
+    onClose, 
+    onSaveSuccess 
+}) => {
     const [isSaving, setIsSaving] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
@@ -60,7 +60,8 @@ const EditInspectionModal: React.FC<EditInspectionModalProps> = ({ open, initial
     useEffect(() => {
         if (open) {
             reset({
-                date: initialData.date ? dayjs(initialData.date) : null,
+                // The ILoadListItem has all these properties as aliases
+                date: initialData.date ? dayjs(initialData.date, 'DD.MM.YYYY') : null,
                 receptionNo: initialData.receptionNo || null,
                 drivingRoute: initialData.drivingRoute || null,
                 cubicMeters: initialData.cubicMeters || null,
@@ -75,16 +76,11 @@ const EditInspectionModal: React.FC<EditInspectionModalProps> = ({ open, initial
     const onSubmit: SubmitHandler<FormData> = async (data) => {
         setIsSaving(true);
         setError(null);
-
         try {
-            // --- FIX: Declare a variable to hold the result of the API call ---
             let savedItem;
-
-            // --- SMART SAVE LOGIC ---
             if (initialData.kuormaId) {
-                // --- UPDATE existing record ---
                 const dto: IUpdateDrivenInspectionRowDto = {
-                    date: data.date ? dayjs(data.date).format('YYYY-MM-DD') : null,
+                    date: data.date ? data.date.format('YYYY-MM-DD') : null,
                     receptionNo: data.receptionNo,
                     drivingRoute: data.drivingRoute,
                     cubicMeters: data.cubicMeters,
@@ -93,12 +89,13 @@ const EditInspectionModal: React.FC<EditInspectionModalProps> = ({ open, initial
                     pcs: data.pcs,
                     additionalInfo: data.additionalInformation,
                 };
-                // --- FIX: Assign the returned value from the API call ---
                 savedItem = await updateDrivenInspectionRow(initialData.kuormaId, dto);
             } else {
-                // --- CREATE new record ---
+                if (initialData.puutavaraId === undefined || initialData.puutavaraId === null) {
+                    throw new Error("Cannot create an entry without a valid 'puutavaraId'.");
+                }
                 const dto: ICreateKuormaFromPtlDto = {
-                    puutavaraId: initialData.puutavaraId, // Essential link
+                    puutavaraId: initialData.puutavaraId,
                     receptionNo: data.receptionNo,
                     drivingRoute: data.drivingRoute,
                     cubicMeters: data.cubicMeters,
@@ -107,13 +104,9 @@ const EditInspectionModal: React.FC<EditInspectionModalProps> = ({ open, initial
                     pcs: data.pcs,
                     additionalInfo: data.additionalInformation,
                 };
-                // --- FIX: Assign the returned value from the API call ---
                 savedItem = await createDrivenInspectionEntry(dto);
             }
-
-            // --- FIX: Now 'savedItem' is defined and can be passed to the parent component ---
             onSaveSuccess(savedItem);
-
         } catch (err: any) {
             setError(err?.response?.data?.message || 'Failed to save changes.');
         } finally {
