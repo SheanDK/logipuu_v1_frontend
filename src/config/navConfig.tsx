@@ -42,7 +42,7 @@ export const officeNavigationItems: NavItemConfig[] = [
         isTopNav: true,
         children: [
             { text: 'Timber Map', tKey: 'timberMap', icon: <MapIcon />, path: '/timber-stacks', permission: 'timber map_view' },
-            { text: 'Load Management', tKey: 'loadManagement', icon: <LocalShippingIcon />, path: '/loads', permission: 'load management_view' },
+            
             { text: 'Timber Management', tKey: 'timberManagement', icon: <ViewListIcon />, path: '/timber-management', permission: 'timber management_view' },
         ]
     },
@@ -52,7 +52,8 @@ export const officeNavigationItems: NavItemConfig[] = [
         icon: <ReceiptLongIcon />,
         isTopNav: true,
         children: [
-            { text: 'Driven Inspection', tKey: 'drivenInspection', icon: <AssignmentIcon />, path: '/driven-inspection' },
+            // { text: 'Driven Inspection', tKey: 'drivenInspection', icon: <AssignmentIcon />, path: '/driven-inspection' },
+            { text: 'Load Management', tKey: 'loadManagement', icon: <LocalShippingIcon />, path: '/loads', permission: 'load management_view' },
             { text: 'Puulaani Invoicing', tKey: 'puulaaniInvoicing', icon: <ReceiptLongIcon />, path: '/puulaani-invoicing' },
             { text: 'Consignment Invoicing', tKey: 'consignmentInvoicing', icon: <ReceiptLongIcon />, path: '/consignment-invoicing' },
         ]

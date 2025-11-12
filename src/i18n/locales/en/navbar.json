@@ -3,7 +3,9 @@
         "toggleTheme": "Toggle {{mode}} Theme",
         "switchNavLayout": "Switch to {{layout}} Navigation",
         "openSettings": "Open settings",
-        "language": "Change language"
+        "language": "Change language",
+        "enterFullscreen": "Enter Fullscreen",
+        "exitFullscreen": "Exit Fullscreen"
     },
     "modes": {
         "dark": "Dark",

@@ -3,7 +3,9 @@
         "toggleTheme": "Vaihda teema: {{mode}}",
         "switchNavLayout": "Vaihda navigoinnin asettelu: {{layout}}",
         "openSettings": "Avaa asetukset",
-        "language": "Vaihda kieltä"
+        "language": "Vaihda kieltä",
+        "enterFullscreen": "Siirry koko näytön tilaan",
+        "exitFullscreen": "Poistu koko näytön tilasta"
     },
     "modes": {
         "dark": "Tumma",

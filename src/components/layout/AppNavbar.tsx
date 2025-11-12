@@ -10,6 +10,7 @@ import { usePathname, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
 
+
 // Import Icons
 import MenuIcon from '@mui/icons-material/Menu';
 import Brightness4Icon from '@mui/icons-material/Brightness4';
@@ -31,6 +32,11 @@ import LanguageSwitcher from '@/components/i18n/LanguageSwitcher';
 import { withLng } from '@/utils/withLng';
 import { fallbackLng } from '@/i18n/settings';
 import { useTranslation } from '@/i18n/useTranslation';
+
+// 1. Fullscreen icons and hook import 
+import FullscreenIcon from '@mui/icons-material/Fullscreen';
+import FullscreenExitIcon from '@mui/icons-material/FullscreenExit';
+import { useFullscreen } from '@/hooks/useFullscreen'; 
 
 // --- Helper Component for the main Top Navigation Menu ---
 const TopNavMenu = ({
@@ -144,6 +150,8 @@ const UserActions = () => {
     const pathname = usePathname();
     const currentLng = (pathname.split('/')[1] || fallbackLng) as string;
     const { t } = useTranslation(['navbar']);
+      // 2. Use the fullscreen hook
+    const { isFullscreen, toggle: toggleFullscreen } = useFullscreen();
 
     const nextMode = themeMode === 'light' ? 'dark' : 'light';
     const nextLayout = navLayout === 'left' ? 'top' : 'left';
@@ -180,6 +188,12 @@ const UserActions = () => {
             <Tooltip title={t('navbar:tooltips.switchNavLayout', { layout: t(`navbar:layouts.${nextLayout}`) })}>
                 <IconButton sx={{ ml: 1 }} onClick={toggleNavLayout} color="inherit">
                     {navLayout === 'left' ? <ViewDayIcon /> : <ViewSidebarIcon />}
+                </IconButton>
+            </Tooltip>
+            {/* Fullscreen toggle with localized tooltip */}
+            <Tooltip title={isFullscreen ? t('navbar:tooltips.exitFullscreen') : t('navbar:tooltips.enterFullscreen')}>
+                <IconButton sx={{ ml: 1 }} onClick={toggleFullscreen} color="inherit">
+                    {isFullscreen ? <FullscreenExitIcon /> : <FullscreenIcon />}
                 </IconButton>
             </Tooltip>
             
