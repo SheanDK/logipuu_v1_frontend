@@ -52,7 +52,7 @@ function LayoutRenderer({ children }: { children: ReactNode }) {
                 sx={{ 
                     flexGrow: 1, 
                     width: { md: navLayout === 'left' ? `calc(100% - ${drawerWidth}px)` : '100%' },
-                    overflow: 'hidden', 
+                    overflow: 'auto', 
                     // Use margin-top to push content below the AppBar
                     mt: (theme) => `${theme.mixins.toolbar.minHeight}px`,
                     // Height should be the remaining vertical space

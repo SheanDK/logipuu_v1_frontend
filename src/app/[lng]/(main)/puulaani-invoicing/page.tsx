@@ -10,7 +10,7 @@ import WoodBillingFilters, { type InvoicingSearchParams } from '@/components/inv
 import WoodBillingTable from '@/components/invoicing/WoodBillingTable';
 import EditInvoicingDialog from '@/components/invoicing/WoodBillingDialog';
 import { updateBillingRow } from '@/services/invoicingService';
-import { GridRowId, GridRowSelectionModel } from '@mui/x-data-grid';
+import { GridRowId } from '@mui/x-data-grid';
 import { useParams, useRouter } from 'next/navigation';
 import dayjs from 'dayjs';
 

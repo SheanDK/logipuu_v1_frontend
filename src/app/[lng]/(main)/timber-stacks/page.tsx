@@ -329,7 +329,7 @@ export default function TimberStacksPage() {
                     <ChangeView center={mapSettings.center} zoom={mapSettings.zoom} />
 
                     <LayersControl position="bottomleft">
-                        <LayersControl.BaseLayer checked name={t('layers.standard')}>
+                        <LayersControl.BaseLayer name={t('layers.standard')}>
                             <TileLayer
                                 attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
                                 url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
@@ -345,7 +345,7 @@ export default function TimberStacksPage() {
                             />
                         </LayersControl.BaseLayer>
 
-                        <LayersControl.BaseLayer name={t('layers.topographic')}>
+                        <LayersControl.BaseLayer checked name={t('layers.topographic')}>
                             <TileLayer
                                 url="https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png"
                                 maxZoom={17}

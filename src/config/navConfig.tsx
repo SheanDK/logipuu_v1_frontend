@@ -67,7 +67,7 @@ export const officeNavigationItems: NavItemConfig[] = [
             { text: 'Clients', tKey: 'clients', icon: <BusinessIcon />, path: '/clients', permission: 'clients_view' },
             { text: 'Drivers', tKey: 'drivers', icon: <PeopleIcon />, path: '/drivers', permission: 'drivers_view' },
             { text: 'Vehicles', tKey: 'vehicles', icon: <DirectionsCarIcon />, path: '/vehicles', permission: 'vehicles_view' },
-            { text: 'Reports', tKey: 'reports', icon: <BarChartIcon />, path: '/reports', permission: 'reports_view' },
+            // { text: 'Reports', tKey: 'reports', icon: <BarChartIcon />, path: '/reports', permission: 'reports_view' },
             { text: 'Wood Categories', tKey:'woodCategories', icon: <ForestIcon />, path: '/wood-categories', permission: 'wood categories_view'}
         ]
     },

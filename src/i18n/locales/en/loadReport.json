@@ -1,0 +1,31 @@
+{
+  "title": "Load Management Report",
+  "generatedOn": "Generated on: {{dateTime}}",
+  "pageCounter": "Page {{page}} of {{total}}",
+  "excelSheetName": "Load Report",
+  "buttons": {
+    "print": "Print",
+    "pdf": "PDF",
+    "excel": "Excel"
+  },
+  "table": {
+    "headers": {
+      "date": "Date",
+      "driver": "Driver",
+      "vehicle": "Vehicle",
+      "customer": "Customer",
+      "puulaani": "Puulaani",
+      "cubic": "Cubic (m³)",
+      "freight": "Freight (km)",
+      "additionalInfo": "Additional Info"
+    },
+    "footer": {
+      "total": "Total:"
+    }
+  },
+  "errors": {
+    "noData": "No report data found. Please select rows and generate the report again.",
+    "loadFail": "Failed to load report data. It might be corrupted.",
+    "logoFail": "Could not load company logo for PDF generation."
+  }
+}

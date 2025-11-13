@@ -1,0 +1,31 @@
+{
+  "title": "Kuormien Hallintaraportti",
+  "generatedOn": "Luotu: {{dateTime}}",
+  "pageCounter": "Sivu {{page}} / {{total}}",
+  "excelSheetName": "Kuormaraportti",
+  "buttons": {
+    "print": "Tulosta",
+    "pdf": "PDF",
+    "excel": "Excel"
+  },
+  "table": {
+    "headers": {
+      "date": "Päivämäärä",
+      "driver": "Kuljettaja",
+      "vehicle": "Ajoneuvo",
+      "customer": "Asiakas",
+      "puulaani": "Puulaani",
+      "cubic": "Kuutiot (m³)",
+      "freight": "Rahti (km)",
+      "additionalInfo": "Lisätiedot"
+    },
+    "footer": {
+      "total": "Yhteensä:"
+    }
+  },
+  "errors": {
+    "noData": "Raportin tietoja ei löytynyt. Valitse rivit ja luo raportti uudelleen.",
+    "loadFail": "Raportin tietojen lataus epäonnistui. Tiedot saattavat olla vioittuneet.",
+    "logoFail": "Yrityksen logon lataaminen PDF-sukupolveen ei onnistunut."
+  }
+}

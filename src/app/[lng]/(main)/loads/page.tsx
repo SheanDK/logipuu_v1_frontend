@@ -185,7 +185,7 @@ export default function DrivenInspectionPage() {
         }
         const selectedRowsData = rows.filter(row => selectedIds.includes(row.kuormaId));
         localStorage.setItem('reportData', JSON.stringify(selectedRowsData));
-        window.open('/reports/driven-inspection', '_blank');
+        window.open('/reports/load-report', '_blank');
     };
 
     const handleCloseSnackbar = () => setSnackbar(null);

@@ -32,6 +32,8 @@
     "hoist-non-react-statics": "^3.3.2",
     "i18next": "^25.5.2",
     "i18next-resources-to-backend": "^1.2.1",
+    "jspdf": "^3.0.3",
+    "jspdf-autotable": "^5.0.2",
     "jwt-decode": "^4.0.0",
     "leaflet": "^1.9.4",
     "leaflet.control.layers.tree": "^1.1.1",
@@ -48,6 +50,7 @@
     "scheduler": "^0.23.0",
     "socket.io-client": "^4.8.1",
     "styled-components": "^6.1.18",
+    "xlsx": "^0.18.5",
     "yup": "^1.6.1",
     "zod": "^4.1.3"
   },
