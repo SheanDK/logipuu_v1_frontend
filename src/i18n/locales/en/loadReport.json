@@ -1,7 +1,8 @@
 {
   "title": "Load Management Report",
-  "generatedOn": "Generated on: {{dateTime}}",
+  "generatedOn": "Generated on:",
   "pageCounter": "Page {{page}} of {{total}}",
+  "...": "...",
   "excelSheetName": "Load Report",
   "buttons": {
     "print": "Print",

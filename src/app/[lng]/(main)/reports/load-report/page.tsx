@@ -16,9 +16,10 @@ import * as XLSX from 'xlsx';
 import { useTranslation } from 'react-i18next'; // i18next hook 
 
 import { ILoadListItem } from '@/types';
+import i18n from '@/i18n/i18n';
 
 export default function LoadReportPage() {
-    const { t } = useTranslation('loadReport'); // 'loadReport' namespace 
+    const { t } = useTranslation(['loadReport', 'common']); // 'loadReport' namespace 
     const [reportData, setReportData] = useState<ILoadListItem[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
@@ -57,7 +58,10 @@ export default function LoadReportPage() {
 
     const handleDownloadPdf = () => {
         const doc = new jsPDF();
-        const printDateTime = new Date().toLocaleString();
+        const printDateTime = new Intl.DateTimeFormat(i18n.language, {
+            dateStyle: 'short',
+            timeStyle: 'short',
+        }).format(new Date());
     
         const img = new window.Image();
         img.src = '/images/hkk-logo.png';
@@ -67,7 +71,7 @@ export default function LoadReportPage() {
             doc.text(t('title'), 14, 35);
             doc.setFontSize(10);
             doc.setTextColor(100);
-            doc.text(t('generatedOn', { dateTime: printDateTime }), 14, 41);
+            doc.text(`${t('generatedOn')} ${printDateTime}`, 14, 41);
 
             const tableColumn = [
                 t('table.headers.date'), t('table.headers.driver'), t('table.headers.vehicle'),
@@ -147,7 +151,10 @@ export default function LoadReportPage() {
     if (isLoading) { return <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}><CircularProgress /></Box>; }
     if (error) { return <Container sx={{ py: 4 }}><Alert severity="error">{error}</Alert></Container>; }
 
-    const printDateTime = new Date().toLocaleString();
+    const printDateTime = new Intl.DateTimeFormat(i18n.language, {
+        dateStyle: 'short',
+        timeStyle: 'short',
+    }).format(new Date());
 
     return (
         <>
@@ -229,7 +236,9 @@ export default function LoadReportPage() {
                         <Stack direction="row" justifyContent="space-between" alignItems="flex-start" mb={2}>
                             <Box>
                                 <Typography variant="h5" component="h1">{t('title')}</Typography>
-                                <Typography variant="body2" color="text.secondary">{t('generatedOn', { dateTime: printDateTime })}</Typography>
+                                <Typography variant="body2" color="text.secondary">
+                                    {t('generatedOn')} {printDateTime}
+                                    </Typography>
                             </Box>
                             <Stack direction="row" spacing={1} className="no-print">
                                 <Button variant="outlined" startIcon={<PrintIcon />} onClick={handlePrint}>{t('buttons.print')}</Button>
