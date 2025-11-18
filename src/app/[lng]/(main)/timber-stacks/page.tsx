@@ -19,7 +19,7 @@ import {
     IClientBasicInfo, IMapTimberStack, IMapDropoffLocation, IMapOtherMarker,
     IVehicleLocation, MarkerType, ICreateOtherMarkerDto, PendingPuulaaniData, PuulaaniBasicDetailsFormData, IUpdateOtherMarkerDto, IMapFilterState
 } from '../../../../types';
-import { updateTimberStackLocation } from '../../../../services/timberStackService';
+import { deleteTimberStack, updateTimberStackLocation } from '../../../../services/timberStackService';
 import { deleteDropoffLocation } from '../../../../services/unloadingSiteService';
 import { createOtherMarker, deleteOtherMarker, updateOtherMarker } from '../../../../services/otherInfoService';
 
@@ -247,26 +247,32 @@ export default function TimberStacksPage() {
 
     // This function now only handles deletion for non-Puulaani markers
     const confirmDelete = async () => {
-        if (!deleteConfirmation || deleteConfirmation.type === 'Puulaani') return;
-
+        if (!deleteConfirmation) return;
         setIsSaving(true);
         const { type, item } = deleteConfirmation;
         try {
-            if (type === 'Purkupaikka') await deleteDropoffLocation(item.id);
+            // API call එක නොවෙනස්ව පවතී (DELETE request එකම යවයි)
+            if (type === 'Puulaani') await deleteTimberStack(item.id); 
+            else if (type === 'Purkupaikka') await deleteDropoffLocation(item.id);
             else if (type === 'Muu merkki') await deleteOtherMarker(item.id);
             
-            setSnackbar({ open: true, message: t('messages.deleted', { type: typeLabel(type), name: item.name }), severity: 'success' });
-            await reloadData();
+            // --- FIX: Change the success message ---
+            setSnackbar({ 
+                open: true, 
+                // "deleted" වෙනුවට "archived" හෝ "deactivated" ලෙස පෙන්වන්න
+                message: t('messages.archived', { type: typeLabel(type), name: item.name }), 
+                severity: 'success' 
+            });
+            
+            setDeleteConfirmation(null);
+            await reloadData(); // සිතියම සහ ලැයිස්තුව නැවත load කිරීම
+
         } catch (err: any) {
+            // මෙම දෝෂ පණිවිඩය දැන් ඇති නොවිය යුතුය, නමුත් එය තැබීම හොඳ පුරුද්දකි
             const errorMsg = err.response?.data?.message || t('errors.deleteFailed');
-            if (errorMsg.includes("is still referenced")) {
-                setSnackbar({ open: true, message: t('errors.inUse', { name: item.name }), severity: 'error' });
-            } else {
-                setSnackbar({ open: true, message: errorMsg, severity: 'error' });
-            }
+            setSnackbar({ open: true, message: errorMsg, severity: 'error' });
         } finally {
             setIsSaving(false);
-            setDeleteConfirmation(null);
         }
     };
 

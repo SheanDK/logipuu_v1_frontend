@@ -12,9 +12,32 @@ import L from 'leaflet';
 import { useTranslation } from '@/i18n/useTranslation';
 
 const DetailRow = ({ label, value }: { label: string; value: string | number }) => (
-    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <Typography variant="body2" color="text.secondary">{label}:</Typography>
-        <Typography variant="body2" sx={{ fontWeight: 'bold' }}>{value}</Typography>
+    <Box sx={{ 
+        display: 'flex', 
+        alignItems: 'flex-start',
+        width: '100%' 
+    }}>
+        <Typography 
+            variant="body2" 
+            color="text.secondary" 
+            sx={{ 
+                flexShrink: 0,
+                width: '50px'
+            }}
+        >
+            {label}:
+        </Typography>
+        <Typography 
+            variant="body2" 
+            sx={{ 
+                fontWeight: 'bold', 
+                textAlign: 'right', 
+                wordBreak: 'break-word', 
+                flexGrow: 1
+            }}
+        >
+            {value}
+        </Typography>
     </Box>
 );
 
@@ -88,7 +111,7 @@ const PuulaaniMarker: React.FC<PuulaaniMarkerProps> = ({
                     <Divider />
 
                     {/* --- FIX 1: Reduce the row gap --- */}
-                    <Stack spacing={-4} sx={{ my: 0, px: 0.5 }}>
+                    <Stack spacing={-4} sx={{ my: 0, px: 0.01 }}>
                         <DetailRow label="Client" value={customer.clientName} />
                         <DetailRow label="Total" value={`${marker.totalVolume.toFixed(2)} m³`} />
                         <DetailRow label="Remaining" value={`${marker.remainingVolume.toFixed(2)} m³`} />
