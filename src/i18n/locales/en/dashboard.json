@@ -1,0 +1,39 @@
+{
+  "title": "Dashboard",
+  "error": "Failed to load dashboard data. Please try again later.",
+  "noDataForRole": "No dashboard data available for your user role.",
+  "noConfigForRole": "No dashboard configuration for your role.",
+  "stats": {
+    "loadsCompletedToday": "Loads Completed Today",
+    "pendingBillings": "Pending Billings",
+    "activeTimberStacks": "Active Timber Stacks",
+    "activeDrivers": "Active Drivers",
+    "activeVehicles": "Active Vehicles",
+    "vehiclesNeedingInspection": "Vehicles Needing Inspection",
+    "activeLoads": "Active Loads",
+    "availableDrivers": "Available Drivers",
+    "availableVehicles": "Available Vehicles",
+    "remainingVolume": "Remaining Volume (m³)",
+    "upcomingLoadsToday": "Upcoming Loads Today",
+    "assignedToday": "Assigned Today",
+    "completedToday": "Completed Today",
+    "thisWeeksLoads": "This Week's Loads",
+    "upcomingLoads": "Upcoming Loads",
+    "comparison": "{{change}} vs yesterday"
+  },
+  "volumeChart": {
+    "title": "Transported Volume (Last 7 Days)",
+    "tooltip": "Volume: {{value}} m³",
+    "noData": "No volume data available for the last 7 days."
+  },
+  "activeTrips": {
+    "title": "Active Trips Overview",
+    "noData": "No active trips at the moment.",
+    "unknownDriver": "Unknown Driver"
+  },
+  "mapCard": {
+    "title": "Live Timber Map",
+    "description": "View all active sites",
+    "button": "Open Map"
+  }
+}

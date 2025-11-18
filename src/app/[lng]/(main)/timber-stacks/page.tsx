@@ -4,7 +4,7 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import dynamic from 'next/dynamic';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
-import { Box, Typography, Paper, CircularProgress, Alert, Chip, Snackbar, AlertColor, useTheme } from '@mui/material';
+import { Box, Typography, Paper, CircularProgress, Alert, Snackbar, AlertColor, useTheme } from '@mui/material';
 import ForestIcon from '@mui/icons-material/Forest';
 import dayjs from 'dayjs';
 import 'leaflet/dist/leaflet.css';
@@ -16,10 +16,10 @@ import { useLayout } from '../../../../contexts/LayoutContext';
 import useSocket from '../../../../hooks/useSocket';
 import { useMapData } from '../../../../hooks/useMapData';
 import {
-    IClientBasicInfo, IMapTimberStack, IMapDropoffLocation, IMapOtherMarker, // Changed from IMapFilterState
+    IClientBasicInfo, IMapTimberStack, IMapDropoffLocation, IMapOtherMarker,
     IVehicleLocation, MarkerType, ICreateOtherMarkerDto, PendingPuulaaniData, PuulaaniBasicDetailsFormData, IUpdateOtherMarkerDto, IMapFilterState
 } from '../../../../types';
-import { updateTimberStackLocation, createTimberStack, deleteTimberStack } from '../../../../services/timberStackService';
+import { updateTimberStackLocation } from '../../../../services/timberStackService';
 import { deleteDropoffLocation } from '../../../../services/unloadingSiteService';
 import { createOtherMarker, deleteOtherMarker, updateOtherMarker } from '../../../../services/otherInfoService';
 
@@ -58,9 +58,9 @@ const ChangeView = ({ center, zoom }: { center: [number, number]; zoom: number }
 
 export default function TimberStacksPage() {
     const { user, isLoading: isAuthLoading } = useAuth();
-    const { mapSettings } = useLayout(); // --- 3. Get mapSettings from the context ---
-    const { isConnected, lastLocationUpdate } = useSocket();
-     const router = useRouter();
+    const { mapSettings } = useLayout();
+    const { lastLocationUpdate } = useSocket();
+    const router = useRouter();
     const pathname = usePathname();
     const searchParams = useSearchParams();
     const [filters, setFilters] = useState<IMapFilterState>({
@@ -81,7 +81,9 @@ export default function TimberStacksPage() {
     const [pendingPuulaani, setPendingPuulaani] = useState<Partial<PendingPuulaaniData>>({});
     const [modalError, setModalError] = useState<string | null>(null);
 
+    // This state is now only for Dropoff Locations and Other Markers
     const [deleteConfirmation, setDeleteConfirmation] = useState<{ type: MarkerType, item: any } | null>(null);
+    
     const [selectedStackForEditing, setSelectedStackForEditing] = useState<IMapTimberStack | null>(null);
     const [selectedDropoffForEditing, setSelectedDropoffForEditing] = useState<IMapDropoffLocation | null>(null);
     const [selectedOtherMarkerForEditing, setSelectedOtherMarkerForEditing] = useState<IMapOtherMarker | null>(null);
@@ -93,7 +95,6 @@ export default function TimberStacksPage() {
     const canCreate = useMemo(() => user?.permissions?.includes('timber map_create'), [user]);
 
     const theme = useTheme();
-
     const { t } = useTranslation('map');
 
     const typeLabel = (type: MarkerType) => {
@@ -110,12 +111,7 @@ export default function TimberStacksPage() {
             await updateTimberStackLocation(id, newLocation);
             const updatedStack = updatedStacks.find(s => s.id === id);
             if (updatedStack) {
-                setSnackbar({
-                    open: true,
-                    message: t('messages.locationUpdated', { client: updatedStack.clientName, name: updatedStack.name }),
-                    severity: 'success'
-                });
-
+                setSnackbar({ open: true, message: t('messages.locationUpdated', { client: updatedStack.clientName, name: updatedStack.name }), severity: 'success' });
             }
             setMarkerToEnableMove(null);
         } catch (err: any) {
@@ -125,43 +121,29 @@ export default function TimberStacksPage() {
         }
     };
 
-    
     useEffect(() => {
         if (lastLocationUpdate && lastLocationUpdate.vehicleId) {
-            
             const vehicleIdKey = String(lastLocationUpdate.vehicleId);
-
-            // FIX: Ensure the timestamp is always stored as a string.
             const newLocation: IVehicleLocation = {
                 id: lastLocationUpdate.vehicleId,
                 lat: lastLocationUpdate.lat,
                 lng: lastLocationUpdate.lng,
-                // Convert the incoming timestamp to a string, providing a fallback.
                 timestamp: String(lastLocationUpdate.timestamp || new Date().toISOString())
             };
-
-            setVehicleLocations(prev => ({ ...prev, [vehicleIdKey]: newLocation }));
+            setVehicleLocations((prev: Record<string, IVehicleLocation>) => ({ ...prev, [vehicleIdKey]: newLocation }));
         }
     }, [lastLocationUpdate]);
 
      const handleFilterChange = useCallback((name: keyof IMapFilterState, value: any) => {
-        // Create a new URLSearchParams object from the current read-only one
         const currentParams = new URLSearchParams(searchParams.toString());
-
         if (value) {
             currentParams.set(name, String(value));
         } else {
             currentParams.delete(name);
         }
-
         const newQueryString = currentParams.toString();
-        // Use router.push to navigate to the new URL. This is the correct way to update URL params.
         router.push(`${pathname}?${newQueryString}`);
-        
-        // We also update the local state to keep it in sync, though the page will re-render
-        // due to the URL change anyway.
-        setFilters(prev => ({ ...prev, [name]: value }));
-
+        setFilters((prev: IMapFilterState) => ({ ...prev, [name]: value }));
     }, [searchParams, pathname, router]);
 
     useEffect(() => {
@@ -173,9 +155,7 @@ export default function TimberStacksPage() {
     }, [searchParams]);
 
     const handleCloseModals = (didChange: boolean = false) => {
-        if (didChange) {
-            reloadData();
-        }
+        if (didChange) reloadData();
         setActiveModal('none');
         setPendingPuulaani({});
         setSelectedStackForEditing(null);
@@ -204,13 +184,13 @@ export default function TimberStacksPage() {
     };
 
     const handleDetailsSubmitted = (basicData: PuulaaniBasicDetailsFormData) => {
-        setPendingPuulaani(prev => ({ ...prev, ...basicData }));
+        setPendingPuulaani((prev: Partial<PendingPuulaaniData>) => ({ ...prev, ...basicData }));
         setActiveModal('puulaani-finalize');
     };
 
     const handleFinalSaveSuccess = async () => {
         setSnackbar({ open: true, message: t('messages.stackSaved'), severity: 'success' });
-        handleCloseModals(true); // Close and reload
+        handleCloseModals(true);
     };
 
     const handleSaveOtherMarker = async (data: ICreateOtherMarkerDto | IUpdateOtherMarkerDto, id?: number) => {
@@ -225,12 +205,16 @@ export default function TimberStacksPage() {
                 await createOtherMarker(payloadToSend);
                 setSnackbar({ open: true, message: t('messages.otherMarkerCreated'), severity: 'success' });
             }
-            handleCloseModals(true); // Close and reload
+            handleCloseModals(true);
         } catch (err: any) { setModalError(err.response?.data?.message || t('errors.saveFailed')); }
         finally { setIsSaving(false); }
     };
 
     const handleOpenEditModal = (stack: IMapTimberStack) => {
+        setPendingCoords(null);
+        setPendingPuulaani({});
+        setSelectedDropoffForEditing(null);
+        setSelectedOtherMarkerForEditing(null);
         setSelectedStackForEditing(stack);
         setActiveModal('puulaani-finalize');
     };
@@ -261,19 +245,20 @@ export default function TimberStacksPage() {
         setMoveConfirmation(null);
     };
 
+    // This function now only handles deletion for non-Puulaani markers
     const confirmDelete = async () => {
-        if (!deleteConfirmation) return;
+        if (!deleteConfirmation || deleteConfirmation.type === 'Puulaani') return;
+
         setIsSaving(true);
         const { type, item } = deleteConfirmation;
         try {
-            if (type === 'Puulaani') await deleteTimberStack(item.id);
-            else if (type === 'Purkupaikka') await deleteDropoffLocation(item.id);
+            if (type === 'Purkupaikka') await deleteDropoffLocation(item.id);
             else if (type === 'Muu merkki') await deleteOtherMarker(item.id);
+            
             setSnackbar({ open: true, message: t('messages.deleted', { type: typeLabel(type), name: item.name }), severity: 'success' });
-            setDeleteConfirmation(null);
             await reloadData();
         } catch (err: any) {
-            const errorMsg = err.response?.data?.message || err.message || t('errors.deleteFailed');
+            const errorMsg = err.response?.data?.message || t('errors.deleteFailed');
             if (errorMsg.includes("is still referenced")) {
                 setSnackbar({ open: true, message: t('errors.inUse', { name: item.name }), severity: 'error' });
             } else {
@@ -281,36 +266,29 @@ export default function TimberStacksPage() {
             }
         } finally {
             setIsSaving(false);
+            setDeleteConfirmation(null);
         }
     };
 
     if (isAuthLoading) return <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}><CircularProgress /></Box>;
     if (!canView) return <Paper sx={{ p: 3, m: 2 }}><Alert severity="error">{t('errors.noPermissionView')}</Alert></Paper>;
 
-
-    const nonEmpty = (v?: string | null): string | undefined => {
-    const x = (v ?? '').trim();
-    return x.length ? x : undefined;
-  };
-
     return (
-
         <Box sx={{ height: 'calc(100vh - 55px)', width: '100%', position: 'relative', overflow: 'hidden' }}>
             <Box sx={{ position: 'absolute', top: 0, left: 35, right: 0, zIndex: 1000, p: 2 }}>
-                <Paper sx={{ p: 2, backgroundColor: 'rgba(255, 255, 255, 0.15)', backdropFilter: 'blur(0.75px)', borderRadius: 2 }}>
+                <Paper sx={{ p: 2, backgroundColor: 'rgba(255, 255, 255, 0.8)', backdropFilter: 'blur(1px)', borderRadius: 2 }}>
                     <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
                         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                             <ForestIcon color="primary" />
                             <Typography variant="h5" sx={{ fontWeight: 'bold' }}>{t('title')}</Typography>
                         </Box>
-                        <Chip label={isConnected ? t('status.connected') : t('status.connecting')} color={isConnected ? 'success' : 'warning'} size="small" variant="outlined" />
                     </Box>
                     <TimberStackFilterBar 
-                    filters={filters} 
-                    onFilterChange={handleFilterChange} 
-                    clientList={clientList} 
-                    vehicleList={vehicleList} 
-                    isLoading={isLoading} 
+                        filters={filters} 
+                        onFilterChange={handleFilterChange} 
+                        clientList={clientList} 
+                        vehicleList={vehicleList} 
+                        isLoading={isLoading} 
                     />
                     {mapError && <Alert severity="error" sx={{ mt: 1 }}>{mapError}</Alert>}
                 </Paper>
@@ -321,59 +299,33 @@ export default function TimberStacksPage() {
 
                 <MapContainer
                     className={theme.palette.mode === 'dark' ? 'leaflet-dark' : undefined}
-                    center={[62.2426, 25.7473]}
-                    zoom={6}
+                    center={mapSettings.center}
+                    zoom={mapSettings.zoom}
+                    minZoom={6}
+                    maxZoom={18}
+                    zoomControl={false}
                     scrollWheelZoom={true}
-                    style={{ height: '100%', width: '100%' }}>
-
+                    style={{ height: '100%', width: '100%' }}
+                >
                     <ChangeView center={mapSettings.center} zoom={mapSettings.zoom} />
 
                     <LayersControl position="bottomleft">
                         <LayersControl.BaseLayer name={t('layers.standard')}>
-                            <TileLayer
-                                attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-                                url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-                            />
+                            <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
                         </LayersControl.BaseLayer>
-
                         <LayersControl.BaseLayer name={t('layers.satellite')}>
-                            <TileLayer
-                                url='https://{s}.google.com/vt/lyrs=s,h&x={x}&y={y}&z={z}' // 's,h' shows satellite with hybrid (labels)
-                                maxZoom={20}
-                                subdomains={['mt0', 'mt1', 'mt2', 'mt3']}
-                                attribution='&copy; Google'
-                            />
+                            <TileLayer url='https://{s}.google.com/vt/lyrs=s,h&x={x}&y={y}&z={z}' maxZoom={20} subdomains={['mt0', 'mt1', 'mt2', 'mt3']} />
                         </LayersControl.BaseLayer>
-
                         <LayersControl.BaseLayer checked name={t('layers.topographic')}>
-                            <TileLayer
-                                url="https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png"
-                                maxZoom={17}
-                                attribution='Map data: &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors, <a href="http://viewfinderpanoramas.org">SRTM</a> | Map style: &copy; <a href="https://opentopomap.org">OpenTopoMap</a> (<a href="https://creativecommons.org/licenses/by-sa/3.0/">CC-BY-SA</a>)'
-                            />
+                            <TileLayer url="https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png" maxZoom={17} />
                         </LayersControl.BaseLayer>
 
                         <LayersControl.Overlay checked name={t('layers.timberStacks')}>
                             <FeatureGroup>
-                                {(timberStacks ?? []).map(stack => {
-                                    const fallback: IClientBasicInfo = {
-                                        id: '0',
-                                        name: 'Unknown Client',
-                                        clientId: '0',
-                                        clientName: 'Unknown Client',
-                                        targetColor: '#808080',
-                                    };
-
-                                    const customer =
-                                        (clientList ?? []).find(c => String(c.clientId) === String(stack.clientId)) ??
-                                        fallback;
-
-                                    const markerWithColor: IMapTimberStack = {
-                                        ...stack,
-                                        clientColor: stack.clientColor ?? customer.targetColor ?? '#808080',
-                                    };
-
-                                    console.log('stackColor:', stack.clientColor, 'customerColor:', customer.targetColor);
+                                {(timberStacks ?? []).map((stack: IMapTimberStack) => {
+                                    const fallback: IClientBasicInfo = { id: '0', name: 'Unknown Client', clientId: '0', clientName: 'Unknown Client', targetColor: '#808080' };
+                                    const customer = (clientList ?? []).find((c: IClientBasicInfo) => String(c.clientId) === String(stack.clientId)) ?? fallback;
+                                    const markerWithColor: IMapTimberStack = { ...stack, clientColor: stack.clientColor ?? customer.targetColor ?? '#808080' };
 
                                     return (
                                         <PuulaaniMarker
@@ -381,8 +333,7 @@ export default function TimberStacksPage() {
                                             marker={markerWithColor}
                                             customer={customer}
                                             isDraggable={markerToEnableMove === stack.id}
-                                            onEdit={handleOpenEditModal}
-                                            onDelete={m => setDeleteConfirmation({ type: 'Puulaani', item: m })}
+                                            onEdit={handleOpenEditModal} // Pass the function reference directly
                                             onLocationChange={handleLocationChange}
                                             onDoubleClick={handleDoubleClick}
                                         />
@@ -391,25 +342,34 @@ export default function TimberStacksPage() {
                             </FeatureGroup>
                         </LayersControl.Overlay>
 
-
                         <LayersControl.Overlay checked name={t('layers.unloadingSites')}>
                             <FeatureGroup>
                                 {(dropoffLocations || [])
-                                    .filter(loc => loc.latitude != null && loc.longitude != null && loc.isVisibleOnMap)
-                                    .map(loc => (
-                                        <PurkupaikkaMarker key={`loc-${loc.id}`} marker={loc} onEdit={handleOpenEditDropoffModal} onDelete={(m) => setDeleteConfirmation({ type: 'Purkupaikka', item: m })} />
+                                    .filter((loc: IMapDropoffLocation) => loc.latitude != null && loc.longitude != null && loc.isVisibleOnMap)
+                                    .map((loc: IMapDropoffLocation) => (
+                                        <PurkupaikkaMarker 
+                                            key={`loc-${loc.id}`} 
+                                            marker={loc} 
+                                            onEdit={handleOpenEditDropoffModal} 
+                                            onDelete={(m: IMapDropoffLocation) => setDeleteConfirmation({ type: 'Purkupaikka', item: m })} 
+                                        />
                                     ))
                                 }
                             </FeatureGroup>
                         </LayersControl.Overlay>
 
-
                         <LayersControl.Overlay checked name={t('layers.otherMarkers')}>
                             <FeatureGroup>
-                                {(otherMarkers || []).map(marker => <MuuMerkkiMarker key={`other-${marker.id}`} marker={marker} onEdit={handleOpenEditOtherMarkerModal} onDelete={(m) => setDeleteConfirmation({ type: 'Muu merkki', item: m })} />)}
+                                {(otherMarkers || []).map((marker: IMapOtherMarker) => (
+                                    <MuuMerkkiMarker 
+                                        key={`other-${marker.id}`} 
+                                        marker={marker} 
+                                        onEdit={handleOpenEditOtherMarkerModal} 
+                                        onDelete={(m: IMapOtherMarker) => setDeleteConfirmation({ type: 'Muu merkki', item: m })} 
+                                    />
+                                ))}
                             </FeatureGroup>
                         </LayersControl.Overlay>
-
 
                         <LayersControl.Overlay checked name={t('layers.vehicles')}>
                             <FeatureGroup>
@@ -423,7 +383,6 @@ export default function TimberStacksPage() {
             </Box>
 
             <TypeSelectionDialog open={activeModal === 'type'} onCancelAction={() => handleCloseModals(false)} onTypeSelect={handleTypeSelected} />
-
             <DetailsDialog open={activeModal === 'puulaani-details'} onCancelAction={() => handleCloseModals(false)} onNextAction={handleDetailsSubmitted} clientList={clientList} />
 
             {activeModal === 'puulaani-finalize' && (
@@ -434,7 +393,8 @@ export default function TimberStacksPage() {
                     initialData={selectedStackForEditing || pendingPuulaani}
                     clientList={clientList}
                     showMap={false}
-                />)}
+                />
+            )}
 
             <PurkupaikkaFormModal
                 open={activeModal === 'purkupaikka'}
@@ -453,7 +413,8 @@ export default function TimberStacksPage() {
                 onConfirm={confirmDelete}
                 title={t('confirm.delete.title', { type: typeLabel(deleteConfirmation?.type as MarkerType) })}
                 message={t('confirm.delete.message', { name: deleteConfirmation?.item?.name ?? '' })}
-                isConfirming={isSaving} />
+                isConfirming={isSaving}
+            />
 
             <ConfirmationDialog
                 open={!!moveConfirmation}

@@ -1,7 +1,5 @@
 // frontend/src/services/timberStackService.ts
-
 import apiClient from './apiClient';
-// --- THIS IS THE FIX ---
 import camelcaseKeys from 'camelcase-keys'; 
 import { 
     IBackendPuulaani, 
@@ -23,11 +21,24 @@ const WOOD_TYPES_ENDPOINT = '/wood-types';
 
 export const fetchAllTimberStacks = async (filters: IMapFilterState): Promise<IBackendPuulaani[]> => {
     try {
-        const params: Partial<IMapFilterState> = {};
-        if (filters.status) params.status = filters.status;
-        if (filters.clientId) params.clientId = filters.clientId;
-        if (filters.vehicleId) params.vehicleId = filters.vehicleId;
-        const response = await apiClient.get<IBackendPuulaani[]>(API_ENDPOINT, { params });
+        // --- THE DEFINITIVE FIX ---
+        // 1. Create a brand new, completely empty, and mutable object.
+        const apiParams: { [key: string]: any } = {};
+
+        // 2. Conditionally copy ONLY the properties that have a value from the
+        //    read-only 'filters' object. This breaks any connection to the original object.
+        if (filters.status) {
+            apiParams.status = filters.status;
+        }
+        if (filters.clientId) {
+            apiParams.clientId = filters.clientId;
+        }
+        if (filters.vehicleId) {
+            apiParams.vehicleId = filters.vehicleId;
+        }
+
+        // 3. Pass this new, clean, and mutable object to the axios config.
+        const response = await apiClient.get<IBackendPuulaani[]>(API_ENDPOINT, { params: apiParams });
         return response.data;
     } catch (error) {
         console.error("SERVICE ERROR: Failed to fetch all timber stacks", error);

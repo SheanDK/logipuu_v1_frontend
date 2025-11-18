@@ -1007,3 +1007,50 @@ export interface LayoutContextType {
     mobileDrawerOpen: boolean;
     toggleMobileDrawer: () => void;
 }
+
+// =============================================================================
+// SECTION 6: DASHBOARD TYPES
+// =============================================================================
+
+// Admin Dashboard 
+export interface IAdminDashboardStats {
+    activeTimberStacksCount: number;
+    loadsCompletedTodayCount: number;
+    pendingBillingsCount: number;
+    vehiclesNeedingInspectionCount: number;
+    activeVehiclesCount: number;
+    activeDriversCount: number;
+}
+
+// Dispatcher Dashboard 
+export interface IDispatchDashboardStats {
+    activeLoadsCount: number;
+    availableDriversCount: number;
+    availableVehiclesCount: number;
+    totalRemainingVolume: number;
+    upcomingLoadsTodayCount: number;
+}
+
+// Driver Dashboard
+export interface IDriverDashboardStats {
+    driverId: number;
+    todayAssignedLoadsCount: number;
+    todayCompletedLoadsCount: number;
+    weekTotalLoadsCount: number;
+    upcomingLoadsCount: number;
+}
+
+// For volume chart data
+export interface IVolumeByDay {
+    date: string;
+    volume: number;
+}
+
+// For active trips list
+export interface IActiveTripListItem {
+    ajomaaraysNro: string;
+    driverName: string | null;
+    vehicleRegNo: string | null;
+    status: string;
+    progress: number;
+}

@@ -68,8 +68,8 @@ export default function LoginPage() {
                 console.log("Redirecting to /my-loads for Driver.");
                 router.push('/my-loads');
             } else {
-                console.log("Redirecting to /timber-stacks for non-Driver.");
-                router.push('/timber-stacks');
+                console.log("Redirecting to /dashboard for non-Driver.");
+                router.push('/dashboard');
             }
 
          } catch (err: unknown) { // Use 'unknown' instead of 'any'

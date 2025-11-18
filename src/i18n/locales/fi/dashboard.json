@@ -1,0 +1,39 @@
+{
+  "title": "Kojelauta",
+  "error": "Kojelaudan tietojen lataus epäonnistui. Yritä myöhemmin uudelleen.",
+  "noDataForRole": "Kojelaudan tietoja ei saatavilla roolillesi.",
+  "noConfigForRole": "Ei kojelauta-asetuksia roolillesi.",
+  "stats": {
+    "loadsCompletedToday": "Tänään valmistuneet kuormat",
+    "pendingBillings": "Odottaa laskutusta",
+    "activeTimberStacks": "Aktiiviset puupinot",
+    "activeDrivers": "Aktiiviset kuljettajat",
+    "activeVehicles": "Aktiiviset ajoneuvot",
+    "vehiclesNeedingInspection": "Katsastusta vaativat ajoneuvot",
+    "activeLoads": "Aktiiviset kuormat",
+    "availableDrivers": "Vapaat kuljettajat",
+    "availableVehicles": "Vapaat ajoneuvot",
+    "remainingVolume": "Jäljellä oleva tilavuus (m³)",
+    "upcomingLoadsToday": "Tulevat kuormat tänään",
+    "assignedToday": "Määrätty tänään",
+    "completedToday": "Valmistunut tänään",
+    "thisWeeksLoads": "Tämän viikon kuormat",
+    "upcomingLoads": "Tulevat kuormat",
+    "comparison": "{{change}} eilisestä"
+  },
+  "volumeChart": {
+    "title": "Kuljetettu määrä (viimeiset 7 päivää)",
+    "tooltip": "Tilavuus: {{value}} m³",
+    "noData": "Ei tilavuustietoja viimeiseltä 7 päivältä."
+  },
+  "activeTrips": {
+    "title": "Aktiivisten matkojen yleiskatsaus",
+    "noData": "Ei aktiivisia matkoja tällä hetkellä.",
+    "unknownDriver": "Tuntematon kuljettaja"
+  },
+  "mapCard": {
+    "title": "Live-Puukartta",
+    "description": "Näytä kaikki aktiiviset kohteet",
+    "button": "Avaa Kartta"
+  }
+}

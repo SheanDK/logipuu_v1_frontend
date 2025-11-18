@@ -10,7 +10,6 @@ import RestoreIcon from '@mui/icons-material/Restore';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import dynamic from 'next/dynamic';
 import { io, Socket } from 'socket.io-client';
-import { LeafletMouseEvent } from 'leaflet';
 import { useDriverSession } from '@/contexts/DriverSessionContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { useSnackbar } from 'notistack';
