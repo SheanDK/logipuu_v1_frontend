@@ -96,7 +96,6 @@ const PuulaaniMarker: React.FC<PuulaaniMarkerProps> = ({
                     </Stack>
                     
                     {/* --- FIX 2: Center-align the button --- */}
-                    
                     <Box sx={{ display: 'flex', justifyContent: 'center', mt: 1.5 }}>
                         <Button
                             variant="outlined"
