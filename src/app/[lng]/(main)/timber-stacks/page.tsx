@@ -50,11 +50,11 @@ if (typeof window !== 'undefined') {
     });
 }
 
-const ChangeView = ({ center, zoom }: { center: [number, number]; zoom: number }) => {
-    const map = useMap();
-    map.setView(center, zoom);
-    return null;
-};
+// const ChangeView = ({ center, zoom }: { center: [number, number]; zoom: number }) => {
+//     const map = useMap();
+//     map.setView(center, zoom);
+//     return null;
+// };
 
 export default function TimberStacksPage() {
     const { user, isLoading: isAuthLoading } = useAuth();
@@ -305,15 +305,13 @@ export default function TimberStacksPage() {
 
                 <MapContainer
                     className={theme.palette.mode === 'dark' ? 'leaflet-dark' : undefined}
+                    // Add 'center' and 'zoom' props here for the INITIAL view
                     center={mapSettings.center}
                     zoom={mapSettings.zoom}
-                    minZoom={6}
-                    maxZoom={18}
-                    zoomControl={false}
                     scrollWheelZoom={true}
                     style={{ height: '100%', width: '100%' }}
                 >
-                    <ChangeView center={mapSettings.center} zoom={mapSettings.zoom} />
+                    {/* <ChangeView center={mapSettings.center} zoom={mapSettings.zoom} /> */}
 
                     <LayersControl position="bottomleft">
                         <LayersControl.BaseLayer name={t('layers.standard')}>
