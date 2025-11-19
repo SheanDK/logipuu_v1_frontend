@@ -3,11 +3,11 @@
 
 import React from 'react';
 import {
-    FormControl, Autocomplete, TextField, Paper,
-    RadioGroup, FormControlLabel, Radio, Typography,
-    Stack, // Import Stack
-    Box    // Import Box for layout structure
+    FormControl, Autocomplete, TextField, Paper, Typography,
+    Stack, Box, Divider, ToggleButton, ToggleButtonGroup
 } from '@mui/material';
+import ForestIcon from '@mui/icons-material/Forest';
+import WarehouseIcon from '@mui/icons-material/Warehouse';
 import { IMapFilterState, IClientBasicInfo, IVehicleBasicInfo } from '../../types';
 import { useTranslation } from '@/i18n/useTranslation';
 
@@ -25,33 +25,62 @@ const TimberStackFilterBar: React.FC<TimberStackFilterBarProps> = ({
 
     const { t } = useTranslation('mapFilterBar');
 
+    const handleMarkerTypeChange = (
+        event: React.MouseEvent<HTMLElement>,
+        newTypes: string[],
+    ) => {
+        onFilterChange('markerTypes', newTypes);
+    };
+
     return (
         <Paper elevation={0} sx={{ p: 2, backgroundColor: 'transparent', borderRadius: 2 }}>
-            {/* FIX: Replaced Grid with a responsive Stack component */}
             <Stack 
-                direction={{ xs: 'column', md: 'row' }} // Stacks vertically on small screens, horizontally on medium and up
+                direction={{ xs: 'column', md: 'row' }}
                 spacing={2} 
-                alignItems={{ xs: 'flex-start', md: 'center' }} // Align items to the start on small screens
+                alignItems={{ xs: 'flex-start', md: 'center' }}
             >
-                <Typography 
-                    variant="body2" 
-                    sx={{ fontWeight: 'medium', color: 'text.secondary', mr: 2, flexShrink: 0 }}
-                >
-                    {t('filters.title')}
-                </Typography>
-
-                <FormControl component="fieldset">
-                    <RadioGroup 
-                        row 
-                        name="status" 
-                        value={filters.status}
-                        onChange={(e) => onFilterChange('status', e.target.value as 'all' | 'active')}
+                {/* Status Filter (All/Active) */}
+                <Stack direction="row" alignItems="center" spacing={1}>
+                    <Typography variant="body2" sx={{ fontWeight: 'medium', color: 'text.secondary', flexShrink: 0 }}>
+                        {t('filters.status.title', 'Status:')}
+                    </Typography>
+                    <ToggleButtonGroup
+                        value={filters.status || 'active'}
+                        exclusive
+                        onChange={(e, value) => value && onFilterChange('status', value)}
+                        size="small"
+                        disabled={isLoading}
                     >
-                        <FormControlLabel value="all" control={<Radio size="small" />} label={t('filters.status.all')} disabled={isLoading} />
-                        <FormControlLabel value="active" control={<Radio size="small" />} label={t('filters.status.active')} disabled={isLoading} />
-                    </RadioGroup>
-                </FormControl>
+                        <ToggleButton value="all">{t('filters.status.all', 'All')}</ToggleButton>
+                        <ToggleButton value="active">{t('filters.status.active', 'Active')}</ToggleButton>
+                    </ToggleButtonGroup>
+                </Stack>
+                
+                <Divider orientation="vertical" flexItem sx={{ display: { xs: 'none', md: 'block' } }} />
 
+                {/* Marker Type Filter (Puulaani/Purkupaikka) */}
+                <Stack direction="row" alignItems="center" spacing={1}>
+                    <Typography variant="body2" sx={{ fontWeight: 'medium', color: 'text.secondary', flexShrink: 0 }}>
+                        {t('filters.markerType.title', 'Show:')}
+                    </Typography>
+                    <ToggleButtonGroup
+                        value={filters.markerTypes || []}
+                        onChange={handleMarkerTypeChange}
+                        size="small"
+                        aria-label="marker type filter"
+                        disabled={isLoading}
+                    >
+                        <ToggleButton value="puulaani" aria-label="timber stacks">
+                            <ForestIcon sx={{ mr: 1 }} />
+                            {t('filters.markerType.puulaani', 'Timber Stacks')}
+                        </ToggleButton>
+                        <ToggleButton value="purkupaikka" aria-label="drop-off sites">
+                            <WarehouseIcon sx={{ mr: 1 }} />
+                            {t('filters.markerType.purkupaikka', 'Drop-offs')}
+                        </ToggleButton>
+                    </ToggleButtonGroup>
+                </Stack>
+                
                 <Box sx={{ minWidth: 240, flexGrow: 1 }}>
                     <Autocomplete
                         fullWidth

@@ -47,6 +47,7 @@ interface PuulaaniMarkerProps {
     customer: IClientBasicInfo;
     isDraggable: boolean;
     onEdit: (marker: IMapTimberStack) => void;
+    onDelete: (marker: IMapTimberStack) => void;
     onLocationChange: (id: number, newLocation: { latitude: number, longitude: number }) => void;
     onDoubleClick: (marker: IMapTimberStack) => void;
 }

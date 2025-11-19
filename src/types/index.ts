@@ -949,6 +949,7 @@ export interface IMapFilterState {
     status: 'all' | 'active';
     clientId: string | null;
     vehicleId: string | null;
+     markerTypes: ('puulaani' | 'purkupaikka')[];
 }
 
 
