@@ -12,6 +12,7 @@ import { SettingsProvider } from '@/contexts/SettingsContext';                  
 import ConnectivityBoundary from '@/components/providers/ConnectivityBoundary';     // Component that monitors network connectivity 
 import DriverOfflineBootstrap from '@/components/providers/DriverOfflineBootstrap'; // Prepares offline mode
 
+
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang={fallbackLng}>

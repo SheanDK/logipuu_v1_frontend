@@ -8,12 +8,11 @@ import { Box, Typography, Paper, CircularProgress, Alert, Snackbar, AlertColor, 
 import ForestIcon from '@mui/icons-material/Forest';
 import dayjs from 'dayjs';
 import 'leaflet/dist/leaflet.css';
-import L from 'leaflet';
-import { MapContainer, TileLayer, LayersControl, FeatureGroup } from 'react-leaflet';
+import L, { Map } from 'leaflet';
+import { MapContainer, TileLayer, LayersControl, FeatureGroup, useMapEvents, useMap } from 'react-leaflet';
 
 import { useAuth } from '../../../../contexts/AuthContext';
 import { useLayout } from '../../../../contexts/LayoutContext';
-import useSocket from '../../../../hooks/useSocket';
 import { useMapData } from '../../../../hooks/useMapData';
 import {
     IClientBasicInfo, IMapTimberStack, IMapDropoffLocation, IMapOtherMarker,
@@ -50,10 +49,24 @@ if (typeof window !== 'undefined') {
     });
 }
 
+const AnimationController = ({ center, zoom }: { center: [number, number]; zoom: number }) => {
+    const map: Map = useMap(); // Get the map instance
+
+    useEffect(() => {
+        // This effect runs only once when the component mounts
+        map.flyTo(center, zoom, {
+            animate: true,
+            duration: 1.5 // Animation duration in seconds
+        });
+    }, [center, zoom, map]); // Dependencies ensure this re-runs if mapSettings change
+
+    return null; // This component does not render anything
+};
+
+
 export default function TimberStacksPage() {
     const { user, isLoading: isAuthLoading } = useAuth();
     const { mapSettings } = useLayout();
-    const { lastLocationUpdate } = useSocket();
     const router = useRouter();
     const pathname = usePathname();
     const searchParams = useSearchParams();
@@ -303,11 +316,14 @@ export default function TimberStacksPage() {
 
                 <MapContainer
                     className={theme.palette.mode === 'dark' ? 'leaflet-dark' : undefined}
-                    center={mapSettings.center}
-                    zoom={mapSettings.zoom}
+                    center={[20, 0]}
+                    zoom={6}
                     scrollWheelZoom={true}
+                    minZoom={6}
+                    maxZoom={18}
                     style={{ height: '100%', width: '100%' }}
                 >
+                    <AnimationController center={mapSettings.center} zoom={mapSettings.zoom} />
                     <LayersControl position="bottomleft">
                         {/* Base Layers */}
                         <LayersControl.BaseLayer name={t('layers.standard')}><TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" /></LayersControl.BaseLayer>

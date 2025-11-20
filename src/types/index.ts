@@ -795,6 +795,8 @@ export interface ITimberStackWoodEntry {
     totalVolume: number;
     fetchedVolume: number;
     remainingVolume: number;
+    valmis?: boolean;
+    isActive?: boolean;
 }
 
 export interface IAddTimberStackWoodEntryFormData {

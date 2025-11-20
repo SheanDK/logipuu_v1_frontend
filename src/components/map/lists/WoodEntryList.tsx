@@ -87,9 +87,14 @@ export function WoodEntryList({
                             const fetchedVolume = Number(item.fetchedVolume) || 0;
                             const remaining = totalVolume - fetchedVolume;
                             const currentEditValues = isEditing ? tempValues : { totalVolume, fetchedVolume };
+                            const isMarkedComplete = item.valmis === true;
 
                             return (
-                                <TableRow key={item.keyId || item.id} hover sx={{ '& > td': { border: '1px solid #e0e0e0' } }}>
+                                <TableRow key={item.keyId || item.id} 
+                                hover 
+                                sx={{ 
+                                    '& > td': { border: '1px solid #e0e0e0' },
+                                    backgroundColor: isMarkedComplete ? '#91f3dbff' : 'transparent', }}>
                                     <TableCell sx={{backgroundColor: '#e0f2f1'}}>{resolveWoodTypeName(item.woodTypeId)}</TableCell>
                                     <TableCell sx={{backgroundColor: '#e0f2f1'}}>{resolveDropoffName(item.dropoffLocationId)}</TableCell>
                                     <TableCell align="right">

@@ -134,8 +134,6 @@ export default function PuulaaniDetailsModal({
                     name: details.puulaani.nimi,
                     date: details.puulaani.pvm ? dayjs(details.puulaani.pvm) : null,
                     dispatchOrderNo: details.puulaani.ajomaaraysnro,
-                    // Convert the 'km' string from the backend to a number for the form.
-                    // Use parseFloat and provide a fallback of null if it's not a valid number.
                     kilometers: details.puulaani.km ? parseFloat(details.puulaani.km) : null,
                     isActive: details.puulaani.aktiivinen,
                     isCompleted: details.puulaani.valmis,
@@ -151,7 +149,8 @@ export default function PuulaaniDetailsModal({
                         dropoffLocationId: Number(p.purkupaikkaId),
                         totalVolume: Number(p.kuutiot),
                         fetchedVolume: Number(p.haettu),
-                        remainingVolume: Number(p.jaljella)
+                        remainingVolume: Number(p.jaljella),
+                        valmis: p.valmis === true || p.valmis === 'true'
                     }))
                 };
                 
@@ -210,7 +209,8 @@ export default function PuulaaniDetailsModal({
                 ...existingEntry, // Keep all other properties like id, puutavaraId etc.
                 totalVolume: newTotalVolume,
                 fetchedVolume: existingFetchedVolume, // Fetched volume doesn't change when adding more total volume
-                remainingVolume: newTotalVolume - existingFetchedVolume
+                remainingVolume: newTotalVolume - existingFetchedVolume,
+                valmis: false 
             };
 
             // Use the 'update' function from useFieldArray to replace the entry at the found index
@@ -225,7 +225,8 @@ export default function PuulaaniDetailsModal({
                 dropoffLocationId: newDropoffLocationId,
                 totalVolume: volumeToAdd,
                 fetchedVolume: 0, // A new entry always starts with 0 fetched
-                remainingVolume: volumeToAdd
+                remainingVolume: volumeToAdd,
+                valmis: false
             });
         }
     };
@@ -282,6 +283,7 @@ export default function PuulaaniDetailsModal({
                         puutavara_id: e.puutavaraId > 0 ? e.puutavaraId : 0,
                         puutavaranro: e.woodTypeId, purkupaikka_id: e.dropoffLocationId,
                         kuutiot: e.totalVolume, haettu: e.fetchedVolume,
+                        valmis: e.valmis
                     })),
                 };
                 await updateTimberStackFull(initialData.id, payload);
@@ -380,8 +382,19 @@ export default function PuulaaniDetailsModal({
                                     {/* Section 4: Timber Logs */}
                                     <Paper variant="outlined" sx={{ p: 2.5 }}>
                                         <Typography variant="overline" color="text.secondary" gutterBottom>{t('sections.timberLogs')}</Typography>
-                                        <AddWoodEntry onAddAction={handleAddWoodEntry} woodTypeList={woodTypeList} dropoffLocationList={dropoffLocationList} />
-                                        <WoodEntryList entries={woodEntryFields} onFieldChangeAction={handleUpdateWoodEntry} onDeleteAction={(index) => remove(index)} woodTypeList={woodTypeList} dropoffLocationList={dropoffLocationList} isEditMode={true} />
+                                        <AddWoodEntry 
+                                        onAddAction={handleAddWoodEntry} 
+                                        woodTypeList={woodTypeList}
+                                         dropoffLocationList={dropoffLocationList} 
+                                         />
+                                        <WoodEntryList 
+                                        entries={woodEntryFields} 
+                                        onFieldChangeAction={handleUpdateWoodEntry} 
+                                        onDeleteAction={(index) => remove(index)} 
+                                        woodTypeList={woodTypeList} 
+                                        dropoffLocationList={dropoffLocationList} 
+                                        isEditMode={true} 
+                                        />
                                     </Paper>
 
                                     {/* Section 5: Status & Info */}
