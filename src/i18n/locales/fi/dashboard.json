@@ -26,14 +26,20 @@
     "tooltip": "Tilavuus: {{value}} m³",
     "noData": "Ei tilavuustietoja viimeiseltä 7 päivältä."
   },
-  "activeTrips": {
-    "title": "Aktiivisten matkojen yleiskatsaus",
-    "noData": "Ei aktiivisia matkoja tällä hetkellä.",
-    "unknownDriver": "Tuntematon kuljettaja"
-  },
   "mapCard": {
     "title": "Live-Puukartta",
     "description": "Näytä kaikki aktiiviset kohteet",
     "button": "Avaa Kartta"
+  },
+  "activeTrip": {
+    "title": "Aktiivinen ajo",
+    "currentDestinations": "Nykyiset määränpäät",
+    "loads_one": "{{count}} kuorma",
+    "loads_other": "{{count}} kuormaa"
+  },
+  "buttons": {
+    "pause": "Keskeytä ajo",
+    "complete": "Päätä ajo",
+    "resume": "Jatka ajoa"
   }
 }

@@ -36,20 +36,7 @@ interface ActiveTripPanelProps {
     onOpenDetailsAction: () => void;
 }
 
-// --- THE FIX IS HERE: Manually convert snake_case to camelCase ---
-    // const processedLegs: TripLeg[] = useMemo(() => {
-    //     if (!activeTrip?.legs) return [];
-    //     return activeTrip.legs.map(leg => ({
-    //         kuormaId: leg.kuorma_id,
-    //         status: leg.status,
-    //         purkupaikkaName: leg.purkupaikka_name,
-    //         purkupaikkaLat: leg.purkupaikka_lat,
-    //         purkupaikkaLng: leg.purkupaikka_lng,
-    //         puulaaniName: leg.puulaani_name,
-    //         puutavaralaji: leg.puutavaralaji,
-    //         ajomaaraysNro: leg.ajomaarays_nro
-    //     }));
-    // }, [activeTrip]);
+
 
 interface ActiveTripPanelProps {
     activeTrip: {
@@ -65,8 +52,13 @@ interface ActiveTripPanelProps {
 }
 
 export default function ActiveTripPanel({ 
-    activeTrip, open, onStatusUpdateAction, onToggleVisibilityAction, 
-    isUpdating, onConfirmCompleteAction, onOpenDetailsAction
+    activeTrip, 
+    open, 
+    onStatusUpdateAction, 
+    onToggleVisibilityAction, 
+    isUpdating, 
+    onConfirmCompleteAction, 
+    onOpenDetailsAction
 }: ActiveTripPanelProps) {
     
     const { t } = useTranslation('activeTripPanel');
@@ -80,6 +72,23 @@ export default function ActiveTripPanel({
     }, [processedLegs]);
 
     const overallStatus = primaryLeg?.status || 'Unknown';
+
+    const getTranslatedStatus = (status: string) => {
+        const statusMap: { [key: string]: string } = {
+            'In Progress': 'inProgress',
+            'Paused': 'paused',
+            'Completed': 'completed',
+            'En Route to Destination': 'enRouteToDestination',
+            'Assigned': 'assigned',
+            'At Origin': 'atOrigin',
+            'At Destination': 'atDestination'
+        };
+        const statusKey = statusMap[status] || 'na'; // Default to 'na' if status is unknown
+        // Use the 'status' namespace defined in your JSON files
+        return t(`status.${statusKey}`);
+    };
+    
+    const translatedStatusLabel = getTranslatedStatus(overallStatus);
 
     const dropOffGroups = useMemo(() => {
         if (processedLegs.length === 0) return [];
@@ -128,7 +137,7 @@ export default function ActiveTripPanel({
             <Box sx={{ p: 2 }}>
                 <Stack direction="row" justifyContent="space-between" alignItems="center" mb={1}>
                     <Typography variant="h6">{t('activeTrip.title')}</Typography>
-                    <Chip label={overallStatus} color="error" size="medium" />
+                    <Chip label={translatedStatusLabel} color="error" size="medium" />
                     <IconButton size="small" onClick={onToggleVisibilityAction}>
                         <CloseIcon />
                     </IconButton>
@@ -161,7 +170,7 @@ export default function ActiveTripPanel({
                                 <ListItemIcon><FlagIcon /></ListItemIcon>
                                 <ListItemText 
                                     primary={dropOffName} 
-                                    secondary={`${legsInGroup.length} ${legsInGroup.length > 1 ? t('activeTrip.loads') : t('activeTrip.load')}`} 
+                                    secondary={`${legsInGroup.length} ${legsInGroup.length > 1 ? t('loads') : t('load')}`} 
                                 />
                             </ListItemButton>
                         </ListItem>

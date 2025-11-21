@@ -35,5 +35,16 @@
     "title": "Live Timber Map",
     "description": "View all active sites",
     "button": "Open Map"
+  },
+  "activeTrip": {
+    "title": "Active Trip",
+    "currentDestinations": "Current Destinations",
+    "loads_one": "{{count}} load",
+    "loads_other": "{{count}} loads"
+  },
+  "buttons": {
+    "pause": "Pause Trip",
+    "complete": "Complete Trip",
+    "resume": "Resume Trip"
   }
 }

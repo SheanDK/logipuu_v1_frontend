@@ -2,12 +2,15 @@
 'use client';
 
 import React, { useState, FormEvent } from 'react';
-import { useRouter } from 'next/navigation'; // Keep useRouter if you have other navigation needs
+// --- FIX 1: Import 'useParams' to get the current language ---
+import { useRouter, useParams } from 'next/navigation';
 import { useAuth } from '../../../../contexts/AuthContext';
 import { loginUserApi } from '../../../../services/authService';
 import { UserLoginCredentials } from '../../../../types';
 
 import { useTranslation } from '@/i18n/useTranslation';
+// --- FIX 2: Import language settings for fallback ---
+import { fallbackLng, languages } from '@/i18n/settings';
 
 import Button from '@mui/material/Button';
 import TextField from '@mui/material/TextField';
@@ -24,7 +27,6 @@ import dynamic from 'next/dynamic';
 import LanguageSwitcher from '@/components/i18n/LanguageSwitcher';
 import axios from 'axios';
 
-// Dynamically import the modal to avoid SSR issues with localStorage.
 const SettingsModal = dynamic(() => import('@/components/common/SettingsModal'), { ssr: false });
 
 export default function LoginPage() {
@@ -32,12 +34,16 @@ export default function LoginPage() {
     const [password, setPassword] = useState('');
     const [error, setError] = useState<string | null>(null);
     const [loading, setLoading] = useState(false);
-    const [isSettingsOpen, setIsSettingsOpen] = useState(false); // State for the settings modal
+    const [isSettingsOpen, setIsSettingsOpen] = useState(false);
 
     const { t } = useTranslation('login');
     const { login } = useAuth();
     const router = useRouter();
     const theme = useTheme();
+
+    // --- FIX 3: Get the current language from the URL params ---
+    const params = useParams() as { lng?: string };
+    const currentLng = (params.lng && languages.includes(params.lng)) ? params.lng : fallbackLng;
 
     const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
         event.preventDefault();
@@ -47,42 +53,33 @@ export default function LoginPage() {
 
         try {
             const apiResponse = await loginUserApi(credentials);
-            
-            // --- DEBUGGING STEP ---
-            // Log the entire user object received from the API to check the roles array.
             console.log("--- User data from API ---", apiResponse.user);
 
-            // This is the primary login action that sets the user in the context.
             await login(apiResponse); 
 
-            // --- THE FIX ---
-            // 1. Get the roles array, defaulting to an empty array if it's missing.
             const userRoles = apiResponse.user.roles || [];
-
-            // 2. Check if ANY of the roles, when converted to lowercase, is 'kuljettaja'.
-            // This makes the check case-insensitive.
             const isDriver = userRoles.some((role: string) => role.toLowerCase() === 'kuljettaja');
 
-            // 3. Redirect based on the result.
+            // --- FIX 4: Add the language prefix to the redirect paths ---
             if (isDriver) {
-                console.log("Redirecting to /my-loads for Driver.");
-                router.push('/my-loads');
+                console.log(`Redirecting to /${currentLng}/my-loads for Driver.`);
+                router.push(`/${currentLng}/my-loads`);
             } else {
-                console.log("Redirecting to /dashboard for non-Driver.");
-                router.push('/dashboard');
+                console.log(`Redirecting to /${currentLng}/dashboard for non-Driver.`);
+                router.push(`/${currentLng}/dashboard`);
             }
 
-         } catch (err: unknown) { // Use 'unknown' instead of 'any'
-        console.error("Login failed:", err);
-        let message: string;
-        if (axios.isAxiosError(err) && err.response) {
-            message = err.response.data.message || t('errorGeneric');
-        } else if (err instanceof Error) {
-            message = err.message;
-        } else {
-            message = t('errorGeneric');
-        }
-        setError(message);
+         } catch (err: unknown) {
+            console.error("Login failed:", err);
+            let message: string;
+            if (axios.isAxiosError(err) && err.response) {
+                message = err.response.data.message || t('errorGeneric');
+            } else if (err instanceof Error) {
+                message = err.message;
+            } else {
+                message = t('errorGeneric');
+            }
+            setError(message);
         } finally {
             setLoading(false);
         }
@@ -93,33 +90,16 @@ export default function LoginPage() {
         : 16;
 
     return (
-        <Box
-            sx={{
-                display: 'flex',
-                flexDirection: 'column',
-                alignItems: 'center',
-                justifyContent: 'center',
-                minHeight: '100vh',
-                width: '100vw',
-                padding: 2,
-                // Apply a background image or gradient if desired
-                 // --- THE FIX IS HERE ---
-                // Re-added the linear-gradient background.
-                // background: `linear-gradient(45deg, ${theme.palette.primary.dark} 0%, ${theme.palette.primary.main} 100%)`,
-            }}
-        >
+        <Box sx={{
+            display: 'flex', flexDirection: 'column', alignItems: 'center',
+            justifyContent: 'center', minHeight: '100vh', width: '100vw', padding: 2,
+        }}>
             <Box sx={{ position: 'fixed', top: 16, right: 16, display: 'flex', alignItems: 'center', gap: 1 }}>
                 <LanguageSwitcher />
                 <Tooltip title="Server Settings">
                     <IconButton 
                         onClick={() => setIsSettingsOpen(true)}
-                        sx={{ 
-                            color: 'white', 
-                            backgroundColor: 'rgba(0,0,0,0.2)',
-                            '&:hover': {
-                                backgroundColor: 'rgba(0,0,0,0.4)',
-                            }
-                        }}
+                        sx={{ color: 'white', backgroundColor: 'rgba(0,0,0,0.2)', '&:hover': { backgroundColor: 'rgba(0,0,0,0.4)' } }}
                     >
                         <SettingsIcon />
                     </IconButton>
@@ -129,73 +109,44 @@ export default function LoginPage() {
             <Paper
                 elevation={12}
                 sx={{
-                    p: { xs: 3, sm: 4 },
-                    display: 'flex',
-                    flexDirection: 'column',
-                    alignItems: 'center',
-                    width: '100%',
-                    maxWidth: '420px',
-                    backgroundColor: alpha(theme.palette.background.paper, 0.9),
-                    backdropFilter: 'blur(2px)',
-                    borderRadius: paperBorderRadius,
+                    p: { xs: 3, sm: 4 }, display: 'flex', flexDirection: 'column', alignItems: 'center',
+                    width: '100%', maxWidth: '420px', backgroundColor: alpha(theme.palette.background.paper, 0.9),
+                    backdropFilter: 'blur(2px)', borderRadius: paperBorderRadius,
                 }}
             >
                 <Box sx={{ mb: 2, width: 160 }}>
                     <Image
-                        src="/images/softrain-logo.png"
-                        alt="Softrain Logo"
-                        width={160}
-                        height={54}
-                        priority
+                        src="/images/hkk-logo.png" alt="Hkk Logo"
+                        width={160} height={54} priority
                         style={{ maxWidth: '100%', height: 'auto' }}
                     />
                 </Box>
-
                 <Typography component="h1" variant="h5" sx={{ color: 'text.primary', mb: 1 }}>
                     {t('title')}
                 </Typography>
                 <Typography component="p" variant="body2" sx={{ color: 'text.secondary', mb: 3, textAlign: 'center' }}>
                     {t('subtitle')}
                 </Typography>
-
                 <Box component="form" onSubmit={handleSubmit} noValidate sx={{ width: '100%' }}>
                     <TextField
-                        margin="normal"
-                        required
-                        fullWidth
-                        id="username"
-                        label={t('username')}
-                        name="username"
-                        autoComplete="username"
-                        autoFocus
-                        value={username}
-                        onChange={(e) => setUsername(e.target.value)}
+                        margin="normal" required fullWidth id="username"
+                        label={t('username')} name="username" autoComplete="username"
+                        autoFocus value={username} onChange={(e) => setUsername(e.target.value)}
                         disabled={loading}
                     />
                     <TextField
-                        margin="normal"
-                        required
-                        fullWidth
-                        name="password"
-                        label={t('password')}
-                        type="password"
-                        id="password"
-                        autoComplete="current-password"
-                        value={password}
-                        onChange={(e) => setPassword(e.target.value)}
+                        margin="normal" required fullWidth name="password"
+                        label={t('password')} type="password" id="password"
+                        autoComplete="current-password" value={password} onChange={(e) => setPassword(e.target.value)}
                         disabled={loading}
                     />
-
                     {error && (
                         <Alert severity="error" sx={{ mt: 2, width: '100%' }}>
                             {error}
                         </Alert>
                     )}
-
                     <Button
-                        type="submit"
-                        fullWidth
-                        variant="contained"
+                        type="submit" fullWidth variant="contained"
                         sx={{ mt: 3, mb: 2, py: 1.5, fontSize: '1rem', fontWeight: 'bold' }}
                         disabled={loading}
                     >
@@ -203,20 +154,9 @@ export default function LoginPage() {
                     </Button>
                 </Box>
             </Paper>
-
-            <Typography 
-                variant="body2" 
-                sx={{ 
-                    color: 'text.secondary', // Use the theme's secondary text color (typically a gray)
-                    mt: 'auto', 
-                    pt: 4,
-                    pb: 2 // Add some padding at the bottom
-                }}
-            >
+            <Typography variant="body2" sx={{ color: 'text.secondary', mt: 'auto', pt: 4, pb: 2 }}>
                 {t('copyright', { year: new Date().getFullYear() })}
             </Typography>
-
-            {/* Render the modal conditionally */}
             {isSettingsOpen && (
                 <SettingsModal 
                     open={isSettingsOpen} 
