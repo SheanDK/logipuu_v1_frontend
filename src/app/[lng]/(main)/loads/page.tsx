@@ -244,20 +244,20 @@ export default function DrivenInspectionPage() {
         { field: 'ajomaaraysNro', headerName: t('columns.drivingOrder'), width: 140 },
         { field: 'vastaanottoNro', headerName: t('columns.receptionNo'), width: 130, editable: isInspectionView },
         { field: 'rekNro', headerName: t('columns.vehicleNo'), width: 110 },
-        { field: 'kuljettajanNimi', headerName: t('columns.driver'), width: 150 },
-        { field: 'puulaaniNimi', headerName: t('columns.puulaani'), width: 150 },
-        { field: 'asiakkaanNimi', headerName: t('columns.customer'), width: 150 },
+        { field: 'kuljettajanNimi', headerName: t('columns.driver'), width: 100 },
+        { field: 'puulaaniNimi', headerName: t('columns.puulaani'), width: 100 },
+        { field: 'asiakkaanNimi', headerName: t('columns.customer'), width: 140 },
         { field: 'timberType', headerName: t('columns.timber'), width: 120 },
-        { field: 'reitti', headerName: t('columns.route'), width: 150, editable: isInspectionView },
-        { field: 'm3', headerName: t('columns.cubicMetres'), type: 'number', width: 140, editable: isInspectionView },
+        { field: 'reitti', headerName: t('columns.route'), width: 100, editable: isInspectionView },
+        { field: 'm3', headerName: t('columns.cubicMetres'), type: 'number', width: 120, editable: isInspectionView },
         { field: 'km', headerName: t('columns.freightKm'), type: 'number', width: 120, editable: isInspectionView },
         { field: 'tunnit', headerName: t('columns.hours'), type: 'number', width: 100, editable: isInspectionView },
         { field: 'kpl', headerName: t('columns.pcs'), type: 'number', width: 80, editable: isInspectionView },
-        { field: 'lisatiedot', headerName: t('columns.additionalInfo'), flex: 1, minWidth: 200, editable: isInspectionView },
+        { field: 'lisatiedot', headerName: t('columns.additionalInfo'), flex: 1, minWidth: 80, editable: isInspectionView },
         {
             field: 'status',
             headerName: t('columns.status'),
-            width: 150,
+            width: 100,
             renderCell: (params) => (
                 <Chip
                     label={translateStatus(t, params.row.status)}

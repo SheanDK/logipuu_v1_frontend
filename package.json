@@ -21,7 +21,7 @@
     "@mui/material-nextjs": "^7.3.3",
     "@mui/styled-engine-sc": "^7.1.1",
     "@mui/types": "^7.4.4",
-    "@mui/x-data-grid": "^8.10.2",
+    "@mui/x-data-grid": "^8.19.0",
     "@mui/x-date-pickers": "^8.10.2",
     "axios": "^1.10.0",
     "camelcase-keys": "^9.1.3",
