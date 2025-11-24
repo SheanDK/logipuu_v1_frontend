@@ -315,6 +315,7 @@ export default function TimberDashboard({ onBackAction }: TimberDashboardProps) 
             enqueueSnackbar(t('toasts.invalidSession'), { variant: 'error' }); 
             return;
         }
+        const currentPuulaaniId = selectedPuulaaniDetails?.puulaani.puulaaniId;
         const driverId = user.driverNumericId;
         const vehicleId = Number(selectedVehicleId);
 
@@ -384,9 +385,22 @@ export default function TimberDashboard({ onBackAction }: TimberDashboardProps) 
         setIsCreateLoadModalOpen(false);
         setLoadToEdit(null);
         
-        if (selectedPuulaaniDetails) { 
-            handleMapMarkerClick(selectedPuulaaniDetails.puulaani.puulaaniId); 
+        try {
+            const updatedTripData = await getActiveTripForDriver();
+            if (updatedTripData && updatedTripData.legs.length > 0) {
+                setActiveTrip(updatedTripData);
+            }
+        } catch (err) {
+            console.error("Failed to refresh active trip after load operation:", err);
         }
+
+        // 3. If a Puulaani Details panel was open, refresh its content instead of closing it.
+        if (currentPuulaaniId) {
+            console.log(`Refreshing details for Puulaani ID: ${currentPuulaaniId}`);
+            openDetailsPanel(currentPuulaaniId); 
+        }
+
+        // 4. Also refresh the main map data in the background to update marker info (like remaining volume).
         fetchMapData();
     };
 
@@ -409,16 +423,31 @@ export default function TimberDashboard({ onBackAction }: TimberDashboardProps) 
 
     const handleDeleteLoad = async () => {
         if (!loadToDelete) return;
+
+        // --- THE FIX STARTS HERE ---
+        // 1. Store the ID of the parent puulaani before closing the dialog.
+        const parentPuulaaniId = selectedPuulaaniDetails?.puulaani.puulaaniId;
+        
         setIsDeleting(true);
         try {
             await deleteLoad(loadToDelete.kuormaId);
             enqueueSnackbar(t('toasts.loadDeleted'), { variant: 'success' });
+            
+            // 2. Close the confirmation dialog.
             setLoadToDelete(null);
-            if (selectedPuulaaniDetails) {
-                handleMapMarkerClick(selectedPuulaaniDetails.puulaani.puulaaniId);
+
+            // 3. If a parent puulaani was open, refresh its details panel.
+            if (parentPuulaaniId) {
+                console.log(`Load deleted. Refreshing details for Puulaani ID: ${parentPuulaaniId}`);
+                await openDetailsPanel(parentPuulaaniId);
             }
+            
+            // 4. Also refresh the main map data in the background.
+            fetchMapData();
+
         } catch (err: any) {
             enqueueSnackbar(err.response?.data?.message || t('toasts.deleteFailed'), { variant: 'error' });
+            setLoadToDelete(null); // Close dialog even on error
         } finally {
             setIsDeleting(false);
         }
