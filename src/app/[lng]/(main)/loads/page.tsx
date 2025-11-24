@@ -4,7 +4,6 @@
 import React, { useEffect, useState, useCallback, useMemo } from 'react';
 import { Box, Typography, Paper, Alert, Button, IconButton, Tooltip, Snackbar, Chip, Stack, Divider } from '@mui/material';
 import type { AlertColor } from '@mui/material';
-import { useAuth } from '@/contexts/AuthContext';
 import { DataGrid, GridColDef, GridRenderCellParams, GridRowId, GridRowModel } from '@mui/x-data-grid';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
@@ -38,7 +37,6 @@ const getStatusChipColor = (status: string | undefined | null): "success" | "inf
 export default function DrivenInspectionPage() {
 
     const { t } = useTranslation('loadsPage');
-    const { user } = useAuth();
 
     const [rows, setRows] = useState<ILoadListItem[]>([]);
     const [isLoading, setIsLoading] = useState(true);
@@ -123,18 +121,10 @@ export default function DrivenInspectionPage() {
     const handleSaveSuccess = (message: string) => { handleCloseModal(); loadData(filters); setSnackbar({ open: true, message, severity: 'success' }); };
 
     const handleConfirmDelete = async () => {
-        // --- THE FIX IS HERE ---
-        // 1. Add a "type guard": If deleteConfirmation or user is null, stop the function.
-        if (!deleteConfirmation || !user) {
-            console.error("Delete cancelled: No item selected or user is not authenticated.");
-            return;
-        }
-
+        if (!deleteConfirmation) return;
         setIsDeleting(true);
         try {
-            // 2. At this point, TypeScript knows 'user' is of type 'IUser', not 'null'.
-            await deleteLoad(deleteConfirmation.kuormaId, user);
-            
+            await deleteLoad(deleteConfirmation.kuormaId);
             setSnackbar({ open: true, message: t('snackbar.deleted', { id: deleteConfirmation.kuormaId }), severity: 'success' });
             setDeleteConfirmation(null);
             await loadData(filters);
@@ -146,38 +136,21 @@ export default function DrivenInspectionPage() {
     };
 
     const handleProcessRowUpdate = useCallback(async (newRow: GridRowModel<ILoadListItem>): Promise<ILoadListItem> => {
-        // --- THE FIX IS HERE ---
-        // 1. Add a "type guard" for the user object.
-        if (!user) {
-            setSnackbar({ open: true, message: 'User session invalid. Cannot save changes.', severity: 'error' });
-            // Revert the change in the grid by returning the original row.
-            return rows.find(r => r.kuormaId === newRow.kuormaId)!;
-        }
-        
         const payload: IUpdateLoadDto = {
             pvm: dayjs(newRow.pvm, "DD.MM.YYYY").toDate(),
-            vastaanottoNro: newRow.vastaanottoNro,
-            reitti: newRow.reitti,
-            m3: newRow.m3,
-            km: newRow.km,
-            tunnit: newRow.tunnit,
-            kpl: newRow.kpl,
-            lisatiedot: newRow.lisatiedot
+            vastaanottoNro: newRow.vastaanottoNro, reitti: newRow.reitti,
+            m3: newRow.m3, km: newRow.km, tunnit: newRow.tunnit,
+            kpl: newRow.kpl, lisatiedot: newRow.lisatiedot
         };
-
         try {
-            // 2. At this point, TypeScript knows 'user' is 'IUser', not 'null'.
-            // Note: Make sure your frontend service function `updateLoad` expects 3 arguments.
-            await updateLoad(newRow.kuormaId, payload, user);
-            
+            await updateLoad(newRow.kuormaId, payload);
             setSnackbar({ open: true, message: t('snackbar.updated', { id: newRow.kuormaId }), severity: 'success' });
-            return newRow; // Return the new row to commit the change in the grid
+            return newRow;
         } catch (err: any) {
             setSnackbar({ open: true, message: t('snackbar.updateFailed'), severity: 'error' });
-            // Revert the change on failure
             return rows.find(r => r.kuormaId === newRow.kuormaId)!;
         }
-    }, [rows, user, t, filters, loadData]);
+    }, [rows]);
 
     const toggleSelection = (id: GridRowId) => {
         setSelectionModel(prev => {
