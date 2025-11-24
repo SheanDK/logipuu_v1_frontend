@@ -129,6 +129,7 @@ export default function TimberDashboard({ onBackAction }: TimberDashboardProps) 
     const [focusedPuulaaniId, setFocusedPuulaaniId] = useState<number | null>(null);
     const [markerFilters, setMarkerFilters] = useState({ showPuulaanit: true, showPurkupaikat: true });
     const [isTripDetailsModalOpen, setIsTripDetailsModalOpen] = useState(false);
+    const [recentlyModifiedPuulaaniId, setRecentlyModifiedPuulaaniId] = useState<number | null>(null);
 
     const isDarkMode = theme.palette.mode === 'dark';
     const controlSurface = alpha(theme.palette.background.paper, isDarkMode ? 0.85 : 0.94);
@@ -309,6 +310,7 @@ export default function TimberDashboard({ onBackAction }: TimberDashboardProps) 
     };
     
     const handleCreateOrUpdateLoad = async (data: any, isEdit: boolean) => {
+        const puulaaniIdForHighlight = selectedPuulaaniDetails?.puulaani.puulaaniId;
         if (!user || typeof user.driverNumericId !== 'number' || !selectedVehicleId) {
             enqueueSnackbar(t('toasts.invalidSession'), { variant: 'error' }); 
             return;
@@ -351,6 +353,15 @@ export default function TimberDashboard({ onBackAction }: TimberDashboardProps) 
             try {
                 await createBulkLoad(legsToCreate);
                 enqueueSnackbar(t('toasts.loadsCreated', { count: legsToCreate.length }), { variant: 'success' });
+
+                // --- FIX 3: Trigger the highlight effect after successful creation ---
+                if (puulaaniIdForHighlight) {
+                    setRecentlyModifiedPuulaaniId(puulaaniIdForHighlight);
+                    setTimeout(() => {
+                        setRecentlyModifiedPuulaaniId(null);
+                    }, 5000);
+                }
+
             } catch (err: any) {
                 enqueueSnackbar(err.response?.data?.message || t('toasts.genericError'), { variant: 'error' });
             }
@@ -549,7 +560,7 @@ export default function TimberDashboard({ onBackAction }: TimberDashboardProps) 
                     activeTripLegs={activeTripLegs}
                     onMarkerClick={handleMapMarkerClick}
                     currentLocation={currentLocation}
-                    focusedPuulaaniId={focusedPuulaaniId}
+                    focusedPuulaaniId={recentlyModifiedPuulaaniId || focusedPuulaaniId}
                     onFocusComplete={handleFocusComplete}
                     markerFilters={markerFilters}
                     onFilterChangeAction={handleFilterChange}
