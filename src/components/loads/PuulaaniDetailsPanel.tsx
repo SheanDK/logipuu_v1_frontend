@@ -10,7 +10,7 @@ import SaveIcon from '@mui/icons-material/Save';
 import DeleteIcon from '@mui/icons-material/Delete';
 import PlayCircleOutlineIcon from '@mui/icons-material/PlayCircleOutline';
 import { useAuth } from '@/contexts/AuthContext';
-import { IWoodEntry, PuulaaniDetails } from '@/types';
+import { IRelatedLoad, PuulaaniDetails } from '@/types';
 import { useTranslation } from 'react-i18next';
 import { alpha, useTheme } from '@mui/material/styles';
 
@@ -19,14 +19,15 @@ interface PuulaaniDetailsPanelProps {
     isLoading: boolean;
     onCloseAction: () => void;
     onCreateLoadAction: (puulaaniDetails: PuulaaniDetails) => void;
-    onEditLoadAction: (loadId: number) => void;
+    onEditLoadAction: (loadId: number, load: IRelatedLoad) => void;
     onSaveAction: (updatedDetails: PuulaaniDetails) => Promise<void>;
-    onDeleteLoadAction: (load: any) => void;
-    onStartTripAction: (load: any) => void;
+    onDeleteLoadAction: (load: IRelatedLoad) => void;
+    onStartTripAction: (load: IRelatedLoad) => void;
     activeLoadId: number | null;
     hasActiveTrip: boolean;
     isOffline: boolean;
 }
+
 
 const StyledTableCell = (props: any) => <TableCell sx={{ py: 1, px: 2, borderColor: 'divider' }} {...props} />;
 const StyledHeaderCell = (props: any) => <StyledTableCell sx={{ fontWeight: 'bold', backgroundColor: 'action.hover', color: 'text.secondary' }} {...props} />;
@@ -241,8 +242,8 @@ export default function PuulaaniDetailsPanel({
                                                     opacity: isOwner || isActive ? 1 : 0.7,
                                                     fontStyle: isOfflineDraft ? 'italic' : 'normal'
                                                 }}
-                                                onClick={() => canEditOrDelete && onEditLoadAction(load.kuormaId)}
-                                            >
+                                                 onClick={(e) => { e.stopPropagation(); onEditLoadAction(load.kuormaId, load); }}
+                                                            >
                                                 <StyledTableCell>{load.puutavaralaji || t('common.na')}</StyledTableCell>
                                                 <StyledTableCell>{new Date(load.pvm).toLocaleDateString('fi-FI')}</StyledTableCell>
                                                 <StyledTableCell>{driverNameToDisplay}</StyledTableCell>
@@ -268,8 +269,8 @@ export default function PuulaaniDetailsPanel({
                                                                 <IconButton
                                                                     size="small"
                                                                     title={t('loads.actions.edit')}
-                                                                    onClick={(e) => { e.stopPropagation(); onEditLoadAction(load.kuormaId); }}
-                                                                >
+                                                                     onClick={(e) => { e.stopPropagation(); onEditLoadAction(load.kuormaId, load); }}
+                                                            >
                                                                     <EditIcon fontSize="small" />
                                                                 </IconButton>
                                                             )}

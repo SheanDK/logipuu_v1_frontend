@@ -14,17 +14,7 @@ import { useTranslation } from 'react-i18next';
 import { useLeafletPopupTheme } from '@/utils/useLeafletPopupTheme';
 import { GlobalStyles } from '@mui/material';
 
-// --- Helper function to format color codes ---
-const formatHexColor = (colorString?: string): string => {
-    if (!colorString) {
-        return '#1976D2'; // Default blue color
-    }
-    const trimmedColor = colorString.trim();
-    if (trimmedColor.startsWith('#')) {
-        return trimmedColor;
-    }
-    return `#${trimmedColor}`;
-};
+
 
 // --- Leaflet Icon setup ---
 // @ts-ignore
@@ -226,13 +216,27 @@ const MapFocusController = ({ focusedTripId, trips, onFocusCompleteAction }: { f
             const selectedTrip = trips.find(t => t.kuormaId === focusedTripId);
             if (selectedTrip?.originCoords) {
                 const targetLatLng: L.LatLngTuple = [selectedTrip.originCoords.lat, selectedTrip.originCoords.lng];
+                
+                // --- THE FIX IS HERE ---
+                // Fly to the location with a smooth animation
+                map.flyTo(targetLatLng, 16, { // 16 is a good zoom level for a single site
+                    animate: true,
+                    duration: 1.5 // Animation duration in seconds
+                });
+                
+                // Open the popup after the flight animation is complete
                 const onFlyEnd = () => {
-                    L.popup().setLatLng(targetLatLng).setContent(selectedTrip.originName).openOn(map);
+                    L.popup({ offset: [0, -20] }) // Adjust popup position
+                     .setLatLng(targetLatLng)
+                     .setContent(selectedTrip.originName)
+                     .openOn(map);
                     onFocusCompleteAction();
-                    map.off('moveend', onFlyEnd);
+                    map.off('moveend', onFlyEnd); // Clean up the listener
                 };
                 map.on('moveend', onFlyEnd);
-                map.flyTo(targetLatLng, 16, { duration: 1.2 });
+
+            } else {
+                onFocusCompleteAction(); // If marker not found, still call complete
             }
         }
     }, [focusedTripId, trips, map, onFocusCompleteAction]);

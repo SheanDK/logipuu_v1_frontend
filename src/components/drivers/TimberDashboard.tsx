@@ -129,6 +129,7 @@ export default function TimberDashboard({ onBackAction }: TimberDashboardProps) 
     const [focusedPuulaaniId, setFocusedPuulaaniId] = useState<number | null>(null);
     const [markerFilters, setMarkerFilters] = useState({ showPuulaanit: true, showPurkupaikat: true });
     const [isTripDetailsModalOpen, setIsTripDetailsModalOpen] = useState(false);
+    const [recentlyModifiedPuulaaniId, setRecentlyModifiedPuulaaniId] = useState<number | null>(null);
 
     const isDarkMode = theme.palette.mode === 'dark';
     const controlSurface = alpha(theme.palette.background.paper, isDarkMode ? 0.85 : 0.94);
@@ -313,8 +314,11 @@ export default function TimberDashboard({ onBackAction }: TimberDashboardProps) 
             enqueueSnackbar(t('toasts.invalidSession'), { variant: 'error' }); 
             return;
         }
+        const currentPuulaaniId = selectedPuulaaniDetails?.puulaani.puulaaniId;
         const driverId = user.driverNumericId;
         const vehicleId = Number(selectedVehicleId);
+
+        const puulaaniIdForHighlight = selectedPuulaaniDetails?.puulaani.puulaaniId;
 
         if (isEdit) {
             try {
@@ -325,7 +329,7 @@ export default function TimberDashboard({ onBackAction }: TimberDashboardProps) 
                     reitti: data.route, 
                     lisatiedot: data.notes
                 };
-                await updateLoad(data.kuormaId, payload);
+                await updateLoad(data.kuormaId, payload, user);
                 enqueueSnackbar(t('toasts.loadUpdated'), { variant: 'success' });
             } catch (err: any) { 
                 enqueueSnackbar(err.response?.data?.message || t('toasts.loadUpdateFailed'), { variant: 'error' }); 
@@ -351,6 +355,13 @@ export default function TimberDashboard({ onBackAction }: TimberDashboardProps) 
             try {
                 await createBulkLoad(legsToCreate);
                 enqueueSnackbar(t('toasts.loadsCreated', { count: legsToCreate.length }), { variant: 'success' });
+            if (puulaaniIdForHighlight) {
+                    setRecentlyModifiedPuulaaniId(puulaaniIdForHighlight);
+                    setTimeout(() => {
+                        setRecentlyModifiedPuulaaniId(null);
+                    }, 5000);
+                }
+
             } catch (err: any) {
                 enqueueSnackbar(err.response?.data?.message || t('toasts.genericError'), { variant: 'error' });
             }
@@ -372,10 +383,24 @@ export default function TimberDashboard({ onBackAction }: TimberDashboardProps) 
         
         setIsCreateLoadModalOpen(false);
         setLoadToEdit(null);
-        
-        if (selectedPuulaaniDetails) { 
-            handleMapMarkerClick(selectedPuulaaniDetails.puulaani.puulaaniId); 
+
+        // 2. Refresh the active trip data in the background
+        try {
+            const updatedTripData = await getActiveTripForDriver();
+            if (updatedTripData && updatedTripData.legs.length > 0) {
+                setActiveTrip(updatedTripData);
+            }
+        } catch (err) {
+            console.error("Failed to refresh active trip after load operation:", err);
         }
+
+        // 3. If a Puulaani Details panel was open, refresh its content instead of closing it.
+        if (currentPuulaaniId) {
+            console.log(`Refreshing details for Puulaani ID: ${currentPuulaaniId}`);
+            openDetailsPanel(currentPuulaaniId); 
+        }
+
+        // 4. Also refresh the main map data in the background to update marker info (like remaining volume).
         fetchMapData();
     };
 
@@ -397,10 +422,15 @@ export default function TimberDashboard({ onBackAction }: TimberDashboardProps) 
     };
 
     const handleDeleteLoad = async () => {
-        if (!loadToDelete) return;
+        if (!loadToDelete || !user) { 
+            enqueueSnackbar('Cannot delete: user not authenticated.', { variant: 'error' });
+            return;
+        }
+        
+        
         setIsDeleting(true);
         try {
-            await deleteLoad(loadToDelete.kuormaId);
+             await deleteLoad(loadToDelete.kuormaId, user); 
             enqueueSnackbar(t('toasts.loadDeleted'), { variant: 'success' });
             setLoadToDelete(null);
             if (selectedPuulaaniDetails) {
@@ -549,7 +579,7 @@ export default function TimberDashboard({ onBackAction }: TimberDashboardProps) 
                     activeTripLegs={activeTripLegs}
                     onMarkerClick={handleMapMarkerClick}
                     currentLocation={currentLocation}
-                    focusedPuulaaniId={focusedPuulaaniId}
+                    focusedPuulaaniId={recentlyModifiedPuulaaniId || focusedPuulaaniId}
                     onFocusComplete={handleFocusComplete}
                     markerFilters={markerFilters}
                     onFilterChangeAction={handleFilterChange}

@@ -10,6 +10,7 @@ import {
     ITripDetails,
     ICompleteLoadDto,
     IMapTrip,
+    IUser,
 } from '../types';
 
 const API_ENDPOINT = '/loads';
@@ -67,7 +68,7 @@ export const createLoad = async (data: ICreateLoadDto): Promise<ILoad> => {
     }
 };
 
-export const updateLoad = async (id: number, data: IUpdateLoadDto): Promise<ILoad> => {
+export const updateLoad = async (id: number, data: IUpdateLoadDto, user: IUser): Promise<ILoad> => {
     try {
         const response = await apiClient.put<ILoad>(`${API_ENDPOINT}/${id}`, data);
         return response.data;
@@ -77,7 +78,7 @@ export const updateLoad = async (id: number, data: IUpdateLoadDto): Promise<ILoa
     }
 };
 
-export const deleteLoad = async (id: number): Promise<any> => {
+export const deleteLoad = async (id: number, user: IUser): Promise<any> => {
     try {
         const response = await apiClient.delete(`${API_ENDPOINT}/${id}`);
         return response.data;
