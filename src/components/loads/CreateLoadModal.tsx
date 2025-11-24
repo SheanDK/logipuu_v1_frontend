@@ -206,14 +206,17 @@ const onFormError = (errors: any) => { console.error("Form validation failed:", 
             }}
         >
             <DialogTitle
-                sx={{
+                 sx={{
                     display: 'flex',
                     alignItems: 'center',
                     gap: 1.5,
-                    bgcolor: headerSurface,
-                    color: headerTextColor,
+                    bgcolor: theme.palette.mode === 'light' 
+                        ? theme.palette.grey[100] // A light grey for light mode
+                        : alpha(theme.palette.primary.main, 0.35), // Your existing dark mode color
+                    color: theme.palette.text.primary, // Use the primary text color for both modes for consistency
                     py: 1.75,
-                    position: 'relative'
+                    position: 'relative',
+                    borderBottom: `1px solid ${theme.palette.divider}` // Add a subtle border
                 }}
             >
                 <LocalShippingIcon sx={{ fontSize: 28 }} />
