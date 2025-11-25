@@ -58,5 +58,14 @@
       "group": "purkupaikka-ikonin valinta",
       "sizeSlider": "purkupaikka-ikonin-koko-liukusäädin"
     }
+  },
+  "otherMarker": {
+    "title": "Muut Merkit",
+    "subheader": "Mukauta muiden merkkien kokoa",
+    "iconPreview": "Esikatselu koko",
+    "iconSize": "Kuvakkeen koko",
+    "aria": {
+      "sizeSlider": "Muiden merkkien koon liukusäädin"
+    }
   }
 }

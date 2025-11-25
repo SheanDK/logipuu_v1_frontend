@@ -58,5 +58,14 @@
       "group": "dropoff icon selection",
       "sizeSlider": "dropoff-icon-size-slider"
     }
+  },
+  "otherMarker": {
+    "title": "Other Markers",
+    "subheader": "Customize the size of other markers",
+    "iconPreview": "Preview Size",
+    "iconSize": "Icon Size",
+    "aria": {
+      "sizeSlider": "Other marker size slider"
+    }
   }
 }

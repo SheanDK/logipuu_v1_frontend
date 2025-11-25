@@ -12,14 +12,16 @@ import PictureAsPdfIcon from '@mui/icons-material/PictureAsPdf';
 import GridOnIcon from '@mui/icons-material/GridOn';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
-import * as XLSX from 'xlsx';
-import { useTranslation } from 'react-i18next'; // i18next hook 
+// වෙනස්කම 1: exceljs සහ file-saver import කිරීම
+import ExcelJS from 'exceljs';
+import { saveAs } from 'file-saver';
+import { useTranslation } from 'react-i18next'; 
 
 import { ILoadListItem } from '@/types';
 import i18n from '@/i18n/i18n';
 
 export default function LoadReportPage() {
-    const { t } = useTranslation(['loadReport', 'common']); // 'loadReport' namespace 
+    const { t } = useTranslation(['loadReport', 'common']);
     const [reportData, setReportData] = useState<ILoadListItem[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
@@ -45,7 +47,7 @@ export default function LoadReportPage() {
         } finally {
             setIsLoading(false);
         }
-    }, [t]); // t function 
+    }, [t]);
 
     const totalCubicMeters = useMemo(() => {
         const total = reportData.reduce((sum, item) => sum + (item.m3 || 0), 0);
@@ -116,36 +118,56 @@ export default function LoadReportPage() {
         };
     };
 
-    const handleDownloadExcel = () => {
-        const dataForExcel = reportData.map(item => ({
-            [t('table.headers.date')]: item.pvm,
-            [t('table.headers.driver')]: item.kuljettajanNimi || '-',
-            [t('table.headers.vehicle')]: item.rekNro || '-',
-            [t('table.headers.customer')]: item.asiakkaanNimi,
-            [t('table.headers.puulaani')]: item.puulaaniName || item.lahto || '-',
-            [t('table.headers.cubic')]: item.m3 || 0,
-            [t('table.headers.freight')]: item.km || 0,
-            [t('table.headers.additionalInfo')]: item.lisatiedot || '-'
-        }));
+    // වෙනස්කම 2: අලුත් handleDownloadExcel ෆන්ෂන් එක (Using ExcelJS)
+    const handleDownloadExcel = async () => {
+        const workbook = new ExcelJS.Workbook();
+        const worksheet = workbook.addWorksheet(t('excelSheetName') || 'Report');
 
-        const totalRow = {
-            [t('table.headers.date')]: '', [t('table.headers.driver')]: '', [t('table.headers.vehicle')]: '',
-            [t('table.headers.customer')]: '', [t('table.headers.puulaani')]: t('table.footer.total'),
-            [t('table.headers.cubic')]: parseFloat(totalCubicMeters),
-            [t('table.headers.freight')]: '', [t('table.headers.additionalInfo')]: ''
-        };
-        const emptyRowForSpacing = {
-            [t('table.headers.date')]: '', [t('table.headers.driver')]: '', [t('table.headers.vehicle')]: '',
-            [t('table.headers.customer')]: '', [t('table.headers.puulaani')]: '', [t('table.headers.cubic')]: '',
-            [t('table.headers.freight')]: '', [t('table.headers.additionalInfo')]: ''
-        };
+        // තීරු (Columns) සැකසීම
+        worksheet.columns = [
+            { header: t('table.headers.date'), key: 'date', width: 15 },
+            { header: t('table.headers.driver'), key: 'driver', width: 20 },
+            { header: t('table.headers.vehicle'), key: 'vehicle', width: 15 },
+            { header: t('table.headers.customer'), key: 'customer', width: 20 },
+            { header: t('table.headers.puulaani'), key: 'puulaani', width: 20 },
+            { header: t('table.headers.cubic'), key: 'cubic', width: 15 },
+            { header: t('table.headers.freight'), key: 'freight', width: 15 },
+            { header: t('table.headers.additionalInfo'), key: 'info', width: 25 },
+        ];
+
+        // Header එක Bold කිරීම
+        worksheet.getRow(1).font = { bold: true };
+
+        // දත්ත එකතු කිරීම (Adding Rows)
+        reportData.forEach((item) => {
+            worksheet.addRow({
+                date: item.pvm,
+                driver: item.kuljettajanNimi || '-',
+                vehicle: item.rekNro || '-',
+                customer: item.asiakkaanNimi,
+                puulaani: item.puulaaniName || item.lahto || '-',
+                cubic: item.m3 || 0,
+                freight: item.km || 0,
+                info: item.lisatiedot || '-'
+            });
+        });
+
+        // හිස් පේළියක්
+        worksheet.addRow({});
+
+        // එකතුව (Total Row)
+        const totalRow = worksheet.addRow({
+            puulaani: t('table.footer.total'),
+            cubic: parseFloat(totalCubicMeters)
+        });
         
-        const finalData = [...dataForExcel, emptyRowForSpacing, totalRow];
-        
-        const worksheet = XLSX.utils.json_to_sheet(finalData);
-        const workbook = XLSX.utils.book_new();
-        XLSX.utils.book_append_sheet(workbook, worksheet, t('excelSheetName'));
-        XLSX.writeFile(workbook, "load-report.xlsx");
+        // Total row එක Bold කිරීම
+        totalRow.font = { bold: true };
+
+        // ෆයිල් එක සාදා ඩවුන්ලෝඩ් කිරීම
+        const buffer = await workbook.xlsx.writeBuffer();
+        const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+        saveAs(blob, 'load-report.xlsx');
     };
 
     if (isLoading) { return <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}><CircularProgress /></Box>; }
@@ -160,14 +182,12 @@ export default function LoadReportPage() {
         <>
             <style jsx global>{`
                 @media print {
-                    
                     body * {
                         visibility: hidden;
                     }
                     .no-print {
                         display: none !important;
                     }
-                    
                     .printable-area, .printable-area * {
                         visibility: visible;
                     }
@@ -181,8 +201,6 @@ export default function LoadReportPage() {
                         padding: 20px; 
                         box-sizing: border-box;
                     }
-
-                    
                     .printable-area .MuiContainer-root {
                         max-width: none !important;
                         padding: 0 !important;
@@ -193,8 +211,6 @@ export default function LoadReportPage() {
                         padding: 0 !important;
                         background-color: transparent !important;
                     }
-
-                    
                     .printable-area .MuiTableContainer-root {
                         overflow: visible !important;
                     }
@@ -220,7 +236,6 @@ export default function LoadReportPage() {
                             color: #888;
                         }
                     }
-                    /* Initialize the counter */
                     .printable-area {
                         counter-reset: page;
                     }

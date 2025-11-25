@@ -16,10 +16,10 @@ interface LayoutState {
     mobileDrawerOpen: boolean;
     mapSettings: MapSettings;
     puulaaniIcon: PuulaaniIconType;
-    puulaaniIconSize: number; // <<< NEW STATE for icon size
+    puulaaniIconSize: number;
     dropoffIcon: DropoffIconType;
     dropoffIconSize: number;
-
+    otherMarkerIconSize: number;
 }
 
 interface LayoutContextType extends LayoutState {
@@ -29,9 +29,10 @@ interface LayoutContextType extends LayoutState {
     setMobileDrawerOpen: (open: boolean) => void;
     setMapCountry: (countryKey: string) => void;
     setPuulaaniIcon: (iconName: PuulaaniIconType) => void;
-    setPuulaaniIconSize: (size: number) => void; // <<< NEW FUNCTION
+    setPuulaaniIconSize: (size: number) => void;
     setDropoffIcon: (iconName: DropoffIconType) => void;
     setDropoffIconSize: (size: number) => void;
+    setOtherMarkerIconSize: (size: number) => void;
 }
 
 const LayoutContext = createContext<LayoutContextType | undefined>(undefined);
@@ -42,9 +43,11 @@ export const LayoutProvider = ({ children }: { children: ReactNode }) => {
     const [mobileDrawerOpen, setMobileDrawerOpen] = useState(false);
     const [mapSettingKey, setMapSettingKey] = useState<string>(DEFAULT_MAP_SETTING_KEY);
     const [puulaaniIcon, setPuulaaniIcon] = useState<PuulaaniIconType>('LocationOn');
-    const [puulaaniIconSize, setPuulaaniIconSize] = useState<number>(30); // <<< Default size
+    const [puulaaniIconSize, setPuulaaniIconSize] = useState<number>(30);
     const [dropoffIcon, setDropoffIcon] = useState<DropoffIconType>('Warehouse');
     const [dropoffIconSize, setDropoffIconSize] = useState<number>(22);
+    const [otherMarkerIconSize, setOtherMarkerIconSize] = useState<number>(22);
+
 
     useEffect(() => {
         const storedTheme = localStorage.getItem('themeMode') as PaletteMode | null;
@@ -67,13 +70,21 @@ export const LayoutProvider = ({ children }: { children: ReactNode }) => {
 
         const storedDropoffIconSize = localStorage.getItem('dropoffIconSize');
         if (storedDropoffIconSize) setDropoffIconSize(Number(storedDropoffIconSize));
+
+        const storedOtherMarkerIconSize = localStorage.getItem('otherMarkerIconSize');
+        if (storedOtherMarkerIconSize) setOtherMarkerIconSize(Number(storedOtherMarkerIconSize));
     }, []);
 
+    // --- Add persistence for all states ---
     useEffect(() => { localStorage.setItem('themeMode', themeMode); }, [themeMode]);
     useEffect(() => { localStorage.setItem('navLayout', navLayout); }, [navLayout]);
     useEffect(() => { localStorage.setItem('mapSettingKey', mapSettingKey); }, [mapSettingKey]);
     useEffect(() => { localStorage.setItem('puulaaniIcon', puulaaniIcon); }, [puulaaniIcon]);
+    useEffect(() => { localStorage.setItem('puulaaniIconSize', String(puulaaniIconSize)); }, [puulaaniIconSize]);
     useEffect(() => { localStorage.setItem('dropoffIcon', dropoffIcon); }, [dropoffIcon]);
+    useEffect(() => { localStorage.setItem('dropoffIconSize', String(dropoffIconSize)); }, [dropoffIconSize]);
+    useEffect(() => { localStorage.setItem('otherMarkerIconSize', String(otherMarkerIconSize)); }, [otherMarkerIconSize]);
+
 
     const toggleThemeMode = () => setThemeMode((prev) => (prev === 'light' ? 'dark' : 'light'));
     const toggleNavLayout = () => setNavLayout((prev) => (prev === 'left' ? 'top' : 'left'));
@@ -83,6 +94,8 @@ export const LayoutProvider = ({ children }: { children: ReactNode }) => {
     const handleSetPuulaaniIconSize = (size: number) => setPuulaaniIconSize(size);
     const handleSetDropoffIcon = (iconName: DropoffIconType) => setDropoffIcon(iconName);
     const handleSetDropoffIconSize = (size: number) => setDropoffIconSize(size);
+    const handleSetOtherMarkerIconSize = (size: number) => setOtherMarkerIconSize(size);
+
 
     const mapSettings = useMemo(() => {
         return countryMapSettings.find(c => c.key === mapSettingKey) || countryMapSettings.find(c => c.key === DEFAULT_MAP_SETTING_KEY)!;
@@ -99,6 +112,8 @@ export const LayoutProvider = ({ children }: { children: ReactNode }) => {
                 puulaaniIconSize,
                 dropoffIcon,
                 dropoffIconSize,
+                otherMarkerIconSize,
+
                 
                 setPuulaaniIcon: handleSetPuulaaniIcon,
                 setPuulaaniIconSize: handleSetPuulaaniIconSize,
@@ -109,6 +124,7 @@ export const LayoutProvider = ({ children }: { children: ReactNode }) => {
                 setMobileDrawerOpen,
                 setDropoffIcon: handleSetDropoffIcon,
                 setDropoffIconSize: handleSetDropoffIconSize,
+                setOtherMarkerIconSize: handleSetOtherMarkerIconSize,
             }}
         >
             {children}

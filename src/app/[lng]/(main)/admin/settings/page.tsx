@@ -17,6 +17,7 @@ import WarehouseIcon from '@mui/icons-material/Warehouse';
 import FactoryIcon from '@mui/icons-material/Factory';
 import LocalShippingIcon from '@mui/icons-material/LocalShipping';
 import BusinessIcon from '@mui/icons-material/Business';
+import HelpOutlineIcon from '@mui/icons-material/HelpOutline';
 
 import { useAuth } from '../../../../../contexts/AuthContext';
 import { useLayout, PuulaaniIconType, DropoffIconType } from '../../../../../contexts/LayoutContext';
@@ -57,6 +58,15 @@ const getDropoffIconComponent = (iconName: DropoffIconType) => {
     return icons[iconName] || WarehouseIcon;
 };
 
+const SettingCard = ({ title, subheader, children }: { title: string, subheader: string, children: React.ReactNode }) => (
+    <Card elevation={2} sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
+        <CardHeader title={title} subheader={subheader} />
+        <CardContent sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column' }}>
+            {children}
+        </CardContent>
+    </Card>
+);
+
 export default function AppSettingsPage() {
     const { user, isLoading: isAuthLoading } = useAuth();
     const { t } = useTranslation('settings');
@@ -66,7 +76,8 @@ export default function AppSettingsPage() {
         puulaaniIcon, setPuulaaniIcon,
         puulaaniIconSize, setPuulaaniIconSize,
         dropoffIcon, setDropoffIcon,
-        dropoffIconSize, setDropoffIconSize // <<< These were missing
+        dropoffIconSize, setDropoffIconSize, // <<< These were missing
+        otherMarkerIconSize, setOtherMarkerIconSize
     } = useLayout();
 
     const [tabIndex, setTabIndex] = useState(0);
@@ -100,6 +111,10 @@ export default function AppSettingsPage() {
 
     const handleDropoffIconSizeChange = (event: Event, newValue: number | number[]) => {
         setDropoffIconSize(newValue as number);
+    };
+
+    const handleOtherMarkerIconSizeChange = (event: Event, newValue: number | number[]) => {
+        setOtherMarkerIconSize(newValue as number);
     };
 
     useEffect(() => {
@@ -137,100 +152,108 @@ export default function AppSettingsPage() {
                 </Tabs>
             </Box>
 
-            <Box sx={{ flex: 1, minHeight: 0, overflowY: 'auto', overflowX: 'hidden', pr: 1 }}>
+            <Box sx={{ flex: 1, minHeight: 0, overflowY: 'auto', overflowX: 'hidden', pr: 1, pl: 0.5 }}>
                 <TabPanel value={tabIndex} index={0}>
                     <RolesAndPermissionsTab setFeedback={setFeedback} />
                 </TabPanel>
 
-
                 <TabPanel value={tabIndex} index={1}>
+                    {/* --- THE FIX IS HERE: A cleaner, more structured Grid layout --- */}
                     <Box
                         sx={{
                             display: 'grid',
                             gap: 3,
-                            gridTemplateColumns: { xs: '1fr', lg: '1fr 1fr 1fr' },
+                            // Two columns on medium screens, one column on small screens
+                            gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' },
                         }}
                     >
-                        <Box>
-                            <Card elevation={2}>
-                                <CardHeader title={t('map.defaultView.title')} subheader={t('map.defaultView.subheader')} />
-                                <CardContent>
-                                    <FormControl fullWidth sx={{ maxWidth: 400 }}>
-                                        <InputLabel>{t('map.defaultCountry.label')}</InputLabel>
-                                        <Select label={t('map.defaultCountry.label')} value={mapSettings.key} onChange={handleMapCountryChange}>
-                                            {countryMapSettings.map((country) => (
-                                                <MenuItem key={country.key} value={country.key}>
-                                                    {t(`map.countries.${country.key}`, { defaultValue: country.name ?? country.key })}
-                                                </MenuItem>
-                                            ))}
-                                        </Select>
-                                    </FormControl>
-                                </CardContent>
-                            </Card>
-                        </Box>
-                        <Box>
-                            <Card elevation={2}>
-                                <CardHeader title={t('puulaani.title')} subheader={t('puulaani.subheader')} />
-                                <CardContent>
-                                    <Stack direction={{ xs: 'column', sm: 'row' }} spacing={4} alignItems="center">
-                                        <Box textAlign="center">
-                                            <Typography variant="subtitle2" gutterBottom>{t('puulaani.iconPreview')}</Typography>
-                                            <PuulaaniPreviewIcon sx={{ fontSize: `${puulaaniIconSize}px`, color: '#C1A78E' }} />
-                                        </Box>
-                                        <Divider orientation="vertical" flexItem />
-                                        <Box flexGrow={1}>
-                                            <Typography variant="subtitle2" gutterBottom>{t('puulaani.selectIcon')}</Typography>
-                                            <ToggleButtonGroup value={puulaaniIcon} exclusive onChange={handlePuulaaniIconChange} aria-label={t('puulaani.aria.group')}>
-                                                <ToggleButton value="LocationOn" aria-label="location pin"><Tooltip title={t('puulaani.icons.locationOn')}><LocationOnIcon /></Tooltip></ToggleButton>
-                                                <ToggleButton value="Forest" aria-label="forest"><Tooltip title={t('puulaani.icons.forest')}><ForestIcon /></Tooltip></ToggleButton>
-                                                <ToggleButton value="Room" aria-label="pin"><Tooltip title={t('puulaani.icons.room')}><RoomIcon /></Tooltip></ToggleButton>
-                                                <ToggleButton value="FmdGood" aria-label="good pin"><Tooltip title={t('puulaani.icons.fmdGood')}><FmdGoodIcon /></Tooltip></ToggleButton>
-                                                <ToggleButton value="PinDrop" aria-label="drop pin"><Tooltip title={t('puulaani.icons.pinDrop')}><PinDropIcon /></Tooltip></ToggleButton>
-                                            </ToggleButtonGroup>
-                                            <Typography variant="subtitle2" gutterBottom sx={{ mt: 2 }}>{t('puulaani.iconSize')}</Typography>
-                                            <Slider
-                                                value={puulaaniIconSize}
-                                                onChange={handlePuulaaniIconSizeChange}
-                                                aria-label={t('puulaani.aria.sizeSlider')}
-                                                valueLabelDisplay="auto"
-                                                step={2} marks min={30} max={60}
-                                            />
-                                        </Box>
-                                    </Stack>
-                                </CardContent>
-                            </Card>
-                        </Box>
-                        <Box >
-                            <Card elevation={2}>
-                                <CardHeader title={t('dropoff.title')} subheader={t('dropoff.subheader')} />
-                                <CardContent>
-                                    <Stack direction={{ xs: 'column', sm: 'row' }} spacing={4} alignItems="center">
-                                        <Box textAlign="center">
-                                            <Typography variant="subtitle2" gutterBottom>{t('dropoff.iconPreview')}</Typography>
-                                            <DropoffPreviewIcon sx={{ fontSize: `${dropoffIconSize}px`, color: 'text.secondary' }} />
-                                        </Box>
-                                        <Divider orientation="vertical" flexItem />
-                                        <Box flexGrow={1}>
-                                            <Typography variant="subtitle2" gutterBottom>{t('dropoff.selectIcon')}</Typography>
-                                            <ToggleButtonGroup value={dropoffIcon} exclusive onChange={handleDropoffIconChange} aria-label={t('dropoff.aria.group')}>
-                                                <ToggleButton value="Warehouse" aria-label="warehouse"><Tooltip title={t('dropoff.icons.warehouse')}><WarehouseIcon /></Tooltip></ToggleButton>
-                                                <ToggleButton value="Factory" aria-label="factory"><Tooltip title={t('dropoff.icons.factory')}><FactoryIcon /></Tooltip></ToggleButton>
-                                                <ToggleButton value="LocalShipping" aria-label="shipping truck"><Tooltip title={t('dropoff.icons.localShipping')}><LocalShippingIcon /></Tooltip></ToggleButton>
-                                                <ToggleButton value="Business" aria-label="business"><Tooltip title={t('dropoff.icons.business')}><BusinessIcon /></Tooltip></ToggleButton>
-                                            </ToggleButtonGroup>
-                                            <Typography variant="subtitle2" gutterBottom sx={{ mt: 2 }}>{t('dropoff.iconSize')}</Typography>
-                                            <Slider
-                                                value={dropoffIconSize}
-                                                onChange={handleDropoffIconSizeChange}
-                                                aria-label={t('dropoff.aria.sizeSlider')}
-                                                valueLabelDisplay="auto"
-                                                step={2} marks min={30} max={50}
-                                            />
-                                        </Box>
-                                    </Stack>
-                                </CardContent>
-                            </Card>
-                        </Box>
+                        {/* --- ROW 1 --- */}
+                        <SettingCard title={t('puulaani.title')} subheader={t('puulaani.subheader')}>
+                            <Stack direction="row" spacing={3} alignItems="center" sx={{ flexGrow: 1 }}>
+                                <Box textAlign="center" sx={{ p: 2, borderRight: '1px solid', borderColor: 'divider' }}>
+                                    <Typography variant="subtitle2" gutterBottom>{t('puulaani.iconPreview')}</Typography>
+                                    <PuulaaniPreviewIcon sx={{ fontSize: `${puulaaniIconSize}px`, color: '#C1A78E', mt: 1 }} />
+                                </Box>
+                                <Box flexGrow={1}>
+                                    <Typography variant="subtitle2" gutterBottom>{t('puulaani.selectIcon')}</Typography>
+                                    <ToggleButtonGroup value={puulaaniIcon} exclusive onChange={handlePuulaaniIconChange} aria-label={t('puulaani.aria.group')}>
+                                            <ToggleButton value="LocationOn" aria-label="location pin"><Tooltip title={t('puulaani.icons.locationOn')}><LocationOnIcon /></Tooltip></ToggleButton>
+                                            <ToggleButton value="Forest" aria-label="forest"><Tooltip title={t('puulaani.icons.forest')}><ForestIcon /></Tooltip></ToggleButton>
+                                            <ToggleButton value="Room" aria-label="pin"><Tooltip title={t('puulaani.icons.room')}><RoomIcon /></Tooltip></ToggleButton>
+                                            <ToggleButton value="FmdGood" aria-label="good pin"><Tooltip title={t('puulaani.icons.fmdGood')}><FmdGoodIcon /></Tooltip></ToggleButton>
+                                            <ToggleButton value="PinDrop" aria-label="drop pin"><Tooltip title={t('puulaani.icons.pinDrop')}><PinDropIcon /></Tooltip></ToggleButton>
+                                        </ToggleButtonGroup>
+                                    <Typography variant="subtitle2" gutterBottom sx={{ mt: 2.5 }}>{t('puulaani.iconSize')}</Typography>
+                                    <Slider value={puulaaniIconSize} onChange={handlePuulaaniIconSizeChange} aria-label={t('puulaani.aria.sizeSlider')} valueLabelDisplay="auto" step={2} marks min={28} max={50} />
+                                </Box>
+                            </Stack>
+                        </SettingCard>
+                        
+                        <SettingCard title={t('dropoff.title')} subheader={t('dropoff.subheader')}>
+                             <Stack direction="row" spacing={3} alignItems="center" sx={{ flexGrow: 1 }}>
+                                <Box textAlign="center" sx={{ p: 2, borderRight: '1px solid', borderColor: 'divider' }}>
+                                    <Typography variant="subtitle2" gutterBottom>{t('dropoff.iconPreview')}</Typography>
+                                    <DropoffPreviewIcon sx={{ fontSize: `${dropoffIconSize}px`, color: 'text.secondary', mt: 1 }} />
+                                </Box>
+                                <Box flexGrow={1}>
+                                    <Typography variant="subtitle2" gutterBottom>{t('dropoff.selectIcon')}</Typography>
+                                    <ToggleButtonGroup value={dropoffIcon} exclusive onChange={handleDropoffIconChange} aria-label={t('dropoff.aria.group')}>
+                                            <ToggleButton value="Warehouse" aria-label="warehouse"><Tooltip title={t('dropoff.icons.warehouse')}><WarehouseIcon /></Tooltip></ToggleButton>
+                                            <ToggleButton value="Factory" aria-label="factory"><Tooltip title={t('dropoff.icons.factory')}><FactoryIcon /></Tooltip></ToggleButton>
+                                            <ToggleButton value="LocalShipping" aria-label="shipping truck"><Tooltip title={t('dropoff.icons.localShipping')}><LocalShippingIcon /></Tooltip></ToggleButton>
+                                            <ToggleButton value="Business" aria-label="business"><Tooltip title={t('dropoff.icons.business')}><BusinessIcon /></Tooltip></ToggleButton>
+                                        </ToggleButtonGroup>
+                                    <Typography variant="subtitle2" gutterBottom sx={{ mt: 2.5 }}>{t('dropoff.iconSize')}</Typography>
+                                    <Slider value={dropoffIconSize} onChange={handleDropoffIconSizeChange} aria-label={t('dropoff.aria.sizeSlider')} valueLabelDisplay="auto" step={2} marks min={26} max={50} />
+                                </Box>
+                            </Stack>
+                        </SettingCard>
+
+                        {/* --- ROW 2 --- */}
+                         <SettingCard 
+                            title={t('otherMarker.title')} 
+                            subheader={t('otherMarker.subheader')}
+                        >
+                             <Stack direction="row" spacing={3} alignItems="center" sx={{ flexGrow: 1 }}>
+                                <Box textAlign="center" sx={{ p: 2, borderRight: '1px solid', borderColor: 'divider' }}>
+                                    <Typography variant="subtitle2" gutterBottom>
+                                        {t('otherMarker.iconPreview')}
+                                    </Typography>
+                                    <HelpOutlineIcon sx={{ 
+                                        fontSize: `${otherMarkerIconSize}px`, 
+                                        color: 'text.secondary', mt: 1 
+                                    }} />
+                                </Box>
+                                <Box flexGrow={1}>
+                                    <Typography variant="subtitle2" gutterBottom>
+                                        {t('otherMarker.iconSize')}
+                                    </Typography>
+                                    <Slider 
+                                        value={otherMarkerIconSize} 
+                                        onChange={handleOtherMarkerIconSizeChange} 
+                                        aria-label={t('otherMarker.aria.sizeSlider')} 
+                                        valueLabelDisplay="auto" 
+                                        step={2} 
+                                        marks 
+                                        min={22} 
+                                        max={48} 
+                                    />
+                                </Box>
+                            </Stack>
+                        </SettingCard>
+
+                        <SettingCard title={t('map.defaultView.title')} subheader={t('map.defaultView.subheader')}>
+                            <FormControl fullWidth sx={{ maxWidth: 400, mt: 2 }}>
+                                <InputLabel>{t('map.defaultCountry.label')}</InputLabel>
+                                <Select label={t('map.defaultCountry.label')} value={mapSettings.key} onChange={handleMapCountryChange}>
+                                    {countryMapSettings.map((country) => (
+                                        <MenuItem key={country.key} value={country.key}>
+                                            {t(`map.countries.${country.key}`, { defaultValue: country.name ?? country.key })}
+                                        </MenuItem>
+                                    ))}
+                                </Select>
+                            </FormControl>
+                        </SettingCard>
                     </Box>
                 </TabPanel>
             </Box>
