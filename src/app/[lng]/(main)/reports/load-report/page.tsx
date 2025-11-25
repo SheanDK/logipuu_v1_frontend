@@ -1,3 +1,4 @@
+//frontend/src/app/(main)/reports/load-reports/page.tsx
 'use client';
 
 import React, { useEffect, useState, useMemo } from 'react';
@@ -12,7 +13,6 @@ import PictureAsPdfIcon from '@mui/icons-material/PictureAsPdf';
 import GridOnIcon from '@mui/icons-material/GridOn';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
-// වෙනස්කම 1: exceljs සහ file-saver import කිරීම
 import ExcelJS from 'exceljs';
 import { saveAs } from 'file-saver';
 import { useTranslation } from 'react-i18next'; 
