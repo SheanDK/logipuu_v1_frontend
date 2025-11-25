@@ -9,7 +9,7 @@ import ForestIcon from '@mui/icons-material/Forest';
 import dayjs from 'dayjs';
 import 'leaflet/dist/leaflet.css';
 import L, { Map } from 'leaflet';
-import { MapContainer, TileLayer, LayersControl, FeatureGroup, useMapEvents, useMap } from 'react-leaflet';
+import { MapContainer, TileLayer, LayersControl, FeatureGroup, useMap } from 'react-leaflet';
 
 import { useAuth } from '../../../../contexts/AuthContext';
 import { useLayout } from '../../../../contexts/LayoutContext';

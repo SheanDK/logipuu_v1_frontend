@@ -2,7 +2,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { Box, Paper, Typography, Stack, Button, IconButton, Chip, Divider, CircularProgress, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Checkbox, Alert } from '@mui/material';
+import { Box, Paper, Typography, Stack, Button, IconButton, Chip, CircularProgress, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Checkbox, Alert } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
 import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline';
 import EditIcon from '@mui/icons-material/Edit';
@@ -10,7 +10,7 @@ import SaveIcon from '@mui/icons-material/Save';
 import DeleteIcon from '@mui/icons-material/Delete';
 import PlayCircleOutlineIcon from '@mui/icons-material/PlayCircleOutline';
 import { useAuth } from '@/contexts/AuthContext';
-import { IWoodEntry, PuulaaniDetails } from '@/types';
+import { PuulaaniDetails } from '@/types';
 import { useTranslation } from 'react-i18next';
 import { alpha, useTheme } from '@mui/material/styles';
 
