@@ -181,14 +181,31 @@ export default function TimberStacksPage() {
         setIsSaving(true);
         const { type, item } = deleteConfirmation;
         try {
-            if (type === 'Puulaani') await deactivateTimberStack(item.id); 
-            else if (type === 'Purkupaikka') await deleteDropoffLocation(item.id);
-            else if (type === 'Muu merkki') await deleteOtherMarker(item.id);
+            let successMessageKey = ''; // Variable to hold the correct translation key
+
+            if (type === 'Puulaani') {
+                await deactivateTimberStack(item.id); 
+                successMessageKey = 'messages.archived'; // Use 'archived' for soft-delete
+            } else if (type === 'Purkupaikka') {
+                await deleteDropoffLocation(item.id);
+                successMessageKey = 'messages.deleted'; // Use 'deleted' for hard-delete
+            } else if (type === 'Muu merkki') {
+                await deleteOtherMarker(item.id);
+                successMessageKey = 'messages.deleted'; // Use 'deleted' for hard-delete
+            }
             
-            setSnackbar({ open: true, message: t('messages.archived', { type: typeLabel(type), name: item.name }), severity: 'success' });
+            // --- THE FIX IS HERE ---
+            // Use the determined key to show the correct snackbar message.
+            setSnackbar({ 
+                open: true, 
+                message: t(successMessageKey, { type: typeLabel(type), name: item.name }), 
+                severity: 'success' 
+            });
+            
             await reloadData();
+
         } catch (err: any) {
-            const errorMsg = err.response?.data?.message || t('errors.deleteFailed');
+            const errorMsg = err.response?.data?.message || t('errors.deleteFailed', { type: typeLabel(type) });
             setSnackbar({ open: true, message: errorMsg, severity: 'error' });
         } finally {
             setIsSaving(false);

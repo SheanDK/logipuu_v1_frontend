@@ -7,6 +7,7 @@ import { Box, Typography, Button, Divider } from '@mui/material';
 import { getMuuMerkkiIcon } from '../../../utils/mapUtils';
 import { IMapOtherMarker } from '../../../types';
 import { useTranslation } from '@/i18n/useTranslation';
+import { useLayout } from '@/contexts/LayoutContext';
 
 interface MuuMerkkiMarkerProps {
     marker: IMapOtherMarker;
@@ -15,7 +16,8 @@ interface MuuMerkkiMarkerProps {
 }
 
 const MuuMerkkiMarker: React.FC<MuuMerkkiMarkerProps> = ({ marker, onEdit, onDelete }) => {
-    const icon = getMuuMerkkiIcon(marker);
+    const { otherMarkerIconSize = 22 } = useLayout() as any; 
+    const icon = getMuuMerkkiIcon(marker, otherMarkerIconSize, marker.color); 
     const { t } = useTranslation(['muuMerkkiMarker', 'common'])
 
     return (

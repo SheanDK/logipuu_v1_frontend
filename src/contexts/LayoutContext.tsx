@@ -31,7 +31,7 @@ interface LayoutContextType extends LayoutState {
     setPuulaaniIcon: (iconName: PuulaaniIconType) => void;
     setPuulaaniIconSize: (size: number) => void; // <<< NEW FUNCTION
     setDropoffIcon: (iconName: DropoffIconType) => void;
-     setDropoffIconSize: (size: number) => void;
+    setDropoffIconSize: (size: number) => void;
 }
 
 const LayoutContext = createContext<LayoutContextType | undefined>(undefined);
@@ -44,7 +44,7 @@ export const LayoutProvider = ({ children }: { children: ReactNode }) => {
     const [puulaaniIcon, setPuulaaniIcon] = useState<PuulaaniIconType>('LocationOn');
     const [puulaaniIconSize, setPuulaaniIconSize] = useState<number>(30); // <<< Default size
     const [dropoffIcon, setDropoffIcon] = useState<DropoffIconType>('Warehouse');
-    const [dropoffIconSize, setDropoffIconSize] = useState<number>(30);
+    const [dropoffIconSize, setDropoffIconSize] = useState<number>(22);
 
     useEffect(() => {
         const storedTheme = localStorage.getItem('themeMode') as PaletteMode | null;

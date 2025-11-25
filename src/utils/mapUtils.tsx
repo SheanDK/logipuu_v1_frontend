@@ -66,11 +66,9 @@ const forceSvgColor = (
  * @returns Leaflet DivIcon ready to use in markers.
  */
 
-export const getPuulaaniIcon = (
-  color: string | null,
-  iconName: PuulaaniIconType,
-  iconSize: number
-): L.DivIcon => {
+export const getPuulaaniIcon = (color: string | null, iconName: PuulaaniIconType, iconSize: number): L.DivIcon => {
+  const MIN_PUULAANI_SIZE = 28;
+  const finalSize = Math.max(iconSize, MIN_PUULAANI_SIZE); // Use the larger of the two sizes
   const safeColor = normalizeColor(color);
 
   const icons: Record<PuulaaniIconType, React.ElementType> = {
@@ -89,8 +87,8 @@ export const getPuulaaniIcon = (
 // Simple wrapper so anchoring and shadow look good on the map.
   const html = `
     <div style="
-      width:${iconSize}px;
-      height:${iconSize}px;
+      width:${finalSize}px;
+      height:${finalSize}px;
       display:grid;
       place-items:center;
       filter:drop-shadow(0 2px 4px rgba(0,0,0,.45)); 
@@ -102,9 +100,9 @@ export const getPuulaaniIcon = (
   return L.divIcon({
     className: 'custom-puulaani-icon',
     html,
-    iconSize: [iconSize, iconSize],
-    iconAnchor: [iconSize / 2, iconSize],   // bottom-center for MUI pin-like icons
-    popupAnchor: [0, -iconSize],            // popup opens above the icon
+    iconSize: [finalSize, finalSize],
+    iconAnchor: [finalSize / 2, finalSize],   // bottom-center for MUI pin-like icons
+    popupAnchor: [0, -finalSize],            // popup opens above the icon
   });
 };
 
@@ -121,9 +119,11 @@ export const getPuulaaniIcon = (
  */
 
 export const purkupaikkaIcon = (iconName: DropoffIconType, iconSize: number): L.DivIcon => {
-  const ringColor = '#ff0303ff';         // ring color
-  const backgroundColor = '#fdfdfd42';   // bubble background
-  const houseColor = '#ff0303ff';        // inner element color
+  const MIN_DROPOFF_SIZE = 20;
+  const finalSize = Math.max(iconSize, MIN_DROPOFF_SIZE); // Use the larger size
+  const ringColor = '#c62828';
+  const backgroundColor = '#ffffff';
+  const houseColor = '#c62828';      // inner element color
 
   const icons: Record<DropoffIconType, React.ElementType> = {
     Warehouse: MuiIcons.Warehouse,
@@ -134,52 +134,45 @@ export const purkupaikkaIcon = (iconName: DropoffIconType, iconSize: number): L.
   const Icon = icons[iconName] || MuiIcons.Warehouse;
 
 
-  // Geometry:
-  // ring = border thickness, pad = inner padding so glyph doesn't hit the ring,
-  // inner = actual glyph (SVG) size that fits inside.
+  const ring = 2;
+  // --- FIX 3: Calculate padding and inner size based on finalSize ---
+  const pad  = Math.max(2, Math.round(finalSize * 0.1));
+  const inner = Math.max(8, finalSize - 2 * (ring + pad));
 
-  const ring = 2;                                         // border thickness in px
-  const pad  = Math.max(2, Math.round(iconSize * 0.08));  // ~8% inner padding
-  const inner = Math.max(8, iconSize - 2 * (ring + pad)); // computed inner glyph size
+  const raw = renderToStaticMarkup(React.createElement(Icon, { style: { fontSize: inner, transform: 'rotate(45deg)' } }));
+  const coloredSvg = forceSvgColor(raw, houseColor, 'none', 0);
 
-  // Render MUI icon and force color directly on the SVG markup.
-  const raw = renderToStaticMarkup(
-    React.createElement(Icon, { style: { fontSize: inner, transform: 'rotate(45deg)' } })
-  );
-  const whiteSvg = forceSvgColor(raw, houseColor);       // käytä forceSvgColor-apuria
-
-
-  // The outer wrapper is rotated -45deg to create the "pin" shape; the inner
-  // SVG is rotated back +45deg so it appears upright to the user.
-  // box-sizing:border-box ensures total width/height == iconSize including border/padding.
   const html = `
     <div style="
-      width:${iconSize}px;height:${iconSize}px;
-      box-sizing:border-box;                 /* width/height include padding + border */
-      padding:${pad}px;                       /* keep the inner element off the ring */
+      width:${finalSize}px; height:${finalSize}px;
+      box-sizing:border-box;
+      padding:${pad}px;
       background:${backgroundColor};
       border:${ring}px solid ${ringColor};
       border-radius:50% 50% 50% 0; transform:rotate(-45deg);
       display:flex;align-items:center;justify-content:center;
       box-shadow:0 2px 5px rgba(0,0,0,0.4);
     ">
-      ${whiteSvg}
+      ${coloredSvg}
     </div>
   `;
 
- // Because of border-box, the outer size is exactly iconSize x iconSize.
   return L.divIcon({
     className: 'custom-purkupaikka-icon',
     html,
-    iconSize: [iconSize, iconSize],
-    iconAnchor: [iconSize / 2, iconSize], 
-    popupAnchor: [0, -iconSize],
+    // --- FIX 4: Use finalSize for all dimensions ---
+    iconSize: [finalSize, finalSize],
+    iconAnchor: [finalSize / 2, finalSize], 
+    popupAnchor: [0, -finalSize],
   });
 };
 
 
 // MuuMerkkiIcon (Other Marker) – white glyph inside, colored square background
-export const getMuuMerkkiIcon = (marker: IMapOtherMarker): L.DivIcon => {
+export const getMuuMerkkiIcon = (marker: IMapOtherMarker, iconSize: number, color: string): L.DivIcon => {
+  const MIN_OTHER_SIZE = 24;
+  const finalSize = Math.max(iconSize, MIN_OTHER_SIZE);
+
   // Resolve the MUI icon component by name; fallback to a help icon
   let IconComponent: React.ElementType = MuiIcons.HelpOutline;
   if (marker.iconType && MuiIcons[marker.iconType as keyof typeof MuiIcons]) {
@@ -190,29 +183,30 @@ export const getMuuMerkkiIcon = (marker: IMapOtherMarker): L.DivIcon => {
 
   // Background (tile) color taken from marker; default to a neutral gray
   const bgColor = normalizeColor(marker.color ?? '#424242', '#424242');
-
-  // Sizes for the square badge and the glyph inside it
-  const BOX_SIZE = 34;           // total badge size (px), including border
-  const ICON_SIZE = 22;          // inner glyph size (px)
-  const BORDER_PX = 2;           // outer white border thickness
-  const pad  = Math.max(2, Math.round(ICON_SIZE * 0.15));
+  const innerIconSize = Math.round(finalSize * 0.65);
+  const borderPx = 2;
+  // // Sizes for the square badge and the glyph inside it
+  // const BOX_SIZE = 34;           // total badge size (px), including border
+  // const ICON_SIZE = 22;          // inner glyph size (px)
+  // const BORDER_PX = 2;           // outer white border thickness
+  // // const pad  = Math.max(2, Math.round(ICON_SIZE * 0.15));
 
   // Render the MUI icon to SVG markup and FORCE it to white
   const rawSvg = renderToStaticMarkup(
-    React.createElement(IconComponent, { style: { fontSize: ICON_SIZE } })
+    React.createElement(IconComponent, { style: { fontSize: innerIconSize, color: 'white'} })
   );
   const whiteSvg = forceSvgColor(rawSvg, '#ffffff', '#ffffff', 0.6);
 
   // Square badge with rounded corners and a subtle shadow
   const html = `
     <div style="
-      width:${BOX_SIZE}px; height:${BOX_SIZE}px;
+      width:${finalSize}px; height:${finalSize}px;
       background:${bgColor};
       border-radius:8px;
-      padding:${pad}px;
       display:flex; align-items:center; justify-content:center;
       box-shadow:0 2px 5px rgba(0,0,0,0.4);
-      border:${BORDER_PX}px solid #ffffff;
+      border:${borderPx}px solid #ffffff;
+      box-sizing: border-box;
     ">
       ${whiteSvg}
     </div>
@@ -221,9 +215,9 @@ export const getMuuMerkkiIcon = (marker: IMapOtherMarker): L.DivIcon => {
   return L.divIcon({
     html,
     className: 'custom-muu-merkki-icon',
-    iconSize: [BOX_SIZE, BOX_SIZE],       // total visual footprint
-    iconAnchor: [BOX_SIZE / 2, BOX_SIZE],  // bottom center
-    popupAnchor: [0, -BOX_SIZE],           // popup above the badge
+    iconSize: [finalSize, finalSize],
+    iconAnchor: [finalSize / 2, finalSize],
+    popupAnchor: [0, -finalSize],          // popup above the badge
   });
 };
 
