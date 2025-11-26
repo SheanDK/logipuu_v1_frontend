@@ -306,6 +306,8 @@ export default function TripMap({
             style={{ height: '100%', width: '100%' }}
             className={isDarkMode ? 'leaflet-dark' : undefined}
             zoomControl={false}
+            minZoom={6}
+            maxZoom={20}
         >
             <ZoomControl position="bottomleft" />
 
