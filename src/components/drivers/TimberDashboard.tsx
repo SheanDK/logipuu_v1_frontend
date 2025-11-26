@@ -413,6 +413,7 @@ export default function TimberDashboard({ onBackAction }: TimberDashboardProps) 
 
             await updateTimberEntryStatus(updatedDetails.puulaani.puulaaniId, payload);
             enqueueSnackbar(t('toasts.statusesUpdated'), { variant: 'success' });
+            fetchMapData();
             handleMapMarkerClick(updatedDetails.puulaani.puulaaniId);
             openDetailsPanel(updatedDetails.puulaani.puulaaniId);
 
