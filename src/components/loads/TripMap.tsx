@@ -195,6 +195,7 @@ export interface TripLegForMap {
     destinationName?: string;
     destinationCoords?: { lat: number; lng: number; } | null;
     color?: string;
+    customer?: { clientName: string }
 }
 
 export interface TripMapProps {
@@ -344,10 +345,10 @@ export default function TripMap({
                  {/* --- Overlays --- */}
                 <LayersControl.Overlay checked={markerFilters.showPuulaanit} name={t('layers.puulaanit', 'Timber Sites')}>
                     <LayerGroup>
-                        {puulaanit.map((trip) => (
+                        {puulaanit.map((trip, index) => (
                             trip.originCoords && (
                                 <Marker
-                                    key={`puulaani-${trip.kuormaId}`}
+                                    key={`puulaani-${trip.kuormaId || index}`}
                                     position={[trip.originCoords.lat, trip.originCoords.lng]}
                                     icon={
                                         focusedTripId === trip.kuormaId 
@@ -356,8 +357,17 @@ export default function TripMap({
                                     }
                                     eventHandlers={{ click: (e) => onMarkerClickAction(trip.kuormaId, e) }}
                                 >
-                                    <Popup>{trip.originName}</Popup>
-                                </Marker>
+                                    {/* --- FIX 1: Add the customer name to the popup content --- */}
+                                    <Popup>
+                            <Box>
+                                <Typography variant="subtitle1" sx={{ fontWeight: 'bold' }}>{trip.originName}</Typography>
+                                <Typography variant="body2" color="text.secondary">
+                                     {/* Assumes 'customer' property exists on the trip object, as mapped in TimberDashboard */}
+                                    {t('popup.clientLabel')}: <strong>{trip.customer?.clientName || 'N/A'}</strong>
+                                </Typography>
+                            </Box>
+                        </Popup>
+                    </Marker>
                             )
                         ))}
                     </LayerGroup>
@@ -425,7 +435,15 @@ export default function TripMap({
                             click: (e) => onMarkerClickAction(trip.kuormaId, e) 
                         }}
                     >
-                        <Popup>{trip.originName}</Popup>
+                        {/* --- FIX 2: Add the customer name to the general Puulaani popup content --- */}
+                        <Popup>
+                            <Box>
+                                <Typography variant="subtitle1" sx={{ fontWeight: 'bold' }}>{trip.originName}</Typography>
+                                <Typography variant="body2" color="text.secondary">
+                                    {t('popup.clientLabel')}: <strong>{trip.customer?.clientName || 'N/A'}</strong>
+                                </Typography>
+                            </Box>
+                        </Popup>
                     </Marker>
                 )
             ))}

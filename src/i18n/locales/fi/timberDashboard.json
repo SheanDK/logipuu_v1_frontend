@@ -51,6 +51,13 @@
                     "mapView":  "Karttanäkymä",
                     "showActiveTrip":  "Näytä aktiivinen ajo"
                 },
+    "titles": {
+                    "timberSites": "Puupaikat"
+                },
+                    "stats": {
+                        "total": "Yhteensä",
+                        "rem": "Jäljellä"
+                },
     "dialogs":  {
                     "delete":  {
                                    "title":  "Vahvista kuorman poisto",

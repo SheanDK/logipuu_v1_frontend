@@ -2,12 +2,16 @@
 'use client';
 
 import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
-import { Box, Paper, CircularProgress, Alert, Button, Stack, List, ListItemText, Divider, Typography, ListItemButton, SpeedDial, SpeedDialAction, SpeedDialIcon } from '@mui/material';
+import { Box, Paper, CircularProgress, Alert, Button, Stack, List, ListItemText, Divider, Typography, ListItemButton, SpeedDial, SpeedDialAction, SpeedDialIcon, Card, CardActionArea, CardContent } from '@mui/material';
 import { useTheme, alpha } from '@mui/material/styles';
 import MapIcon from '@mui/icons-material/Map';
 import ListIcon from '@mui/icons-material/List';
 import RestoreIcon from '@mui/icons-material/Restore';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
+import FactoryIcon from '@mui/icons-material/Factory';
+import Inventory2Icon from '@mui/icons-material/Inventory2';
+import LocalShippingIcon from '@mui/icons-material/LocalShipping';
+
 import dynamic from 'next/dynamic';
 import { io, Socket } from 'socket.io-client';
 import { useDriverSession } from '@/contexts/DriverSessionContext';
@@ -17,12 +21,13 @@ import { useTranslation } from 'react-i18next';
 
 // --- Types ---
 import { TripMapProps, TripLegForMap } from '../loads/TripMap';
-import { PuulaaniDetails, ICreateLoadDto, LoadTypeEnum } from '@/types';
+import { PuulaaniDetails, ICreateLoadDto, LoadTypeEnum, IMapFilterState, IWoodEntry, IMapTimberStack } from '@/types';
 
 // --- Services ---
 import { getDriverMapData, DriverMapData, getActiveTripForDriver, updateTimberEntryStatus } from '@/services/driverViewService';
 import { getTimberStackFullDetails } from '@/services/timberStackService';
 import { createBulkLoad, deleteLoad, getLoadForEdit, updateLoad, updateLoadStatus, updateTripStatus } from '@/services/loadService';
+import { useMapData } from '@/hooks/useMapData'; // Ensure this hook is imported
 
 // --- Child Components ---
 const TripMap = dynamic<TripMapProps>(
@@ -42,7 +47,19 @@ const ActiveTripPanel = dynamic(() => import('./ActiveTripPanel'), { ssr: false 
 const ConfirmationDialog = dynamic(() => import('../common/ConfirmationDialog'), { ssr: false });
 const ActiveTripDetailsModal = dynamic(() => import('./ActiveTripDetailsModal'), { ssr: false });
 
-// --- Inner Components (Defined outside the main component to prevent re-creation) ---
+// --- HELPER FUNCTION: Calculate totals from entries ---
+// const calculateTotalsFromEntries = (entries: IWoodEntry[]) => {
+//     if (!entries || entries.length === 0) {
+//         return { total: 0, hauled: 0, remaining: 0 };
+//     }
+//     const total = entries.reduce((sum, entry) => sum + (Number(entry.kuutiot) || 0), 0);
+//     const hauled = entries.reduce((sum, entry) => sum + (Number(entry.haettu) || 0), 0);
+//     const remaining = total - hauled;
+    
+//     return { total, hauled, remaining };
+// };
+
+// --- Inner Components ---
 
 const MapView = ({ puulaanit, purkupaikat, activeTripLegs, onMarkerClick, currentLocation, focusedPuulaaniId, onFocusComplete, markerFilters, onFilterChangeAction }: {
     puulaanit: TripLegForMap[],
@@ -68,36 +85,100 @@ const MapView = ({ puulaanit, purkupaikat, activeTripLegs, onMarkerClick, curren
     />);
 };
 
-const ListView = ({ puulaanit, onPuulaaniClick }: { puulaanit: any[], onPuulaaniClick: (id: number) => void }) => (
-    <Paper sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
-        <Typography variant="h6" gutterBottom sx={{ p: 2, pb: 1, flexShrink: 0 }}>Timber Sites (Puulaanit)</Typography>
-        <Divider />
-        <Box sx={{ flexGrow: 1, overflowY: 'auto' }}>
-            <List>
-                {puulaanit.map((p, index) => (
-                    <React.Fragment key={`${p.id}-${index}`}>
-                        <ListItemButton onClick={() => onPuulaaniClick(p.id)}>
-                            <ListItemText primary={p.name} />
-                        </ListItemButton>
-                        {index < puulaanit.length - 1 && <Divider />}
-                    </React.Fragment>
-                ))}
-            </List>
-        </Box>
-    </Paper>
-);
+const ListView = ({ puulaanit, onPuulaaniClick }: { puulaanit: any[], onPuulaaniClick: (id: number) => void }) => {
+     const { t } = useTranslation('timberDashboard'); 
 
-// --- FIX: Define the interface for the Active Trip object used in this component ---
+    return (
+        <Paper 
+            elevation={0} 
+            sx={{ 
+                height: '100%', 
+                display: 'flex', 
+                flexDirection: 'column', 
+                backgroundColor: 'transparent' 
+            }}
+        >
+            <Typography variant="h6" gutterBottom sx={{ p: 2, pb: 1, mt: 6, flexShrink: 0, fontWeight: 'bold' }}>
+               {t('titles.timberSites', 'Timber Sites')}
+            </Typography>
+            
+            <Box sx={{ flexGrow: 1, overflowY: 'auto', px: 1 }}>
+                <Stack spacing={1.5} pb={2}> 
+                    {puulaanit.map((p) => {
+                        const statusColor = p.isCompleted ? 'info.main' : (p.isActive ? 'success.main' : 'text.disabled');
+                        
+                        return (
+                            <Card 
+                                key={p.id} 
+                                elevation={2}
+                                sx={{ 
+                                    borderRadius: 2, 
+                                    cursor: 'pointer',
+                                    borderLeft: `6px solid`,
+                                    borderLeftColor: statusColor,
+                                    transition: 'transform 0.2s, box-shadow 0.2s',
+                                    '&:hover': { transform: 'translateY(-1px)', boxShadow: 1 }
+                                }}
+                                onClick={() => onPuulaaniClick(p.id)}
+                            >
+                                <CardActionArea>
+                                    <CardContent sx={{ p: 1.5, '&:last-child': { pb: 1.5 } }}> 
+                                        <Stack spacing={0.5}>
+                                            <Typography variant="subtitle1" sx={{lineHeight: 1 }}>
+                                                {p.name}
+                                            </Typography>
+
+                                            <Stack 
+                                                direction="row" 
+                                                alignItems="center" 
+                                                justifyContent="space-between" 
+                                                flexWrap="wrap" 
+                                                gap={1}
+                                            >
+                                                <Stack direction="row" spacing={0.5} alignItems="center" sx={{ minWidth: 0 }}>
+                                                    <FactoryIcon sx={{ fontSize: 16, color: 'text.secondary' }} />
+                                                    <Typography variant="body2" color="text.secondary" noWrap>
+                                                        {p.clientName || t('unknownClient', 'Unknown Client')}
+                                                    </Typography>
+                                                </Stack>
+
+                                                <Stack direction="row" spacing={2} alignItems="center">
+                                                    <Stack direction="row" spacing={0.5} alignItems="center">
+                                                        <Inventory2Icon sx={{ fontSize: 16, color: 'text.secondary' }} />
+                                                        <Typography variant="caption" color="text.secondary">
+                                                             {t('stats.total')}: <b>{p.totalVolume ? p.totalVolume.toFixed(2) : '0.00'}</b>
+                                                        </Typography>
+                                                    </Stack>
+
+                                                    <Stack direction="row" spacing={0.5} alignItems="center">
+                                                        <LocalShippingIcon sx={{ fontSize: 16, color: statusColor }} />
+                                                        <Typography variant="caption" color={statusColor} fontWeight="bold">
+                                                            {t('stats.rem')}: {p.remainingVolume ? p.remainingVolume.toFixed(2) : '0.00'}
+                                                        </Typography>
+                                                    </Stack>
+                                                </Stack>
+                                            </Stack>
+                                        </Stack>
+                                    </CardContent>
+                                </CardActionArea>
+                            </Card>
+                        );
+                    })}
+                </Stack>
+            </Box>
+        </Paper>
+    );
+};
+
 interface ActiveTripForDashboard {
     status: string;
     ajomaaraysNro: string | null;
     asiakkaanNimi: string;
     rekNro: string;
-    legs: any[]; // Keep as 'any[]' to accept raw backend data
+    legs: any[]; 
 }
 
 interface TimberDashboardProps { onBackAction: () => void; }
-
 
 export default function TimberDashboard({ onBackAction }: TimberDashboardProps) {
     const { selectedVehicleId, setActiveTrip: setContextActiveTrip } = useDriverSession();
@@ -110,9 +191,9 @@ export default function TimberDashboard({ onBackAction }: TimberDashboardProps) 
 
     // State declarations
     const [view, setView] = useState<'map' | 'list'>('map');
-    const [mapData, setMapData] = useState<DriverMapData | null>(null);
-    const [isLoading, setIsLoading] = useState(true);
-    const [error, setError] = useState<string | null>(null);
+    const [mapData, setMapData] = useState<DriverMapData | null>(null); // Initial map data load
+    const [isLoading, setIsLoading] = useState(true); // Handled by useMapData now
+    const [error, setError] = useState<string | null>(null); // Handled by useMapData now
     const [currentLocation, setCurrentLocation] = useState<{ lat: number; lng: number; } | null>(null);
     const [selectedPuulaaniDetails, setSelectedPuulaaniDetails] = useState<PuulaaniDetails | null>(null);
     const [isPanelLoading, setIsPanelLoading] = useState(false);
@@ -130,6 +211,20 @@ export default function TimberDashboard({ onBackAction }: TimberDashboardProps) 
     const [markerFilters, setMarkerFilters] = useState({ showPuulaanit: true, showPurkupaikat: true });
     const [isTripDetailsModalOpen, setIsTripDetailsModalOpen] = useState(false);
     const [recentlyModifiedPuulaaniId, setRecentlyModifiedPuulaaniId] = useState<number | null>(null);
+    
+    // Use the existing hook to fetch map data (Puulaanit, Purkupaikat)
+    // We initialize filters with the vehicle ID to get relevant data
+    const [filters] = useState<IMapFilterState>({
+        status: 'active', // or 'all'
+        clientId: null,
+        vehicleId: selectedVehicleId ? String(selectedVehicleId) : null,
+        markerTypes: ['puulaani', 'purkupaikka']
+    });
+
+    // Fetch data using the hook. This gives us 'clientList' needed for mapping.
+    const { data, lists} = useMapData(filters);
+    const { timberStacks, dropoffLocations } = data;
+    const { clientList } = lists; // <--- HERE IS clientList
 
     const isDarkMode = theme.palette.mode === 'dark';
     const controlSurface = alpha(theme.palette.background.paper, isDarkMode ? 0.85 : 0.94);
@@ -154,12 +249,10 @@ export default function TimberDashboard({ onBackAction }: TimberDashboardProps) 
     }, [selectedVehicleId]); 
 
     useEffect(() => { fetchMapData(); }, [fetchMapData]);
-
     // --- Unified useEffect for Geolocation and Socket.IO ---
     useEffect(() => {
         const startGpsWatcher = () => {
             if (watchIdRef.current !== null) {
-                console.log("[GPS] Watcher is already running.");
                 return;
             }
             if (!navigator.geolocation) {
@@ -179,55 +272,46 @@ export default function TimberDashboard({ onBackAction }: TimberDashboardProps) 
                     setCurrentLocation({ lat: latitude, lng: longitude });
 
                     if (socketRef.current?.connected) {
-                        console.log(`[GPS] Emitting location: ${latitude}, ${longitude}`);
                         socketRef.current.emit('updateLocation', { lat: latitude, lng: longitude });
                     }
                 },
                 (error) => {
                     console.error('[GPS] Watch position error:', { code: error.code, message: error.message });
-                    enqueueSnackbar(`GPS Error: ${error.message}`, { variant: 'error' });
                 },
                 positionOptions
             );
-            console.log("[GPS] Watcher started.");
         };
 
         const stopGpsWatcher = () => {
             if (watchIdRef.current !== null) {
                 navigator.geolocation.clearWatch(watchIdRef.current);
                 watchIdRef.current = null;
-                console.log('[GPS] Watcher stopped.');
             }
         };
         
         // --- Socket Connection Lifecycle ---
         if (activeTrip && !socketRef.current) {
             if (!token || !selectedVehicleId) {
-                console.error("[Socket] Pre-condition failed: No token or selected vehicle.");
                 return;
             }
             const socket = io(process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:5000', {
                 auth: { token, vehicleId: selectedVehicleId }
             });
             socketRef.current = socket;
-            console.log('[Socket] Connecting...');
 
             socket.on('connect', () => {
-                console.log(`[Socket] Connected with ID: ${socket.id}`);
                 if (activeTrip.status !== 'Paused') {
                     startGpsWatcher();
                 }
             });
-            socket.on('disconnect', () => { console.log('[Socket] Disconnected.'); });
+            socket.on('disconnect', () => { });
 
         } else if (!activeTrip && socketRef.current) {
             stopGpsWatcher();
             socketRef.current.disconnect();
             socketRef.current = null;
-            console.log('[Socket] Disconnecting due to trip completion.');
         }
 
-        // --- GPS Watcher Lifecycle based on PAUSE/RESUME ---
         if (activeTrip) {
             if (activeTrip.status === 'Paused') {
                 stopGpsWatcher();
@@ -236,13 +320,11 @@ export default function TimberDashboard({ onBackAction }: TimberDashboardProps) 
             }
         }
         
-        // --- Cleanup on component unmount ---
         return () => {
             if (socketRef.current) {
                 stopGpsWatcher();
                 socketRef.current.disconnect();
                 socketRef.current = null;
-                console.log('[Socket] Disconnected on component unmount.');
             }
         };
 
@@ -354,8 +436,7 @@ export default function TimberDashboard({ onBackAction }: TimberDashboardProps) 
             try {
                 await createBulkLoad(legsToCreate);
                 enqueueSnackbar(t('toasts.loadsCreated', { count: legsToCreate.length }), { variant: 'success' });
-
-                // --- FIX 3: Trigger the highlight effect after successful creation ---
+                
                 if (puulaaniIdForHighlight) {
                     setRecentlyModifiedPuulaaniId(puulaaniIdForHighlight);
                     setTimeout(() => {
@@ -366,20 +447,6 @@ export default function TimberDashboard({ onBackAction }: TimberDashboardProps) 
             } catch (err: any) {
                 enqueueSnackbar(err.response?.data?.message || t('toasts.genericError'), { variant: 'error' });
             }
-        }
-        
-        console.log("%c[DEBUG] 4. Load creation/update finished. Now attempting to refresh active trip...", "color: blue;");
-        
-        try {
-            const updatedTripData = await getActiveTripForDriver();
-            console.log("%c[DEBUG] 5. Data received from getActiveTripForDriver after creating load:", "color: purple;", updatedTripData);
-            
-            if (updatedTripData && updatedTripData.legs.length > 0) {
-                setActiveTrip(updatedTripData);
-                console.log("Active trip state was refreshed after creating/updating a load.");
-            }
-        } catch (err) {
-            console.error("Failed to refresh active trip after load creation:", err);
         }
         
         setIsCreateLoadModalOpen(false);
@@ -394,13 +461,10 @@ export default function TimberDashboard({ onBackAction }: TimberDashboardProps) 
             console.error("Failed to refresh active trip after load operation:", err);
         }
 
-        // 3. If a Puulaani Details panel was open, refresh its content instead of closing it.
         if (currentPuulaaniId) {
-            console.log(`Refreshing details for Puulaani ID: ${currentPuulaaniId}`);
             openDetailsPanel(currentPuulaaniId); 
         }
 
-        // 4. Also refresh the main map data in the background to update marker info (like remaining volume).
         fetchMapData();
     };
 
@@ -424,31 +488,23 @@ export default function TimberDashboard({ onBackAction }: TimberDashboardProps) 
 
     const handleDeleteLoad = async () => {
         if (!loadToDelete) return;
-
-        // --- THE FIX STARTS HERE ---
-        // 1. Store the ID of the parent puulaani before closing the dialog.
         const parentPuulaaniId = selectedPuulaaniDetails?.puulaani.puulaaniId;
-        
+
         setIsDeleting(true);
         try {
             await deleteLoad(loadToDelete.kuormaId);
             enqueueSnackbar(t('toasts.loadDeleted'), { variant: 'success' });
-            
-            // 2. Close the confirmation dialog.
             setLoadToDelete(null);
-
-            // 3. If a parent puulaani was open, refresh its details panel.
+            
             if (parentPuulaaniId) {
-                console.log(`Load deleted. Refreshing details for Puulaani ID: ${parentPuulaaniId}`);
                 await openDetailsPanel(parentPuulaaniId);
             }
             
-            // 4. Also refresh the main map data in the background.
             fetchMapData();
 
         } catch (err: any) {
             enqueueSnackbar(err.response?.data?.message || t('toasts.deleteFailed'), { variant: 'error' });
-            setLoadToDelete(null); // Close dialog even on error
+            setLoadToDelete(null); 
         } finally {
             setIsDeleting(false);
         }
@@ -456,16 +512,11 @@ export default function TimberDashboard({ onBackAction }: TimberDashboardProps) 
 
     useEffect(() => {
         const checkForActiveTrip = async () => {
-            console.log("%c[DEBUG] 1. Checking for active trip on component load...", "color: blue;");
             try {
                 const tripData = await getActiveTripForDriver();
-                console.log("%c[DEBUG] 2. Data received from getActiveTripForDriver:", "color: green;", tripData);
                 if (tripData && tripData.legs.length > 0) {
                     setActiveTrip(tripData);
                     setContextActiveTrip(tripData.ajomaaraysNro || String(tripData.legs[0].kuormaId));
-                    console.log("%c[DEBUG] 3. Active trip state SET with new data.", "color: green;");
-                } else {
-                    console.log("%c[DEBUG] 3. No active trip found or legs are empty.", "color: orange;");
                 }
             } catch (err) { 
                 console.error("Failed to check for active trip", err); 
@@ -536,10 +587,10 @@ export default function TimberDashboard({ onBackAction }: TimberDashboardProps) 
         { icon: view === 'map' ? <ListIcon /> : <MapIcon />, name: view === 'map' ? t('buttons.listView') : t('buttons.mapView'), handler: () => handleViewChange(view === 'map' ? 'list' : 'map') }
     ];
     
-    // --- FINAL FIX FOR FILTERING LOGIC ---
+    // --- FINAL FIX FOR FILTERING LOGIC & MAPPING ---
     const { finalPuulaanit, finalPurkupaikat, activeTripLegs } = useMemo(() => {
-        const allPuulaanit = mapData?.puulaanit || [];
-        const allPurkupaikat = mapData?.purkupaikat || [];
+        const allPuulaanit = timberStacks || []; // Use timberStacks from useMapData
+        const allPurkupaikat = dropoffLocations || []; // Use dropoffLocations from useMapData
         
         let legs: TripLegForMap[] = [];
         const activeTripPuulaaniIds = new Set<number>();
@@ -564,6 +615,39 @@ export default function TimberDashboard({ onBackAction }: TimberDashboardProps) 
         const generalPuulaanit = allPuulaanit.filter(p => !activeTripPuulaaniIds.has(p.id));
         const generalPurkupaikat = allPurkupaikat.filter(p => !activeTripPurkupaikkaIds.has(p.id));
         
+        // --- ENHANCED MAPPING FOR PUULAANI ---
+        const mapPuulaaniToDisplay = (p: any): any => {
+            const client = clientList.find(c => String(c.id) === String(p.clientId));
+            
+            let totalVolume = Number(p.totalVolume || 0);
+            let remainingVolume = Number(p.remainingVolume || 0);
+
+            const customerInfo = {
+                id: String(p.clientId),
+                name: client?.name || p.clientName || 'Unknown Client',
+                clientId: String(p.clientId),
+                clientName: client?.name || p.clientName || 'Unknown Client',
+                targetColor: p.clientColor || p.color || '#808080'
+            };
+
+            return {
+                id: p.id,
+                kuormaId: p.id,
+                name: p.name,
+                clientName: customerInfo.name, // For List View
+                
+                // --- FIX: Add the 'customer' object for the Map View marker popup ---
+                customer: customerInfo,
+
+                totalVolume: totalVolume,
+                remainingVolume: remainingVolume,
+                originCoords: { lat: Number(p.latitude), lng: Number(p.longitude) },
+                color: p.clientColor || p.color || customerInfo.targetColor, // Use the most appropriate color
+                isActive: p.isActive,
+                isCompleted: p.isCompleted
+            };
+        };
+
         const mapToTripLeg = (p: any): TripLegForMap => ({
             kuormaId: p.id,
             originName: p.name,
@@ -572,11 +656,12 @@ export default function TimberDashboard({ onBackAction }: TimberDashboardProps) 
         });
 
         return { 
-            finalPuulaanit: markerFilters.showPuulaanit ? generalPuulaanit.map(mapToTripLeg) : [], 
+            // Apply the mapping function to the array
+            finalPuulaanit: markerFilters.showPuulaanit ? generalPuulaanit.map(mapPuulaaniToDisplay) : [], 
             finalPurkupaikat: markerFilters.showPurkupaikat ? generalPurkupaikat.map(mapToTripLeg) : [],
             activeTripLegs: legs 
         };
-    }, [mapData, activeTrip, markerFilters]);
+    }, [timberStacks, dropoffLocations, activeTrip, markerFilters, clientList, t]); // Dependencies updated
 
     if (isLoading) { return <CircularProgress />; }
     if (error) { return <Alert severity="error">{error}</Alert>; }
@@ -599,7 +684,7 @@ export default function TimberDashboard({ onBackAction }: TimberDashboardProps) 
             <Box sx={{ height: '100%', display: view === 'list' ? 'block' : 'none' }}>
                 <Box sx={{ pt: {xs: 8, sm: 10}, height: '100%', p: {xs: 1, sm: 2} }}>
                     <ListView 
-                        puulaanit={mapData?.puulaanit || []} 
+                        puulaanit={finalPuulaanit} // Use finalPuulaanit here to get mapped data
                         onPuulaaniClick={handleListItemClick}
                     />
                 </Box>

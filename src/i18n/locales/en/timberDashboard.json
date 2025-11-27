@@ -51,6 +51,14 @@
                     "mapView":  "Map View",
                     "showActiveTrip":  "Show Active Trip"
                 },
+
+    "titles": {
+                    "timberSites": "Timber Sites"
+                },
+                    "stats": {
+                            "total": "Total",
+                            "rem": "Rem"
+                    },
     "dialogs":  {
                     "delete":  {
                                    "title":  "Confirm Load Deletion",
