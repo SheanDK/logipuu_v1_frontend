@@ -195,7 +195,7 @@ export interface TripLegForMap {
     destinationName?: string;
     destinationCoords?: { lat: number; lng: number; } | null;
     color?: string;
-    customer?: { clientName: string }
+    customer?: { clientName: string; };
 }
 
 export interface TripMapProps {
@@ -294,10 +294,9 @@ export default function TripMap({
         );
     }
 
-    const handleFilterEvent = useCallback((filterName: 'showPuulaanit' | 'showPurkupaikat') => {
-        // This function now directly calls the action from the parent.
-        onFilterChangeAction(filterName);
-    }, [onFilterChangeAction]);
+    const handleFilterEvent = (filterName: 'showPuulaanit' | 'showPurkupaikat') => {
+    onFilterChangeAction(filterName);
+};
 
     return (
         <MapContainer
