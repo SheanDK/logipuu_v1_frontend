@@ -1,8 +1,8 @@
 // frontend/src/components/loads/PuulaaniDetailsPanel.tsx
 'use client';
 
-import React, { useState, useEffect } from 'react';
-import { Box, Paper, Typography, Stack, Button, IconButton, Chip, CircularProgress, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Checkbox, Alert } from '@mui/material';
+import React, { useState, useEffect, useMemo } from 'react';
+import { Box, Paper, Typography, Stack, Button, IconButton, Chip, CircularProgress, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Checkbox, Alert, Tooltip } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
 import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline';
 import EditIcon from '@mui/icons-material/Edit';
@@ -26,6 +26,7 @@ interface PuulaaniDetailsPanelProps {
     activeLoadId: number | null;
     hasActiveTrip: boolean;
     isOffline: boolean;
+    totalAssignedLoadsCount: number;
 }
 
 const StyledTableCell = (props: any) => <TableCell sx={{ py: 1, px: 2, borderColor: 'divider' }} {...props} />;
@@ -37,21 +38,61 @@ export default function PuulaaniDetailsPanel({
     onEditLoadAction, onSaveAction,
     onDeleteLoadAction, onStartTripAction,
     activeLoadId, hasActiveTrip,
-    isOffline
+    isOffline,
+    totalAssignedLoadsCount
 }: PuulaaniDetailsPanelProps) {
 
+    // ---  HOOKS    ---
     const { user } = useAuth();
     const theme = useTheme();
+    const { t, i18n } = useTranslation('puulaaniDetailsPanel');
     const [editableDetails, setEditableDetails] = useState<PuulaaniDetails | null>(null);
     const [isDirty, setIsDirty] = useState(false);
     const [isSaving, setIsSaving] = useState(false);
-    const { t, i18n } = useTranslation('puulaaniDetailsPanel');
 
+    // useEffect -  hook 
     useEffect(() => {
         setEditableDetails(details ? JSON.parse(JSON.stringify(details)) : null);
         setIsDirty(false);
     }, [details]);
 
+    // useMemo -  hook 
+    // editableDetails  null return 
+    const isLoadAlreadyAssigned = useMemo(() => {
+        if (!editableDetails?.relatedLoads) return false;
+        return editableDetails.relatedLoads.some(load => 
+            load.status === 'Assigned' && load.kuljId === user?.driverNumericId
+        );
+    }, [editableDetails?.relatedLoads, user?.driverNumericId]);
+
+    const canCreateNewLoad = useMemo(() => {
+        // Rule A: Trip is ACTIVE (In Progress/Paused). ALLOW only if NO loads are ASSIGNED in this Puulaani.
+        //         The logic for adding a load to an active trip is complex, but for simplicity,
+        //         we block the new load button if *ANY* assigned load exists ANYWHERE.
+        
+        // Final Rule: Allow load creation only if:
+        //  1. No loads are assigned ANYWHERE (totalAssignedLoadsCount === 0), OR
+        //  2. A trip is already active (to add a leg).
+
+        // Case 1: Active Trip Exists (In Progress/Paused)
+        if (hasActiveTrip) {
+            // Allows adding multiple loads (legs) to the currently active trip.
+            // This is the "In-Transit Pick-up" scenario.
+            return true;
+        }
+
+        // Case 2: No Active Trip, but check for assigned loads
+        if (totalAssignedLoadsCount > 0) {
+            // Block if ONE or more loads are already assigned, forcing the user to START the existing one first.
+            return false; 
+        }
+        
+        // Case 3: Nothing is active or assigned. Allow creating the first load.
+        return true;
+
+    }, [hasActiveTrip, totalAssignedLoadsCount]);
+
+    // --- Event handlers ---
     const handleCheckboxChange = (timberEntryId: number) => {
         if (!editableDetails) return;
         const updatedEntries = editableDetails.timberEntries.map(entry =>
@@ -69,13 +110,24 @@ export default function PuulaaniDetailsPanel({
         setIsDirty(false);
     };
 
+    // --- Early return - HOOKS ---
     if (isLoading || !editableDetails) {
-        return (<Box sx={{ position: 'absolute', bottom: 24, left: '50%', transform: 'translateX(-50%)', zIndex: 1050 }}>{isLoading && <CircularProgress />}</Box>);
+        return (
+            <Box sx={{ position: 'absolute', bottom: 24, left: '50%', transform: 'translateX(-50%)', zIndex: 1050 }}>
+                {isLoading && <CircularProgress />}
+            </Box>
+        );
     }
 
+    // --- Render logic ---
     const { timberEntries, relatedLoads } = editableDetails;
 
-    // Map backend status → translation key
+    const isLoadAlreadyAssignedInThisPuulaani = relatedLoads.some(load => 
+        load.status === 'Assigned' && load.kuljId === user?.driverNumericId
+    );
+
+    
+
     const statusMap: Record<string, string> = {
         'Assigned': 'assigned',
         'In Progress': 'in_progress',
@@ -88,12 +140,10 @@ export default function PuulaaniDetailsPanel({
         'N/A': 'na',
         '-': 'na'
     };
-
-    const locale = (i18n.language || 'en').toLowerCase().startsWith('fi') ? 'fi-FI' : 'en-US';
-
+    
     const glassSurface = alpha(theme.palette.background.paper, theme.palette.mode === 'dark' ? 0.92 : 0.98);
     const glassBorder = alpha(theme.palette.divider, theme.palette.mode === 'dark' ? 0.7 : 0.4);
-    const glassShadow = theme.palette.mode === 'dark' ? '0px -8px 40px -12px rgba(0,0,0,0.7)' : '0px -8px 40px -12px rgba(0,0,0,0.3)';
+    const glassShadow = theme.palette.mode === 'dark' ? '0px -8px 40px -12px rgba(0,0,0,0.7)' : '0px -8px 40px -12px rgba(15,23,42,0.3)';
 
     return (
         <Paper
@@ -115,7 +165,6 @@ export default function PuulaaniDetailsPanel({
                 boxShadow: glassShadow,
             }}
         >
-
             {/* Header */}
             <Box sx={{ p: 2, display: 'flex', alignItems: 'center', borderBottom: 1, borderColor: 'divider' }}>
                 <Stack sx={{ flexGrow: 1 }}>
@@ -123,7 +172,6 @@ export default function PuulaaniDetailsPanel({
                     <Typography variant="h6" fontWeight={600}>{editableDetails.puulaani?.nimi || t('header.unknown')}</Typography>
                 </Stack>
                 <Stack direction="row" spacing={1} alignItems="center">
-                    
                     {isDirty && (
                         <Button
                             color="primary"
@@ -175,15 +223,24 @@ export default function PuulaaniDetailsPanel({
                     <Box>
                         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1, px: 1 }}>
                             <Typography variant="subtitle1" fontWeight="bold">{t('loads.title')}</Typography>
-                            <Button
-                                variant="contained"
-                                sx={{ backgroundColor: '#607d8b', '&:hover': { backgroundColor: '#546e7a' } }}
-                                size="small"
-                                startIcon={<AddCircleOutlineIcon />}
-                                onClick={() => onCreateLoadAction(editableDetails)}
-                            >
-                                {t('loads.create')}
-                            </Button>
+                            <Tooltip 
+                                title={isLoadAlreadyAssigned 
+                                    ? t('loads.tooltips.alreadyAssigned') 
+                                    : (!hasActiveTrip && !canCreateNewLoad) 
+                                        ? t('loads.tooltips.startExisting')
+                                        : t('loads.tooltips.createNew')
+                                }>
+                                <Button
+                                    variant="contained"
+                                    sx={{ backgroundColor: '#607d8b', '&:hover': { backgroundColor: '#546e7a' } }}
+                                    size="small"
+                                    startIcon={<AddCircleOutlineIcon />}
+                                    onClick={() => onCreateLoadAction(editableDetails)}
+                                    disabled={!canCreateNewLoad}
+                                >
+                                    {t('loads.create')}
+                                </Button>
+                            </Tooltip>
                         </Box>
                         {isOffline && (
                             <Alert severity="warning" color="warning" sx={{ mb: 1, mx: 1 }}>
@@ -206,7 +263,7 @@ export default function PuulaaniDetailsPanel({
                                         const isOfflineDraft = Boolean((load as any)?.isOfflineDraft);
                                         const isOwner = Number(user?.driverNumericId) === Number(load.kuljId);
                                         const actionsDisabled = isOffline || isOfflineDraft;
-                                        const canEditOrDelete = !actionsDisabled && isOwner && load.status === 'Assigned';
+                                        const canEditOrDelete = !actionsDisabled && isOwner && load.status !== 'Completed'; 
                                         const isActive = load.kuormaId === activeLoadId;
                                         const canStart = !actionsDisabled && isOwner && load.status === 'Assigned' && !hasActiveTrip;
 
@@ -214,11 +271,11 @@ export default function PuulaaniDetailsPanel({
                                         const localizedStatus = statusKey ? t(`status.${statusKey}`) : load.status;
 
                                         const driverNameToDisplay = 
-                                    load.kuljettajanNimi && load.kuljettajanNimi !== 'N/A'
-                                        ? load.kuljettajanNimi
-                                        : isOwner
-                                            ? user?.fullName
-                                            : t('common.na');
+                                            load.kuljettajanNimi && load.kuljettajanNimi !== 'N/A'
+                                                ? load.kuljettajanNimi
+                                                : isOwner
+                                                    ? user?.fullName
+                                                    : t('common.na');
 
                                         return (
                                             <TableRow
@@ -264,25 +321,26 @@ export default function PuulaaniDetailsPanel({
                                                                     <PlayCircleOutlineIcon />
                                                                 </IconButton>
                                                             )}
-                                                            {canEditOrDelete && (
-                                                                <IconButton
-                                                                    size="small"
-                                                                    title={t('loads.actions.edit')}
-                                                                    onClick={(e) => { e.stopPropagation(); onEditLoadAction(load.kuormaId); }}
-                                                                >
-                                                                    <EditIcon fontSize="small" />
-                                                                </IconButton>
-                                                            )}
-                                                            {canEditOrDelete && (
-                                                                <IconButton
-                                                                    size="small"
-                                                                    color="error"
-                                                                    title={t('loads.actions.delete')}
-                                                                    onClick={(e) => { e.stopPropagation(); onDeleteLoadAction(load); }}
-                                                                >
-                                                                    <DeleteIcon fontSize="small" />
-                                                                </IconButton>
-                                                            )}
+                                                            {/* --- FIX 2: Apply the new condition to Edit/Delete buttons --- */}
+                                                        {canEditOrDelete && (
+                                                            <IconButton
+                                                                size="small"
+                                                                title={t('loads.actions.edit')}
+                                                                onClick={(e) => { e.stopPropagation(); onEditLoadAction(load.kuormaId); }}
+                                                            >
+                                                                <EditIcon fontSize="small" />
+                                                            </IconButton>
+                                                        )}
+                                                        {canEditOrDelete && (
+                                                            <IconButton
+                                                                size="small"
+                                                                color="error"
+                                                                title={t('loads.actions.delete')}
+                                                                onClick={(e) => { e.stopPropagation(); onDeleteLoadAction(load); }}
+                                                            >
+                                                                <DeleteIcon fontSize="small" />
+                                                            </IconButton>
+                                                        )}
                                                             {actionsDisabled && !isOfflineDraft && (
                                                                 <Chip label={t('loads.offlineDisabled')} size="small" color="default" />
                                                             )}
@@ -290,7 +348,7 @@ export default function PuulaaniDetailsPanel({
                                                     )}
                                                 </StyledTableCell>
                                             </TableRow>
-                                                            );
+                                        );
                                     })}
                                 </TableBody>
                             </Table>

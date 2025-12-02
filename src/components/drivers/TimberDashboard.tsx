@@ -400,6 +400,7 @@ export default function TimberDashboard({ onBackAction }: TimberDashboardProps) 
         const currentPuulaaniId = selectedPuulaaniDetails?.puulaani.puulaaniId;
         const driverId = user.driverNumericId;
         const vehicleId = Number(selectedVehicleId);
+        const drivingOrderNo = activeTrip?.ajomaaraysNro || null; 
 
         if (isEdit) {
             try {
@@ -420,7 +421,7 @@ export default function TimberDashboard({ onBackAction }: TimberDashboardProps) 
                 tyyppi: LoadTypeEnum.PUULAANI,
                 asiakasId: Number(leg.taskDetails.asiakasId),
                 pvm: new Date(),
-                ajomaaraysNro: activeTrip?.ajomaaraysNro || null,
+                 ajomaaraysNro: drivingOrderNo,
                 lisatiedot: leg.notes || null,
                 kalustoNro: vehicleId,
                 kuljId: driverId,
@@ -486,7 +487,7 @@ export default function TimberDashboard({ onBackAction }: TimberDashboardProps) 
         }
     };
 
-    const handleDeleteLoad = async () => {
+     const handleDeleteLoad = async () => {
         if (!loadToDelete) return;
         const parentPuulaaniId = selectedPuulaaniDetails?.puulaani.puulaaniId;
 
@@ -496,10 +497,26 @@ export default function TimberDashboard({ onBackAction }: TimberDashboardProps) 
             enqueueSnackbar(t('toasts.loadDeleted'), { variant: 'success' });
             setLoadToDelete(null);
             
-            if (parentPuulaaniId) {
-                await openDetailsPanel(parentPuulaaniId);
+            // --- FIX 1: Fetch the updated active trip data ---
+            const updatedTripData = await getActiveTripForDriver();
+
+            // 2. Update the main active trip state
+            if (updatedTripData && updatedTripData.legs.length > 0) {
+                setActiveTrip(updatedTripData);
+                setContextActiveTrip(updatedTripData.ajomaaraysNro || String(updatedTripData.legs[0].kuormaId));
+            } else {
+                // If the trip is now empty (all loads deleted), clear the active trip state
+                setActiveTrip(null);
+                setContextActiveTrip(null);
             }
             
+            // 3. If a parent puulaani was open, refresh its details panel.
+            if (parentPuulaaniId) {
+                console.log(`Load deleted. Refreshing details for Puulaani ID: ${parentPuulaaniId}`);
+                await openDetailsPanel(parentPuulaaniId); // This ensures the Loads list is refreshed
+            }
+            
+            // 4. Also refresh the main map data in the background.
             fetchMapData();
 
         } catch (err: any) {
@@ -526,9 +543,20 @@ export default function TimberDashboard({ onBackAction }: TimberDashboardProps) 
     }, [setContextActiveTrip]);
 
     const handleStartTrip = async (load: any) => {
+        // load.ajomaaraysNro is NULL for the first load created without an existing active trip.
+        // The loadService.createBulkLoad handles giving it a number on creation, but if 
+        // the user is starting a trip from an ASSIGNED single load, it might still be null.
+        if (!load.ajomaaraysNro) {
+             enqueueSnackbar('Cannot start trip: Load data is missing a driving order number.', { variant: 'error' });
+             return;
+        }
+
         setIsUpdatingStatus(true);
         try {
-            await updateLoadStatus(load.kuormaId, { status: 'In Progress' });
+            // --- FIX 1: Use updateTripStatus (which is designed for ajomaaraysNro) ---
+            // This will change the status of ALL loads associated with this ajomaaraysNro.
+            await updateTripStatus(load.ajomaaraysNro, { status: 'In Progress' });
+            
             const tripData = await getActiveTripForDriver();
             if (tripData) {
                 setActiveTrip(tripData);
@@ -586,6 +614,11 @@ export default function TimberDashboard({ onBackAction }: TimberDashboardProps) 
         { icon: <ArrowBackIcon />, name: t('buttons.changeMode'), handler: onBackAction },
         { icon: view === 'map' ? <ListIcon /> : <MapIcon />, name: view === 'map' ? t('buttons.listView') : t('buttons.mapView'), handler: () => handleViewChange(view === 'map' ? 'list' : 'map') }
     ];
+
+     const totalAssignedLoadsCount = useMemo(() => {
+        if (!activeTrip || !activeTrip.legs) return 0;
+        return activeTrip.legs.filter(leg => leg.status === 'Assigned').length;
+    }, [activeTrip]);
     
     // --- FINAL FIX FOR FILTERING LOGIC & MAPPING ---
     const { finalPuulaanit, finalPurkupaikat, activeTripLegs } = useMemo(() => {
@@ -752,6 +785,7 @@ export default function TimberDashboard({ onBackAction }: TimberDashboardProps) 
                 activeLoadId={activeTrip?.legs.find((leg: any) => leg.status !== 'Assigned')?.kuormaId || null}
                 hasActiveTrip={!!activeTrip}
                 isOffline={!navigator.onLine}
+                totalAssignedLoadsCount={totalAssignedLoadsCount}
             />
             
             {/* Create Load Modal */}
