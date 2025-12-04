@@ -18,6 +18,12 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang={fallbackLng}>
       <head>
         <title>WoodMaster LogiApp</title>
+        {/* --- PWA FIX: Add Manifest and Theme Color --- */}
+        <link rel="manifest" href="/manifest.json" />
+        <meta name="theme-color" content="#004d40" />
+        <meta name="apple-mobile-web-app-capable" content="yes" />
+        <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+        {/* ... (you can add apple-touch-icon links here too) ... */}
       </head>
       <body>
         <AppRouterCacheProvider>

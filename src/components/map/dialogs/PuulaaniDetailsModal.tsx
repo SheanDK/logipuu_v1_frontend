@@ -375,7 +375,15 @@ export default function PuulaaniDetailsModal({
                                     {isEditMode && (
                                         <Paper variant="outlined" sx={{ p: 2.5 }}>
                                             <Typography variant="overline" color="text.secondary" gutterBottom>{t('sections.vehicleAssignment')}</Typography>
-                                            <Controller name="selectedAutoIds" control={control} render={({ field }) => <AutoSelect selectedAutoIds={field.value} onSelectionChangeAction={field.onChange} vehicleList={vehicleList} />} />
+                                            <Controller name="selectedAutoIds" control={control} render={({ field }) => 
+                                                <AutoSelect 
+                                                    // --- FIX: Use type assertion and fallback array ---
+                                                    // This ensures the value is ALWAYS a number array, even if field.value is undefined/null.
+                                                    selectedAutoIds={(field.value as number[] | undefined) || []} 
+                                                    onSelectionChangeAction={field.onChange} 
+                                                    vehicleList={vehicleList} 
+                                                />
+                                            } />
                                         </Paper>
                                     )}
 

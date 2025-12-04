@@ -267,7 +267,7 @@ export default function AppNavbar() {
                     passHref
                     style={{ display: 'flex', alignItems: 'center', textDecoration: 'none', color: 'inherit' }}
                 >
-                    <Image src="/images/softrain-logo.png" alt="Logo" width={150} height={40} priority style={{ marginRight: '16px' }} />
+                    <Image src="/images/hkk-logo.png" alt="Logo" width={150} height={40} priority style={{ marginRight: '16px' }} />
                 </Link>
                 
                 <Box sx={{ flexGrow: 1 }} />
