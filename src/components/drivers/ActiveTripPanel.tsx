@@ -134,7 +134,7 @@ export default function ActiveTripPanel({
                 pointerEvents: open ? 'auto' : 'none'
             }}
         >
-            <Box sx={{ p: 2 }}>
+            <Box sx={{ p: 2, display: 'flex', flexDirection: 'column', height: '100%', maxHeight: '70vh' }}>
                 <Stack direction="row" justifyContent="space-between" alignItems="center" mb={1}>
                     <Typography variant="h6">{t('activeTrip.title')}</Typography>
                     <Chip label={translatedStatusLabel} color="error" size="medium" />
@@ -147,7 +147,8 @@ export default function ActiveTripPanel({
                     {t('activeTrip.currentDestinations')}
                 </Typography>
 
-                <List dense>
+                <Box sx={{ flexGrow: 1, overflowY: 'auto', minHeight: 0 }}>
+                    <List dense>
                     {dropOffGroups.map(([dropOffName, legsInGroup]) => (
                         <ListItem
                             key={dropOffName}
@@ -176,10 +177,10 @@ export default function ActiveTripPanel({
                         </ListItem>
                     ))}
                 </List>
-
-                <Divider sx={{ my: 2 }} />
-
-                {isUpdating ? (
+                </Box>
+                <Divider sx={{ my: 2, flexShrink: 0 }} />
+                    <Box flexShrink={0}>
+                        {isUpdating ? (
                     <Box sx={{ display: 'flex', justifyContent: 'center' }}>
                         <CircularProgress size={24} />
                     </Box>
@@ -219,6 +220,8 @@ export default function ActiveTripPanel({
                         </Button>
                     </Stack>
                 )}
+                    </Box>
+                
             </Box>
         </Paper>
     );

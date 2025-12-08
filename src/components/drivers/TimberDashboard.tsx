@@ -870,15 +870,17 @@ export default function TimberDashboard({ onBackAction }: TimberDashboardProps) 
                 activeTrip={activeTrip}
             />
             
-            {/*  "Recenter" Floating Action Button (FAB) --- */}
-            <Tooltip title={t('tooltips.centerLocation')}>
-            <Fab 
+            {/* Add the "Recenter" Floating Action Button (FAB) --- */}
+            {view === 'map' && (
+                <Tooltip title={t('tooltips.centerLocation')}>
+                    <Fab 
                 color={followUser ? "primary" : "default"}
                 aria-label="center map"
                 onClick={handleRecenterMap}
                 size="small"
                 sx={{
                     position: 'absolute',
+                    
                     // Position below the desktop control panel
                     top: { xs: 120, sm: 80 },
                     right: { xs: 16, sm: 16 },
@@ -889,8 +891,33 @@ export default function TimberDashboard({ onBackAction }: TimberDashboardProps) 
                 }}
             >
                 <MyLocationIcon />
-            </Fab>
-        </Tooltip>
+                    </Fab>
+                </Tooltip>
+            )}
+
+            {/* --- FIX 2: Add a button to restore the Active Trip Panel --- */}
+           {activeTrip && !isTripPanelVisible && (
+                 <Tooltip title={t('buttons.showActiveTrip')}>
+                    <Fab
+                        color="error"
+                        aria-label="show active trip"
+                        onClick={() => setIsTripPanelVisible(true)}
+                        sx={{
+                            position: 'absolute',
+                            bottom: 16,
+                            left: '50%',
+                            transform: 'translateX(-50%)',
+                            zIndex: 1250,
+                            // --- Hide this button on desktop (sm and up) ---
+                            // The desktop version is in the top-right Paper component
+                            display: { xs: 'flex', sm: 'none' } 
+                        }}
+                    >
+                        <RestoreIcon />
+                    </Fab>
+                </Tooltip>
+            )}
+            
             
             {/* Mobile Speed Dial */}
             <SpeedDial

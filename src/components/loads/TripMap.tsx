@@ -1,20 +1,18 @@
 // frontend/src/components/loads/TripMap.tsx
 'use client';
 
-import React, { useEffect, useMemo, useCallback } from 'react';
+import React, { useEffect, useMemo} from 'react';
 import { Box, Stack, Typography } from '@mui/material';
 import { useTheme, alpha } from '@mui/material/styles';
 import L, { LatLngTuple, LeafletMouseEvent } from 'leaflet';
 import 'leaflet/dist/leaflet.css';
-import { MapContainer, TileLayer, Marker, Popup, useMap, LayersControl, ZoomControl, Pane, LayerGroup } from 'react-leaflet';
+import { MapContainer, TileLayer, Marker, Popup, useMap, LayersControl, ZoomControl, LayerGroup } from 'react-leaflet';
 import FlagIcon from '@mui/icons-material/Flag';
 import NavigationIcon from '@mui/icons-material/Navigation';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { useTranslation } from 'react-i18next';
 import { useLeafletPopupTheme } from '@/utils/useLeafletPopupTheme';
 import { GlobalStyles } from '@mui/material';
-import MyLocationIcon from '@mui/icons-material/MyLocation'; // Import the icon
-import { Fab } from '@mui/material'; // Import Fab for the button
 
 
 
@@ -390,34 +388,33 @@ export default function TripMap({
 
                  {/* --- Overlays --- */}
                 <LayersControl.Overlay checked={markerFilters.showPuulaanit} name={t('layers.puulaanit', 'Timber Sites')}>
-                    <LayerGroup>
-                        {puulaanit.map((trip, index) => (
-                            trip.originCoords && (
-                                <Marker
-                                    key={`puulaani-${trip.kuormaId || index}`}
-                                    position={[trip.originCoords.lat, trip.originCoords.lng]}
-                                    icon={
-                                        focusedTripId === trip.kuormaId 
-                                            ? createHighlightedPuulaaniIcon(trip.color)
-                                            : createDynamicPuulaaniIcon(trip.color)
-                                    }
-                                    eventHandlers={{ click: (e) => onMarkerClickAction(trip.kuormaId, e) }}
-                                >
-                                    {/* --- FIX 1: Add the customer name to the popup content --- */}
-                                    <Popup>
-                            <Box>
-                                <Typography variant="subtitle1" sx={{ fontWeight: 'bold' }}>{trip.originName}</Typography>
-                                <Typography variant="body2" color="text.secondary">
-                                     {/* Assumes 'customer' property exists on the trip object, as mapped in TimberDashboard */}
-                                    {t('popup.clientLabel')}: <strong>{trip.customer?.clientName || 'N/A'}</strong>
-                                </Typography>
-                            </Box>
-                        </Popup>
-                    </Marker>
-                            )
-                        ))}
-                    </LayerGroup>
-                </LayersControl.Overlay>
+                            <LayerGroup>
+                                {puulaanit.map((trip: any, index) => (
+                                    trip.originCoords && (
+                                        <Marker
+                                            key={`puulaani-layer-${trip.kuormaId || index}`}
+                                            position={[trip.originCoords.lat, trip.originCoords.lng]}
+                                            icon={
+                                                focusedTripId === trip.kuormaId 
+                                                    ? createHighlightedPuulaaniIcon(trip.color)
+                                                    : createDynamicPuulaaniIcon(trip.color)
+                                            }
+                                            eventHandlers={{ click: (e) => onMarkerClickAction(trip.kuormaId, e) }}
+                                            zIndexOffset={50} // General markers
+                                        >
+                                            <Popup>
+                                                <Box>
+                                                    <Typography variant="subtitle1" sx={{ fontWeight: 'bold' }}>{trip.originName}</Typography>
+                                                    <Typography variant="body2" color="text.secondary">
+                                                        {t('popup.clientLabel')}: <strong>{trip.customer?.clientName || 'N/A'}</strong>
+                                                    </Typography>
+                                                </Box>
+                                            </Popup>
+                                        </Marker>
+                                    )
+                                ))}
+                            </LayerGroup>
+                        </LayersControl.Overlay>
                 
                 <LayersControl.Overlay checked={markerFilters.showPurkupaikat} name={t('layers.purkupaikat', 'Drop-off Sites')}>
                     <LayerGroup>
@@ -466,46 +463,7 @@ export default function TripMap({
                 </React.Fragment>
             ))}
 
-            {/* Markers for available Puulaani sites with highlight for focused item */}
-            {puulaanit.map((trip) => (
-                trip.originCoords && (
-                    <Marker
-                        key={`puulaani-${trip.kuormaId}`}
-                        position={[trip.originCoords.lat, trip.originCoords.lng]}
-                        icon={
-                            focusedTripId === trip.kuormaId 
-                                ? createHighlightedPuulaaniIcon(trip.color)
-                                : createDynamicPuulaaniIcon(trip.color)
-                        }
-                        eventHandlers={{ 
-                            click: (e) => onMarkerClickAction(trip.kuormaId, e) 
-                        }}
-                    >
-                        {/* Add the customer name to the general Puulaani popup content --- */}
-                        <Popup>
-                            <Box>
-                                <Typography variant="subtitle1" sx={{ fontWeight: 'bold' }}>{trip.originName}</Typography>
-                                <Typography variant="body2" color="text.secondary">
-                                    {t('popup.clientLabel')}: <strong>{trip.customer?.clientName || 'N/A'}</strong>
-                                </Typography>
-                            </Box>
-                        </Popup>
-                    </Marker>
-                )
-            ))}
-
-            {/* Markers for available Purkupaikka sites */}
-            {purkupaikat.map((trip) => (
-                trip.originCoords && (
-                    <Marker
-                        key={`purkupaikka-${trip.kuormaId}`}
-                        position={[trip.originCoords.lat, trip.originCoords.lng]}
-                        icon={purkupaikkaIcon}
-                    >
-                        <Popup>{trip.originName}</Popup>
-                    </Marker>
-                )
-            ))}
+            
 
             {/* Driver location marker */}
             {driverLocation && (
