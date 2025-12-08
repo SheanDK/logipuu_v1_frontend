@@ -49,7 +49,11 @@
                     "showMap":  "Näytä kartta",
                     "listView":  "Listanäkymä",
                     "mapView":  "Karttanäkymä",
-                    "showActiveTrip":  "Näytä aktiivinen ajo"
+                    "showActiveTrip":  "Näytä aktiivinen ajo",
+                    "resetView":  "Palauta kartan"
+                },
+    "tooltips": {
+                    "centerLocation": "Keskitä sijaintiini"
                 },
     "titles": {
                     "timberSites": "Puupaikat"
@@ -58,22 +62,27 @@
                         "total": "Yhteensä",
                         "rem": "Jäljellä"
                 },
-    "dialogs":  {
-                    "delete":  {
-                                   "title":  "Vahvista kuorman poisto",
-                                   "message":  "Haluatko varmasti poistaa tämän kuorman? (Puutavara: {{timber}})",
-                                   "confirm":  "Poista"
-                               },
-                    "activeTrip":  {
-                                       "title":  "Aktiivinen ajo",
-                                       "message":  "Sinulla on aktiivinen ajo käynnissä. Tilan vaihtaminen ei lopeta ajoa. Haluatko jatkaa?",
-                                       "confirm":  "Kyllä, jatka"
-                                   }
+    "dialogs": {
+                "delete": {
+                "title": "Vahvista kuorman poisto",
+                "message": "Haluatko varmasti poistaa tämän kuorman? (Puutavara: {{timber}})",
+                "confirm": "Poista"
                 },
-    "speedDial":  {
-                      "aria":  "Toiminnot"
-                  },
-    "common":  {
-                   "na":  "-"
-               }
+    "activeTrip": {
+                "title": "Varoitus: Aktiivinen ajo",
+                "message": "Sinulla on aktiivinen ajo käynnissä. Tilan vaihtaminen ei lopeta ajoa. Haluatko jatkaa?",
+                "confirm": "Kyllä, jatka"
+                },
+    "complete": {
+                "title": "Vahvista ajon päättäminen",
+                "message": "Haluatko varmasti merkitä koko ajon päättyneeksi?",
+                "confirm": "Kyllä, päätä"
+                }
+  },
+  "speedDial": {
+                "aria": "Toiminnot"
+  },
+  "common": {
+                "na": "-"
+  }
 }

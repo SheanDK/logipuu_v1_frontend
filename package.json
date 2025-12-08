@@ -47,6 +47,7 @@
     "proxy-from-env": "^1.1.0",
     "react": "^19.2.1",
     "react-dom": "^19.2.1",
+    "react-draggable": "^4.5.0",
     "react-hook-form": "^7.57.0",
     "react-i18next": "^16.3.5",
     "react-leaflet": "^5.0.0",

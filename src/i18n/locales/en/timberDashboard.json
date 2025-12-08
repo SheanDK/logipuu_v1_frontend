@@ -49,7 +49,11 @@
                     "showMap":  "Show Map",
                     "listView":  "List View",
                     "mapView":  "Map View",
-                    "showActiveTrip":  "Show Active Trip"
+                    "showActiveTrip":  "Show Active Trip",
+                    "resetView":  "Reset View"
+                },
+    "tooltips": {
+                    "centerLocation": "Center on my location"
                 },
 
     "titles": {
@@ -59,22 +63,27 @@
                             "total": "Total",
                             "rem": "Rem"
                     },
-    "dialogs":  {
-                    "delete":  {
-                                   "title":  "Confirm Load Deletion",
-                                   "message":  "Are you sure you want to delete this load? (Timber: {{timber}})",
-                                   "confirm":  "Delete"
-                               },
-                    "activeTrip":  {
-                                       "title":  "Active Trip Warning",
-                                       "message":  "You have an active trip in progress. Changing mode will not stop the trip. Are you sure you want to proceed?",
-                                       "confirm":  "Yes, Proceed"
-                                   }
-                },
-    "speedDial":  {
-                      "aria":  "Actions"
-                  },
-    "common":  {
-                   "na":  "N/A"
-               }
+    "dialogs": {
+                    "delete": {
+                    "title": "Confirm Load Deletion",
+                    "message": "Are you sure you want to delete this load? (Timber: {{timber}})",
+                    "confirm": "Delete"
+                    },                                      
+    "activeTrip": {
+                    "title": "Active Trip Warning",
+                    "message": "You have an active trip in progress. Changing mode will not stop the trip. Are you sure you want to proceed?",
+                    "confirm": "Yes, Proceed"
+                    },
+    "complete": {
+                    "title": "Confirm Trip Completion",
+                    "message": "Are you sure you want to mark this entire trip as completed?",
+                    "confirm": "Yes, Complete"
+                    }
+    },
+    "speedDial": {
+                    "aria": "Actions"
+    },
+    "common": {
+                    "na": "N/A"
+    }
 }

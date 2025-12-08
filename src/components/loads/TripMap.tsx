@@ -13,6 +13,8 @@ import { renderToStaticMarkup } from 'react-dom/server';
 import { useTranslation } from 'react-i18next';
 import { useLeafletPopupTheme } from '@/utils/useLeafletPopupTheme';
 import { GlobalStyles } from '@mui/material';
+import MyLocationIcon from '@mui/icons-material/MyLocation'; // Import the icon
+import { Fab } from '@mui/material'; // Import Fab for the button
 
 
 
@@ -208,6 +210,8 @@ export interface TripMapProps {
     onMarkerClickAction: (tripId: number, event: LeafletMouseEvent) => void;
     markerFilters: { showPuulaanit: boolean; showPurkupaikat: boolean; };
     onFilterChangeAction: (filterName: 'showPuulaanit' | 'showPurkupaikat') => void;
+    onManualPanOrZoomAction: () => void; // To disable follow mode
+    followUser: boolean; // To enable/disable follow mode
 }
 
 const MapFocusController = ({ focusedTripId, trips, onFocusCompleteAction }: { focusedTripId: number | null | undefined; trips: TripLegForMap[]; onFocusCompleteAction: () => void; }) => {
@@ -217,37 +221,74 @@ const MapFocusController = ({ focusedTripId, trips, onFocusCompleteAction }: { f
             const selectedTrip = trips.find(t => t.kuormaId === focusedTripId);
             if (selectedTrip?.originCoords) {
                 const targetLatLng: L.LatLngTuple = [selectedTrip.originCoords.lat, selectedTrip.originCoords.lng];
-                
-                // --- THE FIX IS HERE ---
+              
                 // Fly to the location with a smooth animation
-                map.flyTo(targetLatLng, 16, { // 16 is a good zoom level for a single site
+                map.flyTo(targetLatLng, 16, { 
                     animate: true,
-                    duration: 1.5 // Animation duration in seconds
+                    duration: 1.5 
                 });
                 
                 // Open the popup after the flight animation is complete
                 const onFlyEnd = () => {
-                    L.popup({ offset: [0, -20] }) // Adjust popup position
+                    L.popup({ offset: [0, -20] })
                      .setLatLng(targetLatLng)
                      .setContent(selectedTrip.originName)
                      .openOn(map);
                     onFocusCompleteAction();
-                    map.off('moveend', onFlyEnd); // Clean up the listener
+                    map.off('moveend', onFlyEnd); 
                 };
                 map.on('moveend', onFlyEnd);
 
             } else {
-                onFocusCompleteAction(); // If marker not found, still call complete
+                onFocusCompleteAction(); 
             }
         }
     }, [focusedTripId, trips, map, onFocusCompleteAction]);
     return null;
 };
 
+//Create a new LocationController component ---
+const LocationController = ({ driverLocation, followUser, onManualPanOrZoomAction }: { 
+    driverLocation: { lat: number; lng: number } | null,
+    followUser: boolean,
+    onManualPanOrZoomAction: () => void 
+}) => {
+    const map = useMap();
+
+    // Effect to follow the user
+    useEffect(() => {
+        if (followUser && driverLocation) {
+            map.flyTo([driverLocation.lat, driverLocation.lng], 14, { // Fly to zoom level 14
+                animate: true,
+                duration: 1.0,
+            });
+        }
+    }, [driverLocation, followUser, map]);
+
+    // Effect to detect manual interaction and disable follow mode
+    useEffect(() => {
+        const disableFollow = () => {
+            console.log("Manual map interaction detected, disabling follow mode.");
+            onManualPanOrZoomAction();
+        };
+
+        map.on('dragstart', disableFollow);
+        map.on('zoomstart', disableFollow);
+
+        return () => {
+            map.off('dragstart', disableFollow);
+            map.off('zoomstart', disableFollow);
+        };
+    }, [map, onManualPanOrZoomAction]);
+
+    return null;
+};
+
 export default function TripMap({ 
     legs, puulaanit, purkupaikat, driverLocation, 
     focusedTripId, onFocusCompleteAction, onMarkerClickAction,
-    markerFilters, onFilterChangeAction 
+    markerFilters, onFilterChangeAction,
+    onManualPanOrZoomAction, followUser
 }: TripMapProps) {
     
     const { t } = useTranslation('tripMap');
@@ -434,7 +475,7 @@ export default function TripMap({
                             click: (e) => onMarkerClickAction(trip.kuormaId, e) 
                         }}
                     >
-                        {/* --- FIX 2: Add the customer name to the general Puulaani popup content --- */}
+                        {/* Add the customer name to the general Puulaani popup content --- */}
                         <Popup>
                             <Box>
                                 <Typography variant="subtitle1" sx={{ fontWeight: 'bold' }}>{trip.originName}</Typography>
@@ -472,6 +513,12 @@ export default function TripMap({
 
             <MapFocusController trips={puulaanit} focusedTripId={focusedTripId} onFocusCompleteAction={onFocusCompleteAction} />
             <LayerControlEventHandler onFilterChange={handleFilterEvent as any} />
+            <LocationController 
+                driverLocation={driverLocation} 
+                followUser={followUser} 
+                onManualPanOrZoomAction={onManualPanOrZoomAction} 
+            />
+            
             {/* Dark mode styling for map controls */}
             <GlobalStyles styles={(theme) => ({
                 '.leaflet-dark .leaflet-control-layers': {
