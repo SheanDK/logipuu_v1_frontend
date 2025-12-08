@@ -13,6 +13,7 @@ const nextConfig = {
   // Add other Next.js config settings if you have them...
   // example: output: 'standalone',
   // example: webpack: (config) => { ... }
+   turbopack: {},
 };
 
 // --- FIX 2: Export the wrapped config ---

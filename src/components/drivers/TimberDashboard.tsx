@@ -11,6 +11,7 @@ import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import FactoryIcon from '@mui/icons-material/Factory';
 import Inventory2Icon from '@mui/icons-material/Inventory2';
 import LocalShippingIcon from '@mui/icons-material/LocalShipping';
+import { useLayout } from '@/contexts/LayoutContext';
 import MyLocationIcon from '@mui/icons-material/MyLocation';
 
 import dynamic from 'next/dynamic';
@@ -48,7 +49,7 @@ const ActiveTripPanel = dynamic(() => import('./ActiveTripPanel'), { ssr: false 
 const ConfirmationDialog = dynamic(() => import('../common/ConfirmationDialog'), { ssr: false });
 const ActiveTripDetailsModal = dynamic(() => import('./ActiveTripDetailsModal'), { ssr: false });
 
-const MapView = ({ puulaanit, purkupaikat, activeTripLegs, onMarkerClick, currentLocation, focusedPuulaaniId, onFocusComplete, markerFilters, onFilterChangeAction, followUser, onManualPanOrZoomAction }: {
+const MapView = ({ puulaanit, purkupaikat, activeTripLegs, onMarkerClick, currentLocation, focusedPuulaaniId, onFocusComplete, markerFilters, onFilterChangeAction, followUser, onManualPanOrZoomAction, sidebarWidth  }: {
     puulaanit: TripLegForMap[],
     purkupaikat: TripLegForMap[],
     activeTripLegs: TripLegForMap[],
@@ -60,6 +61,7 @@ const MapView = ({ puulaanit, purkupaikat, activeTripLegs, onMarkerClick, curren
     onFilterChangeAction: (filterName: 'showPuulaanit' | 'showPurkupaikat') => void,
     followUser: boolean, 
     onManualPanOrZoomAction: () => void 
+    sidebarWidth: number
 }) => {
     return (<TripMap 
         legs={activeTripLegs} 
@@ -73,6 +75,7 @@ const MapView = ({ puulaanit, purkupaikat, activeTripLegs, onMarkerClick, curren
         onFilterChangeAction={onFilterChangeAction}
         followUser={followUser}
         onManualPanOrZoomAction={onManualPanOrZoomAction}
+        sidebarWidth={sidebarWidth}
     />);
 };
 
@@ -179,6 +182,7 @@ export default function TimberDashboard({ onBackAction }: TimberDashboardProps) 
     const { t } = useTranslation('timberDashboard');
     const socketRef = useRef<Socket | null>(null);
     const watchIdRef = useRef<number | null>(null);
+    const { navLayout } = useLayout();
 
     // State declarations
     const [view, setView] = useState<'map' | 'list'>('map');
@@ -203,6 +207,7 @@ export default function TimberDashboard({ onBackAction }: TimberDashboardProps) 
     const [markerFilters, setMarkerFilters] = useState({ showPuulaanit: true, showPurkupaikat: true });
     const [isTripDetailsModalOpen, setIsTripDetailsModalOpen] = useState(false);
     const [recentlyModifiedPuulaaniId, setRecentlyModifiedPuulaaniId] = useState<number | null>(null);
+    const sidebarWidth = navLayout === 'left' ? 240 : 0; 
     
     // Use the existing hook to fetch map data (Puulaanit, Purkupaikat)
     // We initialize filters with the vehicle ID to get relevant data
@@ -719,6 +724,7 @@ export default function TimberDashboard({ onBackAction }: TimberDashboardProps) 
                     onFilterChangeAction={handleFilterChange}
                     followUser={followUser}
                     onManualPanOrZoomAction={handleManualMapInteraction}
+                    sidebarWidth={sidebarWidth}
                 />
             </Box>
             <Box sx={{ height: '100%', display: view === 'list' ? 'block' : 'none' }}>
@@ -732,12 +738,14 @@ export default function TimberDashboard({ onBackAction }: TimberDashboardProps) 
 
             
             {/* Desktop Controls */}
+             {/* --- THE FIX IS HERE: Change position from 'left' to 'right' --- */}
             <Paper 
                 elevation={0} 
                 sx={{ 
                     position: 'absolute', 
                     top: 16, 
-                    left: 16, 
+                    right: 16, // Change from 'left: 16' to 'right: 16'
+                    left: 'auto', // Explicitly remove the left positioning
                     zIndex: 1000, 
                     p: 1, 
                     backgroundColor: controlSurface, 
@@ -862,22 +870,27 @@ export default function TimberDashboard({ onBackAction }: TimberDashboardProps) 
                 activeTrip={activeTrip}
             />
             
-            {/* Add the "Recenter" Floating Action Button (FAB) --- */}
+            {/*  "Recenter" Floating Action Button (FAB) --- */}
             <Tooltip title={t('tooltips.centerLocation')}>
-                <Fab 
-                    color={followUser ? "primary" : "default"}
-                    aria-label={t('tooltips.centerLocation')}
-                    onClick={handleRecenterMap}
-                    sx={{
-                        position: 'absolute',
-                        bottom: { xs: 90, sm: 32 }, 
-                        right: { xs: 24, sm: 32 },
-                        zIndex: 1100,
-                    }}
-                >
-                    <MyLocationIcon />
-                </Fab>
-            </Tooltip>
+            <Fab 
+                color={followUser ? "primary" : "default"}
+                aria-label="center map"
+                onClick={handleRecenterMap}
+                size="small"
+                sx={{
+                    position: 'absolute',
+                    // Position below the desktop control panel
+                    top: { xs: 120, sm: 80 },
+                    right: { xs: 16, sm: 16 },
+                    left: 'auto',
+                    zIndex: 999,
+                    transition: 'all 0.3s ease-in-out',
+                    boxShadow: 3,
+                }}
+            >
+                <MyLocationIcon />
+            </Fab>
+        </Tooltip>
             
             {/* Mobile Speed Dial */}
             <SpeedDial

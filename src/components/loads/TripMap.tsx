@@ -2,7 +2,7 @@
 'use client';
 
 import React, { useEffect, useMemo, useCallback } from 'react';
-import { Box, Typography } from '@mui/material';
+import { Box, Stack, Typography } from '@mui/material';
 import { useTheme, alpha } from '@mui/material/styles';
 import L, { LatLngTuple, LeafletMouseEvent } from 'leaflet';
 import 'leaflet/dist/leaflet.css';
@@ -212,6 +212,7 @@ export interface TripMapProps {
     onFilterChangeAction: (filterName: 'showPuulaanit' | 'showPurkupaikat') => void;
     onManualPanOrZoomAction: () => void; // To disable follow mode
     followUser: boolean; // To enable/disable follow mode
+    sidebarWidth?: number;
 }
 
 const MapFocusController = ({ focusedTripId, trips, onFocusCompleteAction }: { focusedTripId: number | null | undefined; trips: TripLegForMap[]; onFocusCompleteAction: () => void; }) => {
@@ -288,7 +289,8 @@ export default function TripMap({
     legs, puulaanit, purkupaikat, driverLocation, 
     focusedTripId, onFocusCompleteAction, onMarkerClickAction,
     markerFilters, onFilterChangeAction,
-    onManualPanOrZoomAction, followUser
+    onManualPanOrZoomAction, followUser,
+    sidebarWidth = 0
 }: TripMapProps) {
     
     const { t } = useTranslation('tripMap');
@@ -350,11 +352,15 @@ export default function TripMap({
             minZoom={6}
             maxZoom={20}
         >
-            <ZoomControl position="bottomleft" />
+            <Box sx={{ position: 'absolute', top: 10, left: 10 + sidebarWidth, zIndex: 1000 }}>
+                <Stack spacing={1}>
+                    <ZoomControl position="topleft" />
+                </Stack>
+            </Box>
 
             {/* <LayerControlEventHandler onFilterChange={handleFilterEvent} /> */}
             
-            <LayersControl position="bottomleft" key={`layers-${theme.palette.mode}`}>
+            <LayersControl position="topleft" key={`layers-${theme.palette.mode}`}>
                 {/* Street / Standard (OSM) */}
                 <LayersControl.BaseLayer name={t('layers.street')}>
                     <TileLayer
