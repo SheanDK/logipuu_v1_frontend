@@ -870,9 +870,11 @@ export default function TimberDashboard({ onBackAction }: TimberDashboardProps) 
                 activeTrip={activeTrip}
             />
             
+            
+            
             {/* Add the "Recenter" Floating Action Button (FAB) --- */}
             {view === 'map' && (
-                <Tooltip title={t('tooltips.centerLocation')}>
+                 <Tooltip title={t('tooltips.centerLocation', 'Center on my location')}>
                     <Fab 
                 color={followUser ? "primary" : "default"}
                 aria-label="center map"
@@ -917,8 +919,6 @@ export default function TimberDashboard({ onBackAction }: TimberDashboardProps) 
                     </Fab>
                 </Tooltip>
             )}
-            
-            
             {/* Mobile Speed Dial */}
             <SpeedDial
                 ariaLabel="Actions" 
