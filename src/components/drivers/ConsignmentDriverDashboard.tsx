@@ -2,7 +2,7 @@
 'use client';
 
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
-import { Box, Paper, Typography, Button, CircularProgress, Alert, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Stack } from '@mui/material';
+import { Box, Paper, Typography, Button, CircularProgress, Alert, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Stack, Tooltip, Fab } from '@mui/material';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import AddIcon from '@mui/icons-material/Add';
 import { useDriverSession } from '@/contexts/DriverSessionContext';
@@ -19,7 +19,7 @@ interface ConsignmentDashboardProps {
     onNavigateToFormAction: (id: number | null) => void;
 }
 
-// FIX: Added the onBackAction prop back to the function signature
+
 export default function ConsignmentDriverDashboard({ onBackAction, onNavigateToFormAction }: ConsignmentDashboardProps) {
     const { selectedVehicleId } = useDriverSession();
     const [consignments, setConsignments] = useState<IConsignmentKuormaListItem[]>([]);
@@ -40,7 +40,7 @@ export default function ConsignmentDriverDashboard({ onBackAction, onNavigateToF
         } finally {
             setIsLoading(false);
         }
-    }, [selectedVehicleId]);
+    }, [selectedVehicleId, t]);
 
     useEffect(() => {
         fetchConsignments();
@@ -72,23 +72,41 @@ export default function ConsignmentDriverDashboard({ onBackAction, onNavigateToF
     }
 
     return (
-        // FIX: Changed layout to fit within the main application area instead of 100vh
-         <Box sx={{ p: { xs: 1, sm: 3 }, height: '100%', display: 'flex', flexDirection: 'column' }}>
 
-            <Stack direction="row" justifyContent="space-between" alignItems="center" mb={2} sx={{ flexShrink: 0 }}>
-                <Typography variant="h5" component="h1" sx={{ fontWeight: 'bold' }}>{t('title')}</Typography>
+     <Box sx={{ p: { xs: 1, sm: 3 }, height: '100%', display: 'flex', flexDirection: 'column', position: 'relative' }}>
+            <Stack 
+                direction="row" 
+                justifyContent="space-between" 
+                alignItems="center" 
+                mb={2} 
+                sx={{ flexShrink: 0 }}
+            >
+                <Typography variant="h5" component="h1" sx={{ fontWeight: 'bold' }}>
+                    {t('title')}
+                </Typography>
+                
                 <Stack direction="row" spacing={1}>
-                    <Button variant="contained" startIcon={<AddIcon />} onClick={() => onNavigateToFormAction(null)}>
+                    {/* The "New Consignment" button for DESKTOP view --- */}
+                    <Button
+                        variant="contained"
+                        startIcon={<AddIcon />}
+                        onClick={() => onNavigateToFormAction(null)}
+                        sx={{ display: { xs: 'none', sm: 'inline-flex' } }} // Only visible on sm screens and up
+                    >
                         {t('buttons.newConsignment')}
                     </Button>
-                    <Button startIcon={<ArrowBackIcon />} onClick={onBackAction}>
+
+                    <Button 
+                        variant="outlined"
+                        startIcon={<ArrowBackIcon />} 
+                        onClick={onBackAction}
+                    >
                         {t('buttons.changeMode')}
                     </Button>
                 </Stack>
             </Stack>
 
-            {/* FIX: The Paper component will grow to fill the remaining space. */}
-            <Paper sx={{ flexGrow: 1, width: '100%', height: '100%', minHeight: 0 }}>
+            <Paper sx={{ flexGrow: 1, width: '100%', minHeight: 0 }}>
                 {isLoading ? (
                     <TableSkeletonLoader rows={10} />
                 ) : (
@@ -101,7 +119,7 @@ export default function ConsignmentDriverDashboard({ onBackAction, onNavigateToF
                             pagination: { paginationModel: { pageSize: 25 } },
                             sorting: { sortModel: [{ field: 'pvm', sort: 'desc' }] },
                         }}
-                        pageSizeOptions={[10, 25, 50, 100]}
+                        pageSizeOptions={[10, 25, 50]}
                         disableRowSelectionOnClick
                         sx={{
                             border: 0,
@@ -114,6 +132,24 @@ export default function ConsignmentDriverDashboard({ onBackAction, onNavigateToF
                     />
                 )}
             </Paper>
+
+            {/* The Floating Action Button for MOBILE view --- */}
+            <Tooltip title={t('buttons.newConsignment')}>
+                <Fab
+                    color="primary"
+                    aria-label="add consignment"
+                    onClick={() => onNavigateToFormAction(null)}
+                    sx={{
+                        position: 'absolute',
+                        bottom: 15,
+                        left: '45%',
+                        transform: 'translateX(-55%)',
+                        display: { xs: 'flex', sm: 'none' } 
+                    }}
+                >
+                    <AddIcon />
+                </Fab>
+            </Tooltip>
         </Box>
     );
 }
