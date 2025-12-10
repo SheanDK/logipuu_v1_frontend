@@ -19,7 +19,9 @@
         "resume": "Resume Trip",
         "resumeAria": "Resume current trip",
         "complete": "Complete Trip",
-        "completeAria": "Mark trip as completed"
+        "completeAria": "Mark trip as completed",
+        "load": "Load",
+        "loads": "Loads"
     },
     "status": {
         "inProgress": "In Progress",

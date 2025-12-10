@@ -171,7 +171,7 @@ export default function ActiveTripPanel({
                                 <ListItemIcon><FlagIcon /></ListItemIcon>
                                 <ListItemText 
                                     primary={dropOffName} 
-                                    secondary={`${legsInGroup.length} ${legsInGroup.length > 1 ? t('loads') : t('load')}`} 
+                                    secondary={`${legsInGroup.length} ${legsInGroup.length > 1 ? t('activeTrip.loads') : t('activeTrip.load')}`} 
                                 />
                             </ListItemButton>
                         </ListItem>

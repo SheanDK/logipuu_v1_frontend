@@ -11,6 +11,23 @@ interface ActiveTripsListProps {
 
 export default function ActiveTripsList({ data }: ActiveTripsListProps) {
     const { t } = useTranslation('dashboard');
+
+    // --- Helper function to translate status strings ---
+    const getTranslatedStatus = (status: string) => {
+        // Map backend strings to translation keys
+        const statusMap: Record<string, string> = {
+            'In Progress': 'inProgress',
+            'Assigned': 'assigned',
+            'Ready for Invoicing': 'readyForInvoicing',
+            'Paused': 'paused',
+            'Completed': 'completed'
+        };
+
+        const key = statusMap[status];
+        // Return translated string if key exists, otherwise return original string
+        return key ? t(`status.${key}`) : status;
+    };
+
     return (
         <Paper sx={{ 
             p: 3, 
@@ -30,7 +47,6 @@ export default function ActiveTripsList({ data }: ActiveTripsListProps) {
             ) : (
                 <List sx={{ overflowY: 'auto', flexGrow: 1, p: 0 }}>
                     {data.map((trip, index) => {
-                        // --- FIX: Conditionally construct the primary text ---
                         const primaryText = trip.vehicleRegNo 
                             ? `${trip.driverName || t('activeTrips.unknownDriver')} (${trip.vehicleRegNo})` 
                             : trip.driverName || t('activeTrips.unknownDriver');
@@ -44,11 +60,12 @@ export default function ActiveTripsList({ data }: ActiveTripsListProps) {
                                         </Avatar>
                                     </ListItemAvatar>
                                     <ListItemText
-                                        primary={primaryText} // Use the newly constructed text
+                                        primary={primaryText} 
                                         secondary={
                                             <Box sx={{ mt: 1, width: '100%' }}>
                                                 <Typography component="span" variant="body2" color="text.primary">
-                                                    {trip.status}
+                                                    {/* --- Use the helper function here --- */}
+                                                    {getTranslatedStatus(trip.status)}
                                                 </Typography>
                                                 <LinearProgress variant="determinate" value={trip.progress} sx={{ mt: 0.5, height: 6, borderRadius: 5 }} />
                                             </Box>

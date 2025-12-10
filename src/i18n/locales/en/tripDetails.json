@@ -1,0 +1,23 @@
+{
+  "title": "Trip Details",
+  "summary": {
+    "title": "Summary",
+    "customer": "Customer",
+    "vehicle": "Vehicle"
+  },
+  "loads": {
+    "title": "Loads in this Trip",
+    "from": "From (Puulaani)",
+    "to": "To (Drop-off)",
+    "timberType": "Timber Type",
+    "volume": "Volume (m³)",
+    "status": "Status"
+  },
+  "status": {
+    "inProgress": "In Progress",
+    "paused": "Paused",
+    "completed": "Completed",
+    "assigned": "Assigned"
+  },
+  "na": "N/A"
+}

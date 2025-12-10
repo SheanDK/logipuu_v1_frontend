@@ -246,6 +246,13 @@ export default function AppNavbar() {
 
     const topNavLinks = useMemo(() => navItems.filter(item => item.isTopNav), [navItems]);
     
+    // --- FIX 1: Determine the home link based on user role ---
+    const homeLink = useMemo(() => {
+        const isDriver = user?.roles.includes('Kuljettaja');
+        const basePath = isDriver ? '/my-loads' : '/dashboard';
+        return withLng(currentLng, basePath);
+    }, [user, currentLng]);
+
     return (
         <AppBar
             position="fixed"
@@ -262,8 +269,10 @@ export default function AppNavbar() {
                         <MenuIcon />
                     </IconButton>
                 )}
+                
+                {/* --- FIX 2: Use the dynamic 'homeLink' here --- */}
                 <Link
-                    href={withLng(currentLng, '/dashboard')}
+                    href={homeLink}
                     passHref
                     style={{ display: 'flex', alignItems: 'center', textDecoration: 'none', color: 'inherit' }}
                 >

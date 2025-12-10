@@ -31,6 +31,13 @@
     "noData": "No active trips at the moment.",
     "unknownDriver": "Unknown Driver"
   },
+   "status": {
+    "inProgress": "In Progress",
+    "assigned": "Assigned",
+    "readyForInvoicing": "Ready for Invoicing",
+    "paused": "Paused",
+    "completed": "Completed"
+  },
   "mapCard": {
     "title": "Live Timber Map",
     "description": "View all active sites",

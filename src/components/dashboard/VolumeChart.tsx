@@ -5,14 +5,21 @@ import React from 'react';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { Paper, Typography, Box, useTheme } from '@mui/material';
 import { IVolumeByDay } from '@/types'; 
+// --- Import useTranslation and i18n ---
 import { useTranslation } from 'react-i18next';
 
+// Helper function to format the date based on language
+const formatDate = (dateString: string, lang: string) => {
+    const date = new Date(dateString);
+    return new Intl.DateTimeFormat(lang, { day: '2-digit', month: 'short' }).format(date);
+};
 
-const CustomTooltip = ({ active, payload, label }: any) => {
+const CustomTooltip = ({ active, payload, label, currentLang }: any) => {
      const { t } = useTranslation('dashboard');
   if (active && payload && payload.length) {
     const valueAsNumber = Number(payload[0].value);
-
+    
+    // --- Format the label (date) inside the tooltip ---
     return (
       <Paper elevation={3} sx={{ p: 1.5, borderRadius: '8px', backgroundColor: 'background.default' }}>
         <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 0.5 }}>{label}</Typography>
@@ -32,7 +39,8 @@ interface VolumeChartProps {
 }
 
 export default function VolumeChart({ data, height = 400 }: VolumeChartProps) {
-    const { t } = useTranslation('dashboard');
+    // --- Get i18n instance to access current language ---
+    const { t, i18n } = useTranslation('dashboard');
     const theme = useTheme();
 
     return (
@@ -47,7 +55,6 @@ export default function VolumeChart({ data, height = 400 }: VolumeChartProps) {
             <Typography variant="h6" sx={{ mb: 2, fontWeight: 'bold' }}>
                 {t('volumeChart.title')}
             </Typography>
-            
             
             {data.length === 0 ? (
                  <Box sx={{ flexGrow: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'text.secondary' }}>
@@ -72,6 +79,8 @@ export default function VolumeChart({ data, height = 400 }: VolumeChartProps) {
                                 tickLine={false} 
                                 axisLine={false} 
                                 tick={{ fill: theme.palette.text.secondary, fontSize: 12 }} 
+                                // --- Use tickFormatter to translate dates ---
+                                tickFormatter={(value) => formatDate(value, i18n.language)}
                             />
                             <YAxis 
                                 tickLine={false} 
@@ -80,7 +89,12 @@ export default function VolumeChart({ data, height = 400 }: VolumeChartProps) {
                                 unit=" m³" 
                                 width={80}
                             />
-                            <Tooltip content={<CustomTooltip />} />
+                            {/* Pass currentLang if needed, though tickFormatter handles the axis */}
+                            <Tooltip 
+                                content={<CustomTooltip />} 
+                                // format the label in the tooltip as well
+                                labelFormatter={(value) => formatDate(value, i18n.language)}
+                            />
                             <Area 
                                 type="monotone" 
                                 dataKey="volume" 

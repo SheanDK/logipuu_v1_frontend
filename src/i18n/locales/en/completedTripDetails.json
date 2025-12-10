@@ -1,0 +1,16 @@
+{
+  "title": "Completed Trip Summary",
+  "error": "Could not load trip details.",
+  "labels": {
+    "date": "Date",
+    "type": "Type",
+    "customer": "Customer",
+    "vehicle": "Vehicle",
+    "origin": "Origin",
+    "destination": "Destination",
+    "volume": "Volume (m³)",
+    "distance": "Distance (km)",
+    "notes": "Notes"
+  },
+  "na": "–"
+}

@@ -26,6 +26,18 @@
     "tooltip": "Tilavuus: {{value}} m³",
     "noData": "Ei tilavuustietoja viimeiseltä 7 päivältä."
   },
+  "activeTrips": {
+    "title": "Aktiivisten ajojen yleiskatsaus",
+    "noData": "Ei aktiivisia ajoja tällä hetkellä.",
+    "unknownDriver": "Tuntematon kuljettaja"
+  },
+  "status": {
+    "inProgress": "Käynnissä",
+    "assigned": "Osoitettu",
+    "readyForInvoicing": "Valmis laskutukseen",
+    "paused": "Keskeytetty",
+    "completed": "Valmis"
+  },
   "mapCard": {
     "title": "Live-Puukartta",
     "description": "Näytä kaikki aktiiviset kohteet",

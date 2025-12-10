@@ -1,0 +1,23 @@
+{
+  "title": "Ajon tiedot",
+  "summary": {
+    "title": "Yhteenveto",
+    "customer": "Asiakas",
+    "vehicle": "Ajoneuvo"
+  },
+  "loads": {
+    "title": "Ajon kuormat",
+    "from": "Lähtö (Puulaani)",
+    "to": "Kohde (Purkupaikka)",
+    "timberType": "Puutavaralaji",
+    "volume": "Määrä (m³)",
+    "status": "Tila"
+  },
+  "status": {
+    "inProgress": "Käynnissä",
+    "paused": "Keskeytetty",
+    "completed": "Valmis",
+    "assigned": "Osoitettu"
+  },
+  "na": "-"
+}

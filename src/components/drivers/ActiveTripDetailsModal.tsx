@@ -4,6 +4,8 @@
 import React from 'react';
 import { Dialog, DialogTitle, DialogContent, Typography, IconButton, Box, Stack, Divider, Chip, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
+// --- FIX 1: Import useTranslation ---
+import { useTranslation } from 'react-i18next';
 
 interface ActiveTripDetailsModalProps {
     open: boolean;
@@ -15,6 +17,9 @@ const StyledTableCell = (props: any) => <TableCell sx={{ py: 1, px: 1.5 }} {...p
 const StyledHeaderCell = (props: any) => <StyledTableCell sx={{ fontWeight: 'bold', backgroundColor: 'action.hover' }} {...props} />;
 
 export default function ActiveTripDetailsModal({ open, onCloseAction, activeTrip }: ActiveTripDetailsModalProps) {
+    // --- FIX 2: Initialize translation hook ---
+    const { t } = useTranslation('tripDetails');
+
     if (!activeTrip) {
         return null;
     }
@@ -22,10 +27,23 @@ export default function ActiveTripDetailsModal({ open, onCloseAction, activeTrip
     const { ajomaaraysNro, legs = [], asiakkaanNimi, rekNro } = activeTrip;
     const firstLeg = legs[0] || {};
 
+    // --- FIX 3: Helper function to translate status ---
+    const getTranslatedStatus = (status: string) => {
+        const keyMap: { [key: string]: string } = {
+            'In Progress': 'inProgress',
+            'Paused': 'paused',
+            'Completed': 'completed',
+            'Assigned': 'assigned'
+        };
+        const statusKey = keyMap[status];
+        return statusKey ? t(`status.${statusKey}`) : status;
+    };
+
     return (
         <Dialog open={open} onClose={onCloseAction} fullWidth maxWidth="md">
             <DialogTitle sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                Trip Details: {ajomaaraysNro || `Trip #${firstLeg.kuormaId}`}
+                {/* --- FIX 4: Translate Title --- */}
+                {t('title')}: {ajomaaraysNro || `Trip #${firstLeg.kuormaId}`}
                 <IconButton onClick={onCloseAction}>
                     <CloseIcon />
                 </IconButton>
@@ -34,16 +52,17 @@ export default function ActiveTripDetailsModal({ open, onCloseAction, activeTrip
                 <Stack spacing={3}>
                     {/* Summary Section */}
                     <Box>
-                        <Typography variant="h6" gutterBottom>Summary</Typography>
+                        {/* --- FIX 5: Translate Summary Section --- */}
+                        <Typography variant="h6" gutterBottom>{t('summary.title')}</Typography>
                         <Paper variant="outlined" sx={{ p: 2 }}>
                             <Stack direction="row" spacing={4}>
                                 <Box>
-                                    <Typography variant="body2" color="text.secondary">Customer</Typography>
-                                    <Typography variant="body1" fontWeight="medium">{asiakkaanNimi || 'N/A'}</Typography>
+                                    <Typography variant="body2" color="text.secondary">{t('summary.customer')}</Typography>
+                                    <Typography variant="body1" fontWeight="medium">{asiakkaanNimi || t('na')}</Typography>
                                 </Box>
                                 <Box>
-                                    <Typography variant="body2" color="text.secondary">Vehicle</Typography>
-                                    <Typography variant="body1" fontWeight="medium">{rekNro || 'N/A'}</Typography>
+                                    <Typography variant="body2" color="text.secondary">{t('summary.vehicle')}</Typography>
+                                    <Typography variant="body1" fontWeight="medium">{rekNro || t('na')}</Typography>
                                 </Box>
                             </Stack>
                         </Paper>
@@ -51,33 +70,32 @@ export default function ActiveTripDetailsModal({ open, onCloseAction, activeTrip
                     
                     {/* Legs/Loads Section */}
                     <Box>
-                        <Typography variant="h6" gutterBottom>Loads in this Trip</Typography>
+                        {/* --- FIX 6: Translate Table Headers --- */}
+                        <Typography variant="h6" gutterBottom>{t('loads.title')}</Typography>
                         <TableContainer component={Paper} variant="outlined">
                             <Table size="small">
                                 <TableHead>
                                     <TableRow>
-                                        <StyledHeaderCell>From (Puulaani)</StyledHeaderCell>
-                                        <StyledHeaderCell>To (Drop-off)</StyledHeaderCell>
-                                        <StyledHeaderCell>Timber Type</StyledHeaderCell>
-                                        {/* --- NEW COLUMN HEADER --- */}
-                                        <StyledHeaderCell align="right">Volume (m³)</StyledHeaderCell> 
-                                        <StyledHeaderCell align="center">Status</StyledHeaderCell>
+                                        <StyledHeaderCell>{t('loads.from')}</StyledHeaderCell>
+                                        <StyledHeaderCell>{t('loads.to')}</StyledHeaderCell>
+                                        <StyledHeaderCell>{t('loads.timberType')}</StyledHeaderCell>
+                                        <StyledHeaderCell align="right">{t('loads.volume')}</StyledHeaderCell> 
+                                        <StyledHeaderCell align="center">{t('loads.status')}</StyledHeaderCell>
                                     </TableRow>
                                 </TableHead>
                                 <TableBody>
                                     {legs.map((leg: any) => (
                                         <TableRow key={leg.kuormaId}>
-                                            <StyledTableCell>{leg.puulaaniName || 'N/A'}</StyledTableCell>
-                                            <StyledTableCell>{leg.purkupaikkaName || 'N/A'}</StyledTableCell>
-                                            <StyledTableCell>{leg.puutavaralaji || 'N/A'}</StyledTableCell>
-                                            {/* --- NEW COLUMN CELL --- */}
-                                            <StyledTableCell align="center">
-                                                {/* Format the number to 2 decimal places */}
+                                            <StyledTableCell>{leg.puulaaniName || t('na')}</StyledTableCell>
+                                            <StyledTableCell>{leg.purkupaikkaName || t('na')}</StyledTableCell>
+                                            <StyledTableCell>{leg.puutavaralaji || t('na')}</StyledTableCell>
+                                            <StyledTableCell align="right">
                                                 {Number(leg.m3).toFixed(2)}
                                             </StyledTableCell>
                                             <StyledTableCell align="center">
+                                                {/* --- FIX 7: Use translated status --- */}
                                                 <Chip 
-                                                    label={leg.status} 
+                                                    label={getTranslatedStatus(leg.status)} 
                                                     size="small" 
                                                     color={leg.status === 'In Progress' || leg.status === 'Paused' ? 'primary' : 'default'} 
                                                 />

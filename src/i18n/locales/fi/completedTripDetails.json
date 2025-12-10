@@ -1,0 +1,16 @@
+{
+  "title": "Ajoyhteenveto",
+  "error": "Ajon tietoja ei voitu ladata.",
+  "labels": {
+    "date": "Päivämäärä",
+    "type": "Tyyppi",
+    "customer": "Asiakas",
+    "vehicle": "Ajoneuvo",
+    "origin": "Lähtöpaikka",
+    "destination": "Määränpää",
+    "volume": "Määrä (m³)",
+    "distance": "Matka (km)",
+    "notes": "Lisätiedot"
+  },
+  "na": "-"
+}

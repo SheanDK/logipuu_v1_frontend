@@ -118,12 +118,12 @@ export default function LoadReportPage() {
         };
     };
 
-    // වෙනස්කම 2: අලුත් handleDownloadExcel ෆන්ෂන් එක (Using ExcelJS)
+
     const handleDownloadExcel = async () => {
         const workbook = new ExcelJS.Workbook();
         const worksheet = workbook.addWorksheet(t('excelSheetName') || 'Report');
 
-        // තීරු (Columns) සැකසීම
+
         worksheet.columns = [
             { header: t('table.headers.date'), key: 'date', width: 15 },
             { header: t('table.headers.driver'), key: 'driver', width: 20 },
@@ -135,10 +135,10 @@ export default function LoadReportPage() {
             { header: t('table.headers.additionalInfo'), key: 'info', width: 25 },
         ];
 
-        // Header එක Bold කිරීම
+     
         worksheet.getRow(1).font = { bold: true };
 
-        // දත්ත එකතු කිරීම (Adding Rows)
+    
         reportData.forEach((item) => {
             worksheet.addRow({
                 date: item.pvm,
@@ -152,19 +152,19 @@ export default function LoadReportPage() {
             });
         });
 
-        // හිස් පේළියක්
+      
         worksheet.addRow({});
 
-        // එකතුව (Total Row)
+        
         const totalRow = worksheet.addRow({
             puulaani: t('table.footer.total'),
             cubic: parseFloat(totalCubicMeters)
         });
         
-        // Total row එක Bold කිරීම
+      
         totalRow.font = { bold: true };
 
-        // ෆයිල් එක සාදා ඩවුන්ලෝඩ් කිරීම
+       
         const buffer = await workbook.xlsx.writeBuffer();
         const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
         saveAs(blob, 'load-report.xlsx');

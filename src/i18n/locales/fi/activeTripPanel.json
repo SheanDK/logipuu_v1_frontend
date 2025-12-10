@@ -19,7 +19,9 @@
         "resume": "Jatka ajoa",
         "resumeAria": "Jatka nykyistä ajoa",
         "complete": "Päätä ajo",
-        "completeAria": "Merkitse ajo päättyneeksi"
+        "completeAria": "Merkitse ajo päättyneeksi",
+        "load": "Kuorma",
+        "loads": "Kuormat"
     },
     "status": {
         "inProgress": "Käynnissä",
