@@ -362,8 +362,10 @@ export default function TripMap({
                 {/* Street / Standard (OSM) */}
                 <LayersControl.BaseLayer name={t('layers.street')}>
                     <TileLayer
-                        attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-                        url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                        url="https://{s}.google.com/vt/lyrs=m&x={x}&y={y}&z={z}"
+                        maxZoom={20}
+                        subdomains={['mt0', 'mt1', 'mt2', 'mt3']}
+                        attribution='&copy; Google'
                     />
                 </LayersControl.BaseLayer>
 
@@ -373,7 +375,7 @@ export default function TripMap({
                         url="https://{s}.google.com/vt/lyrs=s,h&x={x}&y={y}&z={z}"
                         maxZoom={20}
                         subdomains={['mt0', 'mt1', 'mt2', 'mt3']}
-                        attribution="&copy; Google"
+                        attribution='&copy; Google'
                     />
                 </LayersControl.BaseLayer>
 
@@ -381,7 +383,8 @@ export default function TripMap({
                 <LayersControl.BaseLayer checked name={t('layers.topographic')}>
                     <TileLayer
                         url="https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png"
-                        maxZoom={17}
+                        maxZoom={19}
+                        maxNativeZoom={18}
                         attribution='Map data: &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors, <a href="http://viewfinderpanoramas.org">SRTM</a> | Map style: &copy; <a href="https://opentopomap.org">OpenTopoMap</a> (<a href="https://creativecommons.org/licenses/by-sa/3.0/">CC-BY-SA</a>)'
                     />
                 </LayersControl.BaseLayer>
