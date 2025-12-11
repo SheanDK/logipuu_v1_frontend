@@ -1,4 +1,3 @@
-// frontend/src/services/loadService.ts
 import apiClient from './apiClient';
 import { 
     ILoadListItem, 
@@ -10,6 +9,7 @@ import {
     ITripDetails,
     ICompleteLoadDto,
     IMapTrip,
+    IUser // Assuming IUser is needed for types
 } from '../types';
 
 const API_ENDPOINT = '/loads';
@@ -19,6 +19,8 @@ export interface ILoadListApiFilters {
     asiakasId?: string;
     kalustoNro?: string;
     kuljId?: string;
+    // --- FIX: Add loadType here ---
+    loadType?: number; 
 }
 
 /**
@@ -35,9 +37,11 @@ export const createBulkLoad = async (legs: ICreateLoadDto[]): Promise<{ message:
         throw error;
     }
 };
+
 // Update the function to use the new, more specific type for its parameter.
 export const fetchAllLoads = async (filters: ILoadListApiFilters): Promise<ILoadListItem[]> => {
     try {
+        // Axios params will automatically handle the new loadType property inside 'filters'
         const response = await apiClient.get<ILoadListItem[]>(API_ENDPOINT, { params: filters });
         return response.data;
     } catch (error) {
@@ -45,7 +49,6 @@ export const fetchAllLoads = async (filters: ILoadListApiFilters): Promise<ILoad
         throw error;
     }
 };
-
 
 export const getLoadById = async (id: number): Promise<ILoadDetails> => {
     try {
@@ -67,7 +70,10 @@ export const createLoad = async (data: ICreateLoadDto): Promise<ILoad> => {
     }
 };
 
-export const updateLoad = async (id: number, data: IUpdateLoadDto): Promise<ILoad> => {
+// Ensure updateLoad accepts user object if your component sends it, 
+// though typically frontend services don't need to send 'user' object in body 
+// if auth header handles it. But to match your component call:
+export const updateLoad = async (id: number, data: IUpdateLoadDto, user?: IUser): Promise<ILoad> => {
     try {
         const response = await apiClient.put<ILoad>(`${API_ENDPOINT}/${id}`, data);
         return response.data;
@@ -77,7 +83,7 @@ export const updateLoad = async (id: number, data: IUpdateLoadDto): Promise<ILoa
     }
 };
 
-export const deleteLoad = async (id: number): Promise<any> => {
+export const deleteLoad = async (id: number, user?: IUser): Promise<any> => {
     try {
         const response = await apiClient.delete(`${API_ENDPOINT}/${id}`);
         return response.data;
@@ -107,7 +113,6 @@ export const updateLoadStatus = async (id: number, data: ILoadStatusUpdateDto): 
     }
 };
 
-// --- STEP 2: Add the new completeLoad function ---
 export const completeLoad = async (id: number, data: ICompleteLoadDto): Promise<ILoad> => {
     try {
         const response = await apiClient.patch<ILoad>(`${API_ENDPOINT}/${id}/complete`, data);
@@ -170,7 +175,6 @@ export const fetchActiveTripsForMap = async (): Promise<IMapTrip[]> => {
 
 export const getTripById = async (initialLoadId: number): Promise<ITripDetails> => {
     try {
-        // The backend route is still /:id, but it returns the full ITripDetails object
         const response = await apiClient.get<ITripDetails>(`${API_ENDPOINT}/${initialLoadId}`);
         return response.data;
     } catch (error) {
@@ -181,7 +185,6 @@ export const getTripById = async (initialLoadId: number): Promise<ITripDetails> 
 
 export const updateTrip = async (initialLoadId: number, data: any): Promise<{ message: string }> => {
     try {
-        // The backend route is PUT /loads/trip/:initialLoadId
         const response = await apiClient.put<{ message: string }>(`/loads/trip/${initialLoadId}`, data);
         return response.data;
     } catch (error) {
@@ -192,7 +195,6 @@ export const updateTrip = async (initialLoadId: number, data: any): Promise<{ me
 
 export const getLoadForEdit = async (id: number): Promise<any> => {
     try {
-        // The CORRECT URL is /api/driver/load-for-edit/:id
         const response = await apiClient.get(`/driver/load-for-edit/${id}`);
         return response.data;
     } catch (error) {

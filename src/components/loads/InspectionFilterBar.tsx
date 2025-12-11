@@ -1,9 +1,9 @@
-// frontend/src/components/loads/InspectionFilterBar.tsx
+// frontend/src/components/loads/InspectionFilterBar.tsx 
 'use client';
 
 import React from 'react';
 import {
-    Grid, Box, FormControl, InputLabel, Select, MenuItem, ToggleButtonGroup, ToggleButton,
+    Box, FormControl, InputLabel, Select, MenuItem, ToggleButtonGroup, ToggleButton,
     InputAdornment, Tooltip, IconButton
 } from '@mui/material';
 import { SelectChangeEvent } from '@mui/material/Select';
@@ -16,8 +16,8 @@ export interface ILoadFilters {
     asiakasId: string;
     kalustoNro: string;
     kuljId: string;
+    loadType: string; // "0", "1" or ""
 }
-
 
 interface InspectionFilterBarProps {
     filters: ILoadFilters;
@@ -59,16 +59,40 @@ export default function InspectionFilterBar({
                 display: 'grid',
                 gap: 2,
                 alignItems: 'center',
-                gridTemplateColumns: { xs: '1fr', md: 'repeat(12, 1fr)' },
+                // Grid layout එක සකස් කිරීම: තීරු 12කට බෙදා ඇත
+                gridTemplateColumns: { xs: '1fr', md: 'repeat(12, 1fr)' }, 
             }}
         >
-            <Box>
-                <ToggleButtonGroup value={filters.status} exclusive onChange={handleStatusChange} size="small">
+            {/* Status Toggles */}
+            <Box sx={{ gridColumn: { xs: '1 / -1', md: 'span 3' } }}>
+                <ToggleButtonGroup value={filters.status} exclusive onChange={handleStatusChange} size="small" fullWidth>
                     <ToggleButton value="active">{t('status.active')}</ToggleButton>
                     <ToggleButton value="pending_inspection">{t('status.inspection')}</ToggleButton>
                     <ToggleButton value="all">{t('status.all')}</ToggleButton>
                 </ToggleButtonGroup>
             </Box>
+
+            {/* --- FIX: New Type Selector --- */}
+            <Box sx={{ gridColumn: { xs: '1 / -1', md: 'span 2' } }}>
+                <FormControl fullWidth size="small">
+                    <InputLabel id="load-type-label">Type</InputLabel>
+                    <Select
+                        labelId="load-type-label"
+                        name="loadType"
+                        value={filters.loadType || ''}
+                        label="Type"
+                        onChange={handleSelectChange}
+                        // Clear button for Type filter
+                        endAdornment={filters.loadType && (<InputAdornment position="end" sx={{ marginRight: '24px' }}><Tooltip title="Clear Type"><IconButton size="small" onClick={(e) => handleClearFilter(e, 'loadType')}><ClearIcon fontSize="small" /></IconButton></Tooltip></InputAdornment>)}
+                    >
+                        <MenuItem value=""><em>All Types</em></MenuItem>
+                        <MenuItem value="0">Timber (Puulaani)</MenuItem>
+                        <MenuItem value="1">Consignment (Rahti)</MenuItem>
+                    </Select>
+                </FormControl>
+            </Box>
+
+            {/* Customer Filter */}
             <Box sx={{ gridColumn: { xs: '1 / -1', md: 'span 3' } }}>
                 <FormControl fullWidth size="small">
                     <InputLabel id="customer-filter-label">{t('labels.customer')}</InputLabel>
@@ -85,7 +109,9 @@ export default function InspectionFilterBar({
                     </Select>
                 </FormControl>
             </Box>
-            <Box sx={{ gridColumn: { xs: '1 / -1', md: 'span 3' }}}>
+
+            {/* Vehicle Filter */}
+            <Box sx={{ gridColumn: { xs: '1 / -1', md: 'span 2' } }}>
                 <FormControl fullWidth size="small">
                     <InputLabel id="vehicle-filter-label">{t('labels.vehicle')}</InputLabel>
                     <Select
@@ -101,7 +127,9 @@ export default function InspectionFilterBar({
                     </Select>
                 </FormControl>
             </Box>
-            <Box sx={{ gridColumn: { xs: '1 / -1', md: 'span 3' }}}>
+
+            {/* Driver Filter */}
+            <Box sx={{ gridColumn: { xs: '1 / -1', md: 'span 2' } }}>
                 <FormControl fullWidth size="small">
                     <InputLabel id="driver-filter-label">{t('labels.driver')}</InputLabel>
                     <Select

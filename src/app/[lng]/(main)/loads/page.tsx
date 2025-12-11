@@ -23,20 +23,34 @@ import { fetchAllLoads, getTripById, deleteLoad, updateLoad, fetchLoadsForInspec
 import { fetchAllClients } from '@/services/clientService';
 import { fetchAllVehicles } from '@/services/vehicleService';
 import { fetchAllDrivers } from '@/services/driverService';
+import { useAuth } from '@/contexts/AuthContext';
+import useSocket from '@/hooks/useSocket'; // Import useSocket
 
-const getStatusChipColor = (status: string | undefined | null): "success" | "info" | "warning" | "error" | "default" => {
-    switch (status) {
-        case 'Completed': return 'success';
-        case 'In Progress': case 'En Route to Destination': return 'info';
-        case 'Assigned': case 'At Origin': case 'At Destination': return 'warning';
-        case 'Paused': return 'error';
-        default: return 'default';
-    }
+const STATUS_COLOR: Record<string, ChipProps['color']> = {
+    assigned: 'warning',
+    in_progress: 'info',
+    at_origin: 'warning',
+    en_route_to_destination: 'info',
+    at_destination: 'warning',
+    completed: 'success',
+    paused: 'error',
+};
+
+const STATUS_TKEY: Record<string, string> = {
+    'Assigned': 'assigned',
+    'In Progress': 'in_progress',
+    'At Origin': 'at_origin',
+    'En Route to Destination': 'en_route_to_destination',
+    'At Destination': 'at_destination',
+    'Completed': 'completed',
+    'Paused': 'paused',
 };
 
 export default function DrivenInspectionPage() {
 
     const { t } = useTranslation('loadsPage');
+    const { user } = useAuth();
+    const { socket } = useSocket(); // Socket connection
 
     const [rows, setRows] = useState<ILoadListItem[]>([]);
     const [isLoading, setIsLoading] = useState(true);
@@ -46,7 +60,16 @@ export default function DrivenInspectionPage() {
     const [snackbar, setSnackbar] = useState<{ open: boolean, message: string, severity: AlertColor } | null>(null);
     const [deleteConfirmation, setDeleteConfirmation] = useState<ILoadListItem | null>(null);
     const [isDeleting, setIsDeleting] = useState(false);
-    const [filters, setFilters] = useState<ILoadFilters>({ status: 'pending_inspection', asiakasId: '', kalustoNro: '', kuljId: '' });
+    
+    // --- FIX 1: Add loadType to initial filter state ---
+    const [filters, setFilters] = useState<ILoadFilters>({ 
+        status: 'pending_inspection', 
+        asiakasId: '', 
+        kalustoNro: '', 
+        kuljId: '',
+        loadType: '' 
+    });
+    
     const [clientList, setClientList] = useState<IClientBasicInfo[]>([]);
     const [vehicleList, setVehicleList] = useState<IVehicleBasicInfo[]>([]);
     const [driverList, setDriverList] = useState<IDriver[]>([]);
@@ -64,13 +87,20 @@ export default function DrivenInspectionPage() {
 
             let data;
             if (currentFilters.status === 'pending_inspection') {
+                // For inspection view, we might not use all filters, but let's stick to the base logic
+                // If you want filters to apply to inspection view too, you should use fetchAllLoads with status='pending_inspection'
+                // But per your original code:
                 data = await fetchLoadsForInspection();
             } else {
-
+                // --- FIX 2: Correctly map filters and parse loadType to number/undefined ---
                 const filtersForApi: ILoadListApiFilters = {
                     asiakasId: currentFilters.asiakasId || undefined,
                     kalustoNro: currentFilters.kalustoNro || undefined,
                     kuljId: currentFilters.kuljId || undefined,
+                    // Parse "0" or "1" to number, empty string becomes undefined
+                    loadType: (currentFilters.loadType !== '' && currentFilters.loadType !== undefined) 
+                        ? parseInt(currentFilters.loadType, 10) 
+                        : undefined,
                 };
 
                 if (currentFilters.status === 'active' || currentFilters.status === 'all') {
@@ -82,11 +112,47 @@ export default function DrivenInspectionPage() {
 
             setRows(data);
         } catch (err: any) {
+            console.error(err);
             setError(err.response?.data?.message || t('errors.fetchLoads'));
         } finally {
             setIsLoading(false);
         }
-    }, []);
+    }, [t]); // Added dependency
+
+    // --- FIX 3: Socket Listener for Real-time Updates ---
+    useEffect(() => {
+        if (!socket) return;
+
+        const handleStatusUpdate = (updatedLoad: any) => {
+            console.log("Socket: Load status updated", updatedLoad);
+            // Option A: Reload data to be safe (easiest)
+            // loadData(filters);
+
+            // Option B: Optimistic update (faster)
+            setRows((prevRows) => {
+                const index = prevRows.findIndex(r => r.kuormaId === updatedLoad.kuormaId);
+                if (index > -1) {
+                    const newRows = [...prevRows];
+                    // If the status change makes it fall out of the current filter (e.g. active -> completed), remove it
+                    // But for simplicity, we just update the row data
+                    newRows[index] = { ...newRows[index], ...updatedLoad };
+                    
+                    // If we are in 'active' view and load becomes 'Completed', we might want to filter it out
+                    if (filters.status === 'active' && updatedLoad.status === 'Completed') {
+                         return newRows.filter(r => r.kuormaId !== updatedLoad.kuormaId);
+                    }
+                    return newRows;
+                }
+                return prevRows;
+            });
+        };
+
+        socket.on('loadStatusUpdated', handleStatusUpdate);
+
+        return () => {
+            socket.off('loadStatusUpdated', handleStatusUpdate);
+        };
+    }, [socket, filters, loadData]);
 
     useEffect(() => {
         const loadFilterDropdowns = async () => {
@@ -115,16 +181,22 @@ export default function DrivenInspectionPage() {
         }
     };
 
-    const handleFilterChange = (name: keyof ILoadFilters, value: string | null) => { setFilters(prev => ({ ...prev, [name]: value as any })); };
-    const handleResetFilters = () => { setFilters({ status: 'pending_inspection', asiakasId: '', kalustoNro: '', kuljId: '' }); };
+    const handleFilterChange = (name: keyof ILoadFilters, value: string | null) => { 
+        setFilters(prev => ({ ...prev, [name]: value as any })); 
+    };
+    
+    const handleResetFilters = () => { 
+        setFilters({ status: 'pending_inspection', asiakasId: '', kalustoNro: '', kuljId: '', loadType: '' }); 
+    };
+    
     const handleCloseModal = () => { setIsEditModalOpen(false); setSelectedLoadForEditing(null); };
     const handleSaveSuccess = (message: string) => { handleCloseModal(); loadData(filters); setSnackbar({ open: true, message, severity: 'success' }); };
 
     const handleConfirmDelete = async () => {
-        if (!deleteConfirmation) return;
+        if (!deleteConfirmation || !user) return; // Added user check
         setIsDeleting(true);
         try {
-            await deleteLoad(deleteConfirmation.kuormaId);
+            await deleteLoad(deleteConfirmation.kuormaId, user);
             setSnackbar({ open: true, message: t('snackbar.deleted', { id: deleteConfirmation.kuormaId }), severity: 'success' });
             setDeleteConfirmation(null);
             await loadData(filters);
@@ -136,6 +208,11 @@ export default function DrivenInspectionPage() {
     };
 
     const handleProcessRowUpdate = useCallback(async (newRow: GridRowModel<ILoadListItem>): Promise<ILoadListItem> => {
+        if (!user) {
+             setSnackbar({ open: true, message: 'User not authenticated', severity: 'error' });
+             return rows.find(r => r.kuormaId === newRow.kuormaId)!;
+        }
+
         const payload: IUpdateLoadDto = {
             pvm: dayjs(newRow.pvm, "DD.MM.YYYY").toDate(),
             vastaanottoNro: newRow.vastaanottoNro, reitti: newRow.reitti,
@@ -143,14 +220,14 @@ export default function DrivenInspectionPage() {
             kpl: newRow.kpl, lisatiedot: newRow.lisatiedot
         };
         try {
-            await updateLoad(newRow.kuormaId, payload);
+            await updateLoad(newRow.kuormaId, payload, user);
             setSnackbar({ open: true, message: t('snackbar.updated', { id: newRow.kuormaId }), severity: 'success' });
             return newRow;
         } catch (err: any) {
             setSnackbar({ open: true, message: t('snackbar.updateFailed'), severity: 'error' });
             return rows.find(r => r.kuormaId === newRow.kuormaId)!;
         }
-    }, [rows]);
+    }, [rows, user, t]);
 
     const toggleSelection = (id: GridRowId) => {
         setSelectionModel(prev => {
@@ -168,7 +245,7 @@ export default function DrivenInspectionPage() {
             const acceptedIds = Array.from(selectionModel);
             await acceptLoadsForInvoicing(acceptedIds);
             setSnackbar({ open: true, message: t('snackbar.acceptedForInvoicing', { count: acceptedIds.length }), severity: 'success' });
-            await loadData(filters); // Reload data to reflect changes
+            await loadData(filters); 
         } catch (err: any) {
             setSnackbar({ open: true, message: err.response?.data?.message || t('errors.acceptFailed'), severity: 'error' });
         } finally {
@@ -190,30 +267,9 @@ export default function DrivenInspectionPage() {
 
     const handleCloseSnackbar = () => setSnackbar(null);
 
-    const STATUS_COLOR: Record<string, ChipProps['color']> = {
-        assigned: 'warning',
-        in_progress: 'info',
-        at_origin: 'warning',
-        en_route_to_destination: 'info',
-        at_destination: 'warning',
-        completed: 'success',
-        paused: 'error',
-    };
-
-    const STATUS_TKEY: Record<string, string> = {
-        'Assigned': 'assigned',
-        'In Progress': 'in_progress',
-        'At Origin': 'at_origin',
-        'En Route to Destination': 'en_route_to_destination',
-        'At Destination': 'at_destination',
-        'Completed': 'completed',
-        'Paused': 'paused',
-    };
-
     const translateStatus = (t: (k: string, o?: any) => string, status?: string | null) => {
-        if (!status) return t('status.na', { defaultValue: '—' }); // loadsPage:status.na
+        if (!status) return t('status.na', { defaultValue: '—' }); 
         const key = STATUS_TKEY[status];
-        // Fallbackaa alkuperäiseen arvoon, jos i18n-avain puuttuu
         return key ? t(`status.${key}`, { defaultValue: status }) : status;
     };
 
@@ -291,7 +347,14 @@ export default function DrivenInspectionPage() {
                         </Stack>
                     </Box>
                     <Divider />
-                    <InspectionFilterBar filters={filters} onFilterChangeAction={handleFilterChange} onResetFiltersAction={handleResetFilters} clientList={clientList} vehicleList={vehicleList} driverList={driverList} />
+                    <InspectionFilterBar 
+                        filters={filters} 
+                        onFilterChangeAction={handleFilterChange} 
+                        onResetFiltersAction={handleResetFilters} 
+                        clientList={clientList} 
+                        vehicleList={vehicleList} 
+                        driverList={driverList} 
+                    />
                 </Stack>
             </Paper>
 
@@ -316,7 +379,15 @@ export default function DrivenInspectionPage() {
                 />
             </Paper>
 
-            {isEditModalOpen && selectedLoadForEditing && (<EditLoadModal open={isEditModalOpen} onCloseAction={handleCloseModal} onSaveSuccessAction={handleSaveSuccess} loadData={selectedLoadForEditing} />)}
+            {isEditModalOpen && selectedLoadForEditing && user && (
+                <EditLoadModal 
+                open={isEditModalOpen} 
+                onCloseAction={handleCloseModal} 
+                onSaveSuccessAction={handleSaveSuccess} 
+                loadData={selectedLoadForEditing} 
+                currentUser={user} 
+                />
+                )}
 
             <ConfirmationDialog open={!!deleteConfirmation} onClose={() => setDeleteConfirmation(null)} onConfirm={handleConfirmDelete} title={t('confirm.delete.title')} message={t('confirm.delete.message', { id: deleteConfirmation?.kuormaId ?? '' })} isConfirming={isDeleting} />
 
