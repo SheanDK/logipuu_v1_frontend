@@ -1,23 +1,29 @@
 {
-  "status": {
-    "aria": "Status",
-    "active": "Active",
-    "inspection": "Inspection",
-    "all": "All"
-  },
   "labels": {
     "customer": "Customer",
     "vehicle": "Vehicle",
-    "driver": "Driver"
+    "driver": "Driver",
+    "type": "Type" 
+  },
+  "types": {
+    "all": "All Types",
+    "timber": "Timber (Puulaani)",
+    "consignment": "Consignment (Rahti)"
+  },
+  "tooltips": {
+    "clearCustomer": "Clear Customer",
+    "clearVehicle": "Clear Vehicle",
+    "clearDriver": "Clear Driver",
+    "clearType": "Clear Type"
+  },
+  "status": {
+    "active": "Active",
+    "inspection": "Inspection",
+    "all": "All"
   },
   "all": {
     "allCustomers": "All Customers",
     "allVehicles": "All Vehicles",
     "allDrivers": "All Drivers"
-  },
-  "tooltips": {
-    "clearCustomer": "Clear Customer",
-    "clearVehicle": "Clear Vehicle",
-    "clearDriver": "Clear Driver"
   }
 }

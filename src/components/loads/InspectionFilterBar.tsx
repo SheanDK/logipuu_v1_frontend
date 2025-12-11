@@ -16,7 +16,7 @@ export interface ILoadFilters {
     asiakasId: string;
     kalustoNro: string;
     kuljId: string;
-    loadType: string; // "0", "1" or ""
+    loadType: string;
 }
 
 interface InspectionFilterBarProps {
@@ -59,8 +59,7 @@ export default function InspectionFilterBar({
                 display: 'grid',
                 gap: 2,
                 alignItems: 'center',
-                // Grid layout එක සකස් කිරීම: තීරු 12කට බෙදා ඇත
-                gridTemplateColumns: { xs: '1fr', md: 'repeat(12, 1fr)' }, 
+                gridTemplateColumns: { xs: '1fr', md: 'repeat(12, 1fr)' },
             }}
         >
             {/* Status Toggles */}
@@ -72,22 +71,29 @@ export default function InspectionFilterBar({
                 </ToggleButtonGroup>
             </Box>
 
-            {/* --- FIX: New Type Selector --- */}
+            {/* --- Type Selector (Translated) --- */}
             <Box sx={{ gridColumn: { xs: '1 / -1', md: 'span 2' } }}>
                 <FormControl fullWidth size="small">
-                    <InputLabel id="load-type-label">Type</InputLabel>
+                    <InputLabel id="load-type-label">{t('labels.type')}</InputLabel>
                     <Select
                         labelId="load-type-label"
                         name="loadType"
                         value={filters.loadType || ''}
-                        label="Type"
+                        label={t('labels.type')}
                         onChange={handleSelectChange}
-                        // Clear button for Type filter
-                        endAdornment={filters.loadType && (<InputAdornment position="end" sx={{ marginRight: '24px' }}><Tooltip title="Clear Type"><IconButton size="small" onClick={(e) => handleClearFilter(e, 'loadType')}><ClearIcon fontSize="small" /></IconButton></Tooltip></InputAdornment>)}
+                        endAdornment={filters.loadType && (
+                            <InputAdornment position="end" sx={{ marginRight: '24px' }}>
+                                <Tooltip title={t('tooltips.clearType')}>
+                                    <IconButton size="small" onClick={(e) => handleClearFilter(e, 'loadType')}>
+                                        <ClearIcon fontSize="small" />
+                                    </IconButton>
+                                </Tooltip>
+                            </InputAdornment>
+                        )}
                     >
-                        <MenuItem value=""><em>All Types</em></MenuItem>
-                        <MenuItem value="0">Timber (Puulaani)</MenuItem>
-                        <MenuItem value="1">Consignment (Rahti)</MenuItem>
+                        <MenuItem value=""><em>{t('types.all')}</em></MenuItem>
+                        <MenuItem value="0">{t('types.timber')}</MenuItem>
+                        <MenuItem value="1">{t('types.consignment')}</MenuItem>
                     </Select>
                 </FormControl>
             </Box>
