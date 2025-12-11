@@ -68,6 +68,11 @@
                     "title": "Confirm Load Deletion",
                     "message": "Are you sure you want to delete this load? (Timber: {{timber}})",
                     "confirm": "Delete"
+                    },
+                    "deleteLoad": {
+                    "title": "Confirm Load Deletion",
+                    "message": "Are you sure you want to delete this load? (Timber: {{timber}})",
+                    "confirm": "Delete"
                     },                                      
     "activeTrip": {
                     "title": "Active Trip Warning",

@@ -68,6 +68,11 @@
                 "message": "Haluatko varmasti poistaa tämän kuorman? (Puutavara: {{timber}})",
                 "confirm": "Poista"
                 },
+                "deleteLoad": {
+                "title": "Vahvista kuorman poisto",
+                "message": "Haluatko varmasti poistaa tämän kuorman? (Laji: {{timber}})",
+                "confirm": "Poista"
+                },
     "activeTrip": {
                 "title": "Varoitus: Aktiivinen ajo",
                 "message": "Sinulla on aktiivinen ajo käynnissä. Tilan vaihtaminen ei lopeta ajoa. Haluatko jatkaa?",

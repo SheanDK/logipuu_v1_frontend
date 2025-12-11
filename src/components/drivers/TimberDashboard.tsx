@@ -831,10 +831,12 @@ export default function TimberDashboard({ onBackAction }: TimberDashboardProps) 
                 open={!!loadToDelete} 
                 onClose={() => setLoadToDelete(null)} 
                 onConfirm={handleDeleteLoad} 
-                title="Confirm Load Deletion" 
-                message={`Are you sure you want to delete this load? (Timber: ${loadToDelete?.puutavaralaji || 'N/A'})`} 
+                title={t('dialogs.deleteLoad.title')} 
+                message={t('dialogs.deleteLoad.message', { 
+                    timber: loadToDelete?.puutavaralaji || 'N/A' 
+                })}  
                 isConfirming={isDeleting} 
-                confirmButtonText="Delete" 
+                confirmButtonText={t('dialogs.deleteLoad.confirm')} 
                 confirmButtonColor="error" 
             />
             
