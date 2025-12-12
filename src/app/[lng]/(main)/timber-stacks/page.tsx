@@ -4,7 +4,7 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import dynamic from 'next/dynamic';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
-import { Box, Typography, Paper, CircularProgress, Alert, Snackbar, AlertColor, useTheme } from '@mui/material';
+import { Box, Typography, Paper, CircularProgress, Alert, Snackbar, AlertColor, useTheme, alpha } from '@mui/material';
 import ForestIcon from '@mui/icons-material/Forest';
 import dayjs from 'dayjs';
 import 'leaflet/dist/leaflet.css';
@@ -23,6 +23,7 @@ import { deleteDropoffLocation } from '../../../../services/unloadingSiteService
 import { createOtherMarker, deleteOtherMarker, updateOtherMarker } from '../../../../services/otherInfoService';
 
 import { useTranslation } from '@/i18n/useTranslation';
+const MML_MAASTOKARTTA_URL = 'https://avoin-karttakuva.maanmittauslaitos.fi/avoin/wmts/1.0.0/maastokartta/default/WGS84_Pseudo-Mercator/{z}/{y}/{x}.png?api-key=903ff7d0-9792-4c41-9515-d66f76ccb69f';
 
 // Dynamic component imports
 const TimberStackFilterBar = dynamic(() => import('../../../../components/timber-stacks/TimberStackFilterBar'), { ssr: false });
@@ -107,7 +108,10 @@ export default function TimberStacksPage() {
     const canCreate = useMemo(() => user?.permissions?.includes('timber map_create'), [user]);
 
     const theme = useTheme();
+    const isDarkMode = theme.palette.mode === 'dark'; 
+    const isFinland = mapSettings.key === 'finland';
     const { t } = useTranslation('map');
+
     
     useEffect(() => {
         const markerTypesFromUrl = searchParams.get('markerTypes')?.split(',');
@@ -310,11 +314,27 @@ export default function TimberStacksPage() {
     return (
         <Box sx={{ height: 'calc(100vh - 55px)', width: '100%', position: 'relative', overflow: 'hidden' }}>
             <Box sx={{ position: 'absolute', top: 0, left: 35, right: 0, zIndex: 1000, p: 2 }}>
-                <Paper sx={{ p: 2, backgroundColor: 'rgba(255, 255, 255, 0.8)', backdropFilter: 'blur(1px)', borderRadius: 2 }}>
+                 <Paper sx={{ 
+                    p: 2, 
+                    backgroundColor: isDarkMode 
+                        ? alpha(theme.palette.background.paper, 0.8) 
+                        : 'rgba(255, 255, 255, 0.8)', 
+                    backdropFilter: 'blur(8px)', 
+                    borderRadius: 2,
+                    border: isDarkMode ? `1px solid ${theme.palette.divider}` : 'none'
+                }}>
                     <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
                         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                             <ForestIcon color="primary" />
-                            <Typography variant="h5" sx={{ fontWeight: 'bold' }}>{t('title')}</Typography>
+                            <Typography 
+                                variant="h5" 
+                                sx={{ 
+                                    fontWeight: 'bold',
+                                    color: 'text.primary' 
+                                }}
+                            >
+                                {t('title')}
+                            </Typography>
                         </Box>
                     </Box>
                     <TimberStackFilterBar 
@@ -343,7 +363,21 @@ export default function TimberStacksPage() {
                     <AnimationController center={mapSettings.center} zoom={mapSettings.zoom} />
                     <LayersControl position="bottomleft">
                         {/* Base Layers */}
-                        <LayersControl.BaseLayer name={t('layers.standard')}><TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" /></LayersControl.BaseLayer>
+                        {isFinland && (
+                            <LayersControl.BaseLayer checked name={t('layers.finnishTopographic', 'MML Maastokartta (FI)')}>
+                                <TileLayer
+                                    url={MML_MAASTOKARTTA_URL}
+                                    maxZoom={18}
+                                    attribution='&copy; <a href="https://www.maanmittauslaitos.fi/">Maanmittauslaitos</a>'
+                                />
+                            </LayersControl.BaseLayer>
+                        )}
+                        <LayersControl.BaseLayer checked={!isFinland} name={t('layers.standard')}>
+                            <TileLayer
+                                attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+                                url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                            />
+                        </LayersControl.BaseLayer>
                         <LayersControl.BaseLayer name={t('layers.satellite')}><TileLayer url='https://{s}.google.com/vt/lyrs=s,h&x={x}&y={y}&z={z}' maxZoom={20} subdomains={['mt0', 'mt1', 'mt2', 'mt3']} /></LayersControl.BaseLayer>
                         <LayersControl.BaseLayer checked name={t('layers.topographic')}><TileLayer url="https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png" maxZoom={17} /></LayersControl.BaseLayer>
 

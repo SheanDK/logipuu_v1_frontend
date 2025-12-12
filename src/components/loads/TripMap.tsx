@@ -13,6 +13,7 @@ import { renderToStaticMarkup } from 'react-dom/server';
 import { useTranslation } from 'react-i18next';
 import { useLeafletPopupTheme } from '@/utils/useLeafletPopupTheme';
 import { GlobalStyles } from '@mui/material';
+import { useLayout } from '@/contexts/LayoutContext';
 
 
 
@@ -33,6 +34,9 @@ const createPickupIcon = (index: number) => L.divIcon({
     iconAnchor: [18, 36], 
     popupAnchor: [0, -36] 
 });
+
+// Define the URL as a constant for clarity
+const MML_MAASTOKARTTA_URL = 'https://avoin-karttakuva.maanmittauslaitos.fi/avoin/wmts/1.0.0/maastokartta/default/WGS84_Pseudo-Mercator/{z}/{y}/{x}.png?api-key=903ff7d0-9792-4c41-9515-d66f76ccb69f';
 
 // Icon for the driver's live location (red navigation icon)
 const driverIcon = L.divIcon({ 
@@ -295,6 +299,9 @@ export default function TripMap({
     const theme = useTheme();
     const isDarkMode = theme.palette.mode === 'dark';
 
+    const { mapSettings } = useLayout(); // Get settings from context
+    const isFinland = mapSettings.key === 'finland';
+
     useLeafletPopupTheme();
 
     const bounds = useMemo(() => {
@@ -359,6 +366,17 @@ export default function TripMap({
             {/* <LayerControlEventHandler onFilterChange={handleFilterEvent} /> */}
             
             <LayersControl position="topleft" key={`layers-${theme.palette.mode}`}>
+                 {/* new MML Map Layer --- */}
+                {isFinland && (
+                    <LayersControl.BaseLayer checked name={t('layers.finnishTopographic', 'MML Maastokartta (FI)')}>
+                        <TileLayer
+                            url={MML_MAASTOKARTTA_URL}
+                            maxZoom={18}
+                            attribution='&copy; <a href="https://www.maanmittauslaitos.fi/">Maanmittauslaitos</a>'
+                        />
+                    </LayersControl.BaseLayer>
+                )}
+
                 {/* Street / Standard (OSM) */}
                 <LayersControl.BaseLayer name={t('layers.street')}>
                     <TileLayer
@@ -380,7 +398,7 @@ export default function TripMap({
                 </LayersControl.BaseLayer>
 
                 {/* Topographic (OpenTopoMap) - Default */}
-                <LayersControl.BaseLayer checked name={t('layers.topographic')}>
+                <LayersControl.BaseLayer checked={!isFinland} name={t('layers.topographic')}>
                     <TileLayer
                         url="https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png"
                         maxZoom={19}

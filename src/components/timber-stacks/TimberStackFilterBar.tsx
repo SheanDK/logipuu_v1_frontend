@@ -2,14 +2,14 @@
 'use client';
 
 import React from 'react';
-import {
-    FormControl, Autocomplete, TextField, Paper, Typography,
+import {Autocomplete, TextField, Paper, Typography,
     Stack, Box, Divider, ToggleButton, ToggleButtonGroup
 } from '@mui/material';
 import ForestIcon from '@mui/icons-material/Forest';
 import WarehouseIcon from '@mui/icons-material/Warehouse';
 import { IMapFilterState, IClientBasicInfo, IVehicleBasicInfo } from '../../types';
 import { useTranslation } from '@/i18n/useTranslation';
+import { useTheme, alpha } from '@mui/material/styles';
 
 interface TimberStackFilterBarProps {
     filters: IMapFilterState;
@@ -24,6 +24,8 @@ const TimberStackFilterBar: React.FC<TimberStackFilterBarProps> = ({
 }) => {
 
     const { t } = useTranslation('mapFilterBar');
+    const theme = useTheme();
+    const isDarkMode = theme.palette.mode === 'dark';
 
     const handleMarkerTypeChange = (
         event: React.MouseEvent<HTMLElement>,
@@ -33,7 +35,17 @@ const TimberStackFilterBar: React.FC<TimberStackFilterBarProps> = ({
     };
 
     return (
-        <Paper elevation={0} sx={{ p: 2, backgroundColor: 'transparent', borderRadius: 2 }}>
+        <Paper 
+            elevation={0} 
+            sx={{ 
+                p: 2, 
+                borderRadius: 2,
+                backgroundColor: isDarkMode 
+                    ? alpha(theme.palette.background.paper, 0.8) 
+                    : 'rgba(255, 255, 255, 0.49)', 
+                border: isDarkMode ? `1px solid ${theme.palette.divider}` : 'none' 
+            }}
+        >
             <Stack 
                 direction={{ xs: 'column', md: 'row' }}
                 spacing={2} 
@@ -41,7 +53,13 @@ const TimberStackFilterBar: React.FC<TimberStackFilterBarProps> = ({
             >
                 {/* Status Filter (All/Active) */}
                 <Stack direction="row" alignItems="center" spacing={1}>
-                    <Typography variant="body2" sx={{ fontWeight: 'medium', color: 'text.secondary', flexShrink: 0 }}>
+                    <Typography 
+                    variant="body2" 
+                    sx={{ 
+                        fontWeight: 'medium', 
+                        color: 'text.primary', 
+                        flexShrink: 0 
+                        }}>
                         {t('filters.status.title', 'Status:')}
                     </Typography>
                     <ToggleButtonGroup
@@ -60,7 +78,7 @@ const TimberStackFilterBar: React.FC<TimberStackFilterBarProps> = ({
 
                 {/* Marker Type Filter (Puulaani/Purkupaikka) */}
                 <Stack direction="row" alignItems="center" spacing={1}>
-                    <Typography variant="body2" sx={{ fontWeight: 'medium', color: 'text.secondary', flexShrink: 0 }}>
+                    <Typography variant="body2" sx={{ fontWeight: 'medium', color: 'text.primary', flexShrink: 0 }}>
                         {t('filters.markerType.title', 'Show:')}
                     </Typography>
                     <ToggleButtonGroup

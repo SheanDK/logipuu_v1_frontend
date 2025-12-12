@@ -6,7 +6,8 @@
   "layers": {
     "street": "Street Map",
     "satellite": "Satellite",
-    "topographic": "Topographic"
+    "topographic": "Topographic",
+    "finnishTopographic": "Finnish Topographic"
   },
    "popup": {
     "clientLabel": "Client"

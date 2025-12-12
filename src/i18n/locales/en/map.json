@@ -8,10 +8,13 @@
     "standard": "Standard Map",
     "satellite": "Satellite",
     "topographic": "Topographic",
+    "finnishTopographic": "MML Topographic (FI)",
     "timberStacks": "Timber Stacks",
     "unloadingSites": "Unloading Sites",
     "otherMarkers": "Other Markers",
     "vehicles": "Vehicles"
+    
+
   },
   "types": {
     "timberStack": "Timber stack",

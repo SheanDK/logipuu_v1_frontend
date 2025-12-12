@@ -6,7 +6,8 @@
   "layers": {
     "street": "Katu- ja maastokartta",
     "satellite": "Satelliitti",
-    "topographic": "Topografinen"
+    "topographic": "Topografinen",
+    "finnishTopographic": "Suomen topografinen"
   },
   "popup": {
     "clientLabel": "Asiakas"
