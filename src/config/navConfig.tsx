@@ -3,7 +3,6 @@ import React from 'react';
 
 // Import all necessary icons
 import DashboardIcon from '@mui/icons-material/Dashboard';
-import AssignmentIcon from '@mui/icons-material/Assignment';
 import MapIcon from '@mui/icons-material/Map';
 import ViewListIcon from '@mui/icons-material/ViewList';
 import BusinessIcon from '@mui/icons-material/Business';
@@ -16,7 +15,7 @@ import ReceiptLongIcon from '@mui/icons-material/ReceiptLong';
 import WorkspacesIcon from '@mui/icons-material/Workspaces';
 import TuneIcon from '@mui/icons-material/Tune';
 import AdminPanelSettingsIcon from '@mui/icons-material/AdminPanelSettings';
-import BarChartIcon from '@mui/icons-material/BarChart';
+import MenuBookIcon from '@mui/icons-material/MenuBook'; 
 import LocalShippingIcon from '@mui/icons-material/LocalShipping';
 import HistoryIcon from '@mui/icons-material/History';
 import ForestIcon from '@mui/icons-material/Forest';
@@ -80,6 +79,7 @@ export const officeNavigationItems: NavItemConfig[] = [
             { text: 'Users', tKey: 'users', icon: <GroupIcon />, path: '/users', permission: 'users_view' },
             { text: 'Application Settings', tKey: 'applicationSettings', icon: <SettingsIcon />, path: '/admin/settings', roles: ['Superuser'] },
             { text: 'My Profile', tKey: 'myProfile', icon: <AccountCircleIcon />, path: '/settings/user' },
+        
         ]
     },
 ];
@@ -116,6 +116,14 @@ export const driverNavigationItems: NavItemConfig[] = [
                 path: '/settings/user',
                 roles: ['Kuljettaja']
             },
+
+            {
+                text: 'User Manual',
+                tKey: 'userManual',
+                path: '/settings/manual',
+                icon: <MenuBookIcon />,
+            }
+
         ]
     },
 ];
