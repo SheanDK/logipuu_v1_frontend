@@ -1,3 +1,4 @@
+//frontend/src/components/invoicing/ConsigmentBillingTable.tsx
 "use client";
 
 import React, { useMemo, useState, useEffect } from "react";

@@ -1,3 +1,4 @@
+//frontend/src/components/invoicing/ConsignmentBillingDialog.tsx
 'use client';
 
 import React, { useEffect, useMemo, useState } from 'react';

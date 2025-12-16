@@ -22,6 +22,7 @@ import { useTranslation } from 'react-i18next';
 
 interface EditLoadFormData {
     pvm: Date | null;
+    ajomaaraysNro: string;
     vastaanottoNro: string;
     reitti: string;
     m3: number;
@@ -34,6 +35,7 @@ interface EditLoadFormData {
 const buildSchema = (t: (k: string, o?: any) => string) =>
     yup.object({
         pvm: yup.date().required().nullable(),
+        ajomaaraysNro: yup.string().nullable(),
         vastaanottoNro: yup.string().nullable(),
         reitti: yup.string().nullable(),
         m3: yup.number().nullable().transform((v, o) => (o === '' ? null : v)),
@@ -76,6 +78,7 @@ export default function EditLoadModal({
         if (loadToEdit) {
             reset({
                 pvm: dayjs(loadToEdit.pvm).toDate(),
+                ajomaaraysNro: (loadToEdit as any).ajomaaraysNro || '',
                 vastaanottoNro: (loadToEdit as any).vastaanottoNro || '',
                 reitti: (loadToEdit as any).reitti || '',
                 m3: Number(loadToEdit.m3) || 0,
@@ -95,6 +98,7 @@ export default function EditLoadModal({
 
         const payload: IUpdateLoadDto = {
             pvm: formData.pvm!,
+            ajomaaraysNro: formData.ajomaaraysNro || null,
             vastaanottoNro: formData.vastaanottoNro || null,
             reitti: formData.reitti || null,
             m3: formData.m3,
@@ -144,6 +148,20 @@ export default function EditLoadModal({
                                     />
                                 )}
                             />
+                <Controller
+                                name="ajomaaraysNro"
+                                control={control}
+                                render={({ field }) => (
+                                    <TextField 
+                                        {...field} 
+                                        label={t('editLoadModal:fields.drivingOrderNo', 'Driving Order No')} 
+                                        fullWidth 
+                                        size="small" 
+                                    />
+                                )}
+                            />
+                        
+
                             <Controller
                                 name="vastaanottoNro"
                                 control={control}

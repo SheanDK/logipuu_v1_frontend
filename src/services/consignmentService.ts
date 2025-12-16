@@ -1,55 +1,39 @@
-// FRONTEND SERVICE: consignmentService.ts
+//frontend/src/services/consignmentService.ts
 import apiClient from './apiClient';
 import type { BillingRow } from './invoicingService'; 
 
+/* -----------------------------------------------------------------------------
+ * Types
+ * ---------------------------------------------------------------------------*/
+
 export type ConsignmentSearchParams = {
-  dateFrom: string;                 // YYYY-MM-DD
-  dateTo: string;                   // YYYY-MM-DD
+  dateFrom: string;
+  dateTo: string;
   customerId?: string | number | null;
   vehicleId?: string | number | null;
-  // status flags
   unbilled?: boolean;
   billed?: boolean;
 };
 
+// FIX: Extend BillingRow to include specific fields needed for Consignments
 export type ConsignmentRow = BillingRow & {
-  kuormaId?: number;
-  roadTax?: number | null;
-  total?: number | null;
-  unitPriceM3?: number | null;
-  unitPriceKm?: number | null;
-  unitPriceHour?: number | null;
-  unitPricePiece?: number | null;
-  hours?: number | null;
-};
-
-export type SaveConsignmentDto = {
-  kuormaId?: number;              
-  date?: string;                  // YYYY-MM-DD
+  unitPriceM3: number;
+  unitPriceKm: number;
+  unitPriceHour: number;
+  unitPricePiece: number;
+  roadTax: number;
+  total: number;
   waybillNumber?: string;
   route?: string;
   notes?: string;
-
-  quantityM3?: number;
-  unitPriceM3?: number;
-  km?: number;
-  unitPriceKm?: number;
-  pieces?: number;
-  unitPricePiece?: number;
-  hours?: number;
-  unitPriceHour?: number;
-
-  roadTax?: number;
-  total?: number;                 
 };
 
 export type UpsertConsignmentDto = {
   kuormaId?: number;           
-  date: string;                // YYYY-MM-DD
+  date: string;                
   waybillNumber?: string;
   route?: string;
   notes?: string;
-
   quantityM3?: number;
   unitPriceM3?: number;
   km?: number;
@@ -58,7 +42,6 @@ export type UpsertConsignmentDto = {
   unitPriceHour?: number;
   pieces?: number;
   unitPricePiece?: number;
-
   roadTax?: number;
   total?: number;
 };
@@ -70,13 +53,64 @@ export type InvoiceConsignmentsResponse = {
   alreadyIds: number[];
   notFound: number;
   notFoundIds: number[];
-  billedDate?: string; // YYYY-MM-DD
+  billedDate?: string; 
 };
-
 
 export const CONSIGNMENT_API = '/consignments';
 
-const toNum = (v: any) => (v == null || v === '' ? 0 : Number(v));
+/* -----------------------------------------------------------------------------
+ * Helper: Map Backend Data to Frontend ConsignmentRow
+ * ---------------------------------------------------------------------------*/
+const mapToConsignmentRow = (r: any): ConsignmentRow => {
+  return {
+    // 1. ID MAPPING (Solves "MUI X: unique id property" error)
+    id: r.rahtiId || r.rahti_id || `temp-${Math.random()}`,
+
+    kuormaId: Number(r.kuormaId || r.kuorma_id),
+    
+    // Date mapping
+    date: r.pvm ? String(r.pvm).split('T')[0] : '', 
+
+    // Basic Info
+    customer: r.asiakas || '',
+    vehicle: r.autoNro || r.auto_nro || '',
+    driverName: r.knimi || '',
+    woodType: r.puutavara || '',
+    
+    // Specific Fields
+    waybillNumber: r.rahtikirjanNro || r.rahtikirjan_nro || '',
+    route: r.reitti || '',
+    notes: r.lisatiedot || '',
+
+    // Quantities
+    quantityM3: Number(r.m3 || 0),
+    km: Number(r.km || 0),
+    pieces: Number(r.kpl || 0),
+    hours: Number(r.jako || 0), 
+
+    // Unit Prices (Mapped Explicitly)
+    unitPriceM3: Number(r.m3Hinta || r.m3_hinta || 0),
+    unitPriceKm: Number(r.kmHinta || r.km_hinta || 0),
+    unitPricePiece: Number(r.kplHinta || r.kpl_hinta || 0),
+    unitPriceHour: Number(r.jakoHinta || r.jako_hinta || 0),
+    
+    // Fallback for base 'unitPrice' (required by BillingRow)
+    unitPrice: Number(r.m3Hinta || r.m3_hinta || 0), 
+
+    // Totals
+    roadTax: Number(r.tievero || 0),
+    total: Number(r.kokohinta || r.koko_hinta || 0),
+    sum: Number(r.kokohinta || r.koko_hinta || 0),
+
+    // Status
+    billed: Boolean(r.pvmLaskutus || r.pvm_laskutus),
+    billedDate: r.pvmLaskutus || r.pvm_laskutus || null,
+  };
+};
+
+/* -----------------------------------------------------------------------------
+ * API Methods
+ * ---------------------------------------------------------------------------*/
 
 /** GET /api/consignments/search */
 export async function searchConsignments(params: ConsignmentSearchParams): Promise<ConsignmentRow[]> {
@@ -90,43 +124,47 @@ export async function searchConsignments(params: ConsignmentSearchParams): Promi
   };
 
   const { data } = await apiClient.get(`${CONSIGNMENT_API}/search`, { params: query });
-  return (Array.isArray(data) ? data : []) as ConsignmentRow[];
+  
+  // Use mapToConsignmentRow instead of assuming raw data fits
+  return (Array.isArray(data) ? data.map(mapToConsignmentRow) : []);
 }
 
 /** GET /api/consignments/:id */
 export async function getConsignmentById(id: number | string): Promise<ConsignmentRow | null> {
   const { data } = await apiClient.get(`${CONSIGNMENT_API}/${id}`);
   if (!data) return null;
-  return data as ConsignmentRow;
+  return mapToConsignmentRow(data);
 }
 
 // POST /api/consignments
-export async function createConsignment(dto: UpsertConsignmentDto) {
-  //console.log('[FE][API][POST /consignments] payload=', dto);
-  const { data } = await apiClient.post('/consignments', dto);
-  //console.log('[FE][API][POST /consignments] response=', data);
-  return data as ConsignmentRow;
+export async function createConsignment(dto: UpsertConsignmentDto): Promise<ConsignmentRow> {
+  const payload = {
+    ...dto,
+    koko_hinta: dto.total, 
+  };
+  const { data } = await apiClient.post(CONSIGNMENT_API, payload);
+  return mapToConsignmentRow(data);
 }
 
 // PATCH /api/consignments/:id
-export async function updateConsignment(id: number, dto: UpsertConsignmentDto) {
-  //console.log('[FE][API][PATCH /consignments/:id] id=', id, 'payload=', dto);
-  const { data } = await apiClient.patch(`/consignments/${id}`, dto);
- // console.log('[FE][API][PATCH /consignments/:id] response=', data);
-  return data as ConsignmentRow;
+export async function updateConsignment(id: number, dto: UpsertConsignmentDto): Promise<ConsignmentRow> {
+  const payload = {
+    ...dto,
+    koko_hinta: dto.total,
+  };
+  const { data } = await apiClient.patch(`${CONSIGNMENT_API}/${id}`, payload);
+  return mapToConsignmentRow(data);
 }
 
 export async function deleteConsignment(id: number | string) {
-  //console.log('[FE][API][DELETE /consignments/:id]', id);
-  const { data } = await apiClient.delete(`/consignments/${id}`);
+  const { data } = await apiClient.delete(`${CONSIGNMENT_API}/${id}`);
   return data as { deleted: boolean };
 }
 
-/** Apuri massapoistoon: poistaa temp-rivit vain FE:stä, numerot BE:stä */
+/** Helper for bulk delete */
 export async function deleteManyConsignments(ids: (number | string)[]) {
   const out = { deletedIds: [] as number[], billedIds: [] as number[], notFoundIds: [] as number[] };
   for (const raw of ids) {
-    // Local-temp rivit (id alkaa "temp-") poistetaan vain frontista
     if (String(raw).startsWith('temp-')) {
       out.deletedIds.push(NaN);
       continue;
@@ -153,7 +191,7 @@ export async function invoiceConsignments(
     .filter((n) => Number.isFinite(n)) as number[];
 
   const res = await apiClient.post<InvoiceConsignmentsResponse>(
-    '/consignments/invoice',
+    `${CONSIGNMENT_API}/invoice`,
     { kuormaIds: ids }
   );
 
