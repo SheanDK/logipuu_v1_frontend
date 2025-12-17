@@ -1,5 +1,9 @@
 {
   "title": "Load Management / Inspection",
+  "tabs": {
+    "timber": "Timber Load",
+    "consignment": "Consignment"
+  },
   "buttons": {
     "accept": "Accept ({{count}})",
     "report": "Report ({{count}})"

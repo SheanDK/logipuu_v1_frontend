@@ -2,7 +2,7 @@
 'use client';
 
 import React, { useEffect, useState, useCallback, useMemo } from 'react';
-import { Box, Typography, Paper, Alert, Button, IconButton, Tooltip, Snackbar, Chip, Stack, Divider } from '@mui/material';
+import { Box, Typography, Paper, Alert, Button, IconButton, Tooltip, Snackbar, Chip, Stack, Divider, Tabs, Tab } from '@mui/material';
 import type { AlertColor } from '@mui/material';
 import { DataGrid, GridColDef, GridRenderCellParams, GridRowId, GridRowModel } from '@mui/x-data-grid';
 import EditIcon from '@mui/icons-material/Edit';
@@ -11,6 +11,9 @@ import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import ReportIcon from '@mui/icons-material/Report';
 import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline';
 import RemoveCircleOutlineIcon from '@mui/icons-material/RemoveCircleOutline';
+import ForestIcon from '@mui/icons-material/Forest'; 
+import DescriptionIcon from '@mui/icons-material/Description'; 
+// AppsIcon removed as "All Types" tab is gone
 import dayjs from 'dayjs';
 import { useTranslation } from 'react-i18next';
 import type { ChipProps } from '@mui/material/Chip';
@@ -24,7 +27,7 @@ import { fetchAllClients } from '@/services/clientService';
 import { fetchAllVehicles } from '@/services/vehicleService';
 import { fetchAllDrivers } from '@/services/driverService';
 import { useAuth } from '@/contexts/AuthContext';
-import useSocket from '@/hooks/useSocket'; // Import useSocket
+import useSocket from '@/hooks/useSocket'; 
 
 const STATUS_COLOR: Record<string, ChipProps['color']> = {
     assigned: 'warning',
@@ -50,7 +53,7 @@ export default function DrivenInspectionPage() {
 
     const { t } = useTranslation('loadsPage');
     const { user } = useAuth();
-    const { socket } = useSocket(); // Socket connection
+    const { socket } = useSocket(); 
 
     const [rows, setRows] = useState<ILoadListItem[]>([]);
     const [isLoading, setIsLoading] = useState(true);
@@ -61,13 +64,13 @@ export default function DrivenInspectionPage() {
     const [deleteConfirmation, setDeleteConfirmation] = useState<ILoadListItem | null>(null);
     const [isDeleting, setIsDeleting] = useState(false);
     
-    // --- FIX 1: Add loadType to initial filter state ---
+    // CHANGE 1: Default loadType set to '0' (Timber) instead of ''
     const [filters, setFilters] = useState<ILoadFilters>({ 
         status: 'pending_inspection', 
         asiakasId: '', 
         kalustoNro: '', 
         kuljId: '',
-        loadType: '' 
+        loadType: '0' 
     });
     
     const [clientList, setClientList] = useState<IClientBasicInfo[]>([]);
@@ -87,17 +90,21 @@ export default function DrivenInspectionPage() {
 
             let data;
             if (currentFilters.status === 'pending_inspection') {
-                // For inspection view, we might not use all filters, but let's stick to the base logic
-                // If you want filters to apply to inspection view too, you should use fetchAllLoads with status='pending_inspection'
-                // But per your original code:
                 data = await fetchLoadsForInspection();
+                
+                // Client-side filtering for Inspection view since "All" is removed.
+                // We MUST filter by the current loadType (0 or 1).
+                if (currentFilters.loadType !== '' && currentFilters.loadType !== undefined) {
+                    const typeNum = parseInt(currentFilters.loadType, 10);
+                    // Filter the data based on tyyppi matching the tab selection
+                    data = data.filter((d: any) => d.tyyppi === typeNum); 
+                }
+
             } else {
-                // --- FIX 2: Correctly map filters and parse loadType to number/undefined ---
                 const filtersForApi: ILoadListApiFilters = {
                     asiakasId: currentFilters.asiakasId || undefined,
                     kalustoNro: currentFilters.kalustoNro || undefined,
                     kuljId: currentFilters.kuljId || undefined,
-                    // Parse "0" or "1" to number, empty string becomes undefined
                     loadType: (currentFilters.loadType !== '' && currentFilters.loadType !== undefined) 
                         ? parseInt(currentFilters.loadType, 10) 
                         : undefined,
@@ -117,38 +124,34 @@ export default function DrivenInspectionPage() {
         } finally {
             setIsLoading(false);
         }
-    }, [t]); // Added dependency
+    }, [t]);
 
-    // --- FIX 3: Socket Listener for Real-time Updates ---
     useEffect(() => {
         if (!socket) return;
-
         const handleStatusUpdate = (updatedLoad: any) => {
             console.log("Socket: Load status updated", updatedLoad);
-            // Option A: Reload data to be safe (easiest)
-            // loadData(filters);
-
-            // Option B: Optimistic update (faster)
             setRows((prevRows) => {
                 const index = prevRows.findIndex(r => r.kuormaId === updatedLoad.kuormaId);
                 if (index > -1) {
                     const newRows = [...prevRows];
-                    // If the status change makes it fall out of the current filter (e.g. active -> completed), remove it
-                    // But for simplicity, we just update the row data
                     newRows[index] = { ...newRows[index], ...updatedLoad };
                     
-                    // If we are in 'active' view and load becomes 'Completed', we might want to filter it out
+                    // Filter out if status changes in active view
                     if (filters.status === 'active' && updatedLoad.status === 'Completed') {
                          return newRows.filter(r => r.kuormaId !== updatedLoad.kuormaId);
                     }
+                    
+                    // Filter out if type doesn't match current tab (e.g. updatedLoad is Consignment but we are on Timber tab)
+                    if (filters.loadType !== '' && updatedLoad.tyyppi !== parseInt(filters.loadType, 10)) {
+                         return newRows.filter(r => r.kuormaId !== updatedLoad.kuormaId);
+                    }
+
                     return newRows;
                 }
                 return prevRows;
             });
         };
-
         socket.on('loadStatusUpdated', handleStatusUpdate);
-
         return () => {
             socket.off('loadStatusUpdated', handleStatusUpdate);
         };
@@ -171,6 +174,13 @@ export default function DrivenInspectionPage() {
 
     useEffect(() => { loadData(filters); }, [filters, loadData]);
 
+    const handleLoadTypeChange = (event: React.SyntheticEvent, newValue: string) => {
+        // Prevent deselecting if necessary, but Tabs usually enforce one selection
+        if (newValue !== null) {
+            setFilters(prev => ({ ...prev, loadType: newValue }));
+        }
+    };
+
     const handleOpenEditModal = async (loadItem: ILoadListItem) => {
         try {
             const fullLoadData = await getTripById(loadItem.kuormaId);
@@ -185,15 +195,16 @@ export default function DrivenInspectionPage() {
         setFilters(prev => ({ ...prev, [name]: value as any })); 
     };
     
+    // CHANGE 2: Reset filters sets loadType to '0' (Timber)
     const handleResetFilters = () => { 
-        setFilters({ status: 'pending_inspection', asiakasId: '', kalustoNro: '', kuljId: '', loadType: '' }); 
+        setFilters({ status: 'pending_inspection', asiakasId: '', kalustoNro: '', kuljId: '', loadType: '0' }); 
     };
     
     const handleCloseModal = () => { setIsEditModalOpen(false); setSelectedLoadForEditing(null); };
     const handleSaveSuccess = (message: string) => { handleCloseModal(); loadData(filters); setSnackbar({ open: true, message, severity: 'success' }); };
 
     const handleConfirmDelete = async () => {
-        if (!deleteConfirmation || !user) return; // Added user check
+        if (!deleteConfirmation || !user) return; 
         setIsDeleting(true);
         try {
             await deleteLoad(deleteConfirmation.kuormaId, user);
@@ -322,7 +333,6 @@ export default function DrivenInspectionPage() {
                 />
             )
         },
-
         {
             field: 'actions', headerName: t('columns.action'), width: 100, sortable: false, filterable: false,
             renderCell: (params) => (<Box><Tooltip title={t('tooltips.editLoad')}><IconButton onClick={() => handleOpenEditModal(params.row)} size="small"><EditIcon /></IconButton></Tooltip><Tooltip title={t('tooltips.deleteLoad')}><IconButton onClick={() => setDeleteConfirmation(params.row)} size="small" color="error"><DeleteIcon /></IconButton></Tooltip></Box>),
@@ -347,6 +357,31 @@ export default function DrivenInspectionPage() {
                         </Stack>
                     </Box>
                     <Divider />
+                    
+                    {/* CHANGE 3: Removed "All Types" Tab */}
+                    <Tabs 
+                        value={filters.loadType} 
+                        onChange={handleLoadTypeChange}
+                        variant="standard"
+                        indicatorColor="primary"
+                        textColor="primary"
+                        sx={{ mb: 1, borderBottom: 1, borderColor: 'divider' }}
+                    >
+                        {/* "All" tab removed */}
+                        <Tab 
+                            label={t('tabs.timber', { defaultValue: 'Timber Load' })} 
+                            value="0" 
+                            icon={<ForestIcon />} 
+                            iconPosition="start"
+                        />
+                        <Tab 
+                            label={t('tabs.consignment', { defaultValue: 'Consignment' })} 
+                            value="1" 
+                            icon={<DescriptionIcon />} 
+                            iconPosition="start"
+                        />
+                    </Tabs>
+
                     <InspectionFilterBar 
                         filters={filters} 
                         onFilterChangeAction={handleFilterChange} 
@@ -378,30 +413,13 @@ export default function DrivenInspectionPage() {
                     }}
                 />
             </Paper>
-
+            
+            {/* ... Modals and Dialogs ... */}
             {isEditModalOpen && selectedLoadForEditing && user && (
-                <EditLoadModal 
-                open={isEditModalOpen} 
-                onCloseAction={handleCloseModal} 
-                onSaveSuccessAction={handleSaveSuccess} 
-                loadData={selectedLoadForEditing} 
-                currentUser={user} 
-                />
-                )}
-
+                <EditLoadModal open={isEditModalOpen} onCloseAction={handleCloseModal} onSaveSuccessAction={handleSaveSuccess} loadData={selectedLoadForEditing} currentUser={user} />
+            )}
             <ConfirmationDialog open={!!deleteConfirmation} onClose={() => setDeleteConfirmation(null)} onConfirm={handleConfirmDelete} title={t('confirm.delete.title')} message={t('confirm.delete.message', { id: deleteConfirmation?.kuormaId ?? '' })} isConfirming={isDeleting} />
-
-            <ConfirmationDialog
-                open={acceptConfirmationOpen}
-                onClose={() => setAcceptConfirmationOpen(false)}
-                onConfirm={handleConfirmAccept}
-                title={t('confirm.accept.title')}
-                message={t('confirm.accept.message', { count: selectionModel.size })}
-                isConfirming={isAccepting}
-                confirmButtonText={t('confirm.accept.confirmButtonText')}
-                confirmButtonColor="success"
-            />
-
+            <ConfirmationDialog open={acceptConfirmationOpen} onClose={() => setAcceptConfirmationOpen(false)} onConfirm={handleConfirmAccept} title={t('confirm.accept.title')} message={t('confirm.accept.message', { count: selectionModel.size })} isConfirming={isAccepting} confirmButtonText={t('confirm.accept.confirmButtonText')} confirmButtonColor="success" />
             <Snackbar open={!!snackbar} autoHideDuration={6000} onClose={handleCloseSnackbar} anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}><Alert onClose={handleCloseSnackbar} severity={snackbar?.severity || 'info'} sx={{ width: '100%' }}>{snackbar?.message}</Alert></Snackbar>
         </Box>
     );

@@ -1,5 +1,9 @@
 {
   "title": "Kuormanhallinta / Tarkastus",
+  "tabs": {
+    "timber": "Puukuorma",
+    "consignment": "Rahtikirja"
+  },
   "buttons": {
     "accept": "Hyväksy ({{count}})",
     "report": "Raportti ({{count}})"

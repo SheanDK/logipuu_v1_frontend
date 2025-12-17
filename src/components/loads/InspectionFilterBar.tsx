@@ -62,7 +62,7 @@ export default function InspectionFilterBar({
                 gridTemplateColumns: { xs: '1fr', md: 'repeat(12, 1fr)' },
             }}
         >
-            {/* Status Toggles */}
+            {/* Status Toggles (md: 3) */}
             <Box sx={{ gridColumn: { xs: '1 / -1', md: 'span 3' } }}>
                 <ToggleButtonGroup value={filters.status} exclusive onChange={handleStatusChange} size="small" fullWidth>
                     <ToggleButton value="active">{t('status.active')}</ToggleButton>
@@ -71,35 +71,10 @@ export default function InspectionFilterBar({
                 </ToggleButtonGroup>
             </Box>
 
-            {/* --- Type Selector (Translated) --- */}
-            <Box sx={{ gridColumn: { xs: '1 / -1', md: 'span 2' } }}>
-                <FormControl fullWidth size="small">
-                    <InputLabel id="load-type-label">{t('labels.type')}</InputLabel>
-                    <Select
-                        labelId="load-type-label"
-                        name="loadType"
-                        value={filters.loadType || ''}
-                        label={t('labels.type')}
-                        onChange={handleSelectChange}
-                        endAdornment={filters.loadType && (
-                            <InputAdornment position="end" sx={{ marginRight: '24px' }}>
-                                <Tooltip title={t('tooltips.clearType')}>
-                                    <IconButton size="small" onClick={(e) => handleClearFilter(e, 'loadType')}>
-                                        <ClearIcon fontSize="small" />
-                                    </IconButton>
-                                </Tooltip>
-                            </InputAdornment>
-                        )}
-                    >
-                        <MenuItem value=""><em>{t('types.all')}</em></MenuItem>
-                        <MenuItem value="0">{t('types.timber')}</MenuItem>
-                        <MenuItem value="1">{t('types.consignment')}</MenuItem>
-                    </Select>
-                </FormControl>
-            </Box>
+            {/* Type Selector REMOVED from here */}
 
-            {/* Customer Filter */}
-            <Box sx={{ gridColumn: { xs: '1 / -1', md: 'span 3' } }}>
+            {/* Customer Filter (Increased span to 5 to fill space) */}
+            <Box sx={{ gridColumn: { xs: '1 / -1', md: 'span 5' } }}>
                 <FormControl fullWidth size="small">
                     <InputLabel id="customer-filter-label">{t('labels.customer')}</InputLabel>
                     <Select
@@ -116,7 +91,7 @@ export default function InspectionFilterBar({
                 </FormControl>
             </Box>
 
-            {/* Vehicle Filter */}
+            {/* Vehicle Filter (Span 2) */}
             <Box sx={{ gridColumn: { xs: '1 / -1', md: 'span 2' } }}>
                 <FormControl fullWidth size="small">
                     <InputLabel id="vehicle-filter-label">{t('labels.vehicle')}</InputLabel>
@@ -134,7 +109,7 @@ export default function InspectionFilterBar({
                 </FormControl>
             </Box>
 
-            {/* Driver Filter */}
+            {/* Driver Filter (Span 2) */}
             <Box sx={{ gridColumn: { xs: '1 / -1', md: 'span 2' } }}>
                 <FormControl fullWidth size="small">
                     <InputLabel id="driver-filter-label">{t('labels.driver')}</InputLabel>
