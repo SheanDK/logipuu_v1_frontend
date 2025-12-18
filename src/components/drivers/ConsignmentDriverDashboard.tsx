@@ -2,9 +2,10 @@
 'use client';
 
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
-import { Box, Paper, Typography, Button, CircularProgress, Alert, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Stack, Tooltip, Fab } from '@mui/material';
+import { Box, Paper, Typography, Button, CircularProgress, Stack, Tooltip, Fab, Chip } from '@mui/material';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import AddIcon from '@mui/icons-material/Add';
+import DescriptionIcon from '@mui/icons-material/Description';
 import { useDriverSession } from '@/contexts/DriverSessionContext';
 import { getDriverConsignments } from '@/services/consignmentDriverService';
 import { IConsignmentKuormaListItem } from '@/types';
@@ -19,7 +20,6 @@ interface ConsignmentDashboardProps {
     onNavigateToFormAction: (id: number | null) => void;
 }
 
-
 export default function ConsignmentDriverDashboard({ onBackAction, onNavigateToFormAction }: ConsignmentDashboardProps) {
     const { selectedVehicleId } = useDriverSession();
     const [consignments, setConsignments] = useState<IConsignmentKuormaListItem[]>([]);
@@ -30,7 +30,7 @@ export default function ConsignmentDriverDashboard({ onBackAction, onNavigateToF
     const fetchConsignments = useCallback(async () => {
         if (!selectedVehicleId) return;
         setIsLoading(true);
-        setError(null); // Reset error on new fetch
+        setError(null);
         try {
             const data = await getDriverConsignments(selectedVehicleId);
             setConsignments(data);
@@ -48,16 +48,66 @@ export default function ConsignmentDriverDashboard({ onBackAction, onNavigateToF
 
     const columns = useMemo(
         (): GridColDef[] => [
-            { field: 'asiakkaanNimi', headerName: t('customer', { ns: 'consignmentDriver' }), flex: 2 },
-            {
+            { 
                 field: 'pvm',
                 headerName: t('date', { ns: 'consignmentDriver' }),
-                flex: 1,
+                flex: 1.5,
+                minWidth: 120,
                 type: 'date',
                 valueGetter: (value) => new Date(value),
+                renderCell: (params) => (
+                    <span style={{ fontWeight: '500', fontSize: '1rem' }}>
+                        {new Date(params.value).toLocaleDateString()}
+                    </span>
+                )
             },
-            { field: 'autoNro', headerName: t('vehicle', { ns: 'consignmentDriver' }), flex: 1 },
-            { field: 'kuljettajanNimi', headerName: t('driver', { ns: 'consignmentDriver' }), flex: 1.5 },
+            { 
+                field: 'waybillCount', 
+                headerName: t('waybills', { ns: 'consignmentDriver', defaultValue: 'Waybills' }), 
+                flex: 1,
+                minWidth: 100,
+                align: 'center',
+                headerAlign: 'center',
+                renderCell: (params) => (
+                    <Chip 
+                        icon={<DescriptionIcon style={{ fontSize: '1rem' }} />} 
+                        label={params.value} 
+                        size="small" 
+                        variant="outlined" 
+                        color="primary"
+                    />
+                )
+            },
+            { 
+                field: 'totalM3', 
+                headerName: t('totalM3', { ns: 'consignmentDriver', defaultValue: 'Total m3' }), 
+                flex: 1,
+                minWidth: 100,
+                align: 'right',
+                headerAlign: 'right',
+                valueFormatter: (value: any) => {
+                     if (value == null) return '';
+                     return Number(value).toFixed(2);
+                },
+                renderCell: (params) => (
+                    <strong>{Number(params.value || 0).toFixed(2)}</strong>
+                )
+            },
+            { 
+                field: 'status', 
+                headerName: t('status', { ns: 'consignmentDriver', defaultValue: 'Status' }), 
+                flex: 1,
+                minWidth: 100,
+                align: 'center',
+                headerAlign: 'center',
+                renderCell: (params) => (
+                    <Chip 
+                        label={params.value || 'Completed'} 
+                        color={params.value === 'Completed' ? 'success' : 'default'}
+                        size="small" 
+                    />
+                )
+            }
         ],
         [t]
     );
@@ -67,12 +117,10 @@ export default function ConsignmentDriverDashboard({ onBackAction, onNavigateToF
     }
 
     if (error) {
-        // Pass the error message and the fetch function to the new component.
         return <ErrorDisplay message={error} onRetry={fetchConsignments} />;
     }
 
     return (
-
      <Box sx={{ p: { xs: 1, sm: 3 }, height: '100%', display: 'flex', flexDirection: 'column', position: 'relative' }}>
             <Stack 
                 direction="row" 
@@ -86,12 +134,11 @@ export default function ConsignmentDriverDashboard({ onBackAction, onNavigateToF
                 </Typography>
                 
                 <Stack direction="row" spacing={1}>
-                    {/* The "New Consignment" button for DESKTOP view --- */}
                     <Button
                         variant="contained"
                         startIcon={<AddIcon />}
                         onClick={() => onNavigateToFormAction(null)}
-                        sx={{ display: { xs: 'none', sm: 'inline-flex' } }} // Only visible on sm screens and up
+                        sx={{ display: { xs: 'none', sm: 'inline-flex' } }}
                     >
                         {t('buttons.newConsignment')}
                     </Button>
@@ -124,7 +171,7 @@ export default function ConsignmentDriverDashboard({ onBackAction, onNavigateToF
                         sx={{
                             border: 0,
                             '& .MuiDataGrid-columnHeaderTitle': { fontWeight: 'bold' },
-                            '& .MuiDataGrid-row:hover': { cursor: 'pointer' },
+                            '& .MuiDataGrid-row:hover': { cursor: 'pointer', backgroundColor: '#f5f5f5' },
                         }}
                         slots={{
                             noRowsOverlay: () => <CustomNoRowsOverlay message={t('noRowsSelectedVehicle')} />
@@ -133,7 +180,6 @@ export default function ConsignmentDriverDashboard({ onBackAction, onNavigateToF
                 )}
             </Paper>
 
-            {/* The Floating Action Button for MOBILE view --- */}
             <Tooltip title={t('buttons.newConsignment')}>
                 <Fab
                     color="primary"

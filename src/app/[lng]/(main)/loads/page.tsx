@@ -13,12 +13,12 @@ import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline';
 import RemoveCircleOutlineIcon from '@mui/icons-material/RemoveCircleOutline';
 import ForestIcon from '@mui/icons-material/Forest'; 
 import DescriptionIcon from '@mui/icons-material/Description'; 
-// AppsIcon removed as "All Types" tab is gone
 import dayjs from 'dayjs';
 import { useTranslation } from 'react-i18next';
 import type { ChipProps } from '@mui/material/Chip';
 
 import EditLoadModal from '../../../../components/loads/EditLoadModal';
+import EditConsignmentModal from '../../../../components/loads/EditConsignmentModal';
 import ConfirmationDialog from '../../../../components/common/ConfirmationDialog';
 import InspectionFilterBar, { ILoadFilters } from '../../../../components/loads/InspectionFilterBar';
 import { ILoadListItem, IClientBasicInfo, IVehicleBasicInfo, IDriver, IBackendClient, IVehicleBackendResponse, IBackendDriver, ITripDetails, IUpdateLoadDto } from '../../../../types';
@@ -28,6 +28,7 @@ import { fetchAllVehicles } from '@/services/vehicleService';
 import { fetchAllDrivers } from '@/services/driverService';
 import { useAuth } from '@/contexts/AuthContext';
 import useSocket from '@/hooks/useSocket'; 
+import ViewConsignmentModal from '../../../../components/loads/ViewConsignmentModal';
 
 const STATUS_COLOR: Record<string, ChipProps['color']> = {
     assigned: 'warning',
@@ -37,6 +38,7 @@ const STATUS_COLOR: Record<string, ChipProps['color']> = {
     at_destination: 'warning',
     completed: 'success',
     paused: 'error',
+    draft: 'default', // Added draft color
 };
 
 const STATUS_TKEY: Record<string, string> = {
@@ -47,6 +49,7 @@ const STATUS_TKEY: Record<string, string> = {
     'At Destination': 'at_destination',
     'Completed': 'completed',
     'Paused': 'paused',
+    'Draft': 'draft',
 };
 
 export default function DrivenInspectionPage() {
@@ -64,7 +67,7 @@ export default function DrivenInspectionPage() {
     const [deleteConfirmation, setDeleteConfirmation] = useState<ILoadListItem | null>(null);
     const [isDeleting, setIsDeleting] = useState(false);
     
-    // CHANGE 1: Default loadType set to '0' (Timber) instead of ''
+    // Default loadType set to '0' (Timber)
     const [filters, setFilters] = useState<ILoadFilters>({ 
         status: 'pending_inspection', 
         asiakasId: '', 
@@ -79,8 +82,13 @@ export default function DrivenInspectionPage() {
     const [selectionModel, setSelectionModel] = useState<Set<GridRowId>>(new Set());
     const [isAccepting, setIsAccepting] = useState(false);
     const [acceptConfirmationOpen, setAcceptConfirmationOpen] = useState(false);
+    
+    // View Modal State
+    const [viewModalOpen, setViewModalOpen] = useState(false);
+    const [selectedLoadIdForView, setSelectedLoadIdForView] = useState<number | null>(null);
 
     const isInspectionView = useMemo(() => filters.status === 'pending_inspection', [filters.status]);
+    const isConsignmentTab = filters.loadType === '1';
 
     const loadData = useCallback(async (currentFilters: ILoadFilters) => {
         try {
@@ -92,11 +100,8 @@ export default function DrivenInspectionPage() {
             if (currentFilters.status === 'pending_inspection') {
                 data = await fetchLoadsForInspection();
                 
-                // Client-side filtering for Inspection view since "All" is removed.
-                // We MUST filter by the current loadType (0 or 1).
                 if (currentFilters.loadType !== '' && currentFilters.loadType !== undefined) {
                     const typeNum = parseInt(currentFilters.loadType, 10);
-                    // Filter the data based on tyyppi matching the tab selection
                     data = data.filter((d: any) => d.tyyppi === typeNum); 
                 }
 
@@ -136,12 +141,10 @@ export default function DrivenInspectionPage() {
                     const newRows = [...prevRows];
                     newRows[index] = { ...newRows[index], ...updatedLoad };
                     
-                    // Filter out if status changes in active view
                     if (filters.status === 'active' && updatedLoad.status === 'Completed') {
                          return newRows.filter(r => r.kuormaId !== updatedLoad.kuormaId);
                     }
                     
-                    // Filter out if type doesn't match current tab (e.g. updatedLoad is Consignment but we are on Timber tab)
                     if (filters.loadType !== '' && updatedLoad.tyyppi !== parseInt(filters.loadType, 10)) {
                          return newRows.filter(r => r.kuormaId !== updatedLoad.kuormaId);
                     }
@@ -175,7 +178,6 @@ export default function DrivenInspectionPage() {
     useEffect(() => { loadData(filters); }, [filters, loadData]);
 
     const handleLoadTypeChange = (event: React.SyntheticEvent, newValue: string) => {
-        // Prevent deselecting if necessary, but Tabs usually enforce one selection
         if (newValue !== null) {
             setFilters(prev => ({ ...prev, loadType: newValue }));
         }
@@ -195,7 +197,6 @@ export default function DrivenInspectionPage() {
         setFilters(prev => ({ ...prev, [name]: value as any })); 
     };
     
-    // CHANGE 2: Reset filters sets loadType to '0' (Timber)
     const handleResetFilters = () => { 
         setFilters({ status: 'pending_inspection', asiakasId: '', kalustoNro: '', kuljId: '', loadType: '0' }); 
     };
@@ -289,55 +290,134 @@ export default function DrivenInspectionPage() {
         return key ? (STATUS_COLOR[key] ?? 'default') : 'default';
     };
 
-    const columns: GridColDef[] = [
-        {
-            field: 'select',
-            headerName: t('columns.select'),
-            width: 80,
-            sortable: false,
-            filterable: false,
-            renderCell: (params: GridRenderCellParams<any, ILoadListItem>) => {
-                const isSelected = selectionModel.has(params.id);
-                return (
-                    <Tooltip title={isSelected ? t('tooltips.removeFromSelection') : t('tooltips.addToSelection')}>
-                        <IconButton size="small" color={isSelected ? "error" : "primary"} onClick={() => toggleSelection(params.id)}>
-                            {isSelected ? <RemoveCircleOutlineIcon /> : <AddCircleOutlineIcon />}
-                        </IconButton>
-                    </Tooltip>
-                );
+    // --- Row Click & Edit Handlers ---
+    const handleRowClick = (params: any) => {
+        if (isConsignmentTab) {
+            setSelectedLoadIdForView(params.row.kuormaId);
+            setViewModalOpen(true);
+        }
+    };
+
+    const handleEditClick = (e: React.MouseEvent, row: any) => {
+        e.stopPropagation();
+        handleOpenEditModal(row);
+    };
+
+    const handleDeleteClick = (e: React.MouseEvent, row: any) => {
+        e.stopPropagation();
+        setDeleteConfirmation(row);
+    };
+
+    // DYNAMIC COLUMNS
+    const columns = useMemo((): GridColDef[] => {
+        const commonColumns: GridColDef[] = [
+            {
+                field: 'select',
+                headerName: t('columns.select'),
+                width: 60,
+                sortable: false,
+                filterable: false,
+                renderCell: (params: GridRenderCellParams<any, ILoadListItem>) => {
+                    const isSelected = selectionModel.has(params.id);
+                    return (
+                        <Tooltip title={isSelected ? t('tooltips.removeFromSelection') : t('tooltips.addToSelection')}>
+                            <IconButton size="small" color={isSelected ? "error" : "primary"} onClick={() => toggleSelection(params.id)}>
+                                {isSelected ? <RemoveCircleOutlineIcon /> : <AddCircleOutlineIcon />}
+                            </IconButton>
+                        </Tooltip>
+                    );
+                },
             },
-        },
-        { field: 'pvm', headerName: t('columns.date'), width: 110},
-        { field: 'ajomaaraysNro', headerName: t('columns.drivingOrder'), width: 130 },
-        { field: 'vastaanottoNro', headerName: t('columns.receptionNo'), width: 130},
-        { field: 'rekNro', headerName: t('columns.vehicleNo'), width: 110 },
-        { field: 'kuljettajanNimi', headerName: t('columns.driver'), width: 100 },
-        { field: 'puulaaniNimi', headerName: t('columns.puulaani'), width: 100 },
-        { field: 'asiakkaanNimi', headerName: t('columns.customer'), width: 140 },
-        { field: 'timberType', headerName: t('columns.timber'), width: 120 },
-        { field: 'reitti', headerName: t('columns.route'), width: 100 },
-        { field: 'm3', headerName: t('columns.cubicMetres'), type: 'number', width: 120},
-        { field: 'km', headerName: t('columns.freightKm'), type: 'number', width: 120 },
-        { field: 'tunnit', headerName: t('columns.hours'), type: 'number', width: 100 },
-        { field: 'kpl', headerName: t('columns.pcs'), type: 'number', width: 80},
-        { field: 'lisatiedot', headerName: t('columns.additionalInfo'), flex: 1, minWidth: 80},
-        {
-            field: 'status',
-            headerName: t('columns.status'),
-            width: 100,
-            renderCell: (params) => (
-                <Chip
-                    label={translateStatus(t, params.row.status)}
-                    color={getStatusChipColorByStatus(params.row.status)}
-                    size="small"
-                />
-            )
-        },
-        {
-            field: 'actions', headerName: t('columns.action'), width: 100, sortable: false, filterable: false,
-            renderCell: (params) => (<Box><Tooltip title={t('tooltips.editLoad')}><IconButton onClick={() => handleOpenEditModal(params.row)} size="small"><EditIcon /></IconButton></Tooltip><Tooltip title={t('tooltips.deleteLoad')}><IconButton onClick={() => setDeleteConfirmation(params.row)} size="small" color="error"><DeleteIcon /></IconButton></Tooltip></Box>),
-        },
-    ];
+            { 
+                field: 'pvm', 
+                headerName: t('columns.date'), 
+                width: 110,
+                valueFormatter: (value: any) => value ? dayjs(value).format('DD.MM.YYYY') : ''
+            },
+            { field: 'rekNro', headerName: t('columns.vehicleNo'), width: 110 },
+            { field: 'kuljettajanNimi', headerName: t('columns.driver'), width: 120 },
+        ];
+
+        // TIMBER LOAD COLUMNS
+        if (!isConsignmentTab) {
+            return [
+                ...commonColumns,
+                { field: 'ajomaaraysNro', headerName: t('columns.drivingOrder'), width: 130 },
+                { field: 'vastaanottoNro', headerName: t('columns.receptionNo'), width: 130 },
+                { field: 'puulaaniNimi', headerName: t('columns.puulaani'), width: 100 },
+                { field: 'asiakkaanNimi', headerName: t('columns.customer'), width: 140 },
+                { field: 'timberType', headerName: t('columns.timber'), width: 120 },
+                { field: 'reitti', headerName: t('columns.route'), width: 100 },
+                { field: 'm3', headerName: t('columns.cubicMetres'), type: 'number', width: 100 },
+                { field: 'km', headerName: t('columns.freightKm'), type: 'number', width: 100 },
+                {
+                    field: 'status', headerName: t('columns.status'), width: 120,
+                    renderCell: (params) => <Chip label={translateStatus(t, params.row.status)} color={getStatusChipColorByStatus(params.row.status)} size="small" />
+                },
+                {
+                    field: 'actions', headerName: t('columns.action'), width: 100, sortable: false, filterable: false,
+                    renderCell: (params) => (
+                        <Box>
+                            <Tooltip title={t('tooltips.editLoad')}>
+                                <IconButton onClick={(e) => handleEditClick(e, params.row)} size="small"><EditIcon /></IconButton>
+                            </Tooltip>
+                            <Tooltip title={t('tooltips.deleteLoad')}>
+                                <IconButton onClick={(e) => handleDeleteClick(e, params.row)} size="small" color="error"><DeleteIcon /></IconButton>
+                            </Tooltip>
+                        </Box>
+                    ),
+                }
+            ];
+        } 
+        
+        // CONSIGNMENT COLUMNS
+        else {
+            return [
+                ...commonColumns,
+                { 
+                    field: 'totalM3', 
+                    headerName: 'Total m3', // Ensure 'columns.totalM3' key exists or use hardcoded default
+                    width: 120, 
+                    align: 'right', 
+                    headerAlign: 'right',
+                    valueGetter: (value: any, row: any) => row.m3 || 0,
+                    valueFormatter: (value: any) => Number(value).toFixed(2)
+                },
+                { 
+                    field: 'waybillCount', 
+                    headerName: 'Waybills', // Ensure 'columns.waybills' key exists or use hardcoded default
+                    width: 100, 
+                    align: 'center', 
+                    headerAlign: 'center',
+                    renderCell: (params) => (
+                        <Chip 
+                            icon={<DescriptionIcon style={{fontSize: '1rem'}} />} 
+                            label={params.row.waybillCount || '0'} 
+                            size="small" 
+                            variant="outlined" 
+                        />
+                    )
+                },
+                {
+                    field: 'status', headerName: t('columns.status'), width: 120,
+                    renderCell: (params) => <Chip label={translateStatus(t, params.row.status)} color={getStatusChipColorByStatus(params.row.status)} size="small" />
+                },
+                {
+                    field: 'actions', headerName: t('columns.action'), width: 100, sortable: false, filterable: false,
+                    renderCell: (params) => (
+                        <Box>
+                            <Tooltip title={t('tooltips.editLoad')}>
+                                <IconButton onClick={(e) => handleEditClick(e, params.row)} size="small"><EditIcon /></IconButton>
+                            </Tooltip>
+                            <Tooltip title={t('tooltips.deleteLoad')}>
+                                <IconButton onClick={(e) => handleDeleteClick(e, params.row)} size="small" color="error"><DeleteIcon /></IconButton>
+                            </Tooltip>
+                        </Box>
+                    ),
+                }
+            ];
+        }
+    }, [isConsignmentTab, selectionModel, t]);
 
     return (
         <Box sx={{ p: 3, width: '100%', height: 'calc(100vh - 64px)', display: 'flex', flexDirection: 'column' }}>
@@ -358,7 +438,6 @@ export default function DrivenInspectionPage() {
                     </Box>
                     <Divider />
                     
-                    {/* CHANGE 3: Removed "All Types" Tab */}
                     <Tabs 
                         value={filters.loadType} 
                         onChange={handleLoadTypeChange}
@@ -367,7 +446,6 @@ export default function DrivenInspectionPage() {
                         textColor="primary"
                         sx={{ mb: 1, borderBottom: 1, borderColor: 'divider' }}
                     >
-                        {/* "All" tab removed */}
                         <Tab 
                             label={t('tabs.timber', { defaultValue: 'Timber Load' })} 
                             value="0" 
@@ -406,18 +484,48 @@ export default function DrivenInspectionPage() {
                     onProcessRowUpdateError={(e) => console.error(e)}
                     editMode="row"
                     hideFooterSelectedRowCount
+                    // ADDED: Row click handler for View Modal
+                    onRowClick={handleRowClick}
                     sx={{
                         border: 'none',
                         '& .MuiDataGrid-columnHeaders': { backgroundColor: '#f5f5f5', borderBottom: '1px solid #e0e0e0' },
                         '& .MuiDataGrid-columnHeaderTitle': { fontWeight: '600', textTransform: 'uppercase', fontSize: '0.75rem' },
+                        // ADDED: Cursor pointer for Consignments
+                        ...(isConsignmentTab && {
+                            '& .MuiDataGrid-row:hover': { cursor: 'pointer', backgroundColor: '#f5f5f5' }
+                        })
                     }}
                 />
             </Paper>
             
-            {/* ... Modals and Dialogs ... */}
+            {/* Modal Logic */}
             {isEditModalOpen && selectedLoadForEditing && user && (
-                <EditLoadModal open={isEditModalOpen} onCloseAction={handleCloseModal} onSaveSuccessAction={handleSaveSuccess} loadData={selectedLoadForEditing} currentUser={user} />
+                isConsignmentTab ? (
+                    <EditConsignmentModal 
+                        open={isEditModalOpen}
+                        onCloseAction={handleCloseModal}
+                        onSaveSuccessAction={handleSaveSuccess}
+                        loadData={selectedLoadForEditing}
+                        currentUser={user}
+                    />
+                ) : (
+                    <EditLoadModal 
+                        open={isEditModalOpen} 
+                        onCloseAction={handleCloseModal} 
+                        onSaveSuccessAction={handleSaveSuccess} 
+                        loadData={selectedLoadForEditing} 
+                        currentUser={user} 
+                    />
+                )
             )}
+
+            {/* View Modal for Consignment */}
+            <ViewConsignmentModal 
+                open={viewModalOpen} 
+                onClose={() => setViewModalOpen(false)} 
+                loadId={selectedLoadIdForView} 
+            />
+
             <ConfirmationDialog open={!!deleteConfirmation} onClose={() => setDeleteConfirmation(null)} onConfirm={handleConfirmDelete} title={t('confirm.delete.title')} message={t('confirm.delete.message', { id: deleteConfirmation?.kuormaId ?? '' })} isConfirming={isDeleting} />
             <ConfirmationDialog open={acceptConfirmationOpen} onClose={() => setAcceptConfirmationOpen(false)} onConfirm={handleConfirmAccept} title={t('confirm.accept.title')} message={t('confirm.accept.message', { count: selectionModel.size })} isConfirming={isAccepting} confirmButtonText={t('confirm.accept.confirmButtonText')} confirmButtonColor="success" />
             <Snackbar open={!!snackbar} autoHideDuration={6000} onClose={handleCloseSnackbar} anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}><Alert onClose={handleCloseSnackbar} severity={snackbar?.severity || 'info'} sx={{ width: '100%' }}>{snackbar?.message}</Alert></Snackbar>
