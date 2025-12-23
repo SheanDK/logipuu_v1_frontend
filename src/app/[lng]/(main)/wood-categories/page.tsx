@@ -1,14 +1,19 @@
+// src/app/[lng]/(main)/wood-categories/page.tsx
 'use client';
 
 import React, { useEffect, useMemo, useState, useCallback } from 'react';
 import {
-  Box, Paper, Typography, Table, TableBody, TableCell, TableContainer,
-  TableHead, TableRow, TextField, Checkbox, IconButton, Button,
-  CircularProgress, Alert, Tooltip, AlertColor
+  Box, Paper, Typography, Button, CircularProgress, Alert, AlertColor, Chip, Tooltip
 } from '@mui/material';
+import { 
+  DataGrid, GridColDef, GridActionsCellItem, GridToolbar, GridRenderCellParams 
+} from '@mui/x-data-grid';
 import AddIcon from '@mui/icons-material/Add';
-import SaveIcon from '@mui/icons-material/Save';
+import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
+import CheckCircleIcon from '@mui/icons-material/CheckCircle';
+import CancelIcon from '@mui/icons-material/Cancel';
+import axios from 'axios';
 
 import {
   fetchAllWoodTypes,
@@ -16,129 +21,199 @@ import {
   updateWoodType,
   deleteWoodType,
 } from '@/services/woodCategoriesServices';
+// Assuming you reuse the same modal for Edit, or you might need to adapt it to accept initialData
 import NewWoodTypeModal from '@/components/wood-categories/newWoodTypeModal';
 import ConfirmationDialog from '@/components/common/ConfirmationDialog';
 import { useAuth } from '@/contexts/AuthContext';
 import { useTranslation } from '@/i18n/useTranslation';
 
-type EditableRow = {
-  id: string;         // always string for stable keys
+// Define the data shape for the grid
+interface IWoodTypeRow {
+  id: string;
   name: string;
   description: string;
   active: boolean;
-  dirty?: boolean;
-};
+}
 
 export default function WoodCategoriesPage() {
   const { user } = useAuth();
-  const { t } = useTranslation(['woodCategories', 'common']); // re-use common strings for feedback/buttons
+  const { t } = useTranslation(['woodCategories', 'common']);
 
+  // Permissions
   const canView = useMemo(() => user?.permissions?.includes('wood categories_view'), [user]);
   const canCreate = useMemo(() => user?.permissions?.includes('wood categories_create'), [user]);
   const canEdit = useMemo(() => user?.permissions?.includes('wood categories_edit'), [user]);
   const canDelete = useMemo(() => user?.permissions?.includes('wood categories_delete'), [user]);
 
-  const [rows, setRows] = useState<EditableRow[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [savingId, setSavingId] = useState<string | null>(null);
+  const [rows, setRows] = useState<IWoodTypeRow[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isSaving, setIsSaving] = useState(false);
   const [feedback, setFeedback] = useState<{ type: AlertColor; message: string } | null>(null);
 
-  const [newOpen, setNewOpen] = useState(false);
-  const [deleteTarget, setDeleteTarget] = useState<EditableRow | null>(null);
-  const [isDeleting, setIsDeleting] = useState(false);
+  // Modal State
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [editingItem, setEditingItem] = useState<IWoodTypeRow | null>(null);
 
-  const load = useCallback(async () => {
+  // Delete State
+  const [deleteTarget, setDeleteTarget] = useState<IWoodTypeRow | null>(null);
+
+  // Load Data
+  const loadData = useCallback(async () => {
     if (!canView) {
       setFeedback({ type: 'error', message: t('common:messages.noPermission') });
-      setLoading(false);
+      setIsLoading(false);
       return;
     }
-    setLoading(true);
+    setIsLoading(true);
     try {
-      const list = await fetchAllWoodTypes(); // [{ id, name, description, active }]
-      setRows(list.map(w => ({ ...w, id: String(w.id), description: w.description ?? '', dirty: false })));
+      const list = await fetchAllWoodTypes(); 
+      // Transform to ensure ID is string for DataGrid
+      const formattedRows = list.map((w: any) => ({
+        id: String(w.id),
+        name: w.name,
+        description: w.description ?? '',
+        active: w.active
+      }));
+      setRows(formattedRows);
     } catch (e: any) {
       setFeedback({ type: 'error', message: e?.message ?? t('woodCategories:feedback.loadError') });
     } finally {
-      setLoading(false);
+      setIsLoading(false);
     }
   }, [canView, t]);
 
-  useEffect(() => { if (user) load(); }, [user, load]);
-
-  // auto clear feedback
   useEffect(() => {
-    if (!feedback) return;
-    const to = setTimeout(() => setFeedback(null), 3500);
-    return () => clearTimeout(to);
-  }, [feedback]);
+    if (user) loadData();
+  }, [user, loadData]);
 
-  const handleChange =
-    (id: string, key: keyof EditableRow) =>
-      (e: React.ChangeEvent<HTMLInputElement>) => {
-        if (!canEdit) return;
-        const val = key === 'active' ? (e.target as any).checked : e.target.value;
-        setRows(prev => prev.map(r => (r.id === id ? { ...r, [key]: val as any, dirty: true } : r)));
-      };
+  // Modal Handlers
+  const handleOpenCreate = () => {
+    setEditingItem(null);
+    setIsModalOpen(true);
+  };
 
-  const saveRow = async (row: EditableRow) => {
-    if (!canEdit) return;
-    setSavingId(row.id);
+  const handleOpenEdit = (row: IWoodTypeRow) => {
+    setEditingItem(row);
+    setIsModalOpen(true);
+  };
+
+  const handleCloseModal = () => {
+    setIsModalOpen(false);
+    setEditingItem(null);
+  };
+
+  // Save Handler (Create or Update)
+  // Note: Ensure NewWoodTypeModal passes the data back correctly
+  const handleSave = async (payload: any) => {
+    setIsSaving(true);
     try {
-      await updateWoodType(row.id, {
-        name: row.name,
-        description: row.description ?? '',
-        active: row.active,
-      });
-      setRows(prev => prev.map(r => (r.id === row.id ? { ...r, dirty: false } : r)));
-      setFeedback({
-        type: 'success',
-        message: t('woodCategories:feedback.saved', { name: row.name })
-      });
+      if (editingItem) {
+        // Update
+        await updateWoodType(editingItem.id, payload);
+        setFeedback({ type: 'success', message: t('woodCategories:feedback.saved', { name: payload.name }) });
+      } else {
+        // Create
+        await createWoodType(payload);
+        setFeedback({ type: 'success', message: t('woodCategories:feedback.created') });
+      }
+      handleCloseModal();
+      loadData();
     } catch (e: any) {
-      setFeedback({
-        type: 'error', message: e?.response?.data?.message ?? t('woodCategories:feedback.saveError')
-      });
+        const msg = axios.isAxiosError(e) ? e.response?.data?.message : e.message;
+        setFeedback({ type: 'error', message: msg || t('woodCategories:feedback.saveError') });
     } finally {
-      setSavingId(null);
+      setIsSaving(false);
     }
   };
 
-  const confirmDelete = (row: EditableRow) => {
-    if (!canDelete) return;
+  // Delete Handler
+  const handleDeleteClick = (row: IWoodTypeRow) => {
     setDeleteTarget(row);
   };
 
-  const handleDeleteConfirm = async () => {
+  const handleConfirmDelete = async () => {
     if (!deleteTarget) return;
-    setIsDeleting(true);
+    setIsSaving(true);
     try {
       await deleteWoodType(deleteTarget.id);
-      setRows(prev => prev.filter(r => r.id !== deleteTarget.id));
-      setFeedback({
-        type: 'success', message: t('woodCategories:feedback.deleted', { name: deleteTarget.name })
-      });
+      setFeedback({ type: 'success', message: t('woodCategories:feedback.deleted', { name: deleteTarget.name }) });
+      loadData();
     } catch (e: any) {
-      setFeedback({
-        type: 'error', message: e?.response?.data?.message ?? t('woodCategories:feedback.deleteError')
-      });
+        const msg = axios.isAxiosError(e) ? e.response?.data?.message : e.message;
+        setFeedback({ type: 'error', message: msg || t('woodCategories:feedback.deleteError') });
     } finally {
-      setIsDeleting(false);
+      setIsSaving(false);
       setDeleteTarget(null);
     }
   };
 
-  const columns = useMemo(
-    () => [
-      { key: 'name', label: t('woodCategories:columns.name') },
-      { key: 'description', label: t('woodCategories:columns.description') },
-      { key: 'active', label: t('woodCategories:columns.active') },
-      { key: 'actions', label: t('woodCategories:columns.actions') },
-    ],
-    []
-  );
+  // Columns Definition
+  const columns: GridColDef<IWoodTypeRow>[] = useMemo(() => {
+    const baseCols: GridColDef<IWoodTypeRow>[] = [
+      { 
+        field: 'name', 
+        headerName: t('woodCategories:columns.name'), 
+        // FIX: Removed default flex behavior if it was implicit, set specific width
+        width: 300 
+      },
+      { 
+        field: 'description', 
+        headerName: t('woodCategories:columns.description'), 
+        // FIX: Replaced 'flex: 1' with specific width to avoid stretching
+        width: 400 
+      },
+      {
+        field: 'active',
+        headerName: t('woodCategories:columns.active'),
+        width: 150, // Fixed width
+        renderCell: (params: GridRenderCellParams<IWoodTypeRow, boolean>) => (
+          <Chip
+            icon={params.value ? <CheckCircleIcon /> : <CancelIcon />}
+            label={params.value ? t('status.active') : t('status.inactive')}
+            color={params.value ? 'success' : 'default'}
+            size="small"
+            variant="outlined"
+          />
+        ),
+      },
+    ];
 
-  if (loading || !user) {
+    if (canEdit || canDelete) {
+      baseCols.push({
+        field: 'actions',
+        type: 'actions',
+        headerName: t('woodCategories:columns.actions'),
+        width: 120, // Fixed width
+        getActions: ({ row }) => {
+          const actions = [];
+          if (canEdit) {
+            actions.push(
+              <GridActionsCellItem
+                key="edit"
+                icon={<Tooltip title={t('common:actions.edit')}><EditIcon /></Tooltip>}
+                label="Edit"
+                onClick={() => handleOpenEdit(row)}
+              />
+            );
+          }
+          if (canDelete) {
+            actions.push(
+              <GridActionsCellItem
+                key="delete"
+                icon={<Tooltip title={t('common:actions.delete')}><DeleteIcon color="error" /></Tooltip>}
+                label="Delete"
+                onClick={() => handleDeleteClick(row)}
+              />
+            );
+          }
+          return actions;
+        },
+      });
+    }
+    return baseCols;
+  }, [canEdit, canDelete, t]);
+
+  if (isLoading || !user) {
     return <Box sx={{ display: 'flex', justifyContent: 'center', p: 4 }}><CircularProgress /></Box>;
   }
 
@@ -147,114 +222,54 @@ export default function WoodCategoriesPage() {
   }
 
   return (
-    <Paper sx={{ p: { xs: 2, md: 3 }, width: '100%' }}>
+    <Paper sx={{ p: { xs: 2, md: 3 }, height: 'calc(100vh - 128px)', width: '100%' }}>
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
-        <Typography variant="h5">{t('woodCategories:title')}</Typography>
+        <Typography variant="h5" component="h1">{t('woodCategories:title')}</Typography>
         {canCreate && (
-          <Button variant="contained" startIcon={<AddIcon />} onClick={() => setNewOpen(true)}>
+          <Button variant="contained" startIcon={<AddIcon />} onClick={handleOpenCreate}>
             {t('woodCategories:new')}
           </Button>
         )}
       </Box>
 
-      {feedback && <Alert severity={feedback.type} onClose={() => setFeedback(null)} sx={{ mb: 2 }}>
-        {feedback.message}
-      </Alert>}
+      {feedback && (
+        <Alert severity={feedback.type} onClose={() => setFeedback(null)} sx={{ mb: 2 }}>
+          {feedback.message}
+        </Alert>
+      )}
 
-      <TableContainer component={Box}>
-        <Table size="small">
-          <TableHead>
-            <TableRow>
-              {columns.map(c => (
-                <TableCell key={c.key} sx={{ fontWeight: 600 }}>{c.label}</TableCell>
-              ))}
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            {rows.map(r => (
-              <TableRow key={r.id} hover>
-                <TableCell sx={{ width: 340 }}>
-                  <TextField
-                    value={r.name ?? ''}
-                    onChange={handleChange(r.id, 'name')}
-                    fullWidth
-                    size="small"
-                    disabled={!canEdit}
-                  />
-                </TableCell>
-                <TableCell>
-                  <TextField
-                    value={r.description ?? ''}
-                    onChange={handleChange(r.id, 'description')}
-                    fullWidth
-                    size="small"
-                    multiline
-                    minRows={2}
-                    disabled={!canEdit}
-                  />
-                </TableCell>
-                <TableCell align="center" sx={{ width: 120 }}>
-                  <Checkbox
-                    checked={!!r.active}
-                    onChange={handleChange(r.id, 'active')}
-                    disabled={!canEdit}
-                  />
-                </TableCell>
-                <TableCell align="center" sx={{ width: 140 }}>
-                  <Tooltip title={t('woodCategories:tooltips.save')}>
-                    <span>
-                      <IconButton
-                        color="primary"
-                        onClick={() => saveRow(r)}
-                        disabled={!canEdit || !r.dirty || savingId === r.id}
-                        size="small"
-                      >
-                        {savingId === r.id ? <CircularProgress size={20} /> : <SaveIcon />}
-                      </IconButton>
-                    </span>
-                  </Tooltip>
-                  {canDelete && (
-                    <Tooltip title={t('woodCategories:tooltips.delete')}>
-                      <span>
-                        <IconButton
-                          color="error"
-                          onClick={() => confirmDelete(r)}
-                          disabled={savingId === r.id}
-                          size="small"
-                        >
-                          <DeleteIcon />
-                        </IconButton>
-                      </span>
-                    </Tooltip>
-                  )}
-                </TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      </TableContainer>
-
-      {/* CREATE MODAL */}
-      {newOpen && canCreate && (
-        <NewWoodTypeModal
-          open={newOpen}
-          onClose={() => setNewOpen(false)}
-          onCreated={async (payload) => {
-            const created = await createWoodType(payload);
-            setRows(prev => [
-              ...prev,
-              {
-                ...created,
-                id: String(created.id),
-                description: created.description ?? '',
-                dirty: false,
-              } as EditableRow,
-            ]);
-
-            setFeedback({ type: 'success', message: t('woodCategories:feedback.created') });
-            setNewOpen(false);
-            return created;
+      <Box sx={{ height: `calc(100% - ${feedback ? '112px' : '56px'})`, width: '100%' }}>
+        <DataGrid
+          rows={rows}
+          columns={columns}
+          getRowId={(row) => row.id}
+          density="compact"
+          loading={isLoading}
+          disableRowSelectionOnClick
+          slots={{ toolbar: GridToolbar }}
+          slotProps={{ toolbar: { showQuickFilter: true, quickFilterProps: { debounceMs: 500 } } }}
+          // Common styles for Header (Bold & Uppercase)
+          sx={{
+            '& .MuiDataGrid-columnHeaderTitle': {
+              fontWeight: 'bold',
+              textTransform: 'uppercase',
+              fontSize: '0.75rem',
+            },
           }}
+        />
+      </Box>
+
+      {/* CREATE / EDIT MODAL */}
+      {isModalOpen && (
+        <NewWoodTypeModal
+          open={isModalOpen}
+          onCloseAction={handleCloseModal}
+          // Adapt the modal to handle both create/update via this callback
+          onCreatedAction={handleSave} 
+          // You might need to update NewWoodTypeModal to accept 'initialData' prop 
+          // to pre-fill the form for editing.
+          // @ts-ignore - Assuming you will update the component to accept this prop
+          initialData={editingItem}
         />
       )}
 
@@ -263,10 +278,10 @@ export default function WoodCategoriesPage() {
         <ConfirmationDialog
           open={!!deleteTarget}
           onClose={() => setDeleteTarget(null)}
-          onConfirm={handleDeleteConfirm}
+          onConfirm={handleConfirmDelete}
           title={t('woodCategories:confirmDelete.title')}
           message={t('woodCategories:confirmDelete.message', { name: deleteTarget.name })}
-          isConfirming={isDeleting}
+          isConfirming={isSaving}
           confirmButtonColor="error"
         />
       )}

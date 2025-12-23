@@ -7,8 +7,6 @@ import { Dayjs } from 'dayjs';
 
 // --- AUTH, USER, ROLES, PERMISSIONS ---
 
-// --- FIX: Add the missing Authentication specific types ---
-
 /**
  * Represents the state of authentication throughout the application.
  */

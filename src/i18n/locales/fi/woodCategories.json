@@ -22,5 +22,9 @@
   "confirmDelete": {
     "title": "Vahvista poisto",
     "message": "Poistetaanko \"{{name}}\"?"
+  },
+  "status": {
+    "active": "Aktiivinen",
+    "inactive": "Ei aktiivinen"
   }
 }

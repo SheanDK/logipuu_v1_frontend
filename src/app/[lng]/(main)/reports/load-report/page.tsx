@@ -1,4 +1,5 @@
 //frontend/src/app/(main)/reports/load-reports/page.tsx
+// frontend/src/app/(main)/reports/load-reports/page.tsx
 'use client';
 
 import React, { useEffect, useState, useMemo } from 'react';
@@ -16,6 +17,7 @@ import autoTable from 'jspdf-autotable';
 import ExcelJS from 'exceljs';
 import { saveAs } from 'file-saver';
 import { useTranslation } from 'react-i18next'; 
+import dayjs from 'dayjs'; // Import dayjs for date formatting
 
 import { ILoadListItem } from '@/types';
 import i18n from '@/i18n/i18n';
@@ -54,6 +56,12 @@ export default function LoadReportPage() {
         return total.toFixed(2);
     }, [reportData]);
 
+    // Helper function to format date (Removes time)
+    const formatDate = (dateString: string | Date | undefined | null) => {
+        if (!dateString) return '-';
+        return dayjs(dateString).format('DD.MM.YYYY');
+    };
+
     const handlePrint = () => {
         window.print();
     };
@@ -68,7 +76,7 @@ export default function LoadReportPage() {
         const img = new window.Image();
         img.src = '/images/hkk-logo.png';
         img.onload = () => {
-            doc.addImage(img, 'PNG', 14, 10, 70, 15);
+            doc.addImage(img, 'PNG', 14, 10, 40, 15);
             doc.setFontSize(20);
             doc.text(t('title'), 14, 35);
             doc.setFontSize(10);
@@ -84,9 +92,13 @@ export default function LoadReportPage() {
 
             reportData.forEach(item => {
                 const rowData = [
-                    item.pvm, item.kuljettajanNimi || '-', item.rekNro || '-',
-                    item.asiakkaanNimi, item.puulaaniName || item.lahto || '-',
-                    item.m3?.toFixed(2) || '0.00', item.km?.toFixed(2) || '0.00'
+                    formatDate(item.pvm), // FIX: Format date here
+                    item.kuljettajanNimi || '-', 
+                    item.rekNro || '-',
+                    item.asiakkaanNimi, 
+                    item.puulaaniName || item.lahto || '-',
+                    item.m3?.toFixed(2) || '0.00', 
+                    item.km?.toFixed(2) || '0.00'
                 ];
                 tableRows.push(rowData);
             });
@@ -123,7 +135,6 @@ export default function LoadReportPage() {
         const workbook = new ExcelJS.Workbook();
         const worksheet = workbook.addWorksheet(t('excelSheetName') || 'Report');
 
-
         worksheet.columns = [
             { header: t('table.headers.date'), key: 'date', width: 15 },
             { header: t('table.headers.driver'), key: 'driver', width: 20 },
@@ -135,13 +146,11 @@ export default function LoadReportPage() {
             { header: t('table.headers.additionalInfo'), key: 'info', width: 25 },
         ];
 
-     
         worksheet.getRow(1).font = { bold: true };
 
-    
         reportData.forEach((item) => {
             worksheet.addRow({
-                date: item.pvm,
+                date: formatDate(item.pvm), // FIX: Format date here
                 driver: item.kuljettajanNimi || '-',
                 vehicle: item.rekNro || '-',
                 customer: item.asiakkaanNimi,
@@ -152,19 +161,15 @@ export default function LoadReportPage() {
             });
         });
 
-      
         worksheet.addRow({});
-
         
         const totalRow = worksheet.addRow({
             puulaani: t('table.footer.total'),
             cubic: parseFloat(totalCubicMeters)
         });
         
-      
         totalRow.font = { bold: true };
 
-       
         const buffer = await workbook.xlsx.writeBuffer();
         const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
         saveAs(blob, 'load-report.xlsx');
@@ -182,57 +187,84 @@ export default function LoadReportPage() {
         <>
             <style jsx global>{`
                 @media print {
+                    /* Reset margins and paddings for body and html */
+                    html, body {
+                        margin: 0;
+                        padding: 0;
+                        width: 100%;
+                    }
+
+                    /* Hide non-printable elements */
                     body * {
                         visibility: hidden;
                     }
                     .no-print {
                         display: none !important;
                     }
+
+                    /* Make printable area visible */
                     .printable-area, .printable-area * {
                         visibility: visible;
                     }
+
+                    /* Styles for the printable container */
                     .printable-area {
                         position: absolute;
                         left: 0;
                         top: 0;
                         width: 100%;
-                        height: auto;
                         margin: 0;
-                        padding: 20px; 
+                        padding: 10mm; /* Reduced padding from 20px/default */
                         box-sizing: border-box;
                     }
+
+                    /* Override MUI container styles */
                     .printable-area .MuiContainer-root {
-                        max-width: none !important;
+                        max-width: 100% !important; /* Force full width */
                         padding: 0 !important;
+                        margin: 0 !important;
                     }
+
+                    /* Override MUI Paper styles */
                     .printable-area .MuiPaper-root {
                         box-shadow: none !important;
                         border: none !important;
-                        padding: 0 !important;
+                        padding: 0 !important; /* Remove internal padding */
                         background-color: transparent !important;
+                        width: 100% !important;
                     }
+
+                    /* Table Styles */
                     .printable-area .MuiTableContainer-root {
                         overflow: visible !important;
+                        width: 100% !important;
                     }
                     .printable-area .MuiTable-root {
-                        width: 100%;
-                        table-layout: auto; 
+                        width: 100% !important;
+                        table-layout: fixed; /* Optional: distribute width more evenly */
                     }
                     .printable-area .MuiTableCell-root {
-                        font-size: 10pt;
-                        padding: 6px 8px;
-                        white-space: normal; 
+                        font-size: 9pt; /* Slightly smaller font */
+                        padding: 4px 6px; /* Reduced padding */
+                        white-space: normal;
                         word-break: break-word;
+                        border-bottom: 1px solid #ddd; /* Ensure borders are visible */
                     }
+                    
+                    /* Header Styles */
                     .printable-area h1, .printable-area h4 {
-                         font-size: 18pt !important;
+                         font-size: 16pt !important;
+                         margin-bottom: 5px !important;
                     }
-                @page {
-                        size: A4 portrait;
-                        margin: 20mm;
+                    
+                    /* Page Settings */
+                    @page {
+                        size: A4 landscape; /* Recommend Landscape for wide tables */
+                        margin: 10mm; /* Reduced page margins */
+                        
                         @bottom-right {
                             content: "Page " counter(page) " of " counter(pages);
-                            font-size: 9pt;
+                            font-size: 8pt;
                             color: #888;
                         }
                     }
@@ -280,7 +312,7 @@ export default function LoadReportPage() {
                                 <TableBody>
                                     {reportData.map((row) => (
                                         <TableRow key={row.kuormaId}>
-                                            <TableCell>{row.pvm}</TableCell>
+                                            <TableCell>{formatDate(row.pvm)}</TableCell> {/* FIX: Format date here */}
                                             <TableCell>{row.kuljettajanNimi}</TableCell>
                                             <TableCell>{row.rekNro}</TableCell>
                                             <TableCell>{row.asiakkaanNimi}</TableCell>

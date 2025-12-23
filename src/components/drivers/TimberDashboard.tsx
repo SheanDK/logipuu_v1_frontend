@@ -23,12 +23,12 @@ import { useTranslation } from 'react-i18next';
 
 // --- Types ---
 import { TripMapProps, TripLegForMap } from '../loads/TripMap';
-import { PuulaaniDetails, ICreateLoadDto, LoadTypeEnum, IMapFilterState, IWoodEntry, IMapTimberStack } from '@/types';
+import { PuulaaniDetails, ICreateLoadDto, LoadTypeEnum, IMapFilterState } from '@/types';
 
 // --- Services ---
 import { getDriverMapData, DriverMapData, getActiveTripForDriver, updateTimberEntryStatus } from '@/services/driverViewService';
 import { getTimberStackFullDetails } from '@/services/timberStackService';
-import { createBulkLoad, deleteLoad, getLoadForEdit, updateLoad, updateLoadStatus, updateTripStatus } from '@/services/loadService';
+import { createBulkLoad, deleteLoad, getLoadForEdit, updateLoad, updateTripStatus } from '@/services/loadService';
 import { useMapData } from '@/hooks/useMapData'; 
 
 // --- Child Components ---
@@ -97,62 +97,58 @@ const ListView = ({ puulaanit, onPuulaaniClick }: { puulaanit: any[], onPuulaani
             </Typography>
             
             <Box sx={{ flexGrow: 1, overflowY: 'auto', px: 1 }}>
-                <Stack spacing={1.5} pb={2}> 
+                <Stack spacing={1} pb={2}> 
                     {puulaanit.map((p) => {
                         const statusColor = p.isCompleted ? 'info.main' : (p.isActive ? 'success.main' : 'text.disabled');
                         
                         return (
                             <Card 
                                 key={p.id} 
-                                elevation={2}
+                                elevation={1}
                                 sx={{ 
-                                    borderRadius: 2, 
+                                    borderRadius: 1, 
                                     cursor: 'pointer',
-                                    borderLeft: `6px solid`,
+                                    borderLeft: `4px solid`,
                                     borderLeftColor: statusColor,
-                                    transition: 'transform 0.2s, box-shadow 0.2s',
-                                    '&:hover': { transform: 'translateY(-1px)', boxShadow: 1 }
+                                    mb: 0.5,
+                                    '&:hover': { bgcolor: '#f5f5f5' }
                                 }}
                                 onClick={() => onPuulaaniClick(p.id)}
                             >
                                 <CardActionArea>
                                     <CardContent sx={{ p: 1.5, '&:last-child': { pb: 1.5 } }}> 
-                                        <Stack spacing={0.5}>
-                                            <Typography variant="subtitle1" sx={{lineHeight: 1 }}>
+                                        {/* FIX: Use a compact Grid layout to align columns to the left */}
+                                        <Box sx={{ display: 'grid', gridTemplateColumns: '2fr 2fr 1fr 1fr', gap: 2, alignItems: 'center' }}>
+                                            
+                                            {/* Column 1: Name */}
+                                            <Typography variant="subtitle2" noWrap fontWeight="bold">
                                                 {p.name}
                                             </Typography>
 
-                                            <Stack 
-                                                direction="row" 
-                                                alignItems="center" 
-                                                justifyContent="space-between" 
-                                                flexWrap="wrap" 
-                                                gap={1}
-                                            >
-                                                <Stack direction="row" spacing={0.5} alignItems="center" sx={{ minWidth: 0 }}>
-                                                    <FactoryIcon sx={{ fontSize: 16, color: 'text.secondary' }} />
-                                                    <Typography variant="body2" color="text.secondary" noWrap>
-                                                        {p.clientName || t('unknownClient', 'Unknown Client')}
-                                                    </Typography>
-                                                </Stack>
-
-                                                <Stack direction="row" spacing={2} alignItems="center">
-                                                    <Stack direction="row" spacing={0.5} alignItems="center">
-                                                        <Inventory2Icon sx={{ fontSize: 16, color: 'text.secondary' }} />
-                                                        <Typography variant="caption" color="text.secondary">
-                                                             {t('stats.total')}: <b>{p.totalVolume ? p.totalVolume.toFixed(2) : '0.00'}</b>
-                                                        </Typography>
-                                                    </Stack>
-
-                                                    <Stack direction="row" spacing={0.5} alignItems="center">
-                                                        <LocalShippingIcon sx={{ fontSize: 16, color: statusColor }} />
-                                                        <Typography variant="caption" color={statusColor} fontWeight="bold">
-                                                            {t('stats.rem')}: {p.remainingVolume ? p.remainingVolume.toFixed(2) : '0.00'}
-                                                        </Typography>
-                                                    </Stack>
-                                                </Stack>
+                                            {/* Column 2: Client */}
+                                            <Stack direction="row" spacing={0.5} alignItems="center" sx={{ minWidth: 0 }}>
+                                                <FactoryIcon sx={{ fontSize: 16, color: 'text.secondary' }} />
+                                                <Typography variant="body2" color="text.secondary" noWrap>
+                                                    {p.clientName || t('unknownClient', 'Unknown Client')}
+                                                </Typography>
                                             </Stack>
-                                        </Stack>
+
+                                            {/* Column 3: Total */}
+                                            <Stack direction="row" spacing={0.5} alignItems="center">
+                                                <Inventory2Icon sx={{ fontSize: 16, color: 'text.secondary' }} />
+                                                <Typography variant="caption" color="text.secondary">
+                                                     {t('stats.total')}: <b>{p.totalVolume ? Number(p.totalVolume).toFixed(2) : '0.00'}</b>
+                                                </Typography>
+                                            </Stack>
+
+                                            {/* Column 4: Remaining */}
+                                            <Stack direction="row" spacing={0.5} alignItems="center">
+                                                <LocalShippingIcon sx={{ fontSize: 16, color: statusColor }} />
+                                                <Typography variant="caption" color={statusColor} fontWeight="bold">
+                                                    {t('stats.rem')}: {p.remainingVolume ? Number(p.remainingVolume).toFixed(2) : '0.00'}
+                                                </Typography>
+                                            </Stack>
+                                        </Box>
                                     </CardContent>
                                 </CardActionArea>
                             </Card>

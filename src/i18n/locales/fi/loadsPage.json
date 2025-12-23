@@ -69,5 +69,33 @@
     "at_destination": "Kohteessa",
     "paused": "Keskeytetty",
     "na": "—"
+  },
+  "modal": {
+    "consignmentDetails": "Rahtikirjan tiedot",
+    "waybills": "Rahtikirjat",
+    "waybillNo": "Rahtikirjan nro",
+    "total": "Yhteensä:"
+  },
+  "messages": {
+    "noWaybills": "Rahtikirjoja ei löytynyt."
+  },
+  "labels": {
+    "selectAll": "Valitse kaikki"
+  },
+  "validation": { 
+    "customerRequired": "Asiakas on pakollinen",
+    "waybillNumberRequired": "Rahtikirjan numero on pakollinen",
+    "routeRequired": "Reitti on pakollinen"
+  },
+  "consignmentForm": {
+    "pcs": "Kpl",
+    "dist": "Jako",
+    "roadToll": "Tievero",
+    "notes": "Lisätiedot",
+    "waybills": "Rahtikirjat"
+  },
+  "consignmentEditor": {
+    "titleNew": "Uusi rahtikirja",
+    "titleEdit": "Muokkaa rahtikirjaa"
   }
 }

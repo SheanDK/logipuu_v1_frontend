@@ -4,7 +4,7 @@
 import React, { useState, useEffect } from 'react';
 import {
     Box, Typography, Paper, TextField, Button, CircularProgress, Alert,
-    Grid, AlertColor, Card, CardHeader, CardContent, Divider
+    AlertColor, Card, CardHeader, CardContent, Divider, Stack
 } from '@mui/material';
 import { useForm, Controller } from 'react-hook-form';
 import * as yup from 'yup';
@@ -15,7 +15,6 @@ import { updateMyProfileApi, changeMyPasswordApi } from '../../../../../services
 import { UpdateUserProfilePayload, ChangePasswordPayload } from '../../../../../types';
 
 import { useTranslation } from '@/i18n/useTranslation';
-import { TFunction } from 'i18next';
 
 // Define types for the forms
 interface UserProfileFormData {
@@ -28,7 +27,6 @@ interface ChangePasswordFormData {
     newPassword: string;
     confirmNewPassword: string;
 }
-
 
 export default function UserSettingsPage() {
     const { user, isLoading, updateUserContext } = useAuth();
@@ -96,9 +94,6 @@ export default function UserSettingsPage() {
         }
     }, [newPw, confirmPw, trigger, passwordTouched.confirmNewPassword, passwordDirty.confirmNewPassword]);
 
-    const showPwError = (name: keyof ChangePasswordFormData) =>
-        !!passwordErrors[name] && (passwordTouched[name] || passwordDirty[name]);
-
     useEffect(() => {
         if (user) {
             resetProfileForm({
@@ -162,44 +157,49 @@ export default function UserSettingsPage() {
     }
 
     return (
-        <Box sx={{ p: { xs: 2, md: 3 } }}>
-            <Typography variant="h4" component="h1" gutterBottom>
+        // FIX: Removed "mx: auto" to align content to the left
+        <Box sx={{ p: { xs: 2, md: 3 } }}> 
+            <Typography variant="h4" component="h1" gutterBottom sx={{ mb: 4 }}>
                 {t('title')}
             </Typography>
 
             {feedback && (
-                <Alert severity={feedback.type} sx={{ mb: 3 }} onClose={() => setFeedback(null)}>
+                <Alert severity={feedback.type} sx={{ mb: 3, maxWidth: 800 }} onClose={() => setFeedback(null)}>
                     {feedback.message}
                 </Alert>
             )}
 
-
-            {/* Profile Details Card */}
-            <Box sx={{ p: { xs: 2, md: 3 } }}>
-                <Card elevation={3}>
-                    <CardHeader title={t('profileCard.title')} />
+            {/* FIX: Keep maxWidth for readability, but Stack defaults to left alignment in the parent Box */}
+            <Stack spacing={4} sx={{ maxWidth: 800 }}>
+                {/* Profile Details Card */}
+                <Card elevation={2}>
+                    <CardHeader title={t('profileCard.title')} titleTypographyProps={{ variant: 'h6' }} sx={{ pb: 1 }} />
                     <Divider />
                     <CardContent>
                         <Box component="form" onSubmit={handleProfileSubmit(onProfileSubmit)} noValidate>
-                            <Controller
-                                name="fullName"
-                                control={profileControl}
-                                render={({ field }) => (
-                                    <TextField {...field} label={t('fields.fullName')} fullWidth margin="normal" required error={!!profileErrors.fullName} helperText={profileErrors.fullName?.message} />
-                                )}
-                            />
-                            {isDriver && (
+                            <Stack spacing={2}>
                                 <Controller
-                                    name="email"
+                                    name="fullName"
                                     control={profileControl}
                                     render={({ field }) => (
-                                        <TextField {...field} label={t('fields.email')} fullWidth margin="normal" required error={!!profileErrors.email} helperText={profileErrors.email?.message} />
+                                        <TextField {...field} label={t('fields.fullName')} fullWidth size="small" required error={!!profileErrors.fullName} helperText={profileErrors.fullName?.message} />
                                     )}
                                 />
-                            )}
-                            <TextField label={t('fields.usernameId')} value={user.username || ''} fullWidth margin="normal" disabled />
-                            <TextField label={t('fields.roles')} value={user.roles?.join(', ') || t('fields.noRoles')} fullWidth margin="normal" disabled />
-                            <Box sx={{ mt: 2, display: 'flex', justifyContent: 'flex-end' }}>
+                                {isDriver && (
+                                    <Controller
+                                        name="email"
+                                        control={profileControl}
+                                        render={({ field }) => (
+                                            <TextField {...field} label={t('fields.email')} fullWidth size="small" required error={!!profileErrors.email} helperText={profileErrors.email?.message} />
+                                        )}
+                                    />
+                                )}
+                                <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 2 }}>
+                                    <TextField label={t('fields.usernameId')} value={user.username || ''} fullWidth size="small" disabled />
+                                    <TextField label={t('fields.roles')} value={user.roles?.join(', ') || t('fields.noRoles')} fullWidth size="small" disabled />
+                                </Box>
+                            </Stack>
+                            <Box sx={{ mt: 3, display: 'flex', justifyContent: 'flex-end' }}>
                                 <Button type="submit" variant="contained" disabled={isSavingProfile}>
                                     {isSavingProfile ? <CircularProgress size={24} color="inherit" /> : t('profileCard.buttons.saveProfile')}
                                 </Button>
@@ -207,37 +207,37 @@ export default function UserSettingsPage() {
                         </Box>
                     </CardContent>
                 </Card>
-            </Box>
 
-            {/* Change Password Card */}
-            <Box sx={{ p: { xs: 2, md: 3 } }}>
-                <Card elevation={3}>
-                    <CardHeader title={t('passwordCard.title')} />
+                {/* Change Password Card */}
+                <Card elevation={2}>
+                    <CardHeader title={t('passwordCard.title')} titleTypographyProps={{ variant: 'h6' }} sx={{ pb: 1 }} />
                     <Divider />
                     <CardContent>
                         <Box component="form" onSubmit={handlePasswordSubmit(onPasswordSubmit)} noValidate>
-                            <Controller
-                                name="currentPassword"
-                                control={passwordControl}
-                                render={({ field }) => (
-                                    <TextField {...field} label={t('passwordCard.currentPassword')} type="password" fullWidth margin="normal" required error={!!passwordErrors.currentPassword} helperText={passwordErrors.currentPassword?.message} />
-                                )}
-                            />
-                            <Controller
-                                name="newPassword"
-                                control={passwordControl}
-                                render={({ field }) => (
-                                    <TextField {...field} label={t('passwordCard.newPassword')} type="password" fullWidth margin="normal" required error={!!passwordErrors.newPassword} helperText={passwordErrors.newPassword?.message} />
-                                )}
-                            />
-                            <Controller
-                                name="confirmNewPassword"
-                                control={passwordControl}
-                                render={({ field }) => (
-                                    <TextField {...field} label={t('passwordCard.confirmNewPassword')} type="password" fullWidth margin="normal" required error={!!passwordErrors.confirmNewPassword} helperText={passwordErrors.confirmNewPassword?.message} />
-                                )}
-                            />
-                            <Box sx={{ mt: 2, display: 'flex', justifyContent: 'flex-end' }}>
+                            <Stack spacing={2}>
+                                <Controller
+                                    name="currentPassword"
+                                    control={passwordControl}
+                                    render={({ field }) => (
+                                        <TextField {...field} label={t('passwordCard.currentPassword')} type="password" fullWidth size="small" required error={!!passwordErrors.currentPassword} helperText={passwordErrors.currentPassword?.message} />
+                                    )}
+                                />
+                                <Controller
+                                    name="newPassword"
+                                    control={passwordControl}
+                                    render={({ field }) => (
+                                        <TextField {...field} label={t('passwordCard.newPassword')} type="password" fullWidth size="small" required error={!!passwordErrors.newPassword} helperText={passwordErrors.newPassword?.message} />
+                                    )}
+                                />
+                                <Controller
+                                    name="confirmNewPassword"
+                                    control={passwordControl}
+                                    render={({ field }) => (
+                                        <TextField {...field} label={t('passwordCard.confirmNewPassword')} type="password" fullWidth size="small" required error={!!passwordErrors.confirmNewPassword} helperText={passwordErrors.confirmNewPassword?.message} />
+                                    )}
+                                />
+                            </Stack>
+                            <Box sx={{ mt: 3, display: 'flex', justifyContent: 'flex-end' }}>
                                 <Button
                                     type="submit"
                                     variant="contained"
@@ -249,12 +249,7 @@ export default function UserSettingsPage() {
                         </Box>
                     </CardContent>
                 </Card>
-            </Box>
+            </Stack>
         </Box>
-
     );
-}
-
-function useMemo(arg0: () => yup.ObjectSchema<{ fullName: string; email: string | undefined; }, yup.AnyObject, { fullName: undefined; email: undefined; }, "">, arg1: (boolean | TFunction<string | string[], undefined>)[]) {
-    throw new Error('Function not implemented.');
 }

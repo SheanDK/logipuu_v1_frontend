@@ -1,6 +1,24 @@
 {
+  "title": "Uusi rahtikirja",
   "sections": {
     "loadDetails": "Kuorman tiedot"
+  },
+  "fields": {
+    "date": "Päivä",
+    "selectCustomer": "Valitse asiakas",
+    "customer": "Asiakas",
+    "waybillNumber": "Rahtikirjan numero",
+    "route": "Reitti",
+    "m3": "m³",
+    "km": "Km",
+    "pcs": "Kpl",
+    "dist": "Jako",
+    "roadToll": "Tievero",
+    "notes": "Lisätiedot",
+    "waybills": "Rahtikirjat" 
+  },
+  "labels": {
+    "summary": "Yhteenveto"
   },
   "waybillEditor": {
     "titleNew": "Uusi rahtikirja",
@@ -9,48 +27,47 @@
   "waybillsList": {
     "title": "Rahtikirjat"
   },
-  "fields": {
-    "waybillNumber": "Rahtikirjan numero",
-    "route": "Reitti",
-    "m3": "m³",
-    "pcs": "Kpl",
-    "dist": "Jako",
-    "km": "Km",
-    "roadToll": "Tievero",
-    "notes": "Lisätiedot",
-    "date": "Päivä",
-    "selectCustomer": "Valitse asiakas"
+  "buttons": {
+    "addWaybill": "LISÄÄ RAHTIKIRJA",
+    "updateWaybill": "PÄIVITÄ RAHTIKIRJA",
+    "cancel": "PERUUTA",
+    "saveChanges": "TALLENNA MUUTOKSET",
+    "sendLoad": "LÄHETÄ KUORMA",
+    "saveDraft": "TALLENNA LUONNOS"
+  },
+  "common": {
+    "buttons": {
+      "back": "TAKAISIN",
+      "delete": "POISTA"
+    }
   },
   "table": {
     "numberShort": "Nro",
-    "action": "Toiminnot"
+    "action": "Toiminnot",
+    "customer": "Asiakas",
+    "waybillNumber": "Rahtikirjan numero",
+    "route": "Reitti"
   },
-  "buttons": {
-    "addWaybill": "Lisää rahtikirja",
-    "updateWaybill": "Päivitä rahtikirja",
-    "saveChanges": "Tallenna muutokset",
-    "sendLoad": "Lähetä kuorma"
-  },
-  "errors": {
-    "customersLoadFailed": "Asiakkaiden lataus epäonnistui.",
-    "consignmentLoadFailed": "Rahtikirjan lataus epäonnistui.",
-    "vehicleNotSelected": "Ajoneuvoa ei ole valittu.",
-    "submissionFailed": "Lähetys epäonnistui."
-  },
-  "toasts": {
-    "consignmentUpdated": "Rahtikirja päivitetty!",
-    "consignmentCreated": "Rahtikirja luotu!",
-    "waybillRemoved": "Rahtikirja poistettu."
+  "messages": {
+    "noWaybillsAdded": "Ei lisättyjä rahtikirjoja."
   },
   "dialog": {
-    "confirmDeleteTitle": "Vahvista rahtikirjan poisto",
-    "confirmDeleteMessage": "Haluatko varmasti poistaa tämän rahtikirjan? (Nro: {{number}})",
-    "delete": "Poista"
+    "confirmDeleteTitle": "Vahvista poisto",
+    "confirmDeleteMessage": "Haluatko varmasti poistaa tämän rahtikirjan?",
+    "confirmSendTitle": "Lähetä toimistolle?",
+    "confirmSendMessage": "Tämä kuorma lähetetään tarkastettavaksi. Lähettämisen jälkeen et voi enää muokata sitä. Oletko varma?"
+  },
+  "toasts": {
+    "loadSent": "Kuorma lähetetty onnistuneesti!",
+    "draftSaved": "Luonnos tallennettu onnistuneesti!",
+    "waybillRemoved": "Rahtikirja poistettu.",
+    "consignmentCreated": "Kuorma luotu onnistuneesti.",
+    "consignmentUpdated": "Kuorma päivitetty onnistuneesti."
   },
   "validation": {
+    "customerRequired": "Asiakas on pakollinen",
     "waybillNumberRequired": "Rahtikirjan numero on pakollinen",
     "routeRequired": "Reitti on pakollinen",
-    "customerRequired": "Asiakas on pakollinen"
-  },
-  "dateFormat": "DD.MM.YYYY"
+    "atLeastOneWaybill": "Lisää vähintään yksi rahtikirja ennen lähettämistä."
+  }
 }

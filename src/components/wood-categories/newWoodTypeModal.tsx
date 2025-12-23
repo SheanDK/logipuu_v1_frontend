@@ -1,6 +1,7 @@
+// src/components/wood-categories/newWoodTypeModal.tsx
 'use client';
 
-import React, { useMemo } from 'react';
+import React, { useMemo, useEffect } from 'react';
 import {
   Box, Dialog, DialogTitle, DialogContent, DialogActions,
   Button, TextField, Checkbox, FormControlLabel, Typography
@@ -12,15 +13,20 @@ import { useTranslation } from '@/i18n/useTranslation';
 
 type NewPayload = { name: string; description?: string; active: boolean };
 
+// FIX: Added 'initialData' prop type
+interface NewWoodTypeModalProps {
+  open: boolean;
+  onCloseAction: () => void;
+  onCreatedAction: (payload: NewPayload) => Promise<any>;
+  initialData?: NewPayload | null; // Allow passing existing data
+}
+
 export default function NewWoodTypeModal({
   open,
-  onClose,
-  onCreated,
-}: {
-  open: boolean;
-  onClose: () => void;
-  onCreated: (payload: NewPayload) => Promise<any>;
-}) {
+  onCloseAction,
+  onCreatedAction,
+  initialData,
+}: NewWoodTypeModalProps) {
 
   const { t } = useTranslation(['newWoodTypeModal', 'common']);
 
@@ -53,17 +59,40 @@ export default function NewWoodTypeModal({
     reset,
   } = useForm<NewPayload>({
     resolver: yupResolver(schema),
+    // Default values for Create Mode
     defaultValues: { name: '', description: '', active: true },
   });
 
+  // FIX: Reset form with initialData when it changes (Edit Mode)
+  useEffect(() => {
+    if (open) {
+      if (initialData) {
+        reset({
+          name: initialData.name,
+          description: initialData.description || '',
+          active: initialData.active
+        });
+      } else {
+        // Reset to defaults for Create Mode
+        reset({ name: '', description: '', active: true });
+      }
+    }
+  }, [open, initialData, reset]);
+
   const onSubmit = async (values: NewPayload) => {
-    await onCreated(values);
-    reset({ name: '', description: '', active: true });
+    await onCreatedAction(values);
+    // Reset handled by useEffect on next open or manual reset here if needed
+    if (!initialData) {
+        reset({ name: '', description: '', active: true });
+    }
   };
 
   return (
-    <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth>
-      <DialogTitle>{t('newWoodTypeModal:title')}</DialogTitle>
+    <Dialog open={open} onClose={onCloseAction} maxWidth="sm" fullWidth>
+      {/* Dynamic Title */}
+      <DialogTitle>
+        {initialData ? t('newWoodTypeModal:titleEdit', { defaultValue: 'Edit Wood Type' }) : t('newWoodTypeModal:title')}
+      </DialogTitle>
       <DialogContent dividers>
         <Box sx={{ display: 'grid', gap: 2, mt: 1 }}>
           <Controller
@@ -107,7 +136,7 @@ export default function NewWoodTypeModal({
         </Box>
       </DialogContent>
       <DialogActions>
-        <Button onClick={onClose}>{t('common:buttons.cancel')}</Button>
+        <Button onClick={onCloseAction}>{t('common:buttons.cancel')}</Button>
         <Button variant="contained" onClick={handleSubmit(onSubmit)} disabled={isSubmitting}>
           {isSubmitting ? t('newWoodTypeModal:actions.saving') : t('common:buttons.save')}
         </Button>

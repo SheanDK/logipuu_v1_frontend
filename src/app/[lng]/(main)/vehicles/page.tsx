@@ -1,3 +1,4 @@
+// src/app/[lng]/(main)/vehicles/page.tsx
 'use client';
 
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
@@ -18,9 +19,7 @@ import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import CancelIcon from '@mui/icons-material/Cancel';
-// Import GridToolbar
 import { GridToolbar } from '@mui/x-data-grid';
-
 
 import {
     fetchAllVehicles,
@@ -35,14 +34,12 @@ import { useAuth } from '../../../../contexts/AuthContext';
 
 import { useTranslation } from '@/i18n/useTranslation';
 
-// This interface is for the data structure used within the DataGrid.
 interface IVehicleGridRow extends IVehicle {
-    id: string; // ID is now a string
+    id: string; 
 }
 
 export default function VehiclesPage() {
     const { user } = useAuth();
-
     const { t } = useTranslation(['vehicles', 'common']);
 
     const [vehicles, setVehicles] = useState<IVehicle[]>([]);
@@ -68,12 +65,9 @@ export default function VehiclesPage() {
         }
         setIsLoading(true);
         try {
-            // Fetch raw backend data.
             const rawData: IVehicleBackendResponse[] = await fetchAllVehicles();
-
-            // --- KEY CORRECTION: Transform IVehicleBackendResponse to IVehicle ---
             const transformedVehicles: IVehicle[] = rawData.map((backendVehicle: IVehicleBackendResponse) => ({
-                vehicleNo: String(backendVehicle.kalustoNro), // Ensure it's a string
+                vehicleNo: String(backendVehicle.kalustoNro),
                 registrationNo: backendVehicle.rekNro,
                 previousInspectionDate: backendVehicle.edKatsastus,
                 nextInspectionDate: backendVehicle.katsastusAik,
@@ -93,18 +87,15 @@ export default function VehiclesPage() {
         }
     }, [user, loadVehicles]);
 
-    // This hook transforms the standardized IVehicle data into IVehicleGridRow, adding the 'id' property.
     const rowsForGrid: IVehicleGridRow[] = useMemo(() => {
         return vehicles.map((vehicle: IVehicle) => {
             return {
-                ...vehicle, // Copy all properties from IVehicle
-                id: vehicle.vehicleNo, // Assign vehicleNo (string) as ID
+                ...vehicle,
+                id: vehicle.vehicleNo, 
             };
         });
     }, [vehicles]);
 
-
-    // --- ACTION HANDLERS ---
     const handleOpenModalForCreate = () => {
         setEditingVehicle(null);
         setIsModalOpen(true);
@@ -118,7 +109,6 @@ export default function VehiclesPage() {
     const handleDeleteClick = (row: IVehicleGridRow) => {
         setDeleteTarget(row);
     };
-
 
     const handleSave = async (data: ICreateVehicleDto | IUpdateVehicleDto, vehicleNo?: string) => {
         setIsSaving(true);
@@ -158,20 +148,22 @@ export default function VehiclesPage() {
 
     const columns: GridColDef<IVehicleGridRow>[] = useMemo(() => {
         const baseColumns: GridColDef<IVehicleGridRow>[] = [
-            { field: 'vehicleNo', headerName: t('columns.vehicleNo'), width: 120 },
-            { field: 'registrationNo', headerName: t('columns.registrationNo'), flex: 1, minWidth: 150 },
+            // FIX: Removed 'vehicleNo' column to hide it
+            // { field: 'vehicleNo', headerName: t('columns.vehicleNo'), width: 120 },
+            
+            // FIX: Used fixed width instead of flex
+            { field: 'registrationNo', headerName: t('columns.registrationNo'), width: 250 },
             {
                 field: 'nextInspectionDate',
                 headerName: t('columns.nextInspectionDate'),
-                width: 180,
+                width: 180, // Fixed width
                 type: 'date',
-                // valueGetter will ensure the date string is converted to a Date object for display.
                 valueGetter: (value) => value ? new Date(value) : null,
             },
             {
                 field: 'isActive',
                 headerName: t('columns.status'),
-                width: 120,
+                width: 120, // Fixed width
                 renderCell: (params) => (
                     <Chip
                         icon={params.value ? <CheckCircleIcon /> : <CancelIcon />}
@@ -230,8 +222,16 @@ export default function VehiclesPage() {
                     loading={isLoading}
                     disableRowSelectionOnClick
                     getRowId={(row) => row.id}
-                    slots={{ toolbar: GridToolbar }} // GridToolbar is used here
+                    slots={{ toolbar: GridToolbar }}
                     slotProps={{ toolbar: { showQuickFilter: true, quickFilterProps: { debounceMs: 500 } } }}
+                    // FIX: Added sx for Header Styling
+                    sx={{
+                        '& .MuiDataGrid-columnHeaderTitle': {
+                            fontWeight: 'bold',
+                            textTransform: 'uppercase',
+                            fontSize: '0.75rem',
+                        },
+                    }}
                 />
             </Box>
 

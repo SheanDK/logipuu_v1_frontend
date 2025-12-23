@@ -3,7 +3,6 @@
 
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { Box, Typography, Button, Paper, Tooltip, Chip, Alert, CircularProgress, AlertColor } from '@mui/material';
-// FIX: Removed unused 'GridRowParams'. GridRenderCellParams is used for renderCell.
 import { DataGrid, GridColDef, GridActionsCellItem, GridRenderCellParams, GridToolbar } from '@mui/x-data-grid';
 import { useSnackbar } from 'notistack';
 import AddIcon from '@mui/icons-material/Add';
@@ -14,7 +13,6 @@ import CancelIcon from '@mui/icons-material/Cancel';
 import axios from 'axios';
 
 import { useAuth } from '../../../../contexts/AuthContext';
-// FIX: Make sure all necessary types are imported
 import { IDriver, IDriverGridRow, ICreateDriverDto, IUpdateDriverDto, IBackendDriver } from '../../../../types';
 import { fetchAllDrivers, createDriver, updateDriver, deleteDriver } from '../../../../services/driverService';
 import DriverFormModal from '../../../../components/drivers/DriverFormModal';
@@ -23,7 +21,7 @@ import { useTranslation } from '@/i18n/useTranslation';
 
 export default function DriversPage() {
     const { user } = useAuth();
-    const { enqueueSnackbar } = useSnackbar(); // Using enqueueSnackbar for feedback
+    const { enqueueSnackbar } = useSnackbar(); 
     const [drivers, setDrivers] = useState<IDriver[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [isSaving, setIsSaving] = useState(false);
@@ -57,7 +55,7 @@ export default function DriversPage() {
                 hasAlerts: backendDriver.halytys,
             }));
             setDrivers(transformedDrivers);
-        } catch (error: unknown) { // FIX: Use 'unknown' for error
+        } catch (error: unknown) { 
             const message = axios.isAxiosError(error) ? error.response?.data?.message : t('feedback.loadFailed');
             setFeedback({ type: 'error', message: message || t('feedback.loadFailed') });
         } finally {
@@ -114,7 +112,7 @@ export default function DriversPage() {
             }
             setIsModalOpen(false);
             await loadDrivers();
-        } catch (error: unknown) { // FIX: Use 'unknown' for error
+        } catch (error: unknown) { 
             const message = axios.isAxiosError(error) ? error.response?.data?.message : t('feedback.saveFailed');
             setModalError(message || t('feedback.saveFailed'));
         } finally {
@@ -128,7 +126,7 @@ export default function DriversPage() {
         try {
             await deleteDriver(deleteTarget.driverId);
             enqueueSnackbar(t('feedback.deleteSuccess', { name: deleteTarget.name }), { variant: 'success' });
-        } catch (error: unknown) { // FIX: Use 'unknown' for error
+        } catch (error: unknown) { 
             const message = axios.isAxiosError(error) ? error.response?.data?.message : t('feedback.deleteFailed');
             enqueueSnackbar(message || t('feedback.deleteFailed'), { variant: 'error' });
         } finally {
@@ -140,15 +138,16 @@ export default function DriversPage() {
 
     const columns: GridColDef<IDriverGridRow>[] = useMemo(() => {
         const baseColumns: GridColDef<IDriverGridRow>[] = [
-            { field: 'driverId', headerName: t('columns.id'), width: 90 },
-            { field: 'name', headerName: t('columns.name'), flex: 1, minWidth: 150 },
-            { field: 'phoneNo', headerName: t('columns.phoneNo'), width: 150 },
-            { field: 'email', headerName: t('columns.email'), flex: 1, minWidth: 200 },
+            // FIX: Removed 'flex' and used fixed 'width' to compact columns
+           // { field: 'driverId', headerName: t('columns.id'), width: 100 },
+            { field: 'name', headerName: t('columns.name'), width: 250 }, 
+            { field: 'phoneNo', headerName: t('columns.phoneNo'), width: 180 },
+            { field: 'email', headerName: t('columns.email'), width: 250 },
             {
                 field: 'hasAlerts',
                 headerName: t('columns.status'), 
-                width: 120,
-                renderCell: (params: GridRenderCellParams<IDriverGridRow, boolean>) => ( // FIX: Strong type for params
+                width: 150,
+                renderCell: (params: GridRenderCellParams<IDriverGridRow, boolean>) => ( 
                     <Chip
                         icon={params.value ? <CheckCircleIcon /> : <CancelIcon />}
                         label={params.value ? t('status.active') : t('status.inactive')}
@@ -164,8 +163,8 @@ export default function DriversPage() {
                 field: 'actions',
                 type: 'actions',
                 headerName: t('columns.actions'),
-                width: 100,
-                getActions: ({ row }: { row: IDriverGridRow }) => { // FIX: Strong type for row
+                width: 120,
+                getActions: ({ row }: { row: IDriverGridRow }) => { 
                     const actions = [];
                     if (canEdit) {
                         actions.push(<GridActionsCellItem key={`edit-${row.id}`} icon={<Tooltip title={t('actions.edit')}><EditIcon /></Tooltip>} label={t('actions.edit')} onClick={() => handleOpenModalForEdit(row)} />);
@@ -207,6 +206,14 @@ export default function DriversPage() {
                     getRowId={(row) => row.id}
                     slots={{ toolbar: GridToolbar }}
                     slotProps={{ toolbar: { showQuickFilter: true, quickFilterProps: { debounceMs: 500 } } }}
+                    // FIX: Added sx prop for Bold and Uppercase Headers
+                    sx={{
+                        '& .MuiDataGrid-columnHeaderTitle': {
+                            fontWeight: 'bold',
+                            textTransform: 'uppercase',
+                            fontSize: '0.75rem',
+                        },
+                    }}
                 />
             </Box>
 

@@ -1,6 +1,24 @@
 {
+  "title": "New Consignment",
   "sections": {
     "loadDetails": "Load Details"
+  },
+  "fields": {
+    "date": "Date",
+    "selectCustomer": "Select Customer",
+    "customer": "Customer",
+    "waybillNumber": "Waybill Number",
+    "route": "Route",
+    "m3": "m³",
+    "km": "Km",
+    "pcs": "Pcs",
+    "dist": "Dist",
+    "roadToll": "Road Toll",
+    "notes": "Notes",
+    "waybills": "Waybills"
+  },
+  "labels": {
+    "summary": "Summary"
   },
   "waybillEditor": {
     "titleNew": "New Waybill",
@@ -9,48 +27,47 @@
   "waybillsList": {
     "title": "Waybills"
   },
-  "fields": {
-    "waybillNumber": "Waybill Number",
-    "route": "Route",
-    "m3": "m³",
-    "pcs": "Pcs",
-    "dist": "Dist",
-    "km": "Km",
-    "roadToll": "Road Toll",
-    "notes": "Notes",
-    "date": "Date",
-    "selectCustomer": "Select Customer"
+  "buttons": {
+    "addWaybill": "ADD WAYBILL",
+    "updateWaybill": "UPDATE WAYBILL",
+    "cancel": "CANCEL",
+    "saveChanges": "SAVE CHANGES",
+    "sendLoad": "SEND LOAD",
+    "saveDraft": "SAVE DRAFT"
+  },
+  "common": {
+    "buttons": {
+      "back": "BACK",
+      "delete": "DELETE"
+    }
   },
   "table": {
     "numberShort": "No.",
-    "action": "Action"
+    "action": "Action",
+    "customer": "Customer",
+    "waybillNumber": "Waybill Number",
+    "route": "Route"
   },
-  "buttons": {
-    "addWaybill": "Add Waybill",
-    "updateWaybill": "Update Waybill",
-    "saveChanges": "Save Changes",
-    "sendLoad": "Send Load"
-  },
-  "errors": {
-    "customersLoadFailed": "Failed to load customers.",
-    "consignmentLoadFailed": "Failed to load consignment.",
-    "vehicleNotSelected": "Vehicle not selected.",
-    "submissionFailed": "Submission failed."
-  },
-  "toasts": {
-    "consignmentUpdated": "Consignment updated!",
-    "consignmentCreated": "Consignment created!",
-    "waybillRemoved": "Waybill removed."
+  "messages": {
+    "noWaybillsAdded": "No waybills added."
   },
   "dialog": {
-    "confirmDeleteTitle": "Confirm Waybill Deletion",
-    "confirmDeleteMessage": "Are you sure you want to remove this waybill? (No: {{number}})",
-    "delete": "Delete"
+    "confirmDeleteTitle": "Confirm Delete",
+    "confirmDeleteMessage": "Are you sure you want to delete this waybill?",
+    "confirmSendTitle": "Send to Office?",
+    "confirmSendMessage": "This load will be sent for inspection. Once sent, you cannot edit it anymore. Are you sure?"
+  },
+  "toasts": {
+    "loadSent": "Load sent successfully!",
+    "draftSaved": "Draft saved successfully!",
+    "waybillRemoved": "Waybill removed.",
+    "consignmentCreated": "Consignment created successfully.",
+    "consignmentUpdated": "Consignment updated successfully."
   },
   "validation": {
+    "customerRequired": "Customer is required",
     "waybillNumberRequired": "Waybill number is required",
     "routeRequired": "Route is required",
-    "customerRequired": "Customer is required"
-  },
-  "dateFormat": "DD MMM YYYY"
+    "atLeastOneWaybill": "Please add at least one waybill before sending."
+  }
 }

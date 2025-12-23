@@ -46,13 +46,13 @@ export default function ConsignmentDriverDashboard({ onBackAction, onNavigateToF
         fetchConsignments();
     }, [fetchConsignments]);
 
+    // --- FIX: Removed 'flex' and added 'width' to compact columns to the left ---
     const columns = useMemo(
         (): GridColDef[] => [
             { 
                 field: 'pvm',
                 headerName: t('date', { ns: 'consignmentDriver' }),
-                flex: 1.5,
-                minWidth: 120,
+                width: 150, // Fixed width
                 type: 'date',
                 valueGetter: (value) => new Date(value),
                 renderCell: (params) => (
@@ -64,8 +64,7 @@ export default function ConsignmentDriverDashboard({ onBackAction, onNavigateToF
             { 
                 field: 'waybillCount', 
                 headerName: t('waybills', { ns: 'consignmentDriver', defaultValue: 'Waybills' }), 
-                flex: 1,
-                minWidth: 100,
+                width: 120, // Fixed width
                 align: 'center',
                 headerAlign: 'center',
                 renderCell: (params) => (
@@ -81,8 +80,7 @@ export default function ConsignmentDriverDashboard({ onBackAction, onNavigateToF
             { 
                 field: 'totalM3', 
                 headerName: t('totalM3', { ns: 'consignmentDriver', defaultValue: 'Total m3' }), 
-                flex: 1,
-                minWidth: 100,
+                width: 150, // Fixed width
                 align: 'right',
                 headerAlign: 'right',
                 valueFormatter: (value: any) => {
@@ -96,8 +94,7 @@ export default function ConsignmentDriverDashboard({ onBackAction, onNavigateToF
             { 
                 field: 'status', 
                 headerName: t('status', { ns: 'consignmentDriver', defaultValue: 'Status' }), 
-                flex: 1,
-                minWidth: 100,
+                width: 150, // Fixed width
                 align: 'center',
                 headerAlign: 'center',
                 renderCell: (params) => (
@@ -144,7 +141,7 @@ export default function ConsignmentDriverDashboard({ onBackAction, onNavigateToF
                     </Button>
 
                     <Button 
-                        variant="outlined"
+                        variant="outlined" 
                         startIcon={<ArrowBackIcon />} 
                         onClick={onBackAction}
                     >

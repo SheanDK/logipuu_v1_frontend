@@ -16,13 +16,11 @@ import SendIcon from '@mui/icons-material/Send';
 import dynamic from 'next/dynamic';
 import { useTranslation } from '@/i18n/useTranslation';
 
-// Confirmation Dialog Import
 const ConfirmationDialog = dynamic(() => import('@/components/common/ConfirmationDialog'), { ssr: false });
 
-// Extended Interface to include Customer per Waybill
 interface IExtendedRahtikirjaItem extends IRahtikirjaItem {
     asiakasId: string;
-    customerName?: string; // For display purposes
+    customerName?: string;
 }
 
 const EMPTY_WAYBILL_VALUES: IExtendedRahtikirjaItem = {
@@ -77,7 +75,6 @@ const WaybillEditorForm = ({
     }, [editingWaybill, isEditMode, reset]);
 
     const onSubmit = (data: IExtendedRahtikirjaItem) => {
-        // Find customer name for display
         const selectedCustomer = customers.find(c => String(c.asiakkaanId) === String(data.asiakasId));
         const dataWithDisplay = { 
             ...data, 
@@ -98,7 +95,6 @@ const WaybillEditorForm = ({
                 {isEditMode ? t('waybillEditor.titleEdit') : t('waybillEditor.titleNew')}
             </Typography>
             <Stack spacing={2} sx={{ flexGrow: 1 }}>
-                {/* Customer Selector */}
                 <Controller
                     name="asiakasId"
                     control={control}
@@ -216,15 +212,12 @@ export default function ConsignmentDriverForm({ onBackToListAction, consignmentI
     const defaultDate = new Date().toISOString().split('T')[0];
     const { t } = useTranslation(['consignmentForm', 'common']);
 
-    // State
     const [editingWaybillIndex, setEditingWaybillIndex] = useState<number | null>(null);
     const [waybillToDeleteIndex, setWaybillToDeleteIndex] = useState<number | null>(null);
     const [sendConfirmOpen, setSendConfirmOpen] = useState(false);
     
-    // Store pending form data for the confirmation dialog
     const [pendingFormData, setPendingFormData] = useState<any>(null);
 
-    // Form Setup
     const methods = useForm<any>({
         defaultValues: { pvm: defaultDate, lisatiedot: '', rahtikirjat: [] },
     });
@@ -233,7 +226,6 @@ export default function ConsignmentDriverForm({ onBackToListAction, consignmentI
     const { fields, append, remove, update } = useFieldArray({ control, name: 'rahtikirjat' });
     const currentWaybills = watch('rahtikirjat');
 
-    // Load initial data
     useEffect(() => {
         getCustomerOptions().then(data => setCustomers(data)).catch(() => enqueueSnackbar('Failed to load customers.', { variant: 'warning' }));
     }, [enqueueSnackbar]);
@@ -243,10 +235,9 @@ export default function ConsignmentDriverForm({ onBackToListAction, consignmentI
             setIsLoading(true);
             getConsignmentById(consignmentId)
                 .then((data) => {
-                    // Map backend data to form structure
                     const formattedWaybills = (data.rahtikirjat || []).map((wb: any) => ({
                         asiakasId: wb.asiakasId ? String(wb.asiakasId) : '', 
-                        customerName: wb.customerName || '', // Joined name from backend
+                        customerName: wb.customerName || '',
                         rahtiId: wb.rahtiId ?? null,
                         rahtikirjanNumero: wb.rahtikirjanNro ?? '',
                         reitti: wb.reitti ?? '',
@@ -275,24 +266,20 @@ export default function ConsignmentDriverForm({ onBackToListAction, consignmentI
         }
     }, [consignmentId, isEditMode, reset, enqueueSnackbar, defaultDate, t]);
 
-    // -------------------------------------------------------------------------
-    // SUBMISSION LOGIC
-    // -------------------------------------------------------------------------
-
-    const onSubmitProcess = async (formData: any, status: 'Draft' | 'Assigned') => {
+    const onSubmitProcess = async (formData: any, status: 'Draft' | 'Completed') => {
         if (!selectedVehicleId) {
             enqueueSnackbar(t('errors.vehicleNotSelected'), { variant: 'error' });
             return;
         }
 
         try {
-            // Calculate Aggregates
+            // Aggregates
             const totalM3 = formData.rahtikirjat.reduce((sum: number, wb: any) => sum + (Number(wb.m3) || 0), 0);
             const totalKm = formData.rahtikirjat.reduce((sum: number, wb: any) => sum + (Number(wb.km) || 0), 0);
             const totalKpl = formData.rahtikirjat.reduce((sum: number, wb: any) => sum + (Number(wb.kpl) || 0), 0);
             const totalJako = formData.rahtikirjat.reduce((sum: number, wb: any) => sum + (Number(wb.jako) || 0), 0);
 
-            // Use first waybill's customer as primary, or 0
+            // If empty, set primary customer to 0 or null (backend handles this)
             const primaryCustomer = formData.rahtikirjat.length > 0 ? formData.rahtikirjat[0].asiakasId : 0;
 
             const payload = {
@@ -304,7 +291,7 @@ export default function ConsignmentDriverForm({ onBackToListAction, consignmentI
                 km: totalKm,
                 kpl: totalKpl,
                 tunnit: totalJako,
-                status: status, // Pass status dynamically
+                status: status,
                 rahtikirjat: formData.rahtikirjat.map((waybill: any) => ({
                     ...waybill,
                     m3: Number(waybill.m3) || 0,
@@ -317,10 +304,10 @@ export default function ConsignmentDriverForm({ onBackToListAction, consignmentI
 
             if (isEditMode) {
                 await updateConsignment(consignmentId!, payload as any);
-                enqueueSnackbar(status === 'Assigned' ? t('toasts.loadSent', {defaultValue: 'Load sent successfully!'}) : t('toasts.draftSaved', {defaultValue: 'Draft saved successfully!'}), { variant: 'success' });
+                enqueueSnackbar(status === 'Completed' ? t('toasts.loadSent') : t('toasts.draftSaved'), { variant: 'success' });
             } else {
                 await createConsignment(payload as any);
-                enqueueSnackbar(status === 'Assigned' ? t('toasts.loadSent', {defaultValue: 'Load sent successfully!'}) : t('toasts.draftSaved', {defaultValue: 'Draft saved successfully!'}), { variant: 'success' });
+                enqueueSnackbar(status === 'Completed' ? t('toasts.loadSent') : t('toasts.draftSaved'), { variant: 'success' });
             }
             onBackToListAction();
         } catch (error: any) {
@@ -331,15 +318,13 @@ export default function ConsignmentDriverForm({ onBackToListAction, consignmentI
 
     // 1. SAVE DRAFT Button Handler
     const handleSaveDraft = handleSubmit((data) => {
-        if (fields.length === 0) {
-            enqueueSnackbar(t('validation.atLeastOneWaybill'), { variant: 'warning' });
-            return;
-        }
+        // FIX: REMOVED Validation for empty waybills on draft
         onSubmitProcess(data, 'Draft');
     });
 
-    // 2. SEND LOAD Button Handler (Opens Confirmation)
+    // 2. SEND LOAD Button Handler
     const handleSendLoadClick = handleSubmit((data) => {
+        // Validation remains for sending
         if (fields.length === 0) {
             enqueueSnackbar(t('validation.atLeastOneWaybill'), { variant: 'warning' });
             return;
@@ -348,11 +333,10 @@ export default function ConsignmentDriverForm({ onBackToListAction, consignmentI
         setSendConfirmOpen(true);
     });
 
-    // 3. Confirm Send Action
     const handleConfirmSend = () => {
         if (pendingFormData) {
             setSendConfirmOpen(false);
-            onSubmitProcess(pendingFormData, 'Assigned');
+            onSubmitProcess(pendingFormData, 'Completed');
         }
     };
     const handleCancelSend = () => { 
@@ -360,9 +344,6 @@ export default function ConsignmentDriverForm({ onBackToListAction, consignmentI
         setPendingFormData(null); 
     };
 
-    // -------------------------------------------------------------------------
-    // WAYBILL ACTIONS
-    // -------------------------------------------------------------------------
     const handleEditWaybill = (index: number) => { setEditingWaybillIndex(index); };
     const handleUpdateWaybill = (data: IExtendedRahtikirjaItem) => {
         if (editingWaybillIndex !== null) {
@@ -390,7 +371,6 @@ export default function ConsignmentDriverForm({ onBackToListAction, consignmentI
                 <Box sx={{ p: { xs: 1, sm: 2 }, flexGrow: 1, overflowY: 'auto' }}>
                     <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: '1fr 2fr' }, gap: 2, alignItems: 'start' }}>
                         
-                        {/* LEFT COLUMN: Load Details (Cleaned up) */}
                         <Paper variant="outlined" sx={{ p: 2.5, height: '100%', display: 'flex', flexDirection: 'column' }}>
                             <Typography variant="h6" gutterBottom>{t('sections.loadDetails')}</Typography>
                             <Stack spacing={2.5} sx={{ flexGrow: 1 }}>
@@ -403,19 +383,15 @@ export default function ConsignmentDriverForm({ onBackToListAction, consignmentI
                                         <Typography variant="body2">{t('fields.waybills')}: <strong>{fields.length}</strong></Typography>
                                     </Stack>
                                 </Box>
-                                
-                                {/* NOTE FIELD REMOVED FROM HERE */}
                             </Stack>
                         </Paper>
 
-                        {/* RIGHT COLUMN: Waybills */}
                         <Box sx={{ display: 'grid', gap: 2, minWidth: 0 }}>
                             <Stack spacing={2} sx={{ height: '100%' }}>
                                 <WaybillEditorForm
                                     key={editingWaybillIndex ?? 'new'}
                                     onAddWaybill={(data) => append(data)}
                                     onUpdateWaybill={handleUpdateWaybill}
-                                    // Cast to unknown then to type to satisfy compiler
                                     editingWaybill={editingWaybillIndex !== null ? (fields[editingWaybillIndex] as unknown as IExtendedRahtikirjaItem) : null}
                                     onCancelEdit={handleCancelEdit}
                                     customers={customers}
@@ -426,11 +402,8 @@ export default function ConsignmentDriverForm({ onBackToListAction, consignmentI
                     </Box>
                 </Box>
 
-                {/* Footer Buttons */}
                 <Paper elevation={3} sx={{ p: 2, borderTop: '1px solid #ddd', flexShrink: 0 }}>
                     <Stack direction="row" spacing={2} justifyContent="space-between" alignItems="center">
-                        
-                        {/* LEFT: Back Button */}
                         <Button 
                             variant="outlined" 
                             onClick={onBackToListAction} 
@@ -440,38 +413,34 @@ export default function ConsignmentDriverForm({ onBackToListAction, consignmentI
                             {t('common:buttons.back')}
                         </Button>
 
-                        {/* RIGHT: Action Buttons */}
                         <Stack direction="row" spacing={2}>
                             <Button 
                                 variant="outlined" 
                                 color="primary" 
                                 onClick={handleSaveDraft}
-                                // Disable if submitting OR if no waybills added
-                                disabled={isSubmitting || fields.length === 0} 
+                                disabled={isSubmitting} // FIX: Removed 'fields.length === 0'
                                 size="large"
                                 startIcon={<SaveIcon />}
                             >
-                                SAVE DRAFT
+                                 {t('buttons.saveDraft', { defaultValue: 'SAVE DRAFT' })}
                             </Button>
 
                             <Button 
                                 variant="contained" 
                                 color="warning" 
                                 onClick={handleSendLoadClick}
-                                // Disable if submitting OR if no waybills added
-                                disabled={isSubmitting || fields.length === 0} 
+                                disabled={isSubmitting || fields.length === 0} // Keep validation for Send
                                 size="large"
                                 startIcon={<SendIcon />}
                                 sx={{ px: 3, fontWeight: 'bold' }}
                             >
-                                SEND LOAD
+                                {t('buttons.sendLoad', { defaultValue: 'SEND LOAD' })}
                             </Button>
                         </Stack>
                     </Stack>
                 </Paper>
             </Box>
 
-            {/* Dialog 1: Delete Waybill */}
             <ConfirmationDialog
                 open={waybillToDeleteIndex !== null}
                 onClose={handleCancelDelete}
@@ -482,16 +451,14 @@ export default function ConsignmentDriverForm({ onBackToListAction, consignmentI
                 confirmButtonColor="error"
             />
 
-            {/* Dialog 2: Confirm Send Load */}
             <ConfirmationDialog
                 open={sendConfirmOpen}
                 onClose={handleCancelSend}
                 onConfirm={handleConfirmSend}
                 title={t('dialog.confirmSendTitle', { defaultValue: 'Send to Office?' })}
-                // Using string concatenation for the message
                 message={t('dialog.confirmSendMessage', { defaultValue: 'This load will be sent to inspection. Once sent, you cannot edit it anymore. Are you sure?' })}
                 confirmButtonText="CONFIRM & SEND"
-                confirmButtonColor="warning" // Matches the trigger button
+                confirmButtonColor="warning"
             />
         </FormProvider>
     );

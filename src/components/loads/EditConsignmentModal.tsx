@@ -1,16 +1,12 @@
 // frontend/src/components/loads/EditConsignmentModal.tsx
 import React, { useEffect, useState } from 'react';
-import { Dialog, DialogTitle, DialogContent, DialogActions, Button, TextField, Stack, Box, IconButton, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Typography } from '@mui/material';
-import { useForm, useFieldArray, Controller, FormProvider } from 'react-hook-form';
-import DeleteIcon from '@mui/icons-material/Delete';
-import EditIcon from '@mui/icons-material/Edit';
+import { Dialog, DialogTitle, DialogContent, DialogActions, Button, TextField, Stack, Box, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Typography, CircularProgress } from '@mui/material';
+import { useForm, useFieldArray, Controller } from 'react-hook-form';
 import { updateLoad } from '@/services/loadService';
-import { getCustomerOptions, ICustomerOption } from '@/services/customerService';
 import { useSnackbar } from 'notistack';
 
-// Reusing types or define locally
 interface IExtendedRahtikirjaItem {
-    id?: number; // rahtiId from backend
+    id?: number; 
     asiakasId: string;
     customerName?: string;
     rahtikirjanNumero: string;
@@ -27,15 +23,14 @@ interface EditConsignmentModalProps {
     open: boolean;
     onCloseAction: () => void;
     onSaveSuccessAction: (msg: string) => void;
-    loadData: any; // Full load object with rahtikirjat
+    loadData: any; 
     currentUser: any;
 }
 
 export default function EditConsignmentModal({ open, onCloseAction, onSaveSuccessAction, loadData, currentUser }: EditConsignmentModalProps) {
     const { enqueueSnackbar } = useSnackbar();
-    const [customers, setCustomers] = useState<ICustomerOption[]>([]);
+    const [isSubmitting, setIsSubmitting] = useState(false);
     
-    // Form Setup
     const methods = useForm({
         defaultValues: {
             pvm: '',
@@ -43,17 +38,11 @@ export default function EditConsignmentModal({ open, onCloseAction, onSaveSucces
             rahtikirjat: [] as IExtendedRahtikirjaItem[]
         }
     });
-    const { control, handleSubmit, reset, watch } = methods;
-    const { fields, append, remove, update } = useFieldArray({ control, name: 'rahtikirjat' });
+    const { control, handleSubmit, reset } = methods;
+    const { fields } = useFieldArray({ control, name: 'rahtikirjat' });
 
-    // Load Customers
     useEffect(() => {
-        getCustomerOptions().then(setCustomers);
-    }, []);
-
-    // Load Data into Form
-    useEffect(() => {
-        if (loadData) {
+        if (loadData && open) {
             const formattedWaybills = (loadData.rahtikirjat || []).map((wb: any) => ({
                 id: wb.rahtiId,
                 asiakasId: wb.asiakasId ? String(wb.asiakasId) : '',
@@ -65,49 +54,72 @@ export default function EditConsignmentModal({ open, onCloseAction, onSaveSucces
             }));
 
             reset({
-                pvm: loadData.pvm ? loadData.pvm.split('T')[0] : '',
+                pvm: loadData.pvm ? new Date(loadData.pvm).toISOString().split('T')[0] : '', 
                 lisatiedot: loadData.lisatiedot || '',
                 rahtikirjat: formattedWaybills
             });
         }
-    }, [loadData, reset]);
+    }, [loadData, open, reset]);
 
     const onSubmit = async (data: any) => {
+        setIsSubmitting(true);
         try {
-            // Calculate Aggregates
+            // 1. Calculate Aggregates
             const totalM3 = data.rahtikirjat.reduce((sum: number, wb: any) => sum + (Number(wb.m3) || 0), 0);
             const totalKm = data.rahtikirjat.reduce((sum: number, wb: any) => sum + (Number(wb.km) || 0), 0);
-            // ... calculate others if needed
+            const totalKpl = data.rahtikirjat.reduce((sum: number, wb: any) => sum + (Number(wb.kpl) || 0), 0);
+            const totalJako = data.rahtikirjat.reduce((sum: number, wb: any) => sum + (Number(wb.jako) || 0), 0);
+            
 
-            // Payload for Office Update
-            // Note: Reuse the same 'updateLoad' service or create a specific one if payload differs greatly
+            // 2. Determine Primary Customer
+            // Backend expects an integer. Use 0 or null if missing.
+            let primaryCustomer = null;
+            if (data.rahtikirjat.length > 0 && data.rahtikirjat[0].asiakasId) {
+                primaryCustomer = parseInt(data.rahtikirjat[0].asiakasId, 10);
+            } else if (loadData.asiakasId) {
+                primaryCustomer = parseInt(loadData.asiakasId, 10);
+            }
+
+            // 3. Construct Payload
             const payload = {
-                pvm: new Date(data.pvm),
+                tyyppi: 1, 
+                pvm: data.pvm, // YYYY-MM-DD string is accepted by @IsDateString or permissive DTO
                 lisatiedot: data.lisatiedot,
+                asiakasId: isNaN(primaryCustomer!) ? null : primaryCustomer,
+                
+                // Include other required IDs from original data to satisfy strict validators if any
+                kalustoNro: loadData.kalusto_nro || loadData.kalustoNro,
+                kuljId: loadData.kulj_id || loadData.kuljId,
+
                 m3: totalM3,
                 km: totalKm,
-                // We need to send the full waybill list to replace existing ones
+                kpl: totalKpl,
+                tunnit: totalJako,
+                
+                // Waybills Array
                 rahtikirjat: data.rahtikirjat.map((wb: any) => ({
-                    ...wb,
+                    asiakasId: parseInt(wb.asiakasId, 10) || null,
+                    rahtikirjanNumero: wb.rahtikirjanNumero,
+                    reitti: wb.reitti,
                     m3: Number(wb.m3),
-                    km: Number(wb.km)
-                    // ... ensure all fields are converted
+                    km: Number(wb.km),
+                    kpl: Number(wb.kpl),
+                    jako: Number(wb.jako),
+                    tievero: Number(wb.tievero),
+                    lisatiedot: wb.lisatiedot
                 }))
             };
 
-            // You might need to update 'updateLoad' in loadService to handle nested 'rahtikirjat' update
-            // Or use the consignmentDriverService's update logic if shared.
-            // For now assuming updateLoad can handle it or you create updateConsignmentOffice
-            
-            // Using the existing updateLoad might strip waybills if not handled in backend.
-            // Ensure backend 'updateLoad' supports updating children!
-            // If not, use a specific endpoint.
-            
+            console.log("Sending Payload:", payload); // Verify payload in console
+
             await updateLoad(loadData.kuormaId, payload, currentUser); 
-            onSaveSuccessAction('Consignment updated successfully');
-        } catch (error) {
-            console.error(error);
-            enqueueSnackbar('Update failed', { variant: 'error' });
+            onSaveSuccessAction('Consignment updated successfully'); 
+            
+        } catch (error: any) {
+            console.error("Update Error:", error.response?.data || error);
+            enqueueSnackbar(error.response?.data?.message || 'Update failed', { variant: 'error' });
+        } finally {
+            setIsSubmitting(false);
         }
     };
 
@@ -116,40 +128,30 @@ export default function EditConsignmentModal({ open, onCloseAction, onSaveSucces
             <DialogTitle>Edit Consignment #{loadData?.kuormaId}</DialogTitle>
             <DialogContent dividers>
                 <Stack spacing={2}>
-                    {/* Load Level Fields */}
                     <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 2 }}>
                         <Controller name="pvm" control={control} render={({ field }) => <TextField {...field} type="date" label="Date" size="small" InputLabelProps={{ shrink: true }} />} />
                         <Controller name="lisatiedot" control={control} render={({ field }) => <TextField {...field} label="Global Notes" size="small" />} />
                     </Box>
 
-                    {/* Waybill List (Simplified for brevity - can use the same sub-components as driver if exported) */}
                     <Typography variant="subtitle2">Waybills ({fields.length})</Typography>
                     <TableContainer sx={{ border: '1px solid #eee', maxHeight: 300 }}>
                         <Table size="small" stickyHeader>
                             <TableHead>
                                 <TableRow>
-                                    <TableCell>Customer</TableCell>
-                                    <TableCell>Waybill #</TableCell>
-                                    <TableCell>M3</TableCell>
-                                    <TableCell>Route</TableCell>
-                                    {/* Add Actions if editing lines is allowed here */}
+                                    <TableCell width="25%">Customer</TableCell>
+                                    <TableCell width="20%">Waybill #</TableCell>
+                                    <TableCell width="15%">M3</TableCell>
+                                    <TableCell width="20%">Route</TableCell>
+                                    <TableCell width="20%">Notes</TableCell>
                                 </TableRow>
                             </TableHead>
                             <TableBody>
                                 {fields.map((wb, idx) => (
                                     <TableRow key={wb.id || idx}>
                                         <TableCell>
-                                            {/* Render Input or Text based on edit mode - for now inputs */}
-                                            <Controller 
-                                                name={`rahtikirjat.${idx}.asiakasId`} 
-                                                control={control} 
-                                                render={({field}) => (
-                                                    <TextField {...field} select SelectProps={{ native: true }} size="small" variant="standard">
-                                                        <option value=""></option>
-                                                        {customers.map(c => <option key={c.asiakkaanId} value={c.asiakkaanId}>{c.asiakkaanNimi}</option>)}
-                                                    </TextField>
-                                                )} 
-                                            />
+                                            <Typography variant="body2" sx={{ fontWeight: '500' }}>
+                                                {wb.customerName || 'Unknown Customer'}
+                                            </Typography>
                                         </TableCell>
                                         <TableCell>
                                             <Controller name={`rahtikirjat.${idx}.rahtikirjanNumero`} control={control} render={({field}) => <TextField {...field} size="small" variant="standard" />} />
@@ -160,18 +162,21 @@ export default function EditConsignmentModal({ open, onCloseAction, onSaveSucces
                                         <TableCell>
                                             <Controller name={`rahtikirjat.${idx}.reitti`} control={control} render={({field}) => <TextField {...field} size="small" variant="standard" />} />
                                         </TableCell>
+                                        <TableCell>
+                                            <Controller name={`rahtikirjat.${idx}.lisatiedot`} control={control} render={({field}) => <TextField {...field} size="small" variant="standard" />} />
+                                        </TableCell>
                                     </TableRow>
                                 ))}
                             </TableBody>
                         </Table>
                     </TableContainer>
-                    
-                    {/* Add Waybill Button could go here */}
                 </Stack>
             </DialogContent>
             <DialogActions>
-                <Button onClick={onCloseAction}>Cancel</Button>
-                <Button variant="contained" onClick={handleSubmit(onSubmit)}>Save</Button>
+                <Button onClick={onCloseAction} disabled={isSubmitting}>Cancel</Button>
+                <Button variant="contained" onClick={handleSubmit(onSubmit)} disabled={isSubmitting}>
+                    {isSubmitting ? <CircularProgress size={24} color="inherit" /> : 'Save'}
+                </Button>
             </DialogActions>
         </Dialog>
     );

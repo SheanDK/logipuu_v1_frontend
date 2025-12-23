@@ -291,7 +291,19 @@ export default function DrivenInspectionPage() {
     };
 
     // --- Row Click & Edit Handlers ---
-    const handleRowClick = (params: any) => {
+    const handleRowClick = (params: any, event: React.MouseEvent) => {
+        // 1. Prevent if clicked on a button, checkbox, or input inside the cell
+        const target = event.target as HTMLElement;
+        if (target.closest('button') || target.closest('input') || target.closest('a')) {
+            return;
+        }
+
+        // 2. Prevent if clicked specifically on the 'select' or 'actions' column
+        // (Though step 1 usually covers the buttons inside them)
+        if (params.field === 'select' || params.field === 'actions') {
+            return;
+        }
+
         if (isConsignmentTab) {
             setSelectedLoadIdForView(params.row.kuormaId);
             setViewModalOpen(true);
@@ -348,8 +360,8 @@ export default function DrivenInspectionPage() {
                 { field: 'asiakkaanNimi', headerName: t('columns.customer'), width: 140 },
                 { field: 'timberType', headerName: t('columns.timber'), width: 120 },
                 { field: 'reitti', headerName: t('columns.route'), width: 100 },
-                { field: 'm3', headerName: t('columns.cubicMetres'), type: 'number', width: 100 },
-                { field: 'km', headerName: t('columns.freightKm'), type: 'number', width: 100 },
+                { field: 'm3', headerName: t('columns.cubicMetres'), type: 'number', width: 120 },
+                { field: 'km', headerName: t('columns.freightKm'), type: 'number', width: 120 },
                 {
                     field: 'status', headerName: t('columns.status'), width: 120,
                     renderCell: (params) => <Chip label={translateStatus(t, params.row.status)} color={getStatusChipColorByStatus(params.row.status)} size="small" />

@@ -22,5 +22,9 @@
   "confirmDelete": {
     "title": "Confirm delete",
     "message": "Delete \"{{name}}\"?"
+  },
+  "status": {
+    "active": "Active",
+    "inactive": "Inactive"
   }
 }

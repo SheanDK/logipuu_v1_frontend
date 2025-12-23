@@ -20,7 +20,6 @@ export interface ILoadListApiFilters {
     asiakasId?: string;
     kalustoNro?: string;
     kuljId?: string;
-    // --- FIX: Add loadType here ---
     loadType?: number; 
 }
 
@@ -42,7 +41,6 @@ export const createBulkLoad = async (legs: ICreateLoadDto[]): Promise<{ message:
 // Update the function to use the new, more specific type for its parameter.
 export const fetchAllLoads = async (filters: ILoadListApiFilters): Promise<ILoadListItem[]> => {
     try {
-        // Axios params will automatically handle the new loadType property inside 'filters'
         const response = await apiClient.get<ILoadListItem[]>(API_ENDPOINT, { params: filters });
         return response.data;
     } catch (error) {
@@ -74,7 +72,7 @@ export const createLoad = async (data: ICreateLoadDto): Promise<ILoad> => {
 // Ensure updateLoad accepts user object if your component sends it, 
 // though typically frontend services don't need to send 'user' object in body 
 // if auth header handles it. But to match your component call:
-export const updateLoad = async (id: number, data: IUpdateLoadDto, user?: IUser): Promise<ILoad> => {
+export const updateLoad = async (id: number, data: IUpdateLoadDto | any, user?: IUser): Promise<ILoad> => {
     try {
         const response = await apiClient.put<ILoad>(`${API_ENDPOINT}/${id}`, data);
         return response.data;

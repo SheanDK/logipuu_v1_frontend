@@ -3,6 +3,7 @@ import React, { useEffect, useState } from 'react';
 import { Dialog, DialogTitle, DialogContent, DialogActions, Button, Typography, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Chip, Stack, Box, Divider, CircularProgress } from '@mui/material';
 import { getTripById } from '@/services/loadService';
 import dayjs from 'dayjs';
+import { useTranslation } from 'react-i18next';
 
 interface ViewConsignmentModalProps {
     open: boolean;
@@ -10,16 +11,39 @@ interface ViewConsignmentModalProps {
     loadId: number | null;
 }
 
+const STATUS_TKEY: Record<string, string> = {
+    'Assigned': 'assigned',
+    'In Progress': 'in_progress',
+    'At Origin': 'at_origin',
+    'En Route to Destination': 'en_route_to_destination',
+    'At Destination': 'at_destination',
+    'Completed': 'completed',
+    'Paused': 'paused',
+    'Draft': 'draft',
+};
+
+const STATUS_COLOR: Record<string, 'default' | 'primary' | 'secondary' | 'error' | 'info' | 'success' | 'warning'> = {
+    'Assigned': 'info',
+    'In Progress': 'primary',
+    'At Origin': 'warning',
+    'En Route to Destination': 'info',
+    'At Destination': 'warning',
+    'Completed': 'success',
+    'Paused': 'warning',
+    'Draft': 'default',
+};
+
+
 export default function ViewConsignmentModal({ open, onClose, loadId }: ViewConsignmentModalProps) {
     const [loadData, setLoadData] = useState<any>(null);
     const [loading, setLoading] = useState(false);
+    const { t } = useTranslation(['loadsPage', 'common']); // Load translations
 
     useEffect(() => {
         if (open && loadId) {
             setLoading(true);
             getTripById(loadId)
                 .then(data => {
-                    console.log("Loaded Consignment Data:", data); // Debugging
                     setLoadData(data);
                 })
                 .catch(err => {
@@ -30,6 +54,13 @@ export default function ViewConsignmentModal({ open, onClose, loadId }: ViewCons
             setLoadData(null);
         }
     }, [open, loadId]);
+
+    const translateStatus = (status?: string) => {
+        if (!status) return '-';
+        const key = STATUS_TKEY[status];
+        // Ensure translations are loaded (using 'status' prefix from loadsPage.json)
+        return key ? t(`status.${key}`, { defaultValue: status }) : status;
+    };
 
     if (!open) return null;
 
@@ -42,12 +73,12 @@ export default function ViewConsignmentModal({ open, onClose, loadId }: ViewCons
             <DialogTitle sx={{ bgcolor: '#f5f5f5', borderBottom: '1px solid #ddd', pb: 1 }}>
                 <Stack direction="row" justifyContent="space-between" alignItems="center">
                     <Typography variant="h6" sx={{ fontWeight: 'bold' }}>
-                        Consignment Details #{loadData?.kuormaId || '...'}
+                        {t('modal.consignmentDetails', { defaultValue: 'Consignment Details' })} #{loadData?.kuormaId || '...'}
                     </Typography>
                     {loadData?.status && (
                         <Chip 
-                            label={loadData.status} 
-                            color={loadData.status === 'Completed' ? 'success' : 'warning'} 
+                            label={translateStatus(loadData.status)} 
+                            color={STATUS_COLOR[loadData.status] || 'default'} 
                             size="small" 
                         />
                     )}
@@ -64,17 +95,17 @@ export default function ViewConsignmentModal({ open, onClose, loadId }: ViewCons
                         {/* Header Info */}
                         <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 2, p: 2, bgcolor: '#fafafa', borderRadius: 2 }}>
                             <Box>
-                                <Typography variant="caption" color="text.secondary">Date</Typography>
+                                <Typography variant="caption" color="text.secondary">{t('columns.date')}</Typography>
                                 <Typography variant="body1" fontWeight="500">
                                     {loadData.pvm ? dayjs(loadData.pvm).format('DD.MM.YYYY') : '-'}
                                 </Typography>
                             </Box>
                             <Box>
-                                <Typography variant="caption" color="text.secondary">Vehicle</Typography>
+                                <Typography variant="caption" color="text.secondary">{t('columns.vehicleNo')}</Typography>
                                 <Typography variant="body1" fontWeight="500">{loadData.rekNro || '-'}</Typography>
                             </Box>
                             <Box>
-                                <Typography variant="caption" color="text.secondary">Driver</Typography>
+                                <Typography variant="caption" color="text.secondary">{t('columns.driver')}</Typography>
                                 <Typography variant="body1" fontWeight="500">{loadData.kuljettajanNimi || '-'}</Typography>
                             </Box>
                         </Box>
@@ -84,25 +115,25 @@ export default function ViewConsignmentModal({ open, onClose, loadId }: ViewCons
                         {/* Waybills Table */}
                         <Box>
                             <Typography variant="subtitle2" gutterBottom sx={{ fontWeight: 'bold' }}>
-                                Waybills ({loadData.rahtikirjat?.length || 0})
+                                {t('modal.waybills', { defaultValue: 'Waybills' })} ({loadData.rahtikirjat?.length || 0})
                             </Typography>
                             <TableContainer sx={{ border: '1px solid #e0e0e0', borderRadius: 1 }}>
                                 <Table size="small">
                                     <TableHead sx={{ bgcolor: '#f5f5f5' }}>
                                         <TableRow>
-                                            <TableCell sx={{ fontWeight: 'bold' }}>Customer</TableCell>
-                                            <TableCell sx={{ fontWeight: 'bold' }}>Waybill #</TableCell>
-                                            <TableCell sx={{ fontWeight: 'bold' }}>Route</TableCell>
-                                            <TableCell align="right" sx={{ fontWeight: 'bold' }}>M3</TableCell>
-                                            <TableCell align="right" sx={{ fontWeight: 'bold' }}>KM</TableCell>
-                                            <TableCell align="right" sx={{ fontWeight: 'bold' }}>Pcs</TableCell>
+                                            <TableCell sx={{ fontWeight: 'bold' }}>{t('columns.customer')}</TableCell>
+                                            <TableCell sx={{ fontWeight: 'bold' }}>{t('modal.waybillNo', { defaultValue: 'Waybill #' })}</TableCell>
+                                            <TableCell sx={{ fontWeight: 'bold' }}>{t('columns.route')}</TableCell>
+                                            <TableCell align="right" sx={{ fontWeight: 'bold' }}>{t('columns.cubicMetres')}</TableCell>
+                                            <TableCell align="right" sx={{ fontWeight: 'bold' }}>{t('columns.freightKm')}</TableCell>
+                                            <TableCell align="right" sx={{ fontWeight: 'bold' }}>{t('columns.pcs')}</TableCell>
                                         </TableRow>
                                     </TableHead>
                                     <TableBody>
                                         {(!loadData.rahtikirjat || loadData.rahtikirjat.length === 0) ? (
                                             <TableRow>
                                                 <TableCell colSpan={6} align="center" sx={{ py: 3, color: 'text.secondary' }}>
-                                                    No waybills found.
+                                                    {t('messages.noWaybills', { defaultValue: 'No waybills found.' })}
                                                 </TableCell>
                                             </TableRow>
                                         ) : (
@@ -119,7 +150,7 @@ export default function ViewConsignmentModal({ open, onClose, loadId }: ViewCons
                                         )}
                                         {/* Totals Row */}
                                         <TableRow sx={{ bgcolor: '#e3f2fd', '& td': { fontWeight: 'bold' } }}>
-                                            <TableCell colSpan={3} align="right">Total:</TableCell>
+                                            <TableCell colSpan={3} align="right">{t('modal.total', { defaultValue: 'Total:' })}</TableCell>
                                             <TableCell align="right">{fmtNum(loadData.m3)}</TableCell>
                                             <TableCell align="right">{fmtNum(loadData.km)}</TableCell>
                                             <TableCell align="right">{fmtInt(loadData.kpl)}</TableCell>
@@ -132,17 +163,17 @@ export default function ViewConsignmentModal({ open, onClose, loadId }: ViewCons
                         {/* Global Notes */}
                         {loadData.lisatiedot && (
                             <Box sx={{ bgcolor: '#fffde7', p: 2, borderRadius: 1, border: '1px solid #fff9c4' }}>
-                                <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 'bold' }}>Additional Notes</Typography>
+                                <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 'bold' }}>{t('columns.additionalInfo')}</Typography>
                                 <Typography variant="body2" sx={{ mt: 0.5 }}>{loadData.lisatiedot}</Typography>
                             </Box>
                         )}
                     </Stack>
                 ) : (
-                    <Typography color="error">Failed to load data.</Typography>
+                    <Typography color="error">{t('errors.loadFailed', { defaultValue: 'Failed to load data.' })}</Typography>
                 )}
             </DialogContent>
             <DialogActions sx={{ px: 3, py: 2 }}>
-                <Button onClick={onClose} variant="contained" color="primary">Close</Button>
+                <Button onClick={onClose} variant="contained" color="primary">{t('common:buttons.close', { defaultValue: 'Close' })}</Button>
             </DialogActions>
         </Dialog>
     );

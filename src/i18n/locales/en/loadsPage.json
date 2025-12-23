@@ -69,5 +69,31 @@
     "at_destination": "At Destination",
     "paused": "Paused",
     "na": "N/A"
+  },
+  "modal": {
+    "consignmentDetails": "Consignment Details",
+    "waybills": "Waybills",
+    "waybillNo": "Waybill No.",
+    "total": "Total:"
+  },
+  "messages": {
+    "noWaybills": "No waybills found."
+  },
+  "validation": {
+    "customerRequired": "Customer is required",
+    "waybillNumberRequired": "Waybill number is required",
+    "routeRequired": "Route is required",
+    "atLeastOneWaybill": "Please add at least one waybill before sending."
+  },
+  "consignmentForm": {
+    "pcs": "Pcs",
+    "dist": "Dist",
+    "roadToll": "Road Toll",
+    "notes": "Notes",
+    "waybills": "Waybills"
+  },
+  "consignmentEditor": {
+    "titleNew": "New Waybill",
+    "titleEdit": "Edit Waybill"
   }
 }

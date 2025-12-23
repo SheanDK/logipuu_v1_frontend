@@ -59,7 +59,7 @@ export default function ClientsPage() {
                 additionalInfo: c.lisatietoja,
             }));
             setClients(transformedClients);
-        } catch (error: unknown) { // FIX: Use 'unknown'
+        } catch (error: unknown) {
             let message = t('feedback.loadFailed');
             if (axios.isAxiosError(error) && error.response) {
                 message = error.response.data.message || message;
@@ -68,7 +68,7 @@ export default function ClientsPage() {
         } finally {
             setIsLoading(false);
         }
-    }, [canView, t]); // FIX: Added 't' to dependency array
+    }, [canView, t]);
 
     useEffect(() => {
         if (!authLoadingState && user) { loadClients(); }
@@ -104,7 +104,7 @@ export default function ClientsPage() {
             }
             handleCloseModal();
             await loadClients();
-        } catch  (error: unknown) { // FIX: Use 'unknown'
+        } catch (error: unknown) {
             let message = t('feedback.saveFailed');
             if (axios.isAxiosError(error) && error.response) {
                 message = error.response.data.message || message;
@@ -129,7 +129,7 @@ export default function ClientsPage() {
             setDeleteConfirmOpen(false);
             setClientToDelete(null);
             await loadClients();
-        } catch (error: unknown) { // FIX: Use 'unknown'
+        } catch (error: unknown) {
             let message = t('feedback.deleteFailed');
             if (axios.isAxiosError(error) && error.response) {
                 message = error.response.data.message || message;
@@ -151,14 +151,28 @@ export default function ClientsPage() {
     };
 
     const columns: GridColDef<IClient>[] = useMemo(() => [
-        { field: 'clientName', headerName: t('columns.clientName'), flex: 1, minWidth: 200 },
-        { field: 'city', headerName: t('columns.city'), width: 150, valueGetter: (value) => value || '–' },
-        { field: 'phoneNo', headerName: t('columns.phoneNo'), width: 150, valueGetter: (value) => value || '–' },
+        { 
+            field: 'clientName', 
+            headerName: t('columns.clientName'), 
+            width: 300, // Fixed width
+        },
+        { 
+            field: 'city', 
+            headerName: t('columns.city'), 
+            width: 150, // Fixed width
+            valueGetter: (value) => value || '–' 
+        },
+        { 
+            field: 'phoneNo', 
+            headerName: t('columns.phoneNo'), 
+            width: 150, // Fixed width
+            valueGetter: (value) => value || '–' 
+        },
         {
             field: 'type',
             headerName: t('columns.type'),
-            width: 180,
-            renderCell: (params: GridRenderCellParams<IClient, unknown>) => { // FIX: Type 'params'
+            width: 180, // Fixed width
+            renderCell: (params: GridRenderCellParams<IClient, unknown>) => {
                 const key = typeToKey(params.value);
                 return t(`type.${key}`);  
             },
@@ -166,26 +180,31 @@ export default function ClientsPage() {
         {
             field: 'targetColor',
             headerName: t('columns.targetColor'),
-            width: 150,
+            width: 120, // Fixed width
             sortable: false,
             align: 'center',
             renderCell: (params: GridRenderCellParams<IClient, string | null>) => {
                 const colorValue = params.value;
                 if (!colorValue) return '–';
                 return (
-                    <Box sx={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center' }}>
+                    <Box sx={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                         <Box sx={{ width: '80%', height: 22, bgcolor: colorValue, borderRadius: 1 }} />
                     </Box>
                 );
             },
         },
-        { field: 'isActive', headerName: t('columns.active'), width: 120, type: 'boolean' },
+        { 
+            field: 'isActive', 
+            headerName: t('columns.active'), 
+            width: 100, // Fixed width
+            type: 'boolean' 
+        },
         {
             field: 'actions',
             type: 'actions',
             headerName: t('columns.actions'),
-            width: 100,
-            getActions: ({ row }: GridRowParams<IClient>) => { // FIX: Type '{ row }'
+            width: 100, // Fixed width
+            getActions: ({ row }: GridRowParams<IClient>) => {
                 const actions = [];
                 if (canEdit) {
                     actions.push(<GridActionsCellItem icon={<EditIcon />} label="Edit" onClick={() => handleOpenEditModal(row)} />);
@@ -196,7 +215,7 @@ export default function ClientsPage() {
                 return actions;
             },
         },
-    ], [canEdit, canDelete, t]); // FIX: Added 't' to dependency array
+    ], [canEdit, canDelete, t]);
 
     if (isLoading || authLoadingState) {
         return <Box sx={{ display: 'flex', justifyContent: 'center', p: 4 }}><CircularProgress /></Box>;
@@ -226,6 +245,13 @@ export default function ClientsPage() {
                     loading={isLoading}
                     disableRowSelectionOnClick
                     slots={{ toolbar: GridToolbar }}
+                    sx={{
+                        '& .MuiDataGrid-columnHeaderTitle': {
+                            fontWeight: 'bold',
+                            textTransform: 'uppercase',
+                            fontSize: '0.75rem', 
+                        },
+                    }}
                 />
             </Box>
             {isModalOpen && (
