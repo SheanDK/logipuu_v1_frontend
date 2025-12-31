@@ -148,73 +148,104 @@ export default function UserManagementPage() {
     };
 
     // --- UPDATED COLUMNS DEFINITION ---
-    const columns: GridColDef<IUser>[] = useMemo(() => [
-        // FIX: Swapped Full Name and Username
-        // FIX: Removed flex, used fixed width for compact layout
-        { 
-            field: 'fullName', 
-            headerName: t('columns.fullName'), 
-            width: 250 
-        },
-        { 
-            field: 'username', 
-            headerName: t('columns.username'), 
-            width: 150 
-        },
-        {
-            field: 'roles',
-            headerName: t('columns.role'),
-            width: 200, 
-            renderCell: ({ value }) => {
-                const rolesArray: string[] = Array.isArray(value) ? value : [];
-                const rawRole = rolesArray.length > 0 ? rolesArray[0] : 'N/A';
-                const key = roleKeyOf(rawRole);
+     const columns: GridColDef<IUser>[] = useMemo(() => {
+        
+        const baseColumns: GridColDef<IUser>[] = [
+            { 
+                field: 'fullName', 
+                headerName: t('columns.fullName'), 
+                width: 250 
+            },
+            { 
+                field: 'username', 
+                headerName: t('columns.username'), 
+                width: 150 
+            },
+            {
+                field: 'roles',
+                headerName: t('columns.role'),
+                width: 200, 
+                renderCell: ({ value }) => {
+                    const rolesArray: string[] = Array.isArray(value) ? value : [];
+                    const rawRole = rolesArray.length > 0 ? rolesArray[0] : 'N/A';
+                    const key = roleKeyOf(rawRole);
 
-                return (
-                    <Chip
-                        label={roleDisplayName(rawRole, t)}
-                        size="small"
-                        color={key === 'superuser' ? 'error' : key === 'admin' ? 'warning' : 'primary'}
-                        icon={
-                            key === 'superuser' ? (
-                                <SupervisorAccountIcon fontSize="small" />
-                            ) : key === 'admin' ? (
-                                <AdminPanelSettingsIcon fontSize="small" />
-                            ) : (
-                                <PersonIcon fontSize="small" />
-                            )
-                        }
-                        variant="outlined"
+                    return (
+                        <Chip
+                            label={roleDisplayName(rawRole, t)}
+                            size="small"
+                            color={key === 'superuser' ? 'error' : key === 'admin' ? 'warning' : 'primary'}
+                            icon={
+                                key === 'superuser' ? (
+                                    <SupervisorAccountIcon fontSize="small" />
+                                ) : key === 'admin' ? (
+                                    <AdminPanelSettingsIcon fontSize="small" />
+                                ) : (
+                                    <PersonIcon fontSize="small" />
+                                )
+                            }
+                            variant="outlined"
+                        />
+                    );
+                },
+            },
+            { 
+                field: 'isActive', 
+                headerName: t('columns.status'), 
+                width: 120, 
+                type: 'boolean', 
+                renderCell: (params) => (
+                    <Chip 
+                        icon={params.value ? <CheckCircleIcon /> : <CancelIcon />} 
+                        label={params.value ? t('status.active') : t('status.inactive')} 
+                        color={params.value ? 'success' : 'default'} 
+                        size="small" 
+                        variant="outlined" 
                     />
-                );
+                ) 
             },
-        },
-        { 
-            field: 'isActive', 
-            headerName: t('columns.status'), 
-            width: 120, 
-            type: 'boolean', 
-            renderCell: (params) => (<Chip icon={params.value ? <CheckCircleIcon /> : <CancelIcon />} label={params.value ? t('status.active') : t('status.inactive')} color={params.value ? 'success' : 'default'} size="small" variant="outlined" />) 
-        },
-        {
-            field: 'actions', 
-            type: 'actions', 
-            headerName: t('columns.actions'), 
-            width: 100,
-            getActions: ({ row }) => {
-                const isTargetSuperUser = row.roles.includes('Superuser');
-                const canPerformAction = !isTargetSuperUser || isCurrentUserSuperUser;
-                const actions = [];
-                if (canEdit && canPerformAction) {
-                    actions.push(<GridActionsCellItem icon={<EditIcon />} label={t('actions.edit')} onClick={() => handleOpenModalForEdit(row)} />);
-                }
-                if (canDelete && canPerformAction) {
-                    actions.push(<GridActionsCellItem icon={<DeleteIcon color="error" />} label={t('actions.delete')} onClick={() => handleDeleteClick(row)} />);
-                }
-                return actions;
-            },
-        },
-    ], [canEdit, canDelete, isCurrentUserSuperUser]);
+        ];
+
+       
+        if (canEdit || canDelete) {
+            baseColumns.push({
+                field: 'actions', 
+                type: 'actions', 
+                headerName: t('columns.actions'), 
+                width: 100,
+                getActions: ({ row }) => {
+                    const isTargetSuperUser = row.roles.includes('Superuser');
+                    const canPerformAction = !isTargetSuperUser || isCurrentUserSuperUser;
+                    const actions = [];
+                    
+                    
+                    if (canEdit && canPerformAction) {
+                        actions.push(
+                            <GridActionsCellItem 
+                                icon={<EditIcon />} 
+                                label={t('actions.edit')} 
+                                onClick={() => handleOpenModalForEdit(row)} 
+                            />
+                        );
+                    }
+                    
+                    
+                    if (canDelete && canPerformAction) {
+                        actions.push(
+                            <GridActionsCellItem 
+                                icon={<DeleteIcon color="error" />} 
+                                label={t('actions.delete')} 
+                                onClick={() => handleDeleteClick(row)} 
+                            />
+                        );
+                    }
+                    return actions;
+                },
+            });
+        }
+
+        return baseColumns;
+    }, [canEdit, canDelete, isCurrentUserSuperUser, t, handleOpenModalForEdit, handleDeleteClick]);
 
     if (isAuthLoading || isLoading) { return <Box sx={{ display: 'flex', justifyContent: 'center', p: 4 }}><CircularProgress /></Box>; }
     if (!hasViewPermission) { return <Paper sx={{ p: 3, m: 2 }}><Alert severity="error">{t('noPermission')}</Alert></Paper>; }
