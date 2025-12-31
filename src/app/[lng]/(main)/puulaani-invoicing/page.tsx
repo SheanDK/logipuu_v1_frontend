@@ -1,3 +1,4 @@
+// src/app/[lng]/(main)/puulaani-invoicing/page.tsx
 'use client';
 
 import React, { useCallback, useState } from 'react';
@@ -173,11 +174,8 @@ export default function WoodBillingPage() {
 
 
   /**
- * Build a print-friendly dataset and navigate to the report page.
- * - If some rows are selected, only those go to the report.
- * - If no selection, all current result rows are used.
- * - Data is stored in localStorage so the /reports/wood-billing page can read it.
- */
+   * Build a print-friendly dataset and navigate to the report page in a new tab.
+   */
   const handleOpenReport = useCallback(() => {
     // If there is a selection, filter rows by selected ids; otherwise use all rows
     const selSet = new Set(selection as (string | number)[]);
@@ -190,35 +188,14 @@ export default function WoodBillingPage() {
       return;
     }
 
-    // Helper: convert ISO (YYYY-MM-DD) to the report’s DD.MM.YYYY format
-    const toDDMMYYYY = (iso?: string | null) => {
-      if (!iso) return '';
-      const d = dayjs(iso, 'YYYY-MM-DD', true);
-      return d.isValid() ? d.format('DD.MM.YYYY') : '';
-    };
-
-    // Map the grid rows to a slim report schema written to localStorage
-    const payload = used.map(r => ({
-      kuormaId: r.id,
-      pvm: toDDMMYYYY(String(r.date ?? '')),
-      ajomaaraysNro: String(r.waybillNumber ?? '') || null,
-      vastaanottoNro: String(r.vastaanottoNro ?? '') || null,
-      puulaaniNimi: String(r.puulaaniName ?? '') || null,
-      timberType: String(r.woodType ?? '') || null,
-      asiakkaanNimi: String(r.customer ?? '') || null,
-      rekNro: String(r.vehicle ?? '') || null,
-      reitti: String(r.route ?? '') || null,
-      lisatiedot: String(r.notes ?? '') || null,
-      m3: Number((r as any).quantityM3 ?? 0) || 0,
-      km: Number((r as any).km ?? 0) || 0,
-      tunnit: Number((r as any).hours ?? 0) || 0,
-      kpl: Number((r as any).pieces ?? 0) || 0,
-    }));
-
     // Persist for the report page and navigate there
     localStorage.setItem('woodBillingReportData', JSON.stringify(used));
-    router.push(`/${params.lng}/puulaani-invoicing/report`);
-  }, [rows, selection, t, router]);
+    
+    // FIX: Open in new tab
+    const url = `/${params.lng}/puulaani-invoicing/report`;
+    window.open(url, '_blank');
+    
+  }, [rows, selection, t, params.lng]);
 
   return (
     <Paper sx={{ p: { xs: 2, md: 3 }, width: '100%' }}>

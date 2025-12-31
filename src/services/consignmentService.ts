@@ -1,10 +1,6 @@
-//frontend/src/services/consignmentService.ts
+// frontend/src/services/consignmentService.ts
 import apiClient from './apiClient';
 import type { BillingRow } from './invoicingService'; 
-
-/* -----------------------------------------------------------------------------
- * Types
- * ---------------------------------------------------------------------------*/
 
 export type ConsignmentSearchParams = {
   dateFrom: string;
@@ -15,7 +11,6 @@ export type ConsignmentSearchParams = {
   billed?: boolean;
 };
 
-// FIX: Extend BillingRow to include specific fields needed for Consignments
 export type ConsignmentRow = BillingRow & {
   unitPriceM3: number;
   unitPriceKm: number;
@@ -58,26 +53,16 @@ export type InvoiceConsignmentsResponse = {
 
 export const CONSIGNMENT_API = '/consignments';
 
-/* -----------------------------------------------------------------------------
- * Helper: Map Backend Data to Frontend ConsignmentRow
- * ---------------------------------------------------------------------------*/
+// --- HELPER FUNCTION: Correctly Map Snake_Case to CamelCase ---
 const mapToConsignmentRow = (r: any): ConsignmentRow => {
   return {
-    // 1. ID MAPPING (Solves "MUI X: unique id property" error)
     id: r.rahtiId || r.rahti_id || `temp-${Math.random()}`,
-
     kuormaId: Number(r.kuormaId || r.kuorma_id),
-    
-    // Date mapping
     date: r.pvm ? String(r.pvm).split('T')[0] : '', 
-
-    // Basic Info
     customer: r.asiakas || '',
     vehicle: r.autoNro || r.auto_nro || '',
     driverName: r.knimi || '',
     woodType: r.puutavara || '',
-    
-    // Specific Fields
     waybillNumber: r.rahtikirjanNro || r.rahtikirjan_nro || '',
     route: r.reitti || '',
     notes: r.lisatiedot || '',
@@ -88,31 +73,24 @@ const mapToConsignmentRow = (r: any): ConsignmentRow => {
     pieces: Number(r.kpl || 0),
     hours: Number(r.jako || 0), 
 
-    // Unit Prices (Mapped Explicitly)
-    unitPriceM3: Number(r.m3Hinta || r.m3_hinta || 0),
-    unitPriceKm: Number(r.kmHinta || r.km_hinta || 0),
-    unitPricePiece: Number(r.kplHinta || r.kpl_hinta || 0),
-    unitPriceHour: Number(r.jakoHinta || r.jako_hinta || 0),
+    // Unit Prices (Check both backend names: m3_hinta and m3Hinta)
+    unitPriceM3: Number(r.m3_hinta || r.m3Hinta || 0),
+    unitPriceKm: Number(r.km_hinta || r.kmHinta || 0),
+    unitPricePiece: Number(r.kpl_hinta || r.kplHinta || 0),
+    unitPriceHour: Number(r.jako_hinta || r.jakoHinta || 0),
     
-    // Fallback for base 'unitPrice' (required by BillingRow)
-    unitPrice: Number(r.m3Hinta || r.m3_hinta || 0), 
+    // Default unit price fallback (usually M3 price)
+    unitPrice: Number(r.m3_hinta || r.m3Hinta || 0), 
 
-    // Totals
     roadTax: Number(r.tievero || 0),
     total: Number(r.kokohinta || r.koko_hinta || 0),
     sum: Number(r.kokohinta || r.koko_hinta || 0),
 
-    // Status
     billed: Boolean(r.pvmLaskutus || r.pvm_laskutus),
     billedDate: r.pvmLaskutus || r.pvm_laskutus || null,
   };
 };
 
-/* -----------------------------------------------------------------------------
- * API Methods
- * ---------------------------------------------------------------------------*/
-
-/** GET /api/consignments/search */
 export async function searchConsignments(params: ConsignmentSearchParams): Promise<ConsignmentRow[]> {
   const query = {
     dateFrom: params.dateFrom,
@@ -124,33 +102,43 @@ export async function searchConsignments(params: ConsignmentSearchParams): Promi
   };
 
   const { data } = await apiClient.get(`${CONSIGNMENT_API}/search`, { params: query });
-  
-  // Use mapToConsignmentRow instead of assuming raw data fits
   return (Array.isArray(data) ? data.map(mapToConsignmentRow) : []);
 }
 
-/** GET /api/consignments/:id */
 export async function getConsignmentById(id: number | string): Promise<ConsignmentRow | null> {
   const { data } = await apiClient.get(`${CONSIGNMENT_API}/${id}`);
   if (!data) return null;
   return mapToConsignmentRow(data);
 }
 
-// POST /api/consignments
 export async function createConsignment(dto: UpsertConsignmentDto): Promise<ConsignmentRow> {
   const payload = {
     ...dto,
     koko_hinta: dto.total, 
+    // Map DTO back to snake_case for backend insert if needed, 
+    // but Controller/Service usually handles camelCase -> snake_case
+    // We send camelCase as per DTO definition, assuming backend handles it.
+    // BUT since we are sending specific fields:
+    m3_hinta: dto.unitPriceM3,
+    km_hinta: dto.unitPriceKm,
+    kpl_hinta: dto.unitPricePiece,
+    jako_hinta: dto.unitPriceHour,
+    jako: dto.hours
   };
   const { data } = await apiClient.post(CONSIGNMENT_API, payload);
   return mapToConsignmentRow(data);
 }
 
-// PATCH /api/consignments/:id
 export async function updateConsignment(id: number, dto: UpsertConsignmentDto): Promise<ConsignmentRow> {
   const payload = {
     ...dto,
     koko_hinta: dto.total,
+    // Explicitly map prices for update
+    m3_hinta: dto.unitPriceM3,
+    km_hinta: dto.unitPriceKm,
+    kpl_hinta: dto.unitPricePiece,
+    jako_hinta: dto.unitPriceHour,
+    jako: dto.hours
   };
   const { data } = await apiClient.patch(`${CONSIGNMENT_API}/${id}`, payload);
   return mapToConsignmentRow(data);
@@ -161,7 +149,6 @@ export async function deleteConsignment(id: number | string) {
   return data as { deleted: boolean };
 }
 
-/** Helper for bulk delete */
 export async function deleteManyConsignments(ids: (number | string)[]) {
   const out = { deletedIds: [] as number[], billedIds: [] as number[], notFoundIds: [] as number[] };
   for (const raw of ids) {

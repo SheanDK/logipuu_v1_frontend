@@ -30,6 +30,8 @@
     "totalPrice": "Kokohinta"
   },
   "totals": "Yhteensä",
+  "grandTotal": "Loppusumma",
+  "totalValue": "Kokonaissumma",
   "buttons": {
     "print": "Tulosta"
   },
@@ -38,5 +40,12 @@
     "noData": "Ei näytettävää dataa",
     "noLocalStorage": "Raporttidataa ei löytynyt localStoragesta",
     "parseFailed": "Datan jäsentäminen epäonnistui"
+  },
+  "labels": {
+    "m3": "m³",
+    "km": "Km",
+    "pcs": "Kpl",
+    "hrs": "Tunnit",
+    "tax": "Tievero"
   }
 }

@@ -2,6 +2,7 @@
   "header": {
     "company": "Company Ltd",
     "title": "Consignment billing report",
+    "generated": "Generated:",
     "period": "Period: {{start}} – {{end}}"
   },
     "section": {
@@ -27,11 +28,20 @@
     "total": "Total"
   },
   "totals": "Totals",
+  "grandTotal": "Grand Total",
+  "totalValue": "Total Value",
   "errors": {
-    "noData": "No data"
+    "noData": "No data available."
   },
   "buttons": {
     "print": "Print"
+  },
+   "labels": {
+    "m3": "Total m³",
+    "km": "Total Km",
+    "pcs": "Total Pcs",
+    "hrs": "Total Hrs",
+    "tax": "Total Tax"
   },
   "page": "Page {{current}} / {{total}}"
 }

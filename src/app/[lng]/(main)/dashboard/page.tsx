@@ -28,12 +28,12 @@ import * as dashboardService from '@/services/dashboardService';
 import { IAdminDashboardStats, IDispatchDashboardStats, IDriverDashboardStats, IVolumeByDay, IActiveTripListItem } from '@/types';
 
 // Role definitions
-const ADMIN_ROLES = ['Superuser', 'Admin', 'Toimisto'];
+const ADMIN_ROLES = ['Superuser', 'Admin', 'Office'];
 const DISPATCH_ROLES = ['Ajojärjestelijä'];
 const DRIVER_ROLE = 'Kuljettaja';
 
 export default function DashboardPage() {
-    const { t } = useTranslation(['dashboard', 'common']); // 'dashboard' සහ 'common' namespaces භාවිතා කරන්න
+    const { t } = useTranslation(['dashboard', 'common']); 
     const { user, isLoading: isAuthLoading } = useAuth();
 
     // Generic state to hold any type of dashboard data

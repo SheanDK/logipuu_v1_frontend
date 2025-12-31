@@ -1,5 +1,4 @@
 //frontend/src/app/(main)/reports/load-reports/page.tsx
-// frontend/src/app/(main)/reports/load-reports/page.tsx
 'use client';
 
 import React, { useEffect, useState, useMemo } from 'react';
@@ -76,7 +75,7 @@ export default function LoadReportPage() {
         const img = new window.Image();
         img.src = '/images/hkk-logo.png';
         img.onload = () => {
-            doc.addImage(img, 'PNG', 14, 10, 40, 15);
+            doc.addImage(img, 'PNG', 14, 10, 50, 15);
             doc.setFontSize(20);
             doc.text(t('title'), 14, 35);
             doc.setFontSize(10);

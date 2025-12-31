@@ -147,22 +147,24 @@ export default function UserManagementPage() {
         }
     };
 
-    // --- FIX: Updated Columns Definition ---
+    // --- UPDATED COLUMNS DEFINITION ---
     const columns: GridColDef<IUser>[] = useMemo(() => [
-        { 
-            field: 'username', 
-            headerName: t('columns.username'), 
-            width: 150 // Fixed width
-        },
+        // FIX: Swapped Full Name and Username
+        // FIX: Removed flex, used fixed width for compact layout
         { 
             field: 'fullName', 
             headerName: t('columns.fullName'), 
-            width: 250 // Fixed width, removed flex
+            width: 250 
+        },
+        { 
+            field: 'username', 
+            headerName: t('columns.username'), 
+            width: 150 
         },
         {
             field: 'roles',
             headerName: t('columns.role'),
-            width: 200, // Fixed width, removed flex
+            width: 200, 
             renderCell: ({ value }) => {
                 const rolesArray: string[] = Array.isArray(value) ? value : [];
                 const rawRole = rolesArray.length > 0 ? rolesArray[0] : 'N/A';
@@ -234,7 +236,7 @@ export default function UserManagementPage() {
                     loading={isLoading} 
                     disableRowSelectionOnClick 
                     slots={{ toolbar: GridToolbar }} 
-                    // --- FIX: Header Styling (Bold & Uppercase) ---
+                    // --- Header Styling (Bold & Uppercase) ---
                     sx={{
                         '& .MuiDataGrid-columnHeaderTitle': {
                             fontWeight: 'bold',

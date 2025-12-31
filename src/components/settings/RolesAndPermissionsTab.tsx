@@ -15,7 +15,7 @@ import BusinessCenterIcon from '@mui/icons-material/BusinessCenter';
 import VpnKeyIcon from '@mui/icons-material/VpnKey';
 import { useTranslation } from '@/i18n/useTranslation';
 import { Trans } from 'react-i18next';
-import { normalizeKey, roleKeyOf, roleDisplayName } from '@/utils/i18nKeys';
+import { normalizeKey, roleDisplayName } from '@/utils/i18nKeys';
 
 type IPermissionWithCategory = IPermission & { category?: string | null };
 

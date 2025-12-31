@@ -30,6 +30,8 @@
     "totalPrice": "Total"
   },
   "totals": "Totals",
+  "grandTotal": "Grand Total",
+  "totalValue": "Total Value",
   "buttons": {
     "print": "Print"
   },
@@ -38,5 +40,12 @@
     "noData": "No data to display",
     "noLocalStorage": "Report data not found in localStorage",
     "parseFailed": "Failed to parse data"
+  },
+   "labels": {
+    "m3": "Total m³",
+    "km": "Total Km",
+    "pcs": "Total Pcs",
+    "hrs": "Total Hrs",
+    "tax": "Total Tax"
   }
 }

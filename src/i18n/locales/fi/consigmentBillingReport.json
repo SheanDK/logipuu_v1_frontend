@@ -2,6 +2,7 @@
   "header": {
     "company": "Yritys Oy",
     "title": "Rahtikirjalaskun raportti",
+    "generated": "Luotu:",
     "period": "Ajanjakso: {{start}} – {{end}}"
   },
     "section": {
@@ -27,11 +28,20 @@
     "total": "Yhteensä"
   },
   "totals": "Yhteensä",
+  "grandTotal": "Lopullinen summa",
+  "totalValue": "Kokonaisarvo",
   "errors": {
     "noData": "Ei dataa"
   },
   "buttons": {
     "print": "Tulosta"
   },
+    "labels": {
+      "m3": "Yhteensä m³",
+      "km": "Yhteensä Km",
+      "pcs": "Yhteensä Kpl",
+      "hrs": "Yhteensä Tunnit",
+      "tax": "Yhteensä Vero"
+    },
   "page": "Sivu {{current}} / {{total}}"
 }
