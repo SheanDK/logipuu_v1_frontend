@@ -53,5 +53,15 @@
     "pause": "Keskeytä ajo",
     "complete": "Päätä ajo",
     "resume": "Jatka ajoa"
+  },
+  "customerInsight": {
+    "title": "Asiakaskohtaiset tiedot",
+    "selectLabel": "Valitse asiakas",
+    "placeholder": "Kirjoita asiakkaan nimi...",
+    "noCustomerSelected": "Valitse asiakas nähdäksesi tarkemmat tiedot.",
+    "completedToday": "Valmiit tänään",
+    "remainingVolume": "Jäljellä (m³)",
+    "activeStacks": "Aktiiviset pinot",
+    "pendingInvoices": "Odottaa laskutusta"
   }
 }

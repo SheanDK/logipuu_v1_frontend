@@ -27,13 +27,17 @@ L.Icon.Default.mergeOptions({
 });
 
 // Specific icon for an active trip's numbered pickup points
-const createPickupIcon = (index: number) => L.divIcon({ 
-    className: `custom-icon-pickup-${index}`, 
-    html: `<div style="background-color: #d32f2f; width: 32px; height: 32px; border-radius: 50%; display: flex; justify-content: center; align-items: center; border: 2px solid white; box-shadow: 0 3px 6px rgba(0,0,0,0.4);"><span style="color: white; font-weight: bold;">${index + 1}</span></div>`, 
-    iconSize: [36, 36], 
-    iconAnchor: [18, 36], 
-    popupAnchor: [0, -36] 
-});
+const createPickupIcon = (index: number, scale: number = 1) => {
+    const size = 32 * scale;
+    return L.divIcon({ 
+        className: `custom-icon-pickup-${index}`, 
+        html: `<div style="background-color: #d32f2f; width: ${size}px; height: ${size}px; border-radius: 50%; display: flex; justify-content: center; align-items: center; border: 2px solid white; box-shadow: 0 3px 6px rgba(0,0,0,0.4);"><span style="color: white; font-weight: bold; font-size: ${14 * scale}px;">${index + 1}</span></div>`, 
+        iconSize: [size + 4, size + 4], 
+        iconAnchor: [(size + 4) / 2, size + 4], 
+        popupAnchor: [0, -(size + 4)] 
+    });
+}
+
 
 // Define the URL as a constant for clarity
 const MML_MAASTOKARTTA_URL = 'https://avoin-karttakuva.maanmittauslaitos.fi/avoin/wmts/1.0.0/maastokartta/default/WGS84_Pseudo-Mercator/{z}/{y}/{x}.png?api-key=903ff7d0-9792-4c41-9515-d66f76ccb69f';
@@ -87,26 +91,26 @@ const LayerControlEventHandler = ({ onFilterChange }: { onFilterChange: (name: s
 
 
 // Icon for Puulaani (Timber Sites / Pickups) with dynamic color
-const createDynamicPuulaaniIcon = (color?: string) => {
+const createDynamicPuulaaniIcon = (color?: string, scale: number = 1) => {
     const markerColor = color || '#1976D2';
+    const baseSize = 20 * scale;
     const html = `
         <div style="
             background-color: ${markerColor};
-            width: 20px;
-            height: 20px;
+            width: ${baseSize}px;
+            height: ${baseSize}px;
             border-radius: 50% 50% 50% 0;
             transform: rotate(-45deg);
-            border: 2px solid #ffffff;
+            border: ${2 * scale}px solid #ffffff;
             box-shadow: 0 3px 6px rgba(0,0,0,0.4);
             display: flex;
             justify-content: center;
             align-items: center;
-            transition: all 0.3s ease;
         ">
             <div style="
                 transform: rotate(45deg);
-                width: 8px;
-                height: 8px;
+                width: ${8 * scale}px;
+                height: ${8 * scale}px;
                 background-color: rgba(255,255,255,0.7);
                 border-radius: 50%;
             "></div>
@@ -115,28 +119,27 @@ const createDynamicPuulaaniIcon = (color?: string) => {
     return L.divIcon({
         className: 'custom-puulaani-pin-icon',
         html: html,
-        iconSize: [28, 28],
-        iconAnchor: [14, 28],
-        popupAnchor: [0, -28]
+        iconSize: [28 * scale, 28 * scale],
+        iconAnchor: [14 * scale, 28 * scale],
+        popupAnchor: [0, -28 * scale]
     });
 };
 
-// Highlighted version for focused puulaani (pulsing animation)
-const createHighlightedPuulaaniIcon = (color?: string) => {
+// 3. Highlighted Puulaani Icon
+const createHighlightedPuulaaniIcon = (color?: string, scale: number = 1) => {
     const markerColor = color || '#1976D2';
+    const baseSize = 20 * scale;
     const html = `
-        <div style="
-            position: relative;
-        ">
+        <div style="position: relative;">
             <div style="
                 position: absolute;
                 background-color: ${markerColor};
-                width: 20px;
-                height: 20px;
+                width: ${baseSize}px;
+                height: ${baseSize}px;
                 border-radius: 50% 50% 50% 0;
                 transform: rotate(-45deg);
-                border: 3px solid #ffffff;
-                box-shadow: 0 0 20px rgba(255,255,255,0.8), 0 4px 10px rgba(0,0,0,0.6);
+                border: ${3 * scale}px solid #ffffff;
+                box-shadow: 0 0 ${20 * scale}px rgba(255,255,255,0.8), 0 4px 10px rgba(0,0,0,0.6);
                 display: flex;
                 justify-content: center;
                 align-items: center;
@@ -144,53 +147,59 @@ const createHighlightedPuulaaniIcon = (color?: string) => {
             ">
                 <div style="
                     transform: rotate(45deg);
-                    width: 10px;
-                    height: 10px;
+                    width: ${10 * scale}px;
+                    height: ${10 * scale}px;
                     background-color: rgba(255,255,255,0.9);
                     border-radius: 50%;
                 "></div>
             </div>
         </div>
-        <style>
-            @keyframes pulse {
-                0%, 100% { 
-                    transform: rotate(-45deg) scale(1); 
-                    opacity: 1; 
-                }
-                50% { 
-                    transform: rotate(-45deg) scale(1.15); 
-                    opacity: 0.9; 
-                }
-            }
-        </style>
     `;
     return L.divIcon({
         className: 'custom-puulaani-pin-icon-highlighted',
         html: html,
-        iconSize: [32, 32],
-        iconAnchor: [16, 32],
-        popupAnchor: [0, -32]
+        iconSize: [32 * scale, 32 * scale],
+        iconAnchor: [16 * scale, 32 * scale],
+        popupAnchor: [0, -32 * scale]
     });
 };
 
-// Icon for Purkupaikka (Drop-off Locations)
-const purkupaikkaIcon = L.divIcon({ 
+// 4. Drop-off (Purkupaikka) Icon
+const createPurkupaikkaIcon = (scale: number = 1) => L.divIcon({ 
     className: 'custom-icon-purkupaikka', 
     html: renderToStaticMarkup(
         <FlagIcon 
             style={{ 
-                fontSize: '20px', 
-                color: '#000000ff', 
-                filter: 'drop-shadow(0 0.5px 1px rgba(0, 0, 0, 0))', 
+                fontSize: `${20 * scale}px`, 
+                color: '#000000', 
                 stroke: 'white', 
                 strokeWidth: 0.5 
             }} 
         />
     ), 
-    iconSize: [24, 24], 
-    iconAnchor: [4, 24], 
-    popupAnchor: [8, -24] 
+    iconSize: [24 * scale, 24 * scale], 
+    iconAnchor: [4 * scale, 24 * scale], 
+    popupAnchor: [8 * scale, -24 * scale] 
 });
+
+// 5. Driver Icon
+const createDriverIcon = (scale: number = 1) => L.divIcon({ 
+    className: 'custom-icon-driver', 
+    html: renderToStaticMarkup(
+        <NavigationIcon 
+            style={{ 
+                fontSize: `${38 * scale}px`, 
+                color: '#f72b07', 
+                transform: 'rotate(-45deg)', 
+                stroke: 'white', 
+                strokeWidth: 2 
+            }} 
+        />
+    ), 
+    iconSize: [38 * scale, 38 * scale], 
+    iconAnchor: [19 * scale, 19 * scale] 
+});
+
 
 export interface TripLegForMap {
     kuormaId: number;
@@ -215,6 +224,7 @@ export interface TripMapProps {
     onManualPanOrZoomAction: () => void; // To disable follow mode
     followUser: boolean; // To enable/disable follow mode
     sidebarWidth?: number;
+     markerScale: number; 
 }
 
 const MapFocusController = ({ focusedTripId, trips, onFocusCompleteAction }: { focusedTripId: number | null | undefined; trips: TripLegForMap[]; onFocusCompleteAction: () => void; }) => {
@@ -292,7 +302,8 @@ export default function TripMap({
     focusedTripId, onFocusCompleteAction, onMarkerClickAction,
     markerFilters, onFilterChangeAction,
     onManualPanOrZoomAction, followUser,
-    sidebarWidth = 0
+    sidebarWidth = 0,
+    markerScale = 1.0
 }: TripMapProps) {
     
     const { t } = useTranslation('tripMap');
@@ -417,8 +428,8 @@ export default function TripMap({
                                             position={[trip.originCoords.lat, trip.originCoords.lng]}
                                             icon={
                                                 focusedTripId === trip.kuormaId 
-                                                    ? createHighlightedPuulaaniIcon(trip.color)
-                                                    : createDynamicPuulaaniIcon(trip.color)
+                                                    ? createHighlightedPuulaaniIcon(trip.color, markerScale)
+                                                    : createDynamicPuulaaniIcon(trip.color, markerScale)
                                             }
                                             eventHandlers={{ click: (e) => onMarkerClickAction(trip.kuormaId, e) }}
                                             zIndexOffset={50} // General markers
@@ -444,7 +455,8 @@ export default function TripMap({
                                 <Marker
                                     key={`purkupaikka-${trip.kuormaId}`}
                                     position={[trip.originCoords.lat, trip.originCoords.lng]}
-                                    icon={purkupaikkaIcon}
+                                    icon={createPurkupaikkaIcon(markerScale)}
+
                                 >
                                     <Popup>{trip.originName}</Popup>
                                 </Marker>
@@ -472,7 +484,7 @@ export default function TripMap({
                     {leg.destinationCoords && (
                         <Marker 
                             position={[leg.destinationCoords.lat, leg.destinationCoords.lng]} 
-                            icon={purkupaikkaIcon}
+                            icon={createPurkupaikkaIcon(markerScale)}
                         >
                             <Popup>
                                 <b>{t('destination')}</b>
@@ -486,11 +498,11 @@ export default function TripMap({
 
             
 
-            {/* Driver location marker */}
+            {/* Driver Live Location Marker with Scaling */}
             {driverLocation && (
                 <Marker 
                     position={[driverLocation.lat, driverLocation.lng]} 
-                    icon={driverIcon}
+                    icon={createDriverIcon(markerScale)} // Scale යොදන ලදී
                 >
                     <Popup>{t('yourLocation')}</Popup>
                 </Marker>

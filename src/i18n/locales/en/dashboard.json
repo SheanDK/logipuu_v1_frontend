@@ -53,5 +53,15 @@
     "pause": "Pause Trip",
     "complete": "Complete Trip",
     "resume": "Resume Trip"
+  },
+  "customerInsight": {
+    "title": "Customer Specific Insight",
+    "selectLabel": "Select Customer",
+    "placeholder": "Start typing customer name...",
+    "noCustomerSelected": "Select a customer above to see specific performance metrics.",
+    "completedToday": "Completed Today",
+    "remainingVolume": "Remaining Vol",
+    "activeStacks": "Active Stacks",
+    "pendingInvoices": "Pending Billing"
   }
 }

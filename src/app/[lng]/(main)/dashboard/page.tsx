@@ -2,7 +2,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { Box, Typography, Stack, CircularProgress, Alert } from '@mui/material';
+import { Box, Typography, Stack, CircularProgress, Alert, Divider, Paper, Autocomplete, TextField, alpha } from '@mui/material';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '@/contexts/AuthContext';
 
@@ -22,26 +22,76 @@ import NoCrashIcon from '@mui/icons-material/NoCrash';
 import FactCheckIcon from '@mui/icons-material/FactCheck';
 import EventAvailableIcon from '@mui/icons-material/EventAvailable';
 import WarningAmberIcon from '@mui/icons-material/WarningAmber';
+import Inventory2Icon from '@mui/icons-material/Inventory2';
 
 // API Services and Types
 import * as dashboardService from '@/services/dashboardService';
-import { IAdminDashboardStats, IDispatchDashboardStats, IDriverDashboardStats, IVolumeByDay, IActiveTripListItem } from '@/types';
+import { fetchAllClients } from '@/services/clientService';
+import { IAdminDashboardStats, IDispatchDashboardStats, IDriverDashboardStats, IVolumeByDay, IActiveTripListItem, IBackendClient } from '@/types';
 
 // Role definitions
 const ADMIN_ROLES = ['Superuser', 'Admin', 'Office'];
 const DISPATCH_ROLES = ['Ajojärjestelijä'];
 const DRIVER_ROLE = 'Kuljettaja';
 
+/**
+ * NEW: Compact version of StatCard for Customer Specific Insight
+ */
+const CompactStatCard = ({ title, value, icon, color }: { title: string; value: string | number; icon: React.ReactNode; color: string }) => (
+    <Paper elevation={0} sx={{
+        p: 1.5,
+        display: 'flex',
+        alignItems: 'center',
+        gap: 2,
+        borderRadius: '12px',
+        border: '1px solid',
+        borderColor: 'divider',
+        bgcolor: (theme) => theme.palette.mode === 'dark' ? alpha(color, 0.1) : alpha(color, 0.05),
+    }}>
+        <Box sx={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            width: 40,
+            height: 40,
+            borderRadius: '10px',
+            bgcolor: color,
+            color: '#fff',
+            flexShrink: 0,
+            '& .MuiSvgIcon-root': { fontSize: 22 } 
+        }}>
+            {icon}
+        </Box>
+        <Box sx={{ minWidth: 0, flexGrow: 1 }}>
+            <Typography variant="h6" sx={{ fontWeight: 'bold', lineHeight: 1.1, mb: 0.2 }}>
+                {value}
+            </Typography>
+            <Typography 
+                variant="caption" 
+                color="text.secondary" 
+                sx={{ fontWeight: '500', display: 'block' }}
+                noWrap 
+            >
+                {title}
+            </Typography>
+        </Box>
+    </Paper>
+);
+
 export default function DashboardPage() {
     const { t } = useTranslation(['dashboard', 'common']); 
     const { user, isLoading: isAuthLoading } = useAuth();
 
-    // Generic state to hold any type of dashboard data
     const [dashboardData, setDashboardData] = useState<any>(null);
     const [volumeData, setVolumeData] = useState<IVolumeByDay[]>([]);
     const [activeTrips, setActiveTrips] = useState<IActiveTripListItem[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
+
+    const [clients, setClients] = useState<IBackendClient[]>([]);
+    const [selectedCustomer, setSelectedCustomer] = useState<IBackendClient | null>(null);
+    const [customerStats, setCustomerStats] = useState<any>(null);
+    const [isCustomerLoading, setIsCustomerLoading] = useState(false);
 
     useEffect(() => {
         if (isAuthLoading) return;
@@ -58,14 +108,16 @@ export default function DashboardPage() {
                 const userRoles = user.roles;
 
                 if (userRoles.some(role => ADMIN_ROLES.includes(role))) {
-                    const [stats, volume, trips] = await Promise.all([
+                    const [stats, volume, trips, allClients] = await Promise.all([
                         dashboardService.getAdminDashboardStats(),
                         dashboardService.getVolumeLast7Days(),
-                        dashboardService.getActiveTripsList()
+                        dashboardService.getActiveTripsList(),
+                        fetchAllClients()
                     ]);
                     setDashboardData(stats);
                     setVolumeData(volume);
                     setActiveTrips(trips);
+                    setClients(allClients);
                 } else if (userRoles.some(role => DISPATCH_ROLES.includes(role))) {
                     const [stats, volume, trips] = await Promise.all([
                         dashboardService.getDispatchDashboardStats(),
@@ -81,7 +133,7 @@ export default function DashboardPage() {
                 }
 
             } catch (err) {
-                setError(t('error')); // Use translated error message
+                setError(t('error')); 
                 console.error(err);
             } finally {
                 setIsLoading(false);
@@ -89,7 +141,26 @@ export default function DashboardPage() {
         };
 
         fetchData();
-    }, [user, isAuthLoading, t]); // Add 't' to dependency array
+    }, [user, isAuthLoading, t]);
+
+    useEffect(() => {
+        const fetchCustomerStats = async () => {
+            if (!selectedCustomer) {
+                setCustomerStats(null);
+                return;
+            }
+            try {
+                setIsCustomerLoading(true);
+                const stats = await dashboardService.getCustomerDashboardStats(selectedCustomer.asiakkaanId);
+                setCustomerStats(stats);
+            } catch (err) {
+                console.error("Failed to fetch customer stats:", err);
+            } finally {
+                setIsCustomerLoading(false);
+            }
+        };
+        fetchCustomerStats();
+    }, [selectedCustomer]);
 
     if (isLoading || isAuthLoading) {
         return <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '80vh' }}><CircularProgress /></Box>;
@@ -104,11 +175,11 @@ export default function DashboardPage() {
             return <Typography>{t('noDataForRole')}</Typography>;
         }
 
-        // --- ADMIN DASHBOARD VIEW ---
         if (user.roles.some(role => ADMIN_ROLES.includes(role))) {
             const data = dashboardData as IAdminDashboardStats;
             return (
                 <Stack spacing={3}>
+                    {/* Top Row: Standard Large Cards */}
                     <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: 'repeat(2, 1fr)', lg: 'repeat(3, 1fr)', xl: 'repeat(6, 1fr)' }, gap: 3 }}>
                         <StatCard title={t('stats.loadsCompletedToday')} value={data.loadsCompletedTodayCount} icon={<CheckCircleOutlineIcon />} color="#2e7d32" />
                         <StatCard title={t('stats.pendingBillings')} value={data.pendingBillingsCount} icon={<HourglassTopIcon />} color="#ed6c02" />
@@ -117,6 +188,81 @@ export default function DashboardPage() {
                         <StatCard title={t('stats.activeVehicles')} value={data.activeVehiclesCount} icon={<LocalShippingIcon />} color="#7b1fa2" />
                         <StatCard title={t('stats.vehiclesNeedingInspection')} value={data.vehiclesNeedingInspectionCount} icon={<WarningAmberIcon />} color="#d32f2f" />
                     </Box>
+
+                    {/* REDUCED HEIGHT SECTION: Customer Specific Insight */}
+                    <Paper variant="outlined" sx={{ p: 2, borderRadius: '16px', bgcolor: 'transparent' }}>
+                        <Stack spacing={2}>
+                            <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} alignItems={{ sm: 'center' }} justifyContent="space-between">
+                                <Typography variant="subtitle1" sx={{ fontWeight: 'bold', color: 'text.secondary', textTransform: 'uppercase', letterSpacing: 1 }}>
+                                    {t('customerInsight.title', 'Customer Specific Insight')}
+                                </Typography>
+                                
+                                <Autocomplete
+                                    sx={{ width: { xs: '100%', sm: 300 } }}
+                                    options={clients}
+                                    getOptionLabel={(option) => option.asiakkaanNimi}
+                                    value={selectedCustomer}
+                                    onChange={(_, newValue) => setSelectedCustomer(newValue)}
+                                    renderInput={(params) => (
+                                        <TextField 
+                                            {...params} 
+                                            label={t('customerInsight.selectLabel', 'Select Customer')} 
+                                            size="small" 
+                                        />
+                                    )}
+                                />
+                            </Stack>
+
+                            {isCustomerLoading ? (
+                                <Box sx={{ display: 'flex', justifyContent: 'center', py: 2 }}>
+                                    <CircularProgress size={24} />
+                                </Box>
+                            ) : customerStats ? (
+                                <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: 'repeat(2, 1fr)', md: 'repeat(4, 1fr)' }, gap: 1.5 }}>
+                                    
+                                    {/* Completed Today */}
+                                    <CompactStatCard 
+                                        title={t('customerInsight.completedToday', 'Completed Today')} 
+                                        value={customerStats.completedTodayCount || 0} 
+                                        icon={<FactCheckIcon />} 
+                                        color="#4caf50" 
+                                    />
+
+                                    {/* Remaining Volume */}
+                                    <CompactStatCard 
+                                        title={t('customerInsight.remainingVolume', 'Remaining Vol')} 
+                                        value={`${Number(customerStats.remainingVolume || 0).toFixed(2)} m³`} 
+                                        icon={<ForestIcon />} 
+                                        color="#03a9f4" 
+                                    />
+
+                                    {/* Active Stacks */}
+                                    <CompactStatCard 
+                                        title={t('customerInsight.activeStacks', 'Active Stacks')} 
+                                        value={customerStats.activeStacksCount || 0} 
+                                        icon={<Inventory2Icon />} 
+                                        color="#9c27b0" 
+                                    />
+
+                                    {/* Pending Billing */}
+                                    <CompactStatCard 
+                                        title={t('customerInsight.pendingInvoices', 'Pending Billing')} 
+                                        value={customerStats.pendingInvoicesCount || 0} 
+                                        icon={<HourglassTopIcon />} 
+                                        color="#ff9800" 
+                                    />
+
+                                </Box>
+                            ) : (
+                                <Typography variant="body2" color="text.secondary" sx={{ fontStyle: 'italic', textAlign: 'center', py: 1 }}>
+                                    {t('customerInsight.noCustomerSelected', 'Select a customer above for specific metrics.')}
+                                </Typography>
+                            )}
+
+                        </Stack>
+                    </Paper>
+
+                    {/* Chart and Sidebar Widgets */}
                     <Stack direction={{ xs: 'column', lg: 'row' }} spacing={3} alignItems="stretch">
                         <Box sx={{ width: '100%', flexBasis: { lg: '70%' } }}><VolumeChart data={volumeData} height="100%" /></Box>
                         <Box sx={{ width: '100%', flexBasis: { lg: '30%' } }}>

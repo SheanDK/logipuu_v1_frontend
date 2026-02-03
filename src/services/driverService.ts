@@ -10,13 +10,13 @@ const API_ENDPOINT = '/drivers';
  * @returns A promise that resolves to an array of IBackendDriver objects.
  */
 export const fetchAllDrivers = async (): Promise<IBackendDriver[]> => {
-    try {
-        const response = await apiClient.get<IBackendDriver[]>(API_ENDPOINT);
-        return response.data;
-    } catch (error) {
-        console.error("SERVICE ERROR: Failed to fetch all drivers", error);
-        throw error;
-    }
+  try {
+    const response = await apiClient.get<IBackendDriver[]>(API_ENDPOINT);
+    return response.data;
+  } catch (error) {
+    console.error("SERVICE ERROR: Failed to fetch all drivers", error);
+    throw error;
+  }
 };
 
 /**
@@ -65,7 +65,7 @@ export const updateDriver = async (driverId: number, driverData: IUpdateDriverDt
 export const deleteDriver = async (driverId: number): Promise<void> => {
   try {
     await apiClient.delete(`${API_ENDPOINT}/${driverId}`);
-  } catch (error) {    
+  } catch (error) {
     console.error(`SERVICE ERROR: API call failed for deleteDriver (${driverId}):`, error);
     throw error;
   }
@@ -75,12 +75,38 @@ export const deleteDriver = async (driverId: number): Promise<void> => {
  * Fetches a list of drivers for basic info (e.g., dropdowns).
  */
 export const fetchDriversListApi = async (): Promise<IDriverBasicInfo[]> => {
-    // This now fetches raw backend data first, then transforms it.
-    const allBackendDrivers: IBackendDriver[] = await fetchAllDrivers(); 
-    return allBackendDrivers.map(driver => ({
-        id: driver.kuljId, // Map kuljId to id
-        name: driver.nimi, // Map nimi to name
-        driverId: driver.kuljId, // Map kuljId to driverId
-        driverName: driver.nimi, // Map nimi to driverName
-    }));
+  // This now fetches raw backend data first, then transforms it.
+  const allBackendDrivers: IBackendDriver[] = await fetchAllDrivers();
+  return allBackendDrivers.map(driver => ({
+    id: driver.kuljId, // Map kuljId to id
+    name: driver.nimi, // Map nimi to name
+    driverId: driver.kuljId, // Map kuljId to driverId
+    driverName: driver.nimi, // Map nimi to driverName
+  }));
+};
+
+/**
+ * get the drivers without account 
+ */
+export const fetchDriversWithoutAccountApi = async (): Promise<IDriverBasicInfo[]> => {
+  try {
+    const response = await apiClient.get<any[]>('/drivers/no-account');
+
+    if (!Array.isArray(response.data)) return [];
+
+    return response.data.map(d => {
+      const nameValue = d.nimi || d.name || d.driverName || d.driver_name || 'Unknown Name';
+      const idValue = d.kuljId || d.kulj_id || d.id;
+
+      return {
+        id: Number(idValue),
+        name: nameValue,
+        driverId: Number(idValue),
+        driverName: nameValue
+      };
+    });
+  } catch (error) {
+    console.error("SERVICE ERROR: Failed to fetch drivers without account", error);
+    return [];
+  }
 };

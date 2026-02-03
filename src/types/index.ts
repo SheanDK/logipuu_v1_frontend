@@ -79,6 +79,7 @@ export interface CreateUserPayload {
     password?: string;
     roleIds: number[];
     isActive?: boolean;
+    kuljId?: number | null; // driver id
 }
 
 export interface UpdateUserPayload {
@@ -271,7 +272,7 @@ export interface IVehicleGridRow extends IVehicle {
 
 export interface ICreateVehicleDto {
     registrationNo: string;
-    previousInspectionDate: string; 
+    previousInspectionDate: string;
     nextInspectionDate: string;
     isActive?: boolean;
 }
@@ -414,7 +415,7 @@ export interface ILoadListItem {
     autoNro?: string; // Vehicle Reg No
     rekNro?: string; // Vehicle Reg No
     nimi?: string; // Puulaani name <-- Added for Timber Management list
-    
+
     // Location Names
     lahto: string; // Origin name
     kohde: string; // Destination name
@@ -426,7 +427,7 @@ export interface ILoadListItem {
     kpl?: number;
     kok?: number | string;// <-- Added for Timber Management list
     jaljella?: number | string;// <-- Added for Timber Management list
-    
+
     // Additional Details
     ajomaaraysNro?: string | null;
     vastaanottoNro?: string | null;
@@ -463,7 +464,7 @@ export interface ITripLeg {
     kuormaId: number; // Should be number
     status: string;
     pvm: string; // The date string, e.g., "2025-10-10T21:00:00.000Z"
-    
+
     // Names
     purkupaikkaName: string;
     puulaaniName?: string;
@@ -529,7 +530,7 @@ export interface IRahtikirjaItem {
 }
 
 export interface IConsignmentForm {
-    asiakasId: number | null | ''; 
+    asiakasId: number | null | '';
     pvm: string;
     lisatiedot?: string;
     rahtikirjat: IRahtikirjaItem[];
@@ -673,7 +674,7 @@ export interface IEditablePuulaani {
     dispatchOrderNo: string | null;
     additionalInfo: string | null;
     autot: any[];
-    timberEntries: any[]; 
+    timberEntries: any[];
 }
 
 export interface IBackendPuulaani {
@@ -706,7 +707,7 @@ export interface IWoodEntry {
     haettu: string;
     jaljella: string;
     valmis: boolean;
-    laji: string; 
+    laji: string;
     purkupaikkaName: string;
     purkupaikkaLat?: number | null;
     purkupaikkaLng?: number | null;
@@ -751,38 +752,38 @@ export interface IPuutavaraItem {
 }
 
 export interface ITimberStackListFilters {
-  status?: 'all' | 'active' | 'completed';
-  clientId?: string | null;
-  vehicleId?: string | null;
-  timberTypeId?: string | null;
+    status?: 'all' | 'active' | 'completed';
+    clientId?: string | null;
+    vehicleId?: string | null;
+    timberTypeId?: string | null;
 }
 
 export interface IWoodCategoryBackendResponse {
-  puutavaraId: number;
-  nimi: string;
-  lisatiedot?: string | null;
-  aktiivinen: boolean;
+    puutavaraId: number;
+    nimi: string;
+    lisatiedot?: string | null;
+    aktiivinen: boolean;
 }
 
 export interface IWoodCategory {
-  id: string;
-  name: string;
-  description: string;
-  isActive: boolean;
+    id: string;
+    name: string;
+    description: string;
+    isActive: boolean;
 }
 
 export interface ICreateWoodCategoryDto {
-  name: string;
-  description?: string;
-  isActive?: boolean;
+    name: string;
+    description?: string;
+    isActive?: boolean;
 }
 
 export type IUpdateWoodCategoryDto = Partial<ICreateWoodCategoryDto>;
 
 export interface IWoodCategoryFormData {
-  name: string;
-  description: string;
-  isActive: boolean;
+    name: string;
+    description: string;
+    isActive: boolean;
 }
 
 export interface ITimberStackWoodEntry {
@@ -830,7 +831,7 @@ export interface IMapDropoffLocation {
     name: string;
     latitude: number;
     longitude: number;
-    isVisibleOnMap: boolean; 
+    isVisibleOnMap: boolean;
 }
 
 export interface IMapTrip {
@@ -855,22 +856,22 @@ export interface IBackendMuuMerkki {
 }
 
 export interface IBackendPurkupaikka {
-  purkupaikkaId: number;
-  asiakasId: number | null;
-  purkupaikka: string;
-  sijaintiLat: number | null;
-  sijaintiLong: number | null;
-  asiakkaanNimi?: string;
+    purkupaikkaId: number;
+    asiakasId: number | null;
+    purkupaikka: string;
+    sijaintiLat: number | null;
+    sijaintiLong: number | null;
+    asiakkaanNimi?: string;
 }
 
 export interface IMapOtherMarker {
-  id: number;
-  name: string;
-  iconType: string;
-  additionalInfo: string | null;
-  color: string;
-  latitude: number;
-  longitude: number;
+    id: number;
+    name: string;
+    iconType: string;
+    additionalInfo: string | null;
+    color: string;
+    latitude: number;
+    longitude: number;
 }
 
 export interface IVehicleLocation {
@@ -949,7 +950,7 @@ export interface IMapFilterState {
     status: 'all' | 'active';
     clientId: string | null;
     vehicleId: string | null;
-     markerTypes: ('puulaani' | 'purkupaikka')[];
+    markerTypes: ('puulaani' | 'purkupaikka')[];
 }
 
 
@@ -971,22 +972,22 @@ export interface IBackendOtherMarker {
 }
 
 export interface IBackendPurkupaikkaResponse {
-  purkupaikkaId: number;
-  asiakasId: number | null;
-  purkupaikka: string;
-  sijaintiLat: number | null;
-  sijaintiLong: number | null;
-  isVisibleOnMap: boolean;
-  clientName: string | null;
+    purkupaikkaId: number;
+    asiakasId: number | null;
+    purkupaikka: string;
+    sijaintiLat: number | null;
+    sijaintiLong: number | null;
+    isVisibleOnMap: boolean;
+    clientName: string | null;
 }
 
 export interface ICreateOtherMarkerDto {
-  name: string;
-  iconType: string;
-  additionalInfo: string | null;
-  color: string;
-  latitude: number;
-  longitude: number;
+    name: string;
+    iconType: string;
+    additionalInfo: string | null;
+    color: string;
+    latitude: number;
+    longitude: number;
 }
 export type IUpdateOtherMarkerDto = Partial<ICreateOtherMarkerDto>;
 

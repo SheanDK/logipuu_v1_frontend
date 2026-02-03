@@ -1,12 +1,11 @@
-
 // src/services/dashboardService.ts
 import apiClient from './apiClient';
-import { 
-    IAdminDashboardStats, 
-    IDispatchDashboardStats, 
-    IDriverDashboardStats, 
-    IVolumeByDay, 
-    IActiveTripListItem 
+import {
+    IAdminDashboardStats,
+    IDispatchDashboardStats,
+    IDriverDashboardStats,
+    IVolumeByDay,
+    IActiveTripListItem
 } from '../types';
 
 const API_ENDPOINT = '/dashboard';
@@ -21,7 +20,7 @@ export const getAdminDashboardStats = async (): Promise<IAdminDashboardStats> =>
     }
 };
 
-// --- NEW: Dispatcher stats සඳහා function එක ---
+
 export const getDispatchDashboardStats = async (): Promise<IDispatchDashboardStats> => {
     try {
         const response = await apiClient.get<IDispatchDashboardStats>(`${API_ENDPOINT}/dispatch`);
@@ -32,7 +31,7 @@ export const getDispatchDashboardStats = async (): Promise<IDispatchDashboardSta
     }
 };
 
-// --- NEW: Driver stats සඳහා function එක ---
+
 export const getDriverDashboardStats = async (): Promise<IDriverDashboardStats> => {
     try {
         const response = await apiClient.get<IDriverDashboardStats>(`${API_ENDPOINT}/driver`);
@@ -59,6 +58,17 @@ export const getActiveTripsList = async (): Promise<IActiveTripListItem[]> => {
         return response.data;
     } catch (error) {
         console.error("SERVICE ERROR: Failed to fetch active trips list", error);
+        throw error;
+    }
+};
+
+// --- NEW: Customer-specific dashboard stats function ---
+export const getCustomerDashboardStats = async (customerId: number) => {
+    try {
+        const response = await apiClient.get(`/dashboard/customer-stats/${customerId}`);
+        return response.data;
+    } catch (error) {
+        console.error(`Error fetching stats for customer ${customerId}:`, error);
         throw error;
     }
 };

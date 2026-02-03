@@ -4,20 +4,18 @@
 import React, { useEffect, useState, useMemo } from 'react';
 import {
     Dialog, DialogTitle, DialogContent, DialogActions, Button, TextField,
-    CircularProgress, Alert, Grid, FormControl, InputLabel, Select, MenuItem,
-    FormControlLabel, FormHelperText, Box, Switch, Typography
-} from '@mui/material';
+    CircularProgress, Alert, Box, FormControl, InputLabel, Select, MenuItem,
+    FormControlLabel, FormHelperText, Switch, Typography
+} from '@mui/material'; // Grid ඉවත් කරන ලදී
 import { useForm, Controller, SubmitHandler } from 'react-hook-form';
 import * as yup from 'yup';
 import { yupResolver } from '@hookform/resolvers/yup';
 
-import { IUser, IRole, CreateUserPayload, UpdateUserPayload } from '../../types';
+import { IUser, IRole, CreateUserPayload, UpdateUserPayload, IDriverBasicInfo } from '../../types';
 import { fetchAllRolesApi } from '../../services/roleService';
-import { minLength } from 'zod';
-
+import { fetchDriversWithoutAccountApi } from '../../services/driverService';
 import { useTranslation } from '@/i18n/useTranslation';
 
-// Props Interface remains the same.
 interface UserFormModalProps {
     open: boolean;
     onCloseAction: () => void;
@@ -28,19 +26,19 @@ interface UserFormModalProps {
     currentUser: IUser | null;
 }
 
-// 1. Define a simple, explicit interface for the form's data structure.
-// This is now the single source of truth for the form's shape.
 interface UserFormData {
     username: string;
     fullName: string;
     password?: string;
     confirmPassword?: string;
-    roleId: number | null;
+    roleId: number | "";
     isActive: boolean;
+    kuljId: number | "";
 }
 
-// 2. Create the Yup schema dynamically based on whether it's edit mode.
-const getValidationSchema = (isEditMode: boolean) =>
+const DRIVER_ROLE_ID = 5;
+
+const getValidationSchema = (isEditMode: boolean, selectedRoleId: number | "") =>
 (yup.object({
     username: yup.string().required('Username is required.'),
     fullName: yup.string().required('Full name is required.'),
@@ -56,20 +54,21 @@ const getValidationSchema = (isEditMode: boolean) =>
             : schema.optional();
     }),
     roleId: yup
-        .number()
-        .transform((v, orig) => (orig === '' ? null : v))
-        .nullable()
-        .typeError('A role must be selected')
-        .required('A role is required'),
+        .mixed()
+        .required('A role is required')
+        .test('not-empty', 'A role must be selected', (val) => val !== ''),
+    kuljId: yup.mixed().when([], {
+        is: () => !isEditMode && selectedRoleId === DRIVER_ROLE_ID,
+        then: (schema) => schema.required('Linking a driver is required').test('not-empty', 'Please select a driver', (val) => val !== ''),
+        otherwise: (schema) => schema.optional()
+    }),
     isActive: yup.boolean().required(),
 }) as yup.ObjectSchema<UserFormData>);
 
-
-
-
-export default function UserFormModal({ open, onCloseAction, onSaveAction, user, isSaving, apiError, currentUser }: UserFormModalProps) {
+export default function UserFormModal({ open, onCloseAction, onSaveAction, user, isSaving, apiError }: UserFormModalProps) {
     const isEditMode = Boolean(user);
     const [allRoles, setAllRoles] = useState<IRole[]>([]);
+    const [driversNoAccount, setDriversNoAccount] = useState<IDriverBasicInfo[]>([]);
     const { t } = useTranslation(['userForm', 'common']);
 
     const {
@@ -77,51 +76,45 @@ export default function UserFormModal({ open, onCloseAction, onSaveAction, user,
         handleSubmit,
         reset,
         watch,
+        setValue,
         formState: { errors, isValid }
     } = useForm<UserFormData>({
-        resolver: yupResolver(getValidationSchema(isEditMode)),
+        resolver: (values, context, options) => {
+            return yupResolver(getValidationSchema(isEditMode, values.roleId))(values, context, options);
+        },
         defaultValues: {
             username: '',
             fullName: '',
             password: '',
             confirmPassword: '',
-            roleId: null,
+            roleId: "",
             isActive: true,
+            kuljId: ""
         },
         mode: 'onChange',
     });
 
+    const selectedRoleId = watch('roleId');
     const [initialFormState, setInitialFormState] = useState<Partial<UserFormData>>({});
     const currentValues = watch();
 
     const hasFormChanged = useMemo(() => {
-        // Create a subset of values to compare for changes.
-        const initialComparable = {
-            fullName: initialFormState.fullName,
-            roleId: initialFormState.roleId,
-            isActive: initialFormState.isActive,
-        };
-        const currentComparable = {
-            fullName: currentValues.fullName,
-            roleId: currentValues.roleId,
-            isActive: currentValues.isActive,
-        };
-        return JSON.stringify(initialComparable) !== JSON.stringify(currentComparable);
-    }, [initialFormState, currentValues]);
-    // --- END CORRECTION ---
+        if (!isEditMode) return true;
+        return (
+            initialFormState.fullName !== currentValues.fullName ||
+            initialFormState.roleId !== currentValues.roleId ||
+            initialFormState.isActive !== currentValues.isActive
+        );
+    }, [isEditMode, initialFormState, currentValues]);
 
     useEffect(() => {
         if (open) {
-            const getRoles = async () => {
-                try {
-                    const rolesData = await fetchAllRolesApi();
-                    setAllRoles(rolesData);
-                } catch (err) { console.error("Failed to load roles:", err); }
-            };
-            getRoles();
+            fetchAllRolesApi().then(setAllRoles).catch(console.error);
+            if (!isEditMode) {
+                fetchDriversWithoutAccountApi().then(setDriversNoAccount).catch(console.error);
+            }
         }
-    }, [open]);
-
+    }, [open, isEditMode]);
 
     useEffect(() => {
         if (open) {
@@ -130,75 +123,223 @@ export default function UserFormModal({ open, onCloseAction, onSaveAction, user,
                 fullName: user?.fullName || '',
                 password: '',
                 confirmPassword: '',
-                roleId: (user?.roleIds?.[0] ?? null) as number | null,
+                roleId: (user?.roleIds?.[0] ?? '') as number | '',
                 isActive: user ? user.isActive : true,
+                kuljId: (user?.driverNumericId ?? '') as number | '',
             };
-
-            console.log('[UserFormModal] user prop:', user);
-            console.log('[UserFormModal] user.roleIds:', user?.roleIds);
-            console.log('[UserFormModal] initialState:', initialState);
-
             reset(initialState);
             setInitialFormState(initialState);
         }
     }, [user, open, reset]);
 
+    const handleDriverSelect = (id: number) => {
+        const drv = driversNoAccount.find(d => d.id === id);
+        if (drv) {
+            setValue('fullName', drv.name, { shouldValidate: true });
+        }
+    };
+
     const onSubmitHandler: SubmitHandler<UserFormData> = async (data) => {
-        if (typeof data.roleId !== 'number') return;
+        if (data.roleId === '') return;
 
         let payload: CreateUserPayload | UpdateUserPayload;
         if (isEditMode) {
             payload = { fullName: data.fullName, roleIds: [data.roleId], isActive: data.isActive };
         } else {
-            payload = { ...data, roleIds: [data.roleId] };
-            delete (payload as any).confirmPassword;
-            delete (payload as any).roleId;
+            payload = {
+                username: data.username,
+                fullName: data.fullName,
+                password: data.password,
+                isActive: data.isActive,
+                roleIds: [Number(data.roleId)],
+                kuljId: data.roleId === DRIVER_ROLE_ID ? Number(data.kuljId) : null
+            };
         }
         await onSaveAction(payload, user?.username);
     };
 
-    const isSaveButtonDisabled = () => {
-        if (isSaving || !isValid) return true;
-        if (isEditMode) {
-            return !hasFormChanged;
-        }
-        // In create mode, we can rely on `isValid`. The form starts empty, so any valid state is a change.
-        return false;
-    };
-
     return (
         <Dialog open={open} onClose={onCloseAction} fullWidth maxWidth="sm">
-            <DialogTitle>{user ? t('titles.edit') : t('titles.add')}</DialogTitle>
+            <DialogTitle sx={{ fontWeight: 'bold' }}>
+                {user ? t('titles.edit') : t('titles.add')}
+            </DialogTitle>
             <form id="user-form" onSubmit={handleSubmit(onSubmitHandler)}>
                 <DialogContent dividers>
-                    {apiError && <Alert severity="error" sx={{ mb: 2 }}>{apiError || t('errors.api')}</Alert>}
-                    <Box
-                        sx={{
-                            display: 'grid',
-                            gap: 2,
-                            pt: 1,
-                            gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr' },
-                        }}
-                    >
-                        <Box><Controller name="username" control={control} render={({ field }) => <TextField {...field} label={t('fields.username')} fullWidth required disabled={isEditMode} error={!!errors.username} helperText={errors.username?.message} />} /></Box>
-                        <Box><Controller name="fullName" control={control} render={({ field }) => <TextField {...field} label={t('fields.fullName')} fullWidth required error={!!errors.fullName} helperText={errors.fullName?.message} />} /></Box>
+                    {apiError && <Alert severity="error" sx={{ mb: 2 }}>{apiError}</Alert>}
+
+                    {/* Grid වෙනුවට Box display: grid භාවිතා කරන ලදී */}
+                    <Box sx={{
+                        display: 'grid',
+                        gap: 2,
+                        pt: 1,
+                        gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr' }
+                    }}>
+
+                        {/* Role Selection - Full width */}
+                        <Box sx={{ gridColumn: { xs: 'span 1', sm: 'span 2' } }}>
+                            <FormControl fullWidth required size="small" error={!!errors.roleId}>
+                                <InputLabel id="role-select-label">{t('fields.role')}</InputLabel>
+                                <Controller
+                                    name="roleId"
+                                    control={control}
+                                    render={({ field }) => (
+                                        <Select
+                                            {...field}
+                                            value={field.value ?? ''}
+                                            labelId="role-select-label"
+                                            label={t('fields.role')}
+                                            onChange={(e) => field.onChange(e.target.value)}
+                                        >
+                                            {allRoles.map((role) => (
+                                                <MenuItem key={role.rooliId} value={role.rooliId}>
+                                                    {role.roolinNimi}
+                                                </MenuItem>
+                                            ))}
+                                        </Select>
+                                    )}
+                                />
+                                {errors.roleId && <FormHelperText>{errors.roleId.message as string}</FormHelperText>}
+                            </FormControl>
+                        </Box>
+
+                        {/* Driver Link Dropdown */}
+                        {!isEditMode && Number(selectedRoleId) === DRIVER_ROLE_ID && (
+                            <Box sx={{ gridColumn: { xs: 'span 1', sm: 'span 2' } }}>
+                                <FormControl fullWidth required size="small" error={!!errors.kuljId}>
+                                    <InputLabel id="driver-link-label">Link to Existing Driver</InputLabel>
+                                    <Controller
+                                        name="kuljId"
+                                        control={control}
+                                        render={({ field }) => (
+                                            <Select
+                                                {...field}
+                                                // avoid null values
+                                                value={field.value !== null && field.value !== undefined ? field.value : ''}
+                                                labelId="driver-link-label"
+                                                label="Link to Existing Driver"
+                                                onChange={(e) => {
+                                                    const val = e.target.value;
+                                                    const numericVal = String(val) === '' ? null : Number(val);
+                                                    field.onChange(numericVal);
+                                                    if (numericVal !== null) handleDriverSelect(numericVal);
+                                                }}
+                                            >
+                                                {/* if no drivers available without an account */}
+                                                {driversNoAccount.length === 0 ? (
+                                                    <MenuItem disabled value="">
+                                                        <em>No drivers available without an account</em>
+                                                    </MenuItem>
+                                                ) : (
+                                                    driversNoAccount.map((d) => (
+                                                        <MenuItem key={d.id} value={d.id}>
+                                                            {d.name}
+                                                        </MenuItem>
+                                                    ))
+                                                )}
+                                            </Select>
+                                        )}
+                                    />
+                                    <FormHelperText>
+                                        {errors.kuljId ? (errors.kuljId.message as string) : 'Select a driver from Driver Management.'}
+                                    </FormHelperText>
+                                </FormControl>
+                            </Box>
+                        )}
+
+                        <Box>
+                            <Controller
+                                name="username"
+                                control={control}
+                                render={({ field }) => (
+                                    <TextField
+                                        {...field}
+                                        value={field.value ?? ''}
+                                        label={t('fields.username')}
+                                        fullWidth required size="small"
+                                        disabled={isEditMode}
+                                        error={!!errors.username}
+                                        helperText={errors.username?.message}
+                                    />
+                                )}
+                            />
+                        </Box>
+
+                        <Box>
+                            <Controller
+                                name="fullName"
+                                control={control}
+                                render={({ field }) => (
+                                    <TextField
+                                        {...field}
+                                        value={field.value ?? ''}
+                                        label={t('fields.fullName')}
+                                        fullWidth required size="small"
+                                        error={!!errors.fullName}
+                                        helperText={errors.fullName?.message}
+                                    />
+                                )}
+                            />
+                        </Box>
+
                         {!isEditMode && (
                             <>
-                                <Box><Controller name="password" control={control} render={({ field }) => <TextField {...field} type="password" label={t('fields.password')} fullWidth required={!isEditMode} error={!!errors.password} helperText={errors.password?.message} />} /></Box>
-                                <Box><Controller name="confirmPassword" control={control} render={({ field }) => <TextField {...field} type="password" label={t('fields.confirmPassword')} fullWidth required={!isEditMode} error={!!errors.confirmPassword} helperText={errors.confirmPassword?.message} />} /></Box>
+                                <Box>
+                                    <Controller
+                                        name="password"
+                                        control={control}
+                                        render={({ field }) => (
+                                            <TextField
+                                                {...field}
+                                                value={field.value ?? ''}
+                                                type="password"
+                                                label={t('fields.password')}
+                                                fullWidth required size="small"
+                                                error={!!errors.password}
+                                                helperText={errors.password?.message}
+                                            />
+                                        )}
+                                    />
+                                </Box>
+                                <Box>
+                                    <Controller
+                                        name="confirmPassword"
+                                        control={control}
+                                        render={({ field }) => (
+                                            <TextField
+                                                {...field}
+                                                value={field.value ?? ''}
+                                                type="password"
+                                                label={t('fields.confirmPassword')}
+                                                fullWidth required size="small"
+                                                error={!!errors.confirmPassword}
+                                                helperText={errors.confirmPassword?.message}
+                                            />
+                                        )}
+                                    />
+                                </Box>
                             </>
                         )}
-                        <Box><FormControl fullWidth required error={!!errors.roleId}><InputLabel id="role-select-label">{t('fields.role')}</InputLabel><Controller name="roleId" control={control} render={({ field }) => (<Select {...field} labelId="role-select-label" label={t('fields.role')} sx={{ width: 150 }} onChange={(e) => field.onChange(Number(e.target.value))} >{allRoles.map((role) => (<MenuItem key={role.rooliId} value={role.rooliId}>{role.roolinNimi}</MenuItem>))}</Select>)} />{errors.roleId && <FormHelperText>{errors.roleId.message}</FormHelperText>}</FormControl></Box>
-                        <Box><FormControlLabel control={<Controller name="isActive" control={control} render={({ field }) => <Switch {...field} checked={field.value} />} />} label={<Typography>{t('fields.status')} <b>{watch('isActive') ? t('status.active') : t('status.inactive')}</b></Typography>} /></Box>
+
+                        {/* Status Switch - Full width */}
+                        <Box sx={{ gridColumn: { xs: 'span 1', sm: 'span 2' } }}>
+                            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', bgcolor: 'grey.50', p: 1, borderRadius: 1 }}>
+                                <Typography variant="body2">{t('fields.status')} <b>{watch('isActive') ? t('status.active') : t('status.inactive')}</b></Typography>
+                                <Controller
+                                    name="isActive"
+                                    control={control}
+                                    render={({ field }) => <Switch {...field} checked={field.value} />}
+                                />
+                            </Box>
+                        </Box>
                     </Box>
                 </DialogContent>
-                <DialogActions sx={{ p: 2 }}>
+
+                <DialogActions sx={{ p: 2, bgcolor: 'grey.50' }}>
                     <Button onClick={onCloseAction} disabled={isSaving}>{t('common:buttons.cancel')}</Button>
                     <Button
                         type="submit"
-                        form="user-form"
                         variant="contained"
-                        disabled={isSaveButtonDisabled()}
+                        disabled={isSaving || !isValid || (isEditMode && !hasFormChanged)}
                     >
                         {isSaving ? <CircularProgress size={24} color="inherit" /> : t('common:buttons.save')}
                     </Button>
