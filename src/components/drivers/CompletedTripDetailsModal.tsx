@@ -2,9 +2,9 @@
 'use client';
 
 import React from 'react';
-import { 
-    Dialog, DialogTitle, DialogContent, DialogActions, 
-    Typography, IconButton, Box, Stack, Divider, CircularProgress, 
+import {
+    Dialog, DialogTitle, DialogContent, DialogActions,
+    Typography, IconButton, Box, Stack, Divider, CircularProgress,
     Button, Chip, Table, TableBody, TableCell, TableContainer, TableHead, TableRow
 } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
@@ -40,14 +40,14 @@ interface CompletedTripDetails {
 interface CompletedTripDetailsModalProps {
     open: boolean;
     onCloseAction: () => void;
-    data?: CompletedTripDetails | null; 
-    tripDetails?: CompletedTripDetails | null; 
+    data?: CompletedTripDetails | null;
+    tripDetails?: CompletedTripDetails | null;
     isLoading?: boolean;
 }
 
 export default function CompletedTripDetailsModal({ open, onCloseAction, data, tripDetails, isLoading }: CompletedTripDetailsModalProps) {
     const { t } = useTranslation(['completedTripDetails', 'common', 'loadsPage']);
-    
+
     const details = data || tripDetails;
     const fmtNum = (val: any) => Number(val || 0).toFixed(2);
     const fmtInt = (val: any) => Number(val || 0);
@@ -55,9 +55,12 @@ export default function CompletedTripDetailsModal({ open, onCloseAction, data, t
     const isConsignment = details?.tyyppi === 1 || details?.tyyppi === 'Consignment';
 
     // Calculate totals
-    const totalM3 = details?.m3 || details?.rahtikirjat?.reduce((s, i) => s + (Number(i.m3)||0), 0) || 0;
-    const totalKm = details?.km || details?.rahtikirjat?.reduce((s, i) => s + (Number(i.km)||0), 0) || 0;
-    const totalKpl = details?.rahtikirjat?.reduce((s, i) => s + (Number(i.kpl)||0), 0) || 0;
+    const totalM3 = isConsignment
+        ? (details?.rahtikirjat?.reduce((s, i) => s + (Number(i.m3) || 0), 0) || 0)
+        : (details?.m3 || 0);
+
+    const totalKm = details?.km || details?.rahtikirjat?.reduce((s, i) => s + (Number(i.km) || 0), 0) || 0;
+    const totalKpl = details?.rahtikirjat?.reduce((s, i) => s + (Number(i.kpl) || 0), 0) || 0;
 
     const translateStatus = (status?: string) => {
         if (!status) return '-';
@@ -69,16 +72,16 @@ export default function CompletedTripDetailsModal({ open, onCloseAction, data, t
             <DialogTitle sx={{ bgcolor: '#f5f5f5', borderBottom: '1px solid #ddd', pb: 2 }}>
                 <Stack direction="row" justifyContent="space-between" alignItems="center">
                     <Typography variant="h6" sx={{ fontWeight: 'bold' }}>
-                        {isConsignment 
+                        {isConsignment
                             ? `${t('titleConsignment', { defaultValue: 'Consignment Details' })} #${details?.kuormaId || ''}`
                             : `${t('titleTimber', { defaultValue: 'Timber Load Details' })} #${details?.kuormaId || ''}`
                         }
                     </Typography>
                     {details?.status && (
-                        <Chip 
-                            label={translateStatus(details.status)} 
-                            color={details.status === 'Completed' ? 'success' : 'default'} 
-                            size="small" 
+                        <Chip
+                            label={translateStatus(details.status)}
+                            color={details.status === 'Completed' ? 'success' : 'default'}
+                            size="small"
                         />
                     )}
                 </Stack>
@@ -93,7 +96,7 @@ export default function CompletedTripDetailsModal({ open, onCloseAction, data, t
                     <Typography color="error" align="center">{t('error', { defaultValue: 'No details available.' })}</Typography>
                 ) : (
                     <Stack spacing={3} sx={{ mt: 1 }}>
-                        
+
                         {/* ================= HEADER SECTION ================= */}
                         {isConsignment ? (
                             // CONSIGNMENT HEADER: Date | Vehicle | Driver
@@ -105,11 +108,11 @@ export default function CompletedTripDetailsModal({ open, onCloseAction, data, t
                                     </Typography>
                                 </Box>
                                 <Box>
-                                    <Typography variant="caption" color="text.secondary" fontWeight="bold">{t('common:vehicle', {defaultValue: 'Vehicle No'})}</Typography>
+                                    <Typography variant="caption" color="text.secondary" fontWeight="bold">{t('common:vehicle', { defaultValue: 'Vehicle No' })}</Typography>
                                     <Typography variant="body1" fontWeight="500">{details.rekNro || '-'}</Typography>
                                 </Box>
                                 <Box>
-                                    <Typography variant="caption" color="text.secondary" fontWeight="bold">{t('common:driver', {defaultValue: 'Driver'})}</Typography>
+                                    <Typography variant="caption" color="text.secondary" fontWeight="bold">{t('common:driver', { defaultValue: 'Driver' })}</Typography>
                                     <Typography variant="body1" fontWeight="500">{details.kuljettajanNimi || '-'}</Typography>
                                 </Box>
                             </Box>
@@ -140,25 +143,25 @@ export default function CompletedTripDetailsModal({ open, onCloseAction, data, t
                             // CONSIGNMENT VIEW (TABLE)
                             <Box>
                                 <Typography variant="subtitle2" gutterBottom sx={{ fontWeight: 'bold' }}>
-                                    {t('labels.waybills', {defaultValue: 'Waybills'})} ({details.rahtikirjat?.length || 0})
+                                    {t('labels.waybills', { defaultValue: 'Waybills' })} ({details.rahtikirjat?.length || 0})
                                 </Typography>
                                 <TableContainer sx={{ border: '1px solid #e0e0e0', borderRadius: 1 }}>
                                     <Table size="small">
                                         <TableHead sx={{ bgcolor: '#f5f5f5' }}>
                                             <TableRow>
                                                 <TableCell sx={{ fontWeight: 'bold' }}>{t('labels.customer')}</TableCell>
-                                                <TableCell sx={{ fontWeight: 'bold' }}>{t('labels.waybillNo', {defaultValue: 'Waybill #'})}</TableCell>
-                                                <TableCell sx={{ fontWeight: 'bold' }}>{t('labels.route', {defaultValue: 'Route'})}</TableCell>
-                                                <TableCell align="right" sx={{ fontWeight: 'bold' }}>{t('labels.cubicMetres', {defaultValue: 'Volume (m³)'})}</TableCell>
-                                                <TableCell align="right" sx={{ fontWeight: 'bold' }}>{t('labels.freightKm', {defaultValue: 'Distance (km)'})}</TableCell>
-                                                <TableCell align="right" sx={{ fontWeight: 'bold' }}>{t('labels.pcs', {defaultValue: 'Pcs'})}</TableCell>
+                                                <TableCell sx={{ fontWeight: 'bold' }}>{t('labels.waybillNo', { defaultValue: 'Waybill #' })}</TableCell>
+                                                <TableCell sx={{ fontWeight: 'bold' }}>{t('labels.route', { defaultValue: 'Route' })}</TableCell>
+                                                <TableCell align="right" sx={{ fontWeight: 'bold' }}>{t('labels.cubicMetres', { defaultValue: 'Volume (m³)' })}</TableCell>
+                                                <TableCell align="right" sx={{ fontWeight: 'bold' }}>{t('labels.freightKm', { defaultValue: 'Distance (km)' })}</TableCell>
+                                                <TableCell align="right" sx={{ fontWeight: 'bold' }}>{t('labels.pcs', { defaultValue: 'Pcs' })}</TableCell>
                                             </TableRow>
                                         </TableHead>
                                         <TableBody>
                                             {(!details.rahtikirjat || details.rahtikirjat.length === 0) ? (
                                                 <TableRow>
                                                     <TableCell colSpan={6} align="center" sx={{ py: 3, color: 'text.secondary' }}>
-                                                        {t('messages.noWaybills', {defaultValue: 'No waybills found.'})}
+                                                        {t('messages.noWaybills', { defaultValue: 'No waybills found.' })}
                                                     </TableCell>
                                                 </TableRow>
                                             ) : (
@@ -173,11 +176,20 @@ export default function CompletedTripDetailsModal({ open, onCloseAction, data, t
                                                     </TableRow>
                                                 ))
                                             )}
+                                            {/* Totals Row - to show Volume and Pcs totals only */}
                                             <TableRow sx={{ bgcolor: '#e3f2fd', '& td': { fontWeight: 'bold' } }}>
-                                                <TableCell colSpan={3} align="right">{t('labels.total', {defaultValue: 'Total:'})}</TableCell>
-                                                <TableCell align="right">{fmtNum(totalM3)}</TableCell>
-                                                <TableCell align="right">{fmtNum(totalKm)}</TableCell>
-                                                <TableCell align="right">{fmtInt(totalKpl)}</TableCell>
+                                                <TableCell colSpan={3} align="right">
+                                                    {t('labels.total', { defaultValue: 'Total:' })}
+                                                </TableCell>
+                                                <TableCell align="right">
+                                                    {fmtNum(totalM3)}
+                                                </TableCell>
+                                                <TableCell align="right">
+                                                    -
+                                                </TableCell>
+                                                <TableCell align="right">
+                                                    {fmtInt(totalKpl)}
+                                                </TableCell>
                                             </TableRow>
                                         </TableBody>
                                     </Table>
@@ -195,11 +207,11 @@ export default function CompletedTripDetailsModal({ open, onCloseAction, data, t
                                     <Typography variant="body2" fontWeight="bold">{details.kohde || '-'}</Typography>
                                 </Box>
                                 <Box>
-                                    <Typography variant="caption" color="text.secondary" fontWeight="bold">{t('labels.volume')} (m³)</Typography>
+                                    <Typography variant="caption" color="text.secondary" fontWeight="bold">{t('labels.volume')} </Typography>
                                     <Typography variant="body2" fontWeight="bold">{fmtNum(details.m3)}</Typography>
                                 </Box>
                                 <Box>
-                                    <Typography variant="caption" color="text.secondary" fontWeight="bold">{t('labels.distance')} (km)</Typography>
+                                    <Typography variant="caption" color="text.secondary" fontWeight="bold">{t('labels.distance')}</Typography>
                                     <Typography variant="body2" fontWeight="bold">{fmtNum(details.km)}</Typography>
                                 </Box>
                             </Box>
