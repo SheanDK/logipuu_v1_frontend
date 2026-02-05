@@ -1,18 +1,25 @@
 image: node:20-alpine
 
 variables:
+  # Node.js memory settings
+  NODE_OPTIONS: "--max-old-space-size=4096"
   NODE_ENV: production
+  # Next.js optimization
+  NEXT_TELEMETRY_DISABLED: 1
 
 cache:
-  key: ${CI_COMMIT_REF_SLUG}
+  key: 
+    files:
+      - package-lock.json
   paths:
     - node_modules/
+    - .next/cache/
 
 before_script:
-  # Alpine packages
+  # Install system dependencies
   - apk add --no-cache python3 make g++ avahi-dev dbus-dev
-  # Install dependencies
-  - npm ci
+  # Install npm packages
+  - npm ci --prefer-offline --no-audit
 
 stages:
   - build
@@ -20,12 +27,20 @@ stages:
 build:
   stage: build
   script:
+    # Clear old build files
+    - rm -rf .next out
+    # Build with optimization
     - npm run build
   artifacts:
     paths:
-      - build/
-      - dist/
+      - .next/
+      - public/
+      - package.json
     expire_in: 1 day
   only:
     - main
     - develop
+  retry:
+    max: 2
+    when:
+      - runner_system_failure
