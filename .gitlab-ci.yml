@@ -1,21 +1,54 @@
+# GitLab CI/CD Configuration File
+
+# Docker image එක define කරනවා
 image: node:20-alpine
 
-variables:
-  UV_THREADPOOL_SIZE: 1
-  NPM_CONFIG_JOBS: 1
-  NPM_CONFIG_AUDIT: "false"
-  NPM_CONFIG_PROGRESS: "false"
-
+# Pipeline එකේ stages
 stages:
   - build
+  - test
+  - deploy
 
-build-frontend:
+# Cache configuration - node_modules cache කරන්න
+cache:
+  paths:
+    - node_modules/
+
+# Build stage
+build:
   stage: build
+  before_script:
+    # Alpine Linux වල නිවැරදි packages install කරනවා
+    - apk add --no-cache python3 make g++ avahi-dev avahi-compat-howl-dev
   script:
-    - apk add --no-cache python3 make g++ avahi-dev avahi-compat-libdns_sd
-    - npm install --network-concurrency 1
-    - NODE_OPTIONS=--max-old-space-size=1536 npm run build
+    - npm ci
+    - npm run build
   artifacts:
     paths:
-      - .next/
-    expire_in: 1 week
+      - build/
+      - dist/
+    expire_in: 1 hour
+
+# Test stage
+test:
+  stage: test
+  before_script:
+    - apk add --no-cache python3 make g++ avahi-dev avahi-compat-howl-dev
+  script:
+    - npm ci
+    - npm run test
+  coverage: '/All files[^|]*\|[^|]*\s+([\d\.]+)/'
+
+# Deploy stage
+deploy:
+  stage: deploy
+  before_script:
+    - apk add --no-cache python3 make g++ avahi-dev avahi-compat-howl-dev
+  script:
+    - npm ci
+    - npm run build
+    - echo "Deploying application..."
+    # ඔයාගේ deployment commands මෙතන add කරන්න
+  only:
+    - main
+    - master
