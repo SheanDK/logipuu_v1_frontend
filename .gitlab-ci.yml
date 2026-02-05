@@ -12,7 +12,7 @@ stages:
 build-frontend:
   stage: build
   script:
-    - apk add --no-cache python3 make g++ avahi-compat-libdns_sd-dev
+    - apk add --no-cache python3 make g++ avahi-dev avahi-compat-libdns_sd
     - npm install --network-concurrency 1
     - NODE_OPTIONS=--max-old-space-size=1536 npm run build
   artifacts:
