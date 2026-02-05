@@ -1,7 +1,8 @@
-image: node:20-alpine
+image: node:20
 
 before_script:
-  - apk add --no-cache python3 make g++ avahi-dev avahi-compat-howl-dev
+  - apt-get update
+  - apt-get install -y python3 make g++ libavahi-compat-libdnssd-dev
   - npm ci
 
 build:
