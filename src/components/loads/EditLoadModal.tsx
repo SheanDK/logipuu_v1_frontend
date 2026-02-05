@@ -47,7 +47,7 @@ interface EditLoadModalProps {
     open: boolean;
     onCloseAction: () => void;
     onSaveSuccessAction: (message: string) => void;
-    loadData: any; 
+    loadData: any;
     currentUser: IUser;
 }
 
@@ -56,7 +56,7 @@ export default function EditLoadModal({ open, onCloseAction, onSaveSuccessAction
     const schema = useMemo(() => buildSchema(t), [t]);
     const [isSaving, setIsSaving] = useState(false);
     const [error, setError] = useState<string | null>(null);
-    
+
     const { control, handleSubmit, reset, formState: { errors } } = useForm<EditLoadFormData>({
         resolver: yupResolver(schema) as any,
         mode: 'onChange',
@@ -71,7 +71,7 @@ export default function EditLoadModal({ open, onCloseAction, onSaveSuccessAction
         return loadData;
     }, [loadData]);
 
-    
+
     const displayId = useMemo(() => {
         if (!loadToEdit) return '';
         if (loadToEdit.kuormaId) return loadToEdit.kuormaId;
@@ -129,14 +129,14 @@ export default function EditLoadModal({ open, onCloseAction, onSaveSuccessAction
             <Dialog open={open} onClose={onCloseAction} maxWidth="sm" fullWidth>
                 <DialogTitle sx={{ m: 0, p: 2, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                     <Typography variant="h6" component="div" sx={{ fontWeight: 'bold' }}>
-                         {t('editLoadModal:title', { id: displayId, defaultValue: `Edit Load #${displayId}` })}
+                        {t('editLoadModal:title', { id: displayId, defaultValue: `Edit Load #${displayId}` })}
                     </Typography>
                     <IconButton onClick={onCloseAction}><CloseIcon /></IconButton>
                 </DialogTitle>
                 <Box component="form" onSubmit={handleSubmit(onSubmit)}>
                     <DialogContent dividers>
                         {error && <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>}
-                        
+
                         <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr' }, gap: 2, mb: 2 }}>
                             <Controller
                                 name="pvm"
@@ -146,7 +146,7 @@ export default function EditLoadModal({ open, onCloseAction, onSaveSuccessAction
                                         label={t('editLoadModal:fields.date')}
                                         value={field.value ? dayjs(field.value) : null}
                                         onChange={(date) => field.onChange(date?.toDate() ?? null)}
-                                        format="DD.MM.YYYY"
+                                        format={t('common:formats.date', { defaultValue: 'DD.MM.YYYY' })}
                                         slotProps={{ textField: { fullWidth: true, size: 'small' } }}
                                     />
                                 )}
@@ -155,7 +155,7 @@ export default function EditLoadModal({ open, onCloseAction, onSaveSuccessAction
                                 name="ajomaaraysNro"
                                 control={control}
                                 render={({ field }) => (
-                                    <TextField {...field} label={t('editLoadModal:fields.drivingOrderNo', {defaultValue: 'Driving Order No'})} fullWidth size="small" />
+                                    <TextField {...field} label={t('editLoadModal:fields.drivingOrderNo', { defaultValue: 'Driving Order No' })} fullWidth size="small" />
                                 )}
                             />
                         </Box>
@@ -172,18 +172,18 @@ export default function EditLoadModal({ open, onCloseAction, onSaveSuccessAction
                             <Controller
                                 name="reitti"
                                 control={control}
-                                render={({ field }) => <TextField {...field} label={t('editLoadModal:fields.route', {defaultValue: 'Route'})} fullWidth size="small" />}
+                                render={({ field }) => <TextField {...field} label={t('editLoadModal:fields.route', { defaultValue: 'Route' })} fullWidth size="small" />}
                             />
                         </Box>
 
                         <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr 1fr', sm: 'repeat(4, 1fr)' }, gap: 2, mb: 2 }}>
-                            <Controller name="m3" control={control} render={({ field }) => <TextField {...field} label="m3" type="number" fullWidth size="small" />} />
-                            <Controller name="km" control={control} render={({ field }) => <TextField {...field} label="km" type="number" fullWidth size="small" />} />
-                            <Controller name="tunnit" control={control} render={({ field }) => <TextField {...field} label="h" type="number" fullWidth size="small" />} />
-                            <Controller name="kpl" control={control} render={({ field }) => <TextField {...field} label="kpl" type="number" fullWidth size="small" />} />
+                            <Controller name="m3" control={control} render={({ field }) => <TextField {...field} label={t('common:units.m3', { defaultValue: 'm³' })} type="number" fullWidth size="small" />} />
+                            <Controller name="km" control={control} render={({ field }) => <TextField {...field} label={t('common:units.km', { defaultValue: 'km' })} type="number" fullWidth size="small" />} />
+                            <Controller name="tunnit" control={control} render={({ field }) => <TextField {...field} label={t('common:units.hours', { defaultValue: 'h' })} type="number" fullWidth size="small" />} />
+                            <Controller name="kpl" control={control} render={({ field }) => <TextField {...field} label={t('common:units.pcs', { defaultValue: 'kpl' })} type="number" fullWidth size="small" />} />
                         </Box>
-                         
-                        <Controller name="lisatiedot" control={control} render={({ field }) => <TextField {...field} label="Info" multiline rows={2} fullWidth size="small" />} />
+
+                        <Controller name="lisatiedot" control={control} render={({ field }) => <TextField {...field} label={t('editLoadModal:fields.additionalInfo', { defaultValue: 'Info' })} multiline rows={2} fullWidth size="small" />} />
                     </DialogContent>
                     <DialogActions>
                         <Button onClick={onCloseAction}>{t('common:buttons.cancel')}</Button>

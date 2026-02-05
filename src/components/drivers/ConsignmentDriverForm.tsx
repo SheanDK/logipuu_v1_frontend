@@ -76,9 +76,9 @@ const WaybillEditorForm = ({
 
     const onSubmit = (data: IExtendedRahtikirjaItem) => {
         const selectedCustomer = customers.find(c => String(c.asiakkaanId) === String(data.asiakasId));
-        const dataWithDisplay = { 
-            ...data, 
-            customerName: selectedCustomer ? selectedCustomer.asiakkaanNimi : '' 
+        const dataWithDisplay = {
+            ...data,
+            customerName: selectedCustomer ? selectedCustomer.asiakkaanNimi : ''
         };
 
         if (isEditMode) {
@@ -100,13 +100,13 @@ const WaybillEditorForm = ({
                     control={control}
                     rules={{ required: t('validation.customerRequired') as string }}
                     render={({ field, fieldState: { error } }) => (
-                        <TextField 
-                            {...field} 
-                            label={t('fields.selectCustomer')} 
-                            select 
-                            SelectProps={{ native: true }} 
-                            size="small" 
-                            error={!!error} 
+                        <TextField
+                            {...field}
+                            label={t('fields.selectCustomer')}
+                            select
+                            SelectProps={{ native: true }}
+                            size="small"
+                            error={!!error}
                             helperText={error?.message}
                             fullWidth
                         >
@@ -122,14 +122,14 @@ const WaybillEditorForm = ({
                 </Box>
 
                 <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr 1fr', sm: 'repeat(4, 1fr)' }, gap: 2 }}>
-                    <Controller name="m3" control={control} render={({ field }) => <TextField {...field} label={t('fields.m3')} type="number" size="small" />} />
-                    <Controller name="km" control={control} render={({ field }) => <TextField {...field} label={t('fields.km')} type="number" size="small" />} />
-                    <Controller name="kpl" control={control} render={({ field }) => <TextField {...field} label={t('fields.pcs')} type="number" size="small" />} />
-                    <Controller name="jako" control={control} render={({ field }) => <TextField {...field} label={t('fields.dist')} type="number" size="small" />} />
+                    <Controller name="m3" control={control} render={({ field }) => <TextField {...field} label={t('common:units.m3', { defaultValue: 'm³' })} type="number" size="small" />} />
+                    <Controller name="km" control={control} render={({ field }) => <TextField {...field} label={t('common:units.km', { defaultValue: 'km' })} type="number" size="small" />} />
+                    <Controller name="kpl" control={control} render={({ field }) => <TextField {...field} label={t('common:units.pcs', { defaultValue: 'kpl' })} type="number" size="small" />} />
+                    <Controller name="jako" control={control} render={({ field }) => <TextField {...field} label={t('common:units.hours', { defaultValue: 'h' })} type="number" size="small" />} />
                 </Box>
-                
-                <Controller name="tievero" control={control} render={({ field }) => <TextField {...field} label={t('fields.roadToll')} type="number" size="small" />} />
-                <Controller name="lisatiedot" control={control} render={({ field }) => <TextField {...field} label={t('fields.notes')} size="small" multiline rows={2} />} />
+
+                <Controller name="tievero" control={control} render={({ field }) => <TextField {...field} label={t('consignmentForm:fields.roadToll', { defaultValue: 'Road Toll' })} type="number" size="small" />} />
+                <Controller name="lisatiedot" control={control} render={({ field }) => <TextField {...field} label={t('consignmentForm:fields.notes', { defaultValue: 'Notes' })} size="small" multiline rows={2} />} />
             </Stack>
             <Stack direction="row" spacing={1} sx={{ mt: 2 }}>
                 <Button variant="contained" onClick={handleSubmit(onSubmit)} fullWidth color="secondary">
@@ -159,9 +159,9 @@ const WaybillsList = ({ fields, onAttemptDelete, onEdit }: { fields: Record<stri
                         <TableRow>
                             <TableCell>{t('fields.customer')}</TableCell>
                             <TableCell>{t('table.numberShort')}</TableCell>
-                            <TableCell>{t('fields.m3')}</TableCell>
-                            <TableCell>{t('fields.km')}</TableCell>
-                            <TableCell align="right">{t('table.action')}</TableCell>
+                            <TableCell>{t('consignmentForm:fields.m3')}</TableCell>
+                            <TableCell>{t('consignmentForm:fields.km')}</TableCell>
+                            <TableCell align="right">{t('common:table.action', { defaultValue: 'Action' })}</TableCell>
                         </TableRow>
                     </TableHead>
                     <TableBody>
@@ -215,7 +215,7 @@ export default function ConsignmentDriverForm({ onBackToListAction, consignmentI
     const [editingWaybillIndex, setEditingWaybillIndex] = useState<number | null>(null);
     const [waybillToDeleteIndex, setWaybillToDeleteIndex] = useState<number | null>(null);
     const [sendConfirmOpen, setSendConfirmOpen] = useState(false);
-    
+
     const [pendingFormData, setPendingFormData] = useState<any>(null);
 
     const methods = useForm<any>({
@@ -236,7 +236,7 @@ export default function ConsignmentDriverForm({ onBackToListAction, consignmentI
             getConsignmentById(consignmentId)
                 .then((data) => {
                     const formattedWaybills = (data.rahtikirjat || []).map((wb: any) => ({
-                        asiakasId: wb.asiakasId ? String(wb.asiakasId) : '', 
+                        asiakasId: wb.asiakasId ? String(wb.asiakasId) : '',
                         customerName: wb.customerName || '',
                         rahtiId: wb.rahtiId ?? null,
                         rahtikirjanNumero: wb.rahtikirjanNro ?? '',
@@ -248,12 +248,12 @@ export default function ConsignmentDriverForm({ onBackToListAction, consignmentI
                         tievero: String(wb.tievero ?? ''),
                         lisatiedot: wb.lisatiedot ?? ''
                     }));
-                    
-                    reset({ 
-                        ...data, 
+
+                    reset({
+                        ...data,
                         pvm: data.pvm ? data.pvm.split('T')[0] : defaultDate,
-                        lisatiedot: data.lisatiedot ?? '', 
-                        rahtikirjat: formattedWaybills 
+                        lisatiedot: data.lisatiedot ?? '',
+                        rahtikirjat: formattedWaybills
                     });
                 })
                 .catch((err) => {
@@ -339,9 +339,9 @@ export default function ConsignmentDriverForm({ onBackToListAction, consignmentI
             onSubmitProcess(pendingFormData, 'Completed');
         }
     };
-    const handleCancelSend = () => { 
-        setSendConfirmOpen(false); 
-        setPendingFormData(null); 
+    const handleCancelSend = () => {
+        setSendConfirmOpen(false);
+        setPendingFormData(null);
     };
 
     const handleEditWaybill = (index: number) => { setEditingWaybillIndex(index); };
@@ -370,17 +370,17 @@ export default function ConsignmentDriverForm({ onBackToListAction, consignmentI
             <Box component="form" sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
                 <Box sx={{ p: { xs: 1, sm: 2 }, flexGrow: 1, overflowY: 'auto' }}>
                     <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: '1fr 2fr' }, gap: 2, alignItems: 'start' }}>
-                        
+
                         <Paper variant="outlined" sx={{ p: 2.5, height: '100%', display: 'flex', flexDirection: 'column' }}>
                             <Typography variant="h6" gutterBottom>{t('sections.loadDetails')}</Typography>
                             <Stack spacing={2.5} sx={{ flexGrow: 1 }}>
                                 <Controller name="pvm" control={control} render={({ field }) => <TextField {...field} label={t('fields.date')} type="date" size="small" InputLabelProps={{ shrink: true }} />} />
-                                
+
                                 <Box sx={{ mt: 2, p: 2, bgcolor: '#f0f7ff', borderRadius: 1, border: '1px dashed #1976d2' }}>
                                     <Typography variant="caption" color="primary" sx={{ fontWeight: 'bold' }}>{t('labels.summary')}</Typography>
                                     <Stack direction="row" justifyContent="space-between" sx={{ mt: 1 }}>
-                                        <Typography variant="body2">{t('fields.m3')}: <strong>{(currentWaybills || []).reduce((s:number, i:any) => s + (Number(i.m3)||0), 0).toFixed(2)}</strong></Typography>
-                                        <Typography variant="body2">{t('fields.waybills')}: <strong>{fields.length}</strong></Typography>
+                                        <Typography variant="body2">{t('common:units.m3', { defaultValue: 'm³' })}: <strong>{(currentWaybills || []).reduce((s: number, i: any) => s + (Number(i.m3) || 0), 0).toFixed(2)}</strong></Typography>
+                                        <Typography variant="body2">{t('consignmentForm:fields.waybills', { defaultValue: 'Waybills' })}: <strong>{fields.length}</strong></Typography>
                                     </Stack>
                                 </Box>
                             </Stack>
@@ -404,9 +404,9 @@ export default function ConsignmentDriverForm({ onBackToListAction, consignmentI
 
                 <Paper elevation={3} sx={{ p: 2, borderTop: '1px solid #ddd', flexShrink: 0 }}>
                     <Stack direction="row" spacing={2} justifyContent="space-between" alignItems="center">
-                        <Button 
-                            variant="outlined" 
-                            onClick={onBackToListAction} 
+                        <Button
+                            variant="outlined"
+                            onClick={onBackToListAction}
                             size="large"
                             color="inherit"
                         >
@@ -414,20 +414,20 @@ export default function ConsignmentDriverForm({ onBackToListAction, consignmentI
                         </Button>
 
                         <Stack direction="row" spacing={2}>
-                            <Button 
-                                variant="outlined" 
-                                color="primary" 
+                            <Button
+                                variant="outlined"
+                                color="primary"
                                 onClick={handleSaveDraft}
                                 disabled={isSubmitting} // FIX: Removed 'fields.length === 0'
                                 size="large"
                                 startIcon={<SaveIcon />}
                             >
-                                 {t('buttons.saveDraft', { defaultValue: 'SAVE DRAFT' })}
+                                {t('buttons.saveDraft', { defaultValue: 'SAVE DRAFT' })}
                             </Button>
 
-                            <Button 
-                                variant="contained" 
-                                color="warning" 
+                            <Button
+                                variant="contained"
+                                color="warning"
                                 onClick={handleSendLoadClick}
                                 disabled={isSubmitting || fields.length === 0} // Keep validation for Send
                                 size="large"

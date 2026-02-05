@@ -62,20 +62,20 @@ export default function PuulaaniDetailsModal({
     const { t } = useTranslation(['puulaaniDetailsModal', 'common']);
 
     const getValidationSchema = useMemo(
-    () => (isEdit: boolean) => yup.object({
-      name: yup.string().required(t('errors.nameRequired')),
-      isActive: yup.boolean().required(),
-      isCompleted: yup.boolean().required(),
-      additionalInfo: yup.string().nullable(),
-      selectedAutoIds: yup.array().of(yup.number().required()).default([]),
-      woodEntries: yup.array().of(yup.object()).default([]),
-      date: isEdit ? yup.mixed<Dayjs>().nullable().required(t('errors.dateRequired')) : yup.mixed().notRequired(),
-      dispatchOrderNo: yup.string().nullable(),
-      kilometers: yup.number().typeError(t('errors.mustBeNumber')).nullable().min(0),
-      autoNro: yup.string().nullable(),
-    }),
-    [t]
-  );
+        () => (isEdit: boolean) => yup.object({
+            name: yup.string().required(t('errors.nameRequired')),
+            isActive: yup.boolean().required(),
+            isCompleted: yup.boolean().required(),
+            additionalInfo: yup.string().nullable(),
+            selectedAutoIds: yup.array().of(yup.number().required()).default([]),
+            woodEntries: yup.array().of(yup.object()).default([]),
+            date: isEdit ? yup.mixed<Dayjs>().nullable().required(t('errors.dateRequired')) : yup.mixed().notRequired(),
+            dispatchOrderNo: yup.string().nullable(),
+            kilometers: yup.number().typeError(t('errors.mustBeNumber')).nullable().min(0),
+            autoNro: yup.string().nullable(),
+        }),
+        [t]
+    );
 
     const methods = useForm<PuulaaniFormData>({
         resolver: yupResolver(getValidationSchema(isEditMode)) as any,
@@ -102,35 +102,35 @@ export default function PuulaaniDetailsModal({
     }, [selectedAutoIds, vehicleList, setValue, isEditMode]);
 
     const loadData = useCallback(async () => {
-    if (!open) return;
-    setIsLoading(true);
-    setError(null);
-    try {
-        // Fetch common dropdown data
-        const [woodTypes, dropoffs, vehicles] = await Promise.all([
-            fetchAllWoodTypes(),
-            fetchAllDropoffLocations(),
-            fetchVehiclesListApi()
-        ]);
-        setWoodTypeList(woodTypes);
-        setVehicleList(vehicles);
-        setDropoffLocationList(dropoffs.map(d => ({
-            id: d.purkupaikkaId,
-            name: d.purkupaikka,
-            clientId: d.asiakasId,
-            clientName: d.clientName || 'N/A',
-            latitude: d.sijaintiLat!,
-            longitude: d.sijaintiLong!,
-            isVisibleOnMap: d.isVisibleOnMap
-        })));
+        if (!open) return;
+        setIsLoading(true);
+        setError(null);
+        try {
+            // Fetch common dropdown data
+            const [woodTypes, dropoffs, vehicles] = await Promise.all([
+                fetchAllWoodTypes(),
+                fetchAllDropoffLocations(),
+                fetchVehiclesListApi()
+            ]);
+            setWoodTypeList(woodTypes);
+            setVehicleList(vehicles);
+            setDropoffLocationList(dropoffs.map(d => ({
+                id: d.purkupaikkaId,
+                name: d.purkupaikka,
+                clientId: d.asiakasId,
+                clientName: d.clientName || 'N/A',
+                latitude: d.sijaintiLat!,
+                longitude: d.sijaintiLong!,
+                isVisibleOnMap: d.isVisibleOnMap
+            })));
 
-        // Handle Edit Mode
-        if (isEditMode && initialData && 'id' in initialData) {
-            const details = await fetchTimberStackFullDetails(initialData.id);
-            
-            // --- THIS IS THE FIX ---
-            // Prepare the data structure that the 'reset' function expects.
-            const formDataForReset = {
+            // Handle Edit Mode
+            if (isEditMode && initialData && 'id' in initialData) {
+                const details = await fetchTimberStackFullDetails(initialData.id);
+
+                // --- THIS IS THE FIX ---
+                // Prepare the data structure that the 'reset' function expects.
+                const formDataForReset = {
                     name: details.puulaani.nimi,
                     date: details.puulaani.pvm ? dayjs(details.puulaani.pvm) : null,
                     dispatchOrderNo: details.puulaani.ajomaaraysnro,
@@ -153,29 +153,29 @@ export default function PuulaaniDetailsModal({
                         valmis: p.valmis === true || p.valmis === 'true'
                     }))
                 };
-                
+
                 reset(formDataForReset);
 
 
-        // Handle Create Mode (from a map click with pending data)
-        } else if (!isEditMode && initialData) {
-            reset({
-                name: initialData.name || '',
-                isActive: (initialData as Partial<PendingPuulaaniData>)?.isActive ?? true,
-                isCompleted: (initialData as Partial<PendingPuulaaniData>)?.isCompleted ?? false,
-                additionalInfo: (initialData as Partial<PendingPuulaaniData>)?.additionalInfo || null,
-                selectedAutoIds: [],
-                woodEntries: [],
-                latitude: initialData.latitude,
-                longitude: initialData.longitude,
-            });
+                // Handle Create Mode (from a map click with pending data)
+            } else if (!isEditMode && initialData) {
+                reset({
+                    name: initialData.name || '',
+                    isActive: (initialData as Partial<PendingPuulaaniData>)?.isActive ?? true,
+                    isCompleted: (initialData as Partial<PendingPuulaaniData>)?.isCompleted ?? false,
+                    additionalInfo: (initialData as Partial<PendingPuulaaniData>)?.additionalInfo || null,
+                    selectedAutoIds: [],
+                    woodEntries: [],
+                    latitude: initialData.latitude,
+                    longitude: initialData.longitude,
+                });
+            }
+        } catch (err: any) {
+            setError(err.response?.data?.message || t('errors.loadFailed'));
+        } finally {
+            setIsLoading(false);
         }
-    } catch (err: any) {
-        setError(err.response?.data?.message || t('errors.loadFailed'));
-    } finally {
-        setIsLoading(false);
-    }
-}, [open, initialData, isEditMode, reset, t]);
+    }, [open, initialData, isEditMode, reset, t]);
 
     useEffect(() => { loadData(); }, [open]);
 
@@ -210,7 +210,7 @@ export default function PuulaaniDetailsModal({
                 totalVolume: newTotalVolume,
                 fetchedVolume: existingFetchedVolume, // Fetched volume doesn't change when adding more total volume
                 remainingVolume: newTotalVolume - existingFetchedVolume,
-                valmis: false 
+                valmis: false
             };
 
             // Use the 'update' function from useFieldArray to replace the entry at the found index
@@ -344,7 +344,7 @@ export default function PuulaaniDetailsModal({
                                             <Stack spacing={2} sx={{ mt: 1 }}>
                                                 <Controller name="name" control={control} render={({ field }) => <TextField {...field} label={t('fields.nameOfProperty')} fullWidth size="small" />} />
                                                 <TextField label={t('fields.customer')} value={(initialData as IMapTimberStack)?.clientName || ''} fullWidth size="small" disabled variant="filled" />
-                                                <Controller name="date" control={control} render={({ field }) => <DatePicker {...field} label={t('fields.date')}  value={field.value || null} format="DD.MM.YYYY" slotProps={{ textField: { size: 'small', fullWidth: true } }} />} />
+                                                <Controller name="date" control={control} render={({ field }) => <DatePicker {...field} label={t('fields.date')} value={field.value || null} format={t('common:formats.date', { defaultValue: 'DD.MM.YYYY' })} slotProps={{ textField: { size: 'small', fullWidth: true } }} />} />
                                                 <Controller name="dispatchOrderNo" control={control} render={({ field }) => <TextField {...field} value={field.value ?? ''} label={t('fields.drivingOrderNo')} fullWidth size="small" />} />
                                                 <Controller name="kilometers" control={control} render={({ field }) => <TextField {...field} value={field.value ?? ''} type="number" label={t('fields.tripTotalKm')} fullWidth size="small" />} />
                                             </Stack>
@@ -375,13 +375,13 @@ export default function PuulaaniDetailsModal({
                                     {isEditMode && (
                                         <Paper variant="outlined" sx={{ p: 2.5 }}>
                                             <Typography variant="overline" color="text.secondary" gutterBottom>{t('sections.vehicleAssignment')}</Typography>
-                                            <Controller name="selectedAutoIds" control={control} render={({ field }) => 
-                                                <AutoSelect 
+                                            <Controller name="selectedAutoIds" control={control} render={({ field }) =>
+                                                <AutoSelect
                                                     // --- FIX: Use type assertion and fallback array ---
                                                     // This ensures the value is ALWAYS a number array, even if field.value is undefined/null.
-                                                    selectedAutoIds={(field.value as number[] | undefined) || []} 
-                                                    onSelectionChangeAction={field.onChange} 
-                                                    vehicleList={vehicleList} 
+                                                    selectedAutoIds={(field.value as number[] | undefined) || []}
+                                                    onSelectionChangeAction={field.onChange}
+                                                    vehicleList={vehicleList}
                                                 />
                                             } />
                                         </Paper>
@@ -390,18 +390,18 @@ export default function PuulaaniDetailsModal({
                                     {/* Section 4: Timber Logs */}
                                     <Paper variant="outlined" sx={{ p: 2.5 }}>
                                         <Typography variant="overline" color="text.secondary" gutterBottom>{t('sections.timberLogs')}</Typography>
-                                        <AddWoodEntry 
-                                        onAddAction={handleAddWoodEntry} 
-                                        woodTypeList={woodTypeList}
-                                         dropoffLocationList={dropoffLocationList} 
-                                         />
-                                        <WoodEntryList 
-                                        entries={woodEntryFields} 
-                                        onFieldChangeAction={handleUpdateWoodEntry} 
-                                        onDeleteAction={(index) => remove(index)} 
-                                        woodTypeList={woodTypeList} 
-                                        dropoffLocationList={dropoffLocationList} 
-                                        isEditMode={true} 
+                                        <AddWoodEntry
+                                            onAddAction={handleAddWoodEntry}
+                                            woodTypeList={woodTypeList}
+                                            dropoffLocationList={dropoffLocationList}
+                                        />
+                                        <WoodEntryList
+                                            entries={woodEntryFields}
+                                            onFieldChangeAction={handleUpdateWoodEntry}
+                                            onDeleteAction={(index) => remove(index)}
+                                            woodTypeList={woodTypeList}
+                                            dropoffLocationList={dropoffLocationList}
+                                            isEditMode={true}
                                         />
                                     </Paper>
 
@@ -429,7 +429,7 @@ export default function PuulaaniDetailsModal({
                                                         checked={!!field.value}
                                                         onChange={(e) => {
                                                             const checked = e.target.checked;
-                                                            
+
                                                             if (checked) {
                                                                 setValue("isActive", false);
                                                             }

@@ -23,5 +23,23 @@
   },
   "messages": {
     "noPermission": "Sinulla ei ole oikeuksia katsoa tätä sivua."
+  },
+  "clientTypes": {
+    "puulaani": "Puulaani",
+    "rahtikirja": "Rahtikirja",
+    "both": "Molemmat"
+  },
+  "status": {
+    "unknown": "Tuntematon"
+  },
+  "units": {
+    "currency": "€",
+    "m3": "m³",
+    "km": "km",
+    "pcs": "kpl",
+    "hours": "h"
+  },
+  "formats": {
+    "date": "DD.MM.YYYY"
   }
 }

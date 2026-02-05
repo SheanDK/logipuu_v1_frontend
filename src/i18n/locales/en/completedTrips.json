@@ -13,7 +13,6 @@
     "secondary": "Completed on: {{date}} | Customer: {{customer}}"
   },
   "dateFormat": "DD MMM YYYY",
-
   "date": "Date",
   "customer": "Customer",
   "origin": "Origin",
@@ -26,5 +25,9 @@
     "consignments": "Consignments",
     "timberWithCount": "Timber Loads ({{count}})",
     "consignmentsWithCount": "Consignments ({{count}})"
-  }
+  },
+  "m3": "Total m³",
+  "waybills": "Waybills",
+  "status": "Status",
+  "m3Vol": "Vol (m³)"
 }

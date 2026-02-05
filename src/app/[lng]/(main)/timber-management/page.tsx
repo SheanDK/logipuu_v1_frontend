@@ -5,6 +5,7 @@ import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { Box, Typography, Paper, Alert, IconButton, Tooltip, Button, Snackbar, AlertColor } from '@mui/material';
 import { DataGrid, GridColDef, GridFooterContainer, GridFooter } from '@mui/x-data-grid';
 import dayjs from 'dayjs';
+import i18n from '@/i18n/i18n';
 import dynamic from 'next/dynamic';
 
 import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline';
@@ -12,13 +13,13 @@ import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
 
 import { useAuth } from '@/contexts/AuthContext';
-import PuulaaniFilterBar from '@/components/timber-management/dialogs/PuulaaniFilterBar'; 
+import PuulaaniFilterBar from '@/components/timber-management/dialogs/PuulaaniFilterBar';
 
 import { ITimberStackListItem, ITimberStackListFilters, IEditablePuulaani, IClientBasicInfo, IVehicleBasicInfo, IPuutavaraItem, PendingPuulaaniData } from '@/types';
 import { fetchTimberStackList, deleteTimberStack, fetchTimberStackFullDetails } from '@/services/timberStackService';
-import { fetchAllClients } from '@/services/clientService'; 
-import { fetchVehiclesListApi } from '@/services/vehicleService'; 
-import { fetchAllWoodTypes } from '@/services/timberStackService'; 
+import { fetchAllClients } from '@/services/clientService';
+import { fetchVehiclesListApi } from '@/services/vehicleService';
+import { fetchAllWoodTypes } from '@/services/timberStackService';
 import { useTranslation } from 'react-i18next';
 
 const PuulaaniDetailsModal = dynamic(() => import('@/components/map/dialogs/PuulaaniDetailsModal'), { ssr: false });
@@ -69,20 +70,20 @@ function CustomFooter({ rows }: { rows: ITimberStackListItem[] }) {
 
     return (
         <Box sx={{ width: '100%' }}>
-            <GridFooterContainer 
-            sx={(theme) => ({ 
-                 position: 'sticky',
-                borderTop: '1px solid rgba(224, 224, 224, 1)', 
-                display: 'flex', 
-                justifyContent: 'flex-end', 
-                alignItems: 'center', 
-                px: 2, 
-                bgcolor: 'background.paper',
-               })}>
+            <GridFooterContainer
+                sx={(theme) => ({
+                    position: 'sticky',
+                    borderTop: '1px solid rgba(224, 224, 224, 1)',
+                    display: 'flex',
+                    justifyContent: 'flex-end',
+                    alignItems: 'center',
+                    px: 2,
+                    bgcolor: 'background.paper',
+                })}>
                 <Typography variant="body2" sx={{ fontWeight: 'bold', mr: 4 }}>{t('footer.altogether')}</Typography>
                 <Box sx={{ width: 120, textAlign: 'right' }}><Typography variant="body2" sx={{ fontWeight: 'bold' }}>{totalKok.toFixed(2)}</Typography></Box>
                 <Box sx={{ width: 120, textAlign: 'right' }}><Typography variant="body2" sx={{ fontWeight: 'bold' }}>{totalJaljella.toFixed(2)}</Typography></Box>
-                <Box sx={{ width: 120 }} /> 
+                <Box sx={{ width: 120 }} />
             </GridFooterContainer>
             <GridFooter />
         </Box>
@@ -99,7 +100,7 @@ export default function PuulaaniListPage() {
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [filters, setFilters] = useState<ITimberStackListFilters>({ status: 'active' });
-    
+
     const [filterData, setFilterData] = useState<{
         clientList: IClientBasicInfo[],
         vehicleList: IVehicleBasicInfo[],
@@ -127,7 +128,7 @@ export default function PuulaaniListPage() {
                 fetchVehiclesListApi(),
                 fetchAllWoodTypes()
             ]);
-            
+
             setRows(filterRowsByStatus(puulaaniData, filters.status));
 
             const transformedClients: IClientBasicInfo[] = clientData.map(client => ({
@@ -137,8 +138,8 @@ export default function PuulaaniListPage() {
                 clientName: client.asiakkaanNimi,
                 targetColor: client.kohteenVari || null,
             }));
-            
-            const transformedVehicles: IVehicleBasicInfo[] = vehicleData.map(v => ({...v, id: String(v.id)}));
+
+            const transformedVehicles: IVehicleBasicInfo[] = vehicleData.map(v => ({ ...v, id: String(v.id) }));
 
             setFilterData({
                 clientList: transformedClients,
@@ -175,7 +176,7 @@ export default function PuulaaniListPage() {
         setPuulaaniForEdit(null);
         setPendingPuulaaniData(null);
     };
-    
+
     const handleSaveSuccess = () => {
         handleDetailsModalClose();
         loadData();
@@ -184,7 +185,7 @@ export default function PuulaaniListPage() {
 
     const handleEditClick = async (puulaaniListItem: ITimberStackListItem) => {
 
-         if (puulaaniListItem.puulaaniId === undefined) {
+        if (puulaaniListItem.puulaaniId === undefined) {
             setSnackbar({ open: true, message: 'Invalid item selected.', severity: 'error' });
             return;
         }
@@ -193,7 +194,7 @@ export default function PuulaaniListPage() {
             if (fullDetails && fullDetails.puulaani) {
                 const rawPuulaani = fullDetails.puulaani;
                 const client = filterData.clientList.find(c => c.id === String(rawPuulaani.asiakasId)) || { name: 'Unknown Client', targetColor: '#808080' };
-                
+
                 const puulaaniDataForModal: IEditablePuulaani = {
                     id: rawPuulaani.puulaaniId,
                     clientId: rawPuulaani.asiakasId,
@@ -210,9 +211,9 @@ export default function PuulaaniListPage() {
                     dispatchOrderNo: rawPuulaani.ajomaaraysnro,
                     additionalInfo: rawPuulaani.lisatiedot,
                     autot: fullDetails.autot,
-                    timberEntries: fullDetails.timberEntries, 
+                    timberEntries: fullDetails.timberEntries,
                 };
-                
+
                 setPuulaaniForEdit(puulaaniDataForModal);
                 setIsEditModalOpen(true);
             } else {
@@ -224,7 +225,7 @@ export default function PuulaaniListPage() {
     };
 
     const handleDeleteClick = (puulaani: ITimberStackListItem) => { setDeleteTarget(puulaani); };
-    
+
     const confirmDelete = async () => {
         if (!deleteTarget || deleteTarget.puulaaniId === undefined) return;
         setIsSaving(true);
@@ -244,47 +245,47 @@ export default function PuulaaniListPage() {
     const columns: GridColDef[] = useMemo(() => {
         const baseColumns: GridColDef[] = [
             { field: 'puulaaniId', headerName: t('columns.id'), width: 90, hideable: false, },
-            { 
-                field: 'pvm', 
-                headerName: t('columns.date'), 
-                width: 120, 
+            {
+                field: 'pvm',
+                headerName: t('columns.date'),
+                width: 120,
                 renderCell: (params) => (
-                    <Typography variant="body2" sx={{height: '100%', width: '100%', display: 'flex', alignItems: 'center' }}>
-                        {params.value ? dayjs(params.value).format('DD.MM.YYYY') : ''}
+                    <Typography variant="body2" sx={{ height: '100%', width: '100%', display: 'flex', alignItems: 'center' }}>
+                        {params.value ? dayjs(params.value).locale(i18n.language).format('L') : ''}
                     </Typography>
                 )
             },
             { field: 'asiakkaanNimi', headerName: t('columns.customer'), flex: 1, minWidth: 200 },
             { field: 'nimi', headerName: t('columns.objectName'), flex: 1, minWidth: 200 },
-            { 
-                field: 'kok', 
-                headerName: t('columns.size'), 
-                type: 'number', 
-                width: 120, 
-                align: 'right', 
-                headerAlign: 'right', 
+            {
+                field: 'kok',
+                headerName: t('columns.size'),
+                type: 'number',
+                width: 120,
+                align: 'right',
+                headerAlign: 'right',
                 // --- THIS IS THE FIX ---
                 renderCell: (params) => {
                     const numValue = parseFloat(params.value); // Value can be a string from the API
                     return (
-                        <Typography variant="body2" sx={{height: '100%', width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'flex-end' }}>
+                        <Typography variant="body2" sx={{ height: '100%', width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'flex-end' }}>
                             {!isNaN(numValue) ? numValue.toFixed(2) : '0.00'}
                         </Typography>
                     );
                 }
             },
-            { 
-                field: 'jaljella', 
-                headerName: t('columns.left'), 
-                type: 'number', 
-                width: 120, 
-                align: 'right', 
-                headerAlign: 'right', 
+            {
+                field: 'jaljella',
+                headerName: t('columns.left'),
+                type: 'number',
+                width: 120,
+                align: 'right',
+                headerAlign: 'right',
                 // --- THIS IS THE FIX ---
                 renderCell: (params) => {
                     const numValue = parseFloat(params.value); // Value can be a string from the API
                     return (
-                        <Typography variant="body2" sx={{height: '100%', width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'flex-end' }}>
+                        <Typography variant="body2" sx={{ height: '100%', width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'flex-end' }}>
                             {!isNaN(numValue) ? numValue.toFixed(2) : '0.00'}
                         </Typography>
                     );
@@ -321,13 +322,13 @@ export default function PuulaaniListPage() {
     }, [canEdit, canDelete, handleEditClick, handleDeleteClick]);
 
     return (
-        <Box sx={{ p: 3, m: -3, height: 'calc(100vh - 64px)', display: 'flex', flexDirection: 'column', gap: 2, minHeight: 0}}>
+        <Box sx={{ p: 3, m: -3, height: 'calc(100vh - 64px)', display: 'flex', flexDirection: 'column', gap: 2, minHeight: 0 }}>
             <Paper sx={{ p: 2, flexShrink: 0 }}>
                 <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
                     <Typography variant="h5" component="h1" sx={{ fontWeight: 'bold' }}>{t('title')}</Typography>
-                    {canCreate && ( <Button variant="contained" startIcon={<AddCircleOutlineIcon />} onClick={handleNewClick}>{t('buttons.new')}</Button> )}
+                    {canCreate && (<Button variant="contained" startIcon={<AddCircleOutlineIcon />} onClick={handleNewClick}>{t('buttons.new')}</Button>)}
                 </Box>
-                <PuulaaniFilterBar 
+                <PuulaaniFilterBar
                     filters={filters}
                     onFilterChangeAction={handleFilterChange}
                     clientList={filterData.clientList}
@@ -337,13 +338,13 @@ export default function PuulaaniListPage() {
             </Paper>
 
             {error && <Alert severity="error" sx={{ flexShrink: 0 }}>{error}</Alert>}
-            
-            <Box 
-                sx={{ 
-                    flexGrow: 1, 
-                    width: '100%', 
-                    backgroundColor: 'background.paper', 
-                    borderRadius: 1, 
+
+            <Box
+                sx={{
+                    flexGrow: 1,
+                    width: '100%',
+                    backgroundColor: 'background.paper',
+                    borderRadius: 1,
                     boxShadow: 1,
                     display: 'flex',
                     flexDirection: 'column',
@@ -359,52 +360,52 @@ export default function PuulaaniListPage() {
                     getRowId={(row) => row.puulaaniId}
                     columnVisibilityModel={{
                         puulaaniId: false,
-                        }}
+                    }}
                     initialState={{ pagination: { paginationModel: { pageSize: 25, page: 0 } } }}
                     pageSizeOptions={[10, 25, 50, 100]}
                     slots={{ footer: () => <CustomFooter rows={rows} /> }}
                     sx={{
-    flex: 1,
-    minHeight: 0,
-    border: 'none', // Remove the default border
-    '& .MuiDataGrid-main': {
-        flex: 1,
-        minHeight: 0,
-    },
-    '& .MuiDataGrid-virtualScroller': {
-        overflowY: 'auto',
-        overflowX: 'auto',
-        flexGrow: 1,
-    },
-    // Style for the column headers container
-    '& .MuiDataGrid-columnHeaders': {
-        backgroundColor: (theme) => theme.palette.grey[200], // A slightly darker grey
-        borderBottom: '1px solid',
-        borderColor: 'divider',
-    },
-    // Style for the text inside each header cell
-    '& .MuiDataGrid-columnHeaderTitle': {
-        fontWeight: 600, // Make it bold
-        textTransform: 'uppercase', // All caps for a professional look
-        fontSize: '0.75rem', // Slightly smaller font for uppercase text
-        letterSpacing: '0.5px', // Add some space between letters
-    },
-    // Style for individual cells
-    '& .MuiDataGrid-cell': {
-        borderBottom: '1px solid',
-        borderColor: 'grey.200', // A light border for rows
-        alignItems: 'center'
-    },
-    // Hover effect for rows
-    '& .MuiDataGrid-row:hover': {
-        backgroundColor: 'action.hover'
-    },
-    // Ensure no double border with our custom footer
-    '& .MuiDataGrid-footerContainer': {
-        borderTop: 'none',
-    },
-}}
-                    //sx={{ height: '100%', border: 'none', '& .MuiDataGrid-columnHeaders': { backgroundColor: '#f9fafb' }, '& .MuiDataGrid-footerContainer': { borderTop: 'none' } }}
+                        flex: 1,
+                        minHeight: 0,
+                        border: 'none', // Remove the default border
+                        '& .MuiDataGrid-main': {
+                            flex: 1,
+                            minHeight: 0,
+                        },
+                        '& .MuiDataGrid-virtualScroller': {
+                            overflowY: 'auto',
+                            overflowX: 'auto',
+                            flexGrow: 1,
+                        },
+                        // Style for the column headers container
+                        '& .MuiDataGrid-columnHeaders': {
+                            backgroundColor: (theme) => theme.palette.grey[200], // A slightly darker grey
+                            borderBottom: '1px solid',
+                            borderColor: 'divider',
+                        },
+                        // Style for the text inside each header cell
+                        '& .MuiDataGrid-columnHeaderTitle': {
+                            fontWeight: 600, // Make it bold
+                            textTransform: 'uppercase', // All caps for a professional look
+                            fontSize: '0.75rem', // Slightly smaller font for uppercase text
+                            letterSpacing: '0.5px', // Add some space between letters
+                        },
+                        // Style for individual cells
+                        '& .MuiDataGrid-cell': {
+                            borderBottom: '1px solid',
+                            borderColor: 'grey.200', // A light border for rows
+                            alignItems: 'center'
+                        },
+                        // Hover effect for rows
+                        '& .MuiDataGrid-row:hover': {
+                            backgroundColor: 'action.hover'
+                        },
+                        // Ensure no double border with our custom footer
+                        '& .MuiDataGrid-footerContainer': {
+                            borderTop: 'none',
+                        },
+                    }}
+                //sx={{ height: '100%', border: 'none', '& .MuiDataGrid-columnHeaders': { backgroundColor: '#f9fafb' }, '& .MuiDataGrid-footerContainer': { borderTop: 'none' } }}
                 />
             </Box>
 
@@ -414,7 +415,7 @@ export default function PuulaaniListPage() {
                 onNextAction={handleGoToFinalizeStep}
                 clientList={filterData.clientList}
             />
-            
+
             <PuulaaniDetailsModal
                 open={isEditModalOpen}
                 onCloseAction={handleDetailsModalClose}
@@ -423,8 +424,8 @@ export default function PuulaaniListPage() {
                 clientList={filterData.clientList}
                 showMap={true}
             />
-            
-            <ConfirmationDialog open={!!deleteTarget} onClose={() => setDeleteTarget(null)} onConfirm={confirmDelete} title={t('confirm.deleteTitle')} message={t('confirm.deleteMessage', { name: deleteTarget?.nimi ?? '' })}/>
+
+            <ConfirmationDialog open={!!deleteTarget} onClose={() => setDeleteTarget(null)} onConfirm={confirmDelete} title={t('confirm.deleteTitle')} message={t('confirm.deleteMessage', { name: deleteTarget?.nimi ?? '' })} />
             <Snackbar open={snackbar.open} autoHideDuration={6000} onClose={() => setSnackbar({ ...snackbar, open: false })} anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}>
                 <Alert onClose={() => setSnackbar({ ...snackbar, open: false })} severity={snackbar.severity} sx={{ width: '100%' }}>{snackbar.message}</Alert>
             </Snackbar>

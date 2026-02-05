@@ -2,41 +2,42 @@
 
 // CORRECTED: Import the correct enum name and basic info types
 import { ClientTypeEnum } from '../types';
+import i18n from '@/i18n/i18n';
+import { TFunction } from 'i18next';
 
 /**
  * Converts a numeric client type enum into a human-readable string.
- * @param type - The numeric client type (0, 1, or 2).
- * @returns A string representing the client type.
+ * Uses a provided TFunction (or i18n.t) for localization.
  */
-export const getClientTypeString = (type: ClientTypeEnum | undefined | null): string => {
+export const getClientTypeString = (type: ClientTypeEnum | undefined | null, t?: TFunction): string => {
     if (type === null || typeof type === 'undefined') {
         return 'N/A';
     }
 
+    const translate = t || i18n.t;
+
     switch (type) {
         case ClientTypeEnum.PUULAANI:
-            return 'Puulaani';
+            return translate('common:clientTypes.puulaani', { defaultValue: 'Timber Stack' });
         case ClientTypeEnum.RAHTIKIRJA:
-            return 'Rahtikirja';
+            return translate('common:clientTypes.rahtikirja', { defaultValue: 'Consignment' });
         case ClientTypeEnum.BOTH:
-            return 'Puulaani & Rahtikirja';
+            return translate('common:clientTypes.both', { defaultValue: 'Both' });
         default:
-            return 'Unknown';
+            return translate('common:status.unknown', { defaultValue: 'Unknown' });
     }
 };
 
 /**
- * Formats an ISO date string into a localized date string (e.g., DD.MM.YYYY).
- * @param isoDateString - The date string from the API.
- * @returns A formatted date string or 'N/A'.
+ * Formats an ISO date string into a localized date string.
  */
 export const formatLocalDate = (isoDateString: string | null | undefined): string => {
     if (!isoDateString) return 'N/A';
     try {
         const date = new Date(isoDateString);
         if (isNaN(date.getTime())) return 'Invalid Date';
-        // Using Finnish locale for DD.MM.YYYY format
-        return date.toLocaleDateString('fi-FI');
+        // Use the current direction and language from i18n
+        return date.toLocaleDateString(i18n.language);
     } catch (error) {
         console.error("Error formatting date:", isoDateString, error);
         return 'N/A';

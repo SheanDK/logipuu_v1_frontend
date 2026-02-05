@@ -1,0 +1,14 @@
+image: node:20
+
+stages:
+  - build
+
+build-frontend:
+  stage: build
+  script:
+    - npm install
+    - NODE_OPTIONS=--max-old-space-size=1536 npm run build
+  artifacts:
+    paths:
+      - .next/
+    expire_in: 1 week

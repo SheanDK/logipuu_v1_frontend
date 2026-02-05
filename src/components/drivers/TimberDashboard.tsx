@@ -142,7 +142,7 @@ const ListView = ({ puulaanit, onPuulaaniClick }: { puulaanit: any[], onPuulaani
                                             <Stack direction="row" spacing={0.5} alignItems="center">
                                                 <Inventory2Icon sx={{ fontSize: 16, color: 'text.secondary' }} />
                                                 <Typography variant="caption" color="text.secondary">
-                                                    {t('stats.total')}: <b>{p.totalVolume ? Number(p.totalVolume).toFixed(2) : '0.00'}</b>
+                                                    {t('stats.total')}: <b>{p.totalVolume ? Number(p.totalVolume).toFixed(2) : '0.00'}</b> {t('common:units.m3', { defaultValue: 'm³' })}
                                                 </Typography>
                                             </Stack>
 
@@ -150,7 +150,7 @@ const ListView = ({ puulaanit, onPuulaaniClick }: { puulaanit: any[], onPuulaani
                                             <Stack direction="row" spacing={0.5} alignItems="center">
                                                 <LocalShippingIcon sx={{ fontSize: 16, color: statusColor }} />
                                                 <Typography variant="caption" color={statusColor} fontWeight="bold">
-                                                    {t('stats.rem')}: {p.remainingVolume ? Number(p.remainingVolume).toFixed(2) : '0.00'}
+                                                    {t('stats.rem')}: {p.remainingVolume ? Number(p.remainingVolume).toFixed(2) : '0.00'} {t('common:units.m3', { defaultValue: 'm³' })}
                                                 </Typography>
                                             </Stack>
                                         </Box>

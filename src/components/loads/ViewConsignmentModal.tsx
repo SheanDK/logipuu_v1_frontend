@@ -68,6 +68,11 @@ export default function ViewConsignmentModal({ open, onClose, loadId }: ViewCons
     const fmtNum = (val: any) => Number(val || 0).toFixed(2);
     const fmtInt = (val: any) => Number(val || 0);
 
+    // Calculate totals from waybills
+    const totalM3 = loadData?.rahtikirjat?.reduce((s: number, i: any) => s + (Number(i.m3) || 0), 0) || 0;
+    const totalKm = loadData?.rahtikirjat?.reduce((s: number, i: any) => s + (Number(i.km) || 0), 0) || 0;
+    const totalKpl = loadData?.rahtikirjat?.reduce((s: number, i: any) => s + (Number(i.kpl) || 0), 0) || 0;
+
     return (
         <Dialog open={open} onClose={onClose} maxWidth="md" fullWidth>
             <DialogTitle sx={{ bgcolor: '#f5f5f5', borderBottom: '1px solid #ddd', pb: 1 }}>
@@ -76,15 +81,15 @@ export default function ViewConsignmentModal({ open, onClose, loadId }: ViewCons
                         {t('modal.consignmentDetails', { defaultValue: 'Consignment Details' })} #{loadData?.kuormaId || '...'}
                     </Typography>
                     {loadData?.status && (
-                        <Chip 
-                            label={translateStatus(loadData.status)} 
-                            color={STATUS_COLOR[loadData.status] || 'default'} 
-                            size="small" 
+                        <Chip
+                            label={translateStatus(loadData.status)}
+                            color={STATUS_COLOR[loadData.status] || 'default'}
+                            size="small"
                         />
                     )}
                 </Stack>
             </DialogTitle>
-            
+
             <DialogContent sx={{ py: 3 }}>
                 {loading ? (
                     <Box sx={{ display: 'flex', justifyContent: 'center', p: 4 }}>
@@ -151,9 +156,9 @@ export default function ViewConsignmentModal({ open, onClose, loadId }: ViewCons
                                         {/* Totals Row */}
                                         <TableRow sx={{ bgcolor: '#e3f2fd', '& td': { fontWeight: 'bold' } }}>
                                             <TableCell colSpan={3} align="right">{t('modal.total', { defaultValue: 'Total:' })}</TableCell>
-                                            <TableCell align="right">{fmtNum(loadData.m3)}</TableCell>
-                                            <TableCell align="right">{fmtNum(loadData.km)}</TableCell>
-                                            <TableCell align="right">{fmtInt(loadData.kpl)}</TableCell>
+                                            <TableCell align="right">{fmtNum(totalM3)}</TableCell>
+                                            <TableCell align="right">{fmtNum(totalKm)}</TableCell>
+                                            <TableCell align="right">{fmtInt(totalKpl)}</TableCell>
                                         </TableRow>
                                     </TableBody>
                                 </Table>

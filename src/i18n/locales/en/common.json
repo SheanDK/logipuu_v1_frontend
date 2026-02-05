@@ -23,5 +23,23 @@
   },
   "messages": {
     "noPermission": "You do not have permission to view this page."
+  },
+  "clientTypes": {
+    "puulaani": "Timber Stack",
+    "rahtikirja": "Consignment",
+    "both": "Both"
+  },
+  "status": {
+    "unknown": "Unknown"
+  },
+  "units": {
+    "currency": "€",
+    "m3": "m³",
+    "km": "km",
+    "pcs": "pcs",
+    "hours": "hrs"
+  },
+  "formats": {
+    "date": "MM/DD/YYYY"
   }
 }

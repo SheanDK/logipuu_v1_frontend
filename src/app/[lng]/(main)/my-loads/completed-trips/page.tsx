@@ -3,42 +3,44 @@
 
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { Box, Typography, Paper, Tabs, Tab, Chip, IconButton, Tooltip } from '@mui/material';
-import { DataGrid, GridColDef, GridToolbar, GridRowParams } from '@mui/x-data-grid'; 
+import { DataGrid, GridColDef, GridToolbar, GridRowParams } from '@mui/x-data-grid';
 import { ILoadListItem } from '@/types';
 import { fetchMyCompletedLoads } from '@/services/loadService';
-import { getCompletedTripDetails } from '@/services/driverViewService'; 
+import { getCompletedTripDetails } from '@/services/driverViewService';
 import { useTranslation } from '@/i18n/useTranslation';
 import TableSkeletonLoader from '@/components/common/TableSkeletonLoader';
 import CustomNoRowsOverlay from '@/components/common/CustomNoRowsOverlay';
 import ErrorDisplay from '@/components/common/ErrorDisplay';
 import CompletedTripDetailsModal from '@/components/drivers/CompletedTripDetailsModal';
 import { useSnackbar } from 'notistack';
-import DescriptionIcon from '@mui/icons-material/Description'; 
+import DescriptionIcon from '@mui/icons-material/Description';
+import dayjs from 'dayjs';
+import i18n from '@/i18n/i18n';
 
 interface TabPanelProps {
-  children?: React.ReactNode;
-  index: number;
-  value: number;
+    children?: React.ReactNode;
+    index: number;
+    value: number;
 }
 
 function TabPanel(props: TabPanelProps) {
-  const { children, value, index, ...other } = props;
-  return (
-    <div
-      role="tabpanel"
-      hidden={value !== index}
-      id={`completed-trips-tabpanel-${index}`}
-      aria-labelledby={`completed-trips-tab-${index}`}
-      style={{ flexGrow: 1, width: '100%', overflow: 'hidden' }}
-      {...other}
-    >
-      {value === index && (
-        <Box sx={{ height: '100%', width: '100%' }}>
-            {children}
-        </Box>
-      )}
-    </div>
-  );
+    const { children, value, index, ...other } = props;
+    return (
+        <div
+            role="tabpanel"
+            hidden={value !== index}
+            id={`completed-trips-tabpanel-${index}`}
+            aria-labelledby={`completed-trips-tab-${index}`}
+            style={{ flexGrow: 1, width: '100%', overflow: 'hidden' }}
+            {...other}
+        >
+            {value === index && (
+                <Box sx={{ height: '100%', width: '100%' }}>
+                    {children}
+                </Box>
+            )}
+        </div>
+    );
 }
 
 export default function CompletedTripsPage() {
@@ -69,15 +71,15 @@ export default function CompletedTripsPage() {
         loadCompletedTrips();
     }, [loadCompletedTrips]);
 
-    const timberTrips = useMemo(() => 
-        allTrips.filter(trip => trip.tyyppi === 'Timber Load'), 
-    [allTrips]);
+    const timberTrips = useMemo(() =>
+        allTrips.filter(trip => trip.tyyppi === 'Timber Load' || Number(trip.tyyppi) === 0),
+        [allTrips]);
 
-    const consignmentTrips = useMemo(() => 
-        allTrips.filter(trip => trip.tyyppi === 'Consignment'), 
-    [allTrips]);
+    const consignmentTrips = useMemo(() =>
+        allTrips.filter(trip => trip.tyyppi === 'Consignment' || Number(trip.tyyppi) === 1),
+        [allTrips]);
 
-     const handleRowClick = useCallback(async (params: GridRowParams) => {
+    const handleRowClick = useCallback(async (params: GridRowParams) => {
         try {
             const data = await getCompletedTripDetails(params.row.kuormaId);
             setSelectedTripDetails(data);
@@ -102,12 +104,12 @@ export default function CompletedTripsPage() {
                 headerName: t('date', { ns: 'completedTrips' }),
                 width: 110, // Fixed width
                 type: 'date',
-                valueGetter: (value) => new Date(value),
-                renderCell: (params) => new Date(params.value).toLocaleDateString(),
+                valueGetter: (value) => value ? new Date(value) : null,
+                renderCell: (params) => params.value ? dayjs(params.value).locale(i18n.language).format('L') : '-',
             },
-            { 
-                field: 'asiakkaanNimi', 
-                headerName: t('customer', { ns: 'completedTrips' }), 
+            {
+                field: 'asiakkaanNimi',
+                headerName: t('customer', { ns: 'completedTrips' }),
                 width: 300 // Fixed width instead of flex
             },
         ];
@@ -116,56 +118,56 @@ export default function CompletedTripsPage() {
             return [
                 ...commonColumns,
                 // Consignment Specific Columns
-                { 
-                    field: 'm3', 
-                    headerName: 'Total m3', 
-                    width: 120, 
-                    align: 'right', 
+                {
+                    field: 'm3',
+                    headerName: t('m3', { ns: 'completedTrips' }),
+                    width: 120,
+                    align: 'right',
                     headerAlign: 'right',
                     valueFormatter: (value: any) => Number(value).toFixed(2)
                 },
-                { 
-                    field: 'waybillCount', 
-                    headerName: 'Waybills', 
-                    width: 100, 
-                    align: 'center', 
+                {
+                    field: 'waybillCount',
+                    headerName: t('waybills', { ns: 'completedTrips' }),
+                    width: 100,
+                    align: 'center',
                     headerAlign: 'center',
                     renderCell: (params) => (
-                        <Chip 
-                            icon={<DescriptionIcon style={{fontSize: '1rem'}} />} 
-                            label={params.value || '0'} 
-                            size="small" 
-                            variant="outlined" 
+                        <Chip
+                            icon={<DescriptionIcon style={{ fontSize: '1rem' }} />}
+                            label={params.value || '0'}
+                            size="small"
+                            variant="outlined"
                         />
                     )
                 },
-                { 
-                    field: 'status', 
-                    headerName: 'Status', 
-                    width: 130, 
+                {
+                    field: 'status',
+                    headerName: t('status', { ns: 'completedTrips' }),
+                    width: 130,
                     align: 'center',
                     headerAlign: 'center',
-                    renderCell: (params) => <Chip label={params.value} color="success" size="small" /> 
+                    renderCell: (params) => <Chip label={params.value} color="success" size="small" />
                 }
             ];
         } else {
             // Timber Load Columns
             return [
                 ...commonColumns,
-                { 
-                    field: 'lahto', 
-                    headerName: t('origin', { ns: 'completedTrips' }), 
+                {
+                    field: 'lahto',
+                    headerName: t('origin', { ns: 'completedTrips' }),
                     width: 250 // Fixed width
                 },
-                { 
-                    field: 'kohde', 
-                    headerName: t('destination', { ns: 'completedTrips' }), 
+                {
+                    field: 'kohde',
+                    headerName: t('destination', { ns: 'completedTrips' }),
                     width: 250 // Fixed width
                 },
-                { 
-                    field: 'm3', 
-                    headerName: 'Vol (m3)', 
-                    width: 120, 
+                {
+                    field: 'm3',
+                    headerName: t('m3Vol', { ns: 'completedTrips' }),
+                    width: 120,
                     align: 'right',
                     valueFormatter: (value: any) => Number(value).toFixed(2)
                 },
@@ -187,23 +189,23 @@ export default function CompletedTripsPage() {
                     {t('title', { ns: 'completedTrips' })}
                 </Typography>
             </Box>
-            
+
             <Paper sx={{ flexGrow: 1, width: '100%', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
                 <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
-                    <Tabs 
-                        value={currentTab} 
-                        onChange={handleTabChange} 
+                    <Tabs
+                        value={currentTab}
+                        onChange={handleTabChange}
                         aria-label={t('ariaTabs', { ns: 'completedTrips' })}
                     >
-                        <Tab 
-                            label={t('tabs.timberWithCount', { ns: 'completedTrips', count: timberTrips.length })} 
-                            id="completed-trips-tab-0" 
-                            sx={{ fontWeight: 'bold' }} 
+                        <Tab
+                            label={t('tabs.timberWithCount', { ns: 'completedTrips', count: timberTrips.length })}
+                            id="completed-trips-tab-0"
+                            sx={{ fontWeight: 'bold' }}
                         />
-                        <Tab 
-                            label={t('tabs.consignmentsWithCount', { ns: 'completedTrips', count: consignmentTrips.length })} 
-                            id="completed-trips-tab-1" 
-                            sx={{ fontWeight: 'bold' }} 
+                        <Tab
+                            label={t('tabs.consignmentsWithCount', { ns: 'completedTrips', count: consignmentTrips.length })}
+                            id="completed-trips-tab-1"
+                            sx={{ fontWeight: 'bold' }}
                         />
                     </Tabs>
                 </Box>
@@ -219,11 +221,11 @@ export default function CompletedTripsPage() {
                                 getRowId={(row) => row.kuormaId}
                                 initialState={{ sorting: { sortModel: [{ field: 'pvm', sort: 'desc' }] } }}
                                 disableRowSelectionOnClick
-                                onRowClick={handleRowClick} 
-                                sx={{ 
+                                onRowClick={handleRowClick}
+                                sx={{
                                     '& .MuiDataGrid-columnHeaderTitle': { fontWeight: 'bold' },
                                     '& .MuiDataGrid-row:hover': { cursor: 'pointer' },
-                                    border: 0 
+                                    border: 0
                                 }}
                                 slots={{
                                     toolbar: GridToolbar,
@@ -240,21 +242,21 @@ export default function CompletedTripsPage() {
                                 initialState={{ sorting: { sortModel: [{ field: 'pvm', sort: 'desc' }] } }}
                                 disableRowSelectionOnClick
                                 onRowClick={handleRowClick}
-                                sx={{ 
+                                sx={{
                                     '& .MuiDataGrid-columnHeaderTitle': { fontWeight: 'bold' },
                                     '& .MuiDataGrid-row:hover': { cursor: 'pointer' },
-                                    border: 0 
+                                    border: 0
                                 }}
                                 slots={{
                                     toolbar: GridToolbar,
-                                    noRowsOverlay: () => <CustomNoRowsOverlay message={t('noConsignments', { ns: 'completedTrips' })}/>
+                                    noRowsOverlay: () => <CustomNoRowsOverlay message={t('noConsignments', { ns: 'completedTrips' })} />
                                 }}
-                            />  
+                            />
                         </TabPanel>
                     </>
                 )}
             </Paper>
-            
+
             <CompletedTripDetailsModal
                 open={isModalOpen}
                 onCloseAction={handleCloseModal}

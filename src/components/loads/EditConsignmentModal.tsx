@@ -4,9 +4,10 @@ import { Dialog, DialogTitle, DialogContent, DialogActions, Button, TextField, S
 import { useForm, useFieldArray, Controller } from 'react-hook-form';
 import { updateLoad } from '@/services/loadService';
 import { useSnackbar } from 'notistack';
+import { useTranslation } from '@/i18n/useTranslation';
 
 interface IExtendedRahtikirjaItem {
-    id?: number; 
+    id?: number;
     asiakasId: string;
     customerName?: string;
     rahtikirjanNumero: string;
@@ -23,14 +24,15 @@ interface EditConsignmentModalProps {
     open: boolean;
     onCloseAction: () => void;
     onSaveSuccessAction: (msg: string) => void;
-    loadData: any; 
+    loadData: any;
     currentUser: any;
 }
 
 export default function EditConsignmentModal({ open, onCloseAction, onSaveSuccessAction, loadData, currentUser }: EditConsignmentModalProps) {
+    const { t } = useTranslation(['editConsignmentModal', 'common']);
     const { enqueueSnackbar } = useSnackbar();
     const [isSubmitting, setIsSubmitting] = useState(false);
-    
+
     const methods = useForm({
         defaultValues: {
             pvm: '',
@@ -54,7 +56,7 @@ export default function EditConsignmentModal({ open, onCloseAction, onSaveSucces
             }));
 
             reset({
-                pvm: loadData.pvm ? new Date(loadData.pvm).toISOString().split('T')[0] : '', 
+                pvm: loadData.pvm ? new Date(loadData.pvm).toISOString().split('T')[0] : '',
                 lisatiedot: loadData.lisatiedot || '',
                 rahtikirjat: formattedWaybills
             });
@@ -69,7 +71,7 @@ export default function EditConsignmentModal({ open, onCloseAction, onSaveSucces
             const totalKm = data.rahtikirjat.reduce((sum: number, wb: any) => sum + (Number(wb.km) || 0), 0);
             const totalKpl = data.rahtikirjat.reduce((sum: number, wb: any) => sum + (Number(wb.kpl) || 0), 0);
             const totalJako = data.rahtikirjat.reduce((sum: number, wb: any) => sum + (Number(wb.jako) || 0), 0);
-            
+
 
             // 2. Determine Primary Customer
             // Backend expects an integer. Use 0 or null if missing.
@@ -82,11 +84,11 @@ export default function EditConsignmentModal({ open, onCloseAction, onSaveSucces
 
             // 3. Construct Payload
             const payload = {
-                tyyppi: 1, 
+                tyyppi: 1,
                 pvm: data.pvm, // YYYY-MM-DD string is accepted by @IsDateString or permissive DTO
                 lisatiedot: data.lisatiedot,
                 asiakasId: isNaN(primaryCustomer!) ? null : primaryCustomer,
-                
+
                 // Include other required IDs from original data to satisfy strict validators if any
                 kalustoNro: loadData.kalusto_nro || loadData.kalustoNro,
                 kuljId: loadData.kulj_id || loadData.kuljId,
@@ -95,7 +97,7 @@ export default function EditConsignmentModal({ open, onCloseAction, onSaveSucces
                 km: totalKm,
                 kpl: totalKpl,
                 tunnit: totalJako,
-                
+
                 // Waybills Array
                 rahtikirjat: data.rahtikirjat.map((wb: any) => ({
                     asiakasId: parseInt(wb.asiakasId, 10) || null,
@@ -112,9 +114,9 @@ export default function EditConsignmentModal({ open, onCloseAction, onSaveSucces
 
             console.log("Sending Payload:", payload); // Verify payload in console
 
-            await updateLoad(loadData.kuormaId, payload, currentUser); 
-            onSaveSuccessAction('Consignment updated successfully'); 
-            
+            await updateLoad(loadData.kuormaId, payload, currentUser);
+            onSaveSuccessAction('Consignment updated successfully');
+
         } catch (error: any) {
             console.error("Update Error:", error.response?.data || error);
             enqueueSnackbar(error.response?.data?.message || 'Update failed', { variant: 'error' });
@@ -125,12 +127,12 @@ export default function EditConsignmentModal({ open, onCloseAction, onSaveSucces
 
     return (
         <Dialog open={open} onClose={onCloseAction} maxWidth="md" fullWidth>
-            <DialogTitle>Edit Consignment #{loadData?.kuormaId}</DialogTitle>
+            <DialogTitle>{t('editConsignmentModal:title', { id: loadData?.kuormaId, defaultValue: `Edit Consignment #${loadData?.kuormaId}` })}</DialogTitle>
             <DialogContent dividers>
                 <Stack spacing={2}>
                     <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 2 }}>
-                        <Controller name="pvm" control={control} render={({ field }) => <TextField {...field} type="date" label="Date" size="small" InputLabelProps={{ shrink: true }} />} />
-                        <Controller name="lisatiedot" control={control} render={({ field }) => <TextField {...field} label="Global Notes" size="small" />} />
+                        <Controller name="pvm" control={control} render={({ field }) => <TextField {...field} type="date" label={t('editConsignmentModal:fields.date', { defaultValue: 'Date' })} size="small" InputLabelProps={{ shrink: true }} />} />
+                        <Controller name="lisatiedot" control={control} render={({ field }) => <TextField {...field} label={t('editConsignmentModal:fields.globalNotes', { defaultValue: 'Global Notes' })} size="small" />} />
                     </Box>
 
                     <Typography variant="subtitle2">Waybills ({fields.length})</Typography>
@@ -138,11 +140,11 @@ export default function EditConsignmentModal({ open, onCloseAction, onSaveSucces
                         <Table size="small" stickyHeader>
                             <TableHead>
                                 <TableRow>
-                                    <TableCell width="25%">Customer</TableCell>
-                                    <TableCell width="20%">Waybill #</TableCell>
-                                    <TableCell width="15%">M3</TableCell>
-                                    <TableCell width="20%">Route</TableCell>
-                                    <TableCell width="20%">Notes</TableCell>
+                                    <TableCell width="25%">{t('editConsignmentModal:columns.customer', { defaultValue: 'Customer' })}</TableCell>
+                                    <TableCell width="20%">{t('editConsignmentModal:columns.waybillNumber', { defaultValue: 'Waybill #' })}</TableCell>
+                                    <TableCell width="15%">{t('common:units.m3', { defaultValue: 'm³' })}</TableCell>
+                                    <TableCell width="20%">{t('editConsignmentModal:columns.route', { defaultValue: 'Route' })}</TableCell>
+                                    <TableCell width="20%">{t('editConsignmentModal:columns.notes', { defaultValue: 'Notes' })}</TableCell>
                                 </TableRow>
                             </TableHead>
                             <TableBody>
@@ -154,16 +156,16 @@ export default function EditConsignmentModal({ open, onCloseAction, onSaveSucces
                                             </Typography>
                                         </TableCell>
                                         <TableCell>
-                                            <Controller name={`rahtikirjat.${idx}.rahtikirjanNumero`} control={control} render={({field}) => <TextField {...field} size="small" variant="standard" />} />
+                                            <Controller name={`rahtikirjat.${idx}.rahtikirjanNumero`} control={control} render={({ field }) => <TextField {...field} size="small" variant="standard" />} />
                                         </TableCell>
                                         <TableCell>
-                                            <Controller name={`rahtikirjat.${idx}.m3`} control={control} render={({field}) => <TextField {...field} size="small" variant="standard" type="number" />} />
+                                            <Controller name={`rahtikirjat.${idx}.m3`} control={control} render={({ field }) => <TextField {...field} size="small" variant="standard" type="number" />} />
                                         </TableCell>
                                         <TableCell>
-                                            <Controller name={`rahtikirjat.${idx}.reitti`} control={control} render={({field}) => <TextField {...field} size="small" variant="standard" />} />
+                                            <Controller name={`rahtikirjat.${idx}.reitti`} control={control} render={({ field }) => <TextField {...field} size="small" variant="standard" />} />
                                         </TableCell>
                                         <TableCell>
-                                            <Controller name={`rahtikirjat.${idx}.lisatiedot`} control={control} render={({field}) => <TextField {...field} size="small" variant="standard" />} />
+                                            <Controller name={`rahtikirjat.${idx}.lisatiedot`} control={control} render={({ field }) => <TextField {...field} size="small" variant="standard" />} />
                                         </TableCell>
                                     </TableRow>
                                 ))}
@@ -173,9 +175,9 @@ export default function EditConsignmentModal({ open, onCloseAction, onSaveSucces
                 </Stack>
             </DialogContent>
             <DialogActions>
-                <Button onClick={onCloseAction} disabled={isSubmitting}>Cancel</Button>
+                <Button onClick={onCloseAction} disabled={isSubmitting}>{t('common:buttons.cancel')}</Button>
                 <Button variant="contained" onClick={handleSubmit(onSubmit)} disabled={isSubmitting}>
-                    {isSubmitting ? <CircularProgress size={24} color="inherit" /> : 'Save'}
+                    {isSubmitting ? <CircularProgress size={24} color="inherit" /> : t('common:buttons.save')}
                 </Button>
             </DialogActions>
         </Dialog>

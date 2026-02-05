@@ -9,6 +9,7 @@ import {
 } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
 import { useTranslation } from 'react-i18next';
+import i18n from '@/i18n/i18n';
 import dayjs from 'dayjs';
 
 interface Waybill {
@@ -104,7 +105,7 @@ export default function CompletedTripDetailsModal({ open, onCloseAction, data, t
                                 <Box>
                                     <Typography variant="caption" color="text.secondary" fontWeight="bold">{t('labels.date')}</Typography>
                                     <Typography variant="body1" fontWeight="500">
-                                        {details.pvm ? dayjs(details.pvm).format('DD.MM.YYYY') : '-'}
+                                        {details.pvm ? dayjs(details.pvm).locale(i18n.language).format('L') : '-'}
                                     </Typography>
                                 </Box>
                                 <Box>
@@ -122,7 +123,7 @@ export default function CompletedTripDetailsModal({ open, onCloseAction, data, t
                                 <Box>
                                     <Typography variant="caption" color="text.secondary" fontWeight="bold">{t('labels.date')}</Typography>
                                     <Typography variant="body1" fontWeight="500">
-                                        {details.pvm ? dayjs(details.pvm).format('DD.MM.YYYY') : '-'}
+                                        {details.pvm ? dayjs(details.pvm).locale(i18n.language).format('L') : '-'}
                                     </Typography>
                                 </Box>
                                 <Box>
@@ -152,9 +153,9 @@ export default function CompletedTripDetailsModal({ open, onCloseAction, data, t
                                                 <TableCell sx={{ fontWeight: 'bold' }}>{t('labels.customer')}</TableCell>
                                                 <TableCell sx={{ fontWeight: 'bold' }}>{t('labels.waybillNo', { defaultValue: 'Waybill #' })}</TableCell>
                                                 <TableCell sx={{ fontWeight: 'bold' }}>{t('labels.route', { defaultValue: 'Route' })}</TableCell>
-                                                <TableCell align="right" sx={{ fontWeight: 'bold' }}>{t('labels.cubicMetres', { defaultValue: 'Volume (m³)' })}</TableCell>
-                                                <TableCell align="right" sx={{ fontWeight: 'bold' }}>{t('labels.freightKm', { defaultValue: 'Distance (km)' })}</TableCell>
-                                                <TableCell align="right" sx={{ fontWeight: 'bold' }}>{t('labels.pcs', { defaultValue: 'Pcs' })}</TableCell>
+                                                <TableCell align="right" sx={{ fontWeight: 'bold' }}>{t('common:units.m3', { defaultValue: 'Vol (m³)' })}</TableCell>
+                                                <TableCell align="right" sx={{ fontWeight: 'bold' }}>{t('common:units.km', { defaultValue: 'Dist (km)' })}</TableCell>
+                                                <TableCell align="right" sx={{ fontWeight: 'bold' }}>{t('common:units.pcs', { defaultValue: 'Pcs' })}</TableCell>
                                             </TableRow>
                                         </TableHead>
                                         <TableBody>
@@ -207,11 +208,11 @@ export default function CompletedTripDetailsModal({ open, onCloseAction, data, t
                                     <Typography variant="body2" fontWeight="bold">{details.kohde || '-'}</Typography>
                                 </Box>
                                 <Box>
-                                    <Typography variant="caption" color="text.secondary" fontWeight="bold">{t('labels.volume')} </Typography>
+                                    <Typography variant="caption" color="text.secondary" fontWeight="bold">{t('labels.volume')} ({t('common:units.m3', { defaultValue: 'm³' })})</Typography>
                                     <Typography variant="body2" fontWeight="bold">{fmtNum(details.m3)}</Typography>
                                 </Box>
                                 <Box>
-                                    <Typography variant="caption" color="text.secondary" fontWeight="bold">{t('labels.distance')}</Typography>
+                                    <Typography variant="caption" color="text.secondary" fontWeight="bold">{t('labels.distance')} ({t('common:units.km', { defaultValue: 'km' })})</Typography>
                                     <Typography variant="body2" fontWeight="bold">{fmtNum(details.km)}</Typography>
                                 </Box>
                             </Box>

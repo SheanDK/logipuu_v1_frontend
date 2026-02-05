@@ -15,7 +15,7 @@ import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import ExcelJS from 'exceljs';
 import { saveAs } from 'file-saver';
-import { useTranslation } from 'react-i18next'; 
+import { useTranslation } from 'react-i18next';
 import dayjs from 'dayjs'; // Import dayjs for date formatting
 
 import { ILoadListItem } from '@/types';
@@ -71,7 +71,7 @@ export default function LoadReportPage() {
             dateStyle: 'short',
             timeStyle: 'short',
         }).format(new Date());
-    
+
         const img = new window.Image();
         img.src = '/images/hkk-logo.png';
         img.onload = () => {
@@ -92,11 +92,11 @@ export default function LoadReportPage() {
             reportData.forEach(item => {
                 const rowData = [
                     formatDate(item.pvm), // FIX: Format date here
-                    item.kuljettajanNimi || '-', 
+                    item.kuljettajanNimi || '-',
                     item.rekNro || '-',
-                    item.asiakkaanNimi, 
+                    item.asiakkaanNimi,
                     item.puulaaniName || item.lahto || '-',
-                    item.m3?.toFixed(2) || '0.00', 
+                    item.m3?.toFixed(2) || '0.00',
                     item.km?.toFixed(2) || '0.00'
                 ];
                 tableRows.push(rowData);
@@ -115,8 +115,8 @@ export default function LoadReportPage() {
                     const totalPages = (doc.internal as any).getNumberOfPages();
                     doc.setFontSize(8);
                     doc.text(
-                        t('pageCounter', { page: data.pageNumber, total: totalPages }), 
-                        data.settings.margin.left, 
+                        t('pageCounter', { page: data.pageNumber, total: totalPages }),
+                        data.settings.margin.left,
                         doc.internal.pageSize.height - 10
                     );
                 }
@@ -161,12 +161,12 @@ export default function LoadReportPage() {
         });
 
         worksheet.addRow({});
-        
+
         const totalRow = worksheet.addRow({
             puulaani: t('table.footer.total'),
             cubic: parseFloat(totalCubicMeters)
         });
-        
+
         totalRow.font = { bold: true };
 
         const buffer = await workbook.xlsx.writeBuffer();
@@ -277,14 +277,14 @@ export default function LoadReportPage() {
                 <Container maxWidth="lg">
                     <Paper elevation={3} sx={{ p: { xs: 2, md: 4 } }}>
                         <Box sx={{ mb: 2 }}>
-                             <Image src="/images/hkk-logo.png" alt="Company Logo" width={200} height={40} priority />
+                            <Image src="/images/hkk-logo.png" alt="Company Logo" width={200} height={40} priority />
                         </Box>
                         <Stack direction="row" justifyContent="space-between" alignItems="flex-start" mb={2}>
                             <Box>
                                 <Typography variant="h5" component="h1">{t('title')}</Typography>
                                 <Typography variant="body2" color="text.secondary">
                                     {t('generatedOn')} {printDateTime}
-                                    </Typography>
+                                </Typography>
                             </Box>
                             <Stack direction="row" spacing={1} className="no-print">
                                 <Button variant="outlined" startIcon={<PrintIcon />} onClick={handlePrint}>{t('buttons.print')}</Button>
@@ -311,7 +311,7 @@ export default function LoadReportPage() {
                                 <TableBody>
                                     {reportData.map((row) => (
                                         <TableRow key={row.kuormaId}>
-                                            <TableCell>{formatDate(row.pvm)}</TableCell> {/* FIX: Format date here */}
+                                            <TableCell>{formatDate(row.pvm)}</TableCell>
                                             <TableCell>{row.kuljettajanNimi}</TableCell>
                                             <TableCell>{row.rekNro}</TableCell>
                                             <TableCell>{row.asiakkaanNimi}</TableCell>

@@ -13,7 +13,6 @@
     "secondary": "Valmistunut: {{date}} | Asiakas: {{customer}}"
   },
   "dateFormat": "DD.MM.YYYY",
-
   "date": "Päivä",
   "customer": "Asiakas",
   "origin": "Lähtö",
@@ -26,5 +25,9 @@
     "consignments": "Rahtikirja-ajot",
     "timberWithCount": "Puutavarakuormat ({{count}})",
     "consignmentsWithCount": "Rahtikirja-ajot ({{count}})"
-  }
+  },
+  "m3": "m³ (yht.)",
+  "waybills": "Rahtikirjat",
+  "status": "Tila",
+  "m3Vol": "Määrä (m³)"
 }
