@@ -1,4 +1,4 @@
-image: node:20-slim
+image: node:20-alpine
 
 variables:
   UV_THREADPOOL_SIZE: 1
@@ -12,7 +12,7 @@ stages:
 build-frontend:
   stage: build
   script:
-    - apt-get update && apt-get install -y python3 make g++ libavahi-compat-libdnssd-dev
+    - apk add --no-cache python3 make g++ avahi-compat-libdns_sd-dev
     - npm install --network-concurrency 1
     - NODE_OPTIONS=--max-old-space-size=1536 npm run build
   artifacts:
