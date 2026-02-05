@@ -1,13 +1,31 @@
-image: node:20
+image: node:20-alpine
+
+variables:
+  NODE_ENV: production
+
+cache:
+  key: ${CI_COMMIT_REF_SLUG}
+  paths:
+    - node_modules/
 
 before_script:
-  - apt-get update
-  - apt-get install -y python3 make g++ libavahi-compat-libdnssd-dev
+  # Alpine packages
+  - apk add --no-cache python3 make g++ avahi-dev dbus-dev
+  # Install dependencies
   - npm ci
 
+stages:
+  - build
+
 build:
+  stage: build
   script:
     - npm run build
   artifacts:
     paths:
       - build/
+      - dist/
+    expire_in: 1 day
+  only:
+    - main
+    - develop
