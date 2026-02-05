@@ -1,7 +1,10 @@
-image: node:18-alpine
+image: node:20-alpine
 
 variables:
+  UV_THREADPOOL_SIZE: 1
   NPM_CONFIG_JOBS: 1
+  NPM_CONFIG_AUDIT: "false"
+  NPM_CONFIG_PROGRESS: "false"
 
 stages:
   - build
@@ -10,7 +13,7 @@ build-frontend:
   stage: build
   script:
     - apk add --no-cache python3 make g++ 
-    - npm install --no-optional
+    - npm install --network-concurrency 1
     - NODE_OPTIONS=--max-old-space-size=1536 npm run build
   artifacts:
     paths:
