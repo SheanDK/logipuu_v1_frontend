@@ -15,10 +15,13 @@ import ReceiptLongIcon from '@mui/icons-material/ReceiptLong';
 import WorkspacesIcon from '@mui/icons-material/Workspaces';
 import TuneIcon from '@mui/icons-material/Tune';
 import AdminPanelSettingsIcon from '@mui/icons-material/AdminPanelSettings';
-import MenuBookIcon from '@mui/icons-material/MenuBook'; 
+import MenuBookIcon from '@mui/icons-material/MenuBook';
 import LocalShippingIcon from '@mui/icons-material/LocalShipping';
 import HistoryIcon from '@mui/icons-material/History';
 import ForestIcon from '@mui/icons-material/Forest';
+import TableChartIcon from '@mui/icons-material/TableChart';
+import CalendarMonthIcon from '@mui/icons-material/CalendarMonth';
+
 
 export interface NavItemConfig {
     tKey: string;
@@ -41,8 +44,30 @@ export const officeNavigationItems: NavItemConfig[] = [
         isTopNav: true,
         children: [
             { text: 'Timber Map', tKey: 'timberMap', icon: <MapIcon />, path: '/timber-stacks', permission: 'timber map_view' },
-            
             { text: 'Timber Management', tKey: 'timberManagement', icon: <ViewListIcon />, path: '/timber-management', permission: 'timber management_view' },
+
+            // --- CHIP TRANSPORT SECTION ---
+            {
+                text: 'Chip Titles',
+                tKey: 'chipManagement',
+                icon: <TableChartIcon />,
+                path: '/chip-management',
+                permission: 'chip management_view'
+            },
+            {
+                text: 'Chip Planning',
+                tKey: 'chipPlanning',
+                icon: <CalendarMonthIcon />,
+                path: '/chip-management/planning',
+                permission: 'chip management_planning'
+            },
+            {
+                text: 'Chip Subscriptions',
+                tKey: 'chipSubscriptions',
+                icon: <ReceiptLongIcon />,
+                path: '/chip-management/subscriptions',
+                permission: 'chip management_subscriptions'
+            },
         ]
     },
     {
@@ -51,7 +76,6 @@ export const officeNavigationItems: NavItemConfig[] = [
         icon: <ReceiptLongIcon />,
         isTopNav: true,
         children: [
-            // { text: 'Driven Inspection', tKey: 'drivenInspection', icon: <AssignmentIcon />, path: '/driven-inspection' },
             { text: 'Load Management', tKey: 'loadManagement', icon: <LocalShippingIcon />, path: '/loads', permission: 'load management_view' },
             { text: 'Puulaani Invoicing', tKey: 'puulaaniInvoicing', icon: <ReceiptLongIcon />, path: '/puulaani-invoicing' },
             { text: 'Consignment Invoicing', tKey: 'consignmentInvoicing', icon: <ReceiptLongIcon />, path: '/consignment-invoicing' },
@@ -66,8 +90,7 @@ export const officeNavigationItems: NavItemConfig[] = [
             { text: 'Clients', tKey: 'clients', icon: <BusinessIcon />, path: '/clients', permission: 'clients_view' },
             { text: 'Drivers', tKey: 'drivers', icon: <PeopleIcon />, path: '/drivers', permission: 'drivers_view' },
             { text: 'Vehicles', tKey: 'vehicles', icon: <DirectionsCarIcon />, path: '/vehicles', permission: 'vehicles_view' },
-            // { text: 'Reports', tKey: 'reports', icon: <BarChartIcon />, path: '/reports', permission: 'reports_view' },
-            { text: 'Wood Categories', tKey:'woodCategories', icon: <ForestIcon />, path: '/wood-categories', permission: 'wood categories_view'}
+            { text: 'Wood Categories', tKey: 'woodCategories', icon: <ForestIcon />, path: '/wood-categories', permission: 'wood categories_view' }
         ]
     },
     {
@@ -79,25 +102,24 @@ export const officeNavigationItems: NavItemConfig[] = [
             { text: 'Users', tKey: 'users', icon: <GroupIcon />, path: '/users', permission: 'users_view' },
             { text: 'Application Settings', tKey: 'applicationSettings', icon: <SettingsIcon />, path: '/admin/settings', roles: ['Superuser'] },
             { text: 'My Profile', tKey: 'myProfile', icon: <AccountCircleIcon />, path: '/settings/user' },
-        
         ]
     },
 ];
 
 // --- NAVIGATION FOR DRIVERS ---
 export const driverNavigationItems: NavItemConfig[] = [
-    { 
-        text: 'My Dashboard', 
+    {
+        text: 'My Dashboard',
         tKey: 'myDashboard',
-        icon: <DashboardIcon />, 
+        icon: <DashboardIcon />,
         path: '/my-loads',
         isTopNav: true,
-        roles: ['Kuljettaja'] 
+        roles: ['Kuljettaja']
     },
-    { 
-        text: 'Completed Trips', 
+    {
+        text: 'Completed Trips',
         tKey: 'completedTrips',
-        icon: <HistoryIcon />, 
+        icon: <HistoryIcon />,
         path: '/my-loads/completed-trips',
         isTopNav: true,
         roles: ['Kuljettaja']
@@ -109,21 +131,19 @@ export const driverNavigationItems: NavItemConfig[] = [
         isTopNav: false,
         roles: ['Kuljettaja'],
         children: [
-            { 
-                text: 'My Profile', 
-                 tKey: 'myProfile',
-                icon: <AccountCircleIcon />, 
+            {
+                text: 'My Profile',
+                tKey: 'myProfile',
+                icon: <AccountCircleIcon />,
                 path: '/settings/user',
                 roles: ['Kuljettaja']
             },
-
             {
                 text: 'User Manual',
                 tKey: 'userManual',
                 path: '/settings/manual',
                 icon: <MenuBookIcon />,
             }
-
         ]
     },
 ];

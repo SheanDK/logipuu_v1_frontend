@@ -1,0 +1,68 @@
+{
+    "title": "Hakkuujätteen nimikkeet",
+    "subtitle": "Hallinnoi hakkuujätteen logistiikan perusnimikkeitä",
+    "newItem": "UUSI NIMIKE",
+    "searchPlaceholder": "Hae nimellä tai asiakkaalla...",
+    "showInactive": "Näytä passiiviset nimikkeet",
+    "table": {
+        "id": "ID",
+        "customer": "Asiakas",
+        "loading": "Lastauspaikka",
+        "demolition": "Purkupaikka",
+        "product": "Tuote",
+        "titleName": "Nimikkeen nimi",
+        "reqInfo": "Pyydetyt tiedot"
+    },
+    "modal": {
+        "createTitle": "Luo nimike",
+        "editTitle": "Muokkaa nimikettä",
+        "summaryTitle": "Nimikkeen yhteenveto ja vahvistus",
+        "general": "Yleiset tiedot",
+        "requestedInfo": "KULJETTAJALTA PYYDETYT TIEDOT",
+        "instructions": "Ohjeet kuljettajalle",
+        "confirmMsg": "Tarkista alla olevat tiedot:",
+        "save": "VAHVISTA JA TALLENNA",
+        "summary": "SIIRRY YHTEENVETOON",
+        "back": "TAKASIN MUOKKAUKSEEN"
+    },
+    "loadDetails": {
+        "title": "Kuorman tiedot",
+        "instructionsLabel": "Kuljettajan ohjeet",
+        "instructionsPlaceholder": "Kirjoita kuljettajalle annettavat ohjeet tähän...",
+        "plannedVolume": "Suunniteltu tilavuus (m³)",
+        "buttons": {
+            "close": "SULJE",
+            "delete": "POISTA",
+            "save": "TALLENNA"
+        }
+    },
+    "planning": {
+        "title": "Hakkuujätteen suunnittelu",
+        "subtitle": "Viikkosuunnittelu",
+        "week": "Viikko",
+        "year": "Vuosi",
+        "shift": "Vuoro",
+        "morning": "Aamu",
+        "afternoon": "Iltavuoro",
+        "vehicle": "Ajoneuvo",
+        "driver": "Kuljettaja",
+        "loads": "Kuormat",
+        "date": "Päivämäärä",
+        "status": "Tila",
+        "volume": "Tilavuus (m³)",
+        "actions": "Toiminnot",
+        "dispatch": "LÄHETÄ",
+        "addVehicle": "LISÄÄ AJONEUVO",
+        "deleteLoad": "POISTA KUORMA",
+        "modifyLoad": "MUOKKAA KUORMAA",
+        "assignTitle": "MÄÄRITÄ NIMIKE",
+        "assignTitleModal": {
+            "title": "Määritä nimike ajoneuvolle",
+            "selectTitle": "Valitse nimike",
+            "selectDate": "Valitse päivämäärä",
+            "selectShift": "Valitse vuoro",
+            "assign": "MÄÄRITÄ",
+            "cancel": "PERUUTA"
+        }
+    }
+}

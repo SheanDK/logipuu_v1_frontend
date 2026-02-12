@@ -1,0 +1,68 @@
+{
+    "title": "Nimikkeet (Chip Titles)",
+    "subtitle": "Manage master items for chip logistics",
+    "newItem": "NEW ITEM",
+    "searchPlaceholder": "Search by name or customer...",
+    "showInactive": "Show Inactive Items",
+    "table": {
+        "id": "ID",
+        "customer": "Customer",
+        "loading": "Loading (Lastaus)",
+        "demolition": "Demolition (Purku)",
+        "product": "Product",
+        "titleName": "Title Name",
+        "reqInfo": "Requested Info"
+    },
+    "modal": {
+        "createTitle": "Create Nimike",
+        "editTitle": "Edit Nimike",
+        "summaryTitle": "Nimike Summary & Confirmation",
+        "general": "General Details",
+        "requestedInfo": "INFORMATION REQUESTED FROM DRIVER",
+        "instructions": "Instructions for the driver",
+        "confirmMsg": "Please verify the details below:",
+        "save": "CONFIRM & SAVE",
+        "summary": "GO TO SUMMARY",
+        "back": "BACK TO EDIT"
+    },
+    "loadDetails": {
+        "title": "Load Details",
+        "instructionsLabel": "Driver Instructions",
+        "instructionsPlaceholder": "Enter specific instructions for the driver here...",
+        "plannedVolume": "Planned Volume (m³)",
+        "buttons": {
+            "close": "CLOSE",
+            "delete": "DELETE",
+            "save": "SAVE"
+        }
+    },
+    "planning": {
+        "title": "Chip Planning",
+        "subtitle": "Weekly Planning View",
+        "week": "Week",
+        "year": "Year",
+        "shift": "Shift",
+        "morning": "Morning",
+        "afternoon": "Afternoon",
+        "vehicle": "Vehicle",
+        "driver": "Driver",
+        "loads": "Loads",
+        "date": "Date",
+        "status": "Status",
+        "volume": "Volume (m³)",
+        "actions": "Actions",
+        "dispatch": "DISPATCH",
+        "addVehicle": "ADD VEHICLE",
+        "deleteLoad": "DELETE LOAD",
+        "modifyLoad": "MODIFY LOAD",
+        "assignTitle": "ASSIGN TITLE",
+        "assignTitleModal": {
+            "title": "Assign Title to Vehicle",
+            "selectTitle": "Select Title",
+            "selectDate": "Select Date",
+            "selectShift": "Select Shift",
+            "assign": "ASSIGN",
+            "cancel": "CANCEL"
+        }
+    }
+}

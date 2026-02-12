@@ -25,6 +25,8 @@
         "timberMap": "Kartta",
         "loadManagement": "Kuormanhallinta",
         "timberManagement": "Puuhallinta",
+        "chipManagement": "Hakkeenhallinta",
+        "chipTitles": "Hakkeenhallinta",
         "office": "Toimisto",
         "drivenInspection": "Ajot & Tarkastukset",
         "puulaaniInvoicing": "Puulaanin laskutus",
