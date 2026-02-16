@@ -54,11 +54,11 @@ const ChipTitlesPage = () => {
     const renderRequestedInfo = (title: any) => {
         const info = [];
         const goldColor = '#a38f6d';
-        if (title.reqKpl || title.req_kpl) info.push(<Tooltip key="kpl" title="Pcs"><PinIcon sx={{ fontSize: 16, color: goldColor }} /></Tooltip>);
-        if (title.reqM3 || title.req_m3) info.push(<Tooltip key="m3" title="Cubes"><ViewInArIcon sx={{ fontSize: 16, color: goldColor }} /></Tooltip>);
-        if (title.reqTon || title.req_ton) info.push(<Tooltip key="ton" title="Tons"><ScaleIcon sx={{ fontSize: 16, color: goldColor }} /></Tooltip>);
-        if (title.reqH || title.req_h) info.push(<Tooltip key="h" title="Hours"><AccessTimeIcon sx={{ fontSize: 16, color: goldColor }} /></Tooltip>);
-        if (title.reqKm || title.req_km) info.push(<Tooltip key="km" title="Mileage"><RouteIcon sx={{ fontSize: 16, color: goldColor }} /></Tooltip>);
+        if (title.reqKpl || title.req_kpl) info.push(<Tooltip key="kpl" title={t('chip-management:tooltips.pcs')}><PinIcon sx={{ fontSize: 16, color: goldColor }} /></Tooltip>);
+        if (title.reqM3 || title.req_m3) info.push(<Tooltip key="m3" title={t('chip-management:tooltips.cubes')}><ViewInArIcon sx={{ fontSize: 16, color: goldColor }} /></Tooltip>);
+        if (title.reqTon || title.req_ton) info.push(<Tooltip key="ton" title={t('chip-management:tooltips.tons')}><ScaleIcon sx={{ fontSize: 16, color: goldColor }} /></Tooltip>);
+        if (title.reqH || title.req_h) info.push(<Tooltip key="h" title={t('chip-management:tooltips.hours')}><AccessTimeIcon sx={{ fontSize: 16, color: goldColor }} /></Tooltip>);
+        if (title.reqKm || title.req_km) info.push(<Tooltip key="km" title={t('chip-management:tooltips.mileage')}><RouteIcon sx={{ fontSize: 16, color: goldColor }} /></Tooltip>);
 
         return (
             <Stack direction="row" spacing={0.5} justifyContent="center">
@@ -120,16 +120,28 @@ const ChipTitlesPage = () => {
                     <TableBody>
                         {filteredTitles.map((t) => (
                             <TableRow
-                                key={t.titleId || t.title_id} hover onClick={() => handleRowClick(t)}
-                                sx={{ cursor: 'pointer', opacity: t.aktiivinen === false ? 0.6 : 1, '&:hover': { bgcolor: '#fdfaf5 !important' } }}
+                                key={t.titleId || t.title_id}
+                                hover
+                                onClick={() => handleRowClick(t)}
+                                sx={{ cursor: 'pointer', opacity: (t.aktiivinen === false || t.active === false) ? 0.6 : 1 }}
                             >
                                 <TableCell>{t.titleId || t.title_id}</TableCell>
-                                <TableCell><Typography variant="body2" fontWeight="bold">{t.customerName || t.customer_name}</Typography></TableCell>
-                                <TableCell sx={{ fontSize: '12px' }}>{t.originName || t.origin_name}</TableCell>
-                                <TableCell sx={{ fontSize: '12px' }}>{t.destinationName || t.destination_name}</TableCell>
-                                <TableCell sx={{ fontSize: '12px' }}>{t.productName || t.product_name}</TableCell>
-                                <TableCell><Typography variant="body2" sx={{ color: '#a38f6d', fontWeight: '600' }}>{t.nimikeNimi || t.nimike_nimi}</Typography></TableCell>
-                                <TableCell align="center">{renderRequestedInfo(t)}</TableCell>
+                                <TableCell>
+                                    <Typography variant="body2" fontWeight="bold">
+                                        {t.customerName || t.customer_name || t.asiakkaan_nimi}
+                                    </Typography>
+                                </TableCell>
+                                <TableCell sx={{ fontSize: '12px' }}>{t.originName || t.origin_name || t.nimi}</TableCell>
+                                <TableCell sx={{ fontSize: '12px' }}>{t.destinationName || t.destination_name || t.purkupaikka}</TableCell>
+                                <TableCell sx={{ fontSize: '12px' }}>{t.productName || t.product_name || t.puutavara}</TableCell>
+                                <TableCell>
+                                    <Typography variant="body2" sx={{ color: '#a38f6d', fontWeight: '600' }}>
+                                        {t.nimikeNimi || t.nimike_nimi}
+                                    </Typography>
+                                </TableCell>
+                                <TableCell align="center">
+                                    {renderRequestedInfo(t)}
+                                </TableCell>
                             </TableRow>
                         ))}
                     </TableBody>

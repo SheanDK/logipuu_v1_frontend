@@ -114,9 +114,9 @@ const ChipTitleModal = ({ open, onClose, onSuccess, titleData }: any) => {
                 {step === 'form' ? (
                     <Stack spacing={3} sx={{ mt: 1 }}>
                         <Box sx={{ display: 'flex', gap: 2, alignItems: 'center' }}>
-                            <TextField label="Title Name *" fullWidth size="small" sx={{ flex: 2 }} value={formData.nimike_nimi} onChange={(e) => setFormData({ ...formData, nimike_nimi: e.target.value })} />
-                            <TextField label="Abbr." fullWidth size="small" sx={{ flex: 1 }} value={formData.lyhenne} onChange={(e) => setFormData({ ...formData, lyhenne: e.target.value })} />
-                            <FormControlLabel control={<Switch size="small" checked={formData.aktiivinen} onChange={(e) => setFormData({ ...formData, aktiivinen: e.target.checked })} />} label="Active" />
+                            <TextField label={`${t('chip-management:modal.titleName')} *`} fullWidth size="small" sx={{ flex: 2 }} value={formData.nimike_nimi} onChange={(e) => setFormData({ ...formData, nimike_nimi: e.target.value })} />
+                            <TextField label={t('chip-management:modal.abbr')} fullWidth size="small" sx={{ flex: 1 }} value={formData.lyhenne} onChange={(e) => setFormData({ ...formData, lyhenne: e.target.value })} />
+                            <FormControlLabel control={<Switch size="small" checked={formData.aktiivinen} onChange={(e) => setFormData({ ...formData, aktiivinen: e.target.checked })} />} label={t('chip-management:modal.active')} />
                         </Box>
 
                         <Box sx={{ display: 'flex', gap: 2 }}>
@@ -125,14 +125,14 @@ const ChipTitleModal = ({ open, onClose, onSuccess, titleData }: any) => {
                                 renderOption={(props, option) => { const { key, ...op } = props; return <Box component="li" key={option.asiakkaanId} {...op}>{option.asiakkaanNimi}</Box>; }}
                                 value={customers.find(c => String(c.asiakkaanId) === String(formData.asiakas_id)) || null}
                                 onChange={(_, v) => setFormData({ ...formData, asiakas_id: v ? v.asiakkaanId : '' })}
-                                renderInput={(params) => <TextField {...params} label="Customer *" />} />
+                                renderInput={(params) => <TextField {...params} label={`${t('chip-management:modal.customer')} *`} />} />
 
                             <Autocomplete options={products} size="small" sx={{ flex: 1 }} getOptionLabel={(o) => o.puutavara || ''}
                                 isOptionEqualToValue={(option, value) => String(option.puutavaraNro) === String(value.puutavaraNro)}
                                 renderOption={(props, option) => { const { key, ...op } = props; return <Box component="li" key={option.puutavaraNro} {...op}>{option.puutavara}</Box>; }}
                                 value={products.find(p => String(p.puutavaraNro) === String(formData.tuote_nro)) || null}
                                 onChange={(_, v) => setFormData({ ...formData, tuote_nro: v ? v.puutavaraNro : '' })}
-                                renderInput={(params) => <TextField {...params} label="Product *" />} />
+                                renderInput={(params) => <TextField {...params} label={`${t('chip-management:modal.product')} *`} />} />
                         </Box>
 
                         <Box sx={{ display: 'flex', gap: 2 }}>
@@ -141,14 +141,14 @@ const ChipTitleModal = ({ open, onClose, onSuccess, titleData }: any) => {
                                 renderOption={(props, option) => { const { key, ...op } = props; return <Box component="li" key={option.puulaaniId} {...op}>{option.nimi}</Box>; }}
                                 value={origins.find(o => String(o.puulaaniId) === String(formData.lahto_paikka_id)) || null}
                                 onChange={(_, v) => setFormData({ ...formData, lahto_paikka_id: v ? v.puulaaniId : '' })}
-                                renderInput={(params) => <TextField {...params} label="Loading Point *" />} />
+                                renderInput={(params) => <TextField {...params} label={`${t('chip-management:modal.loadingPoint')} *`} />} />
 
                             <Autocomplete options={destinations} size="small" sx={{ flex: 1 }} getOptionLabel={(o) => o.purkupaikka || ''}
                                 isOptionEqualToValue={(option, value) => String(option.purkupaikkaId) === String(value.purkupaikkaId)}
                                 renderOption={(props, option) => { const { key, ...op } = props; return <Box component="li" key={option.purkupaikkaId} {...op}>{option.purkupaikka}</Box>; }}
                                 value={destinations.find(d => String(d.purkupaikkaId) === String(formData.purku_paikka_id)) || null}
                                 onChange={(_, v) => setFormData({ ...formData, purku_paikka_id: v ? v.purkupaikkaId : '' })}
-                                renderInput={(params) => <TextField {...params} label="Demolition Point *" />} />
+                                renderInput={(params) => <TextField {...params} label={`${t('chip-management:modal.demolitionPoint')} *`} />} />
                         </Box>
 
                         <Box sx={{ p: 2, border: '1px solid #e0e0e0', borderRadius: '8px', bgcolor: '#fafafa' }}>
@@ -161,8 +161,10 @@ const ChipTitleModal = ({ open, onClose, onSuccess, titleData }: any) => {
                         </Box>
 
                         <Box sx={{ display: 'flex', gap: 2 }}>
-                            <TextField select label="Invoicing basis" fullWidth size="small" sx={{ flex: 1 }} value={formData.laskutusperuste} onChange={(e) => setFormData({ ...formData, laskutusperuste: e.target.value })}>
-                                <MenuItem value="Tons">Tons</MenuItem><MenuItem value="M3">M3</MenuItem><MenuItem value="pcs">pcs</MenuItem>
+                            <TextField select label={t('chip-management:modal.invoicingBasis')} fullWidth size="small" sx={{ flex: 1 }} value={formData.laskutusperuste} onChange={(e) => setFormData({ ...formData, laskutusperuste: e.target.value })}>
+                                <MenuItem value="Tons">{t('chip-management:modal.basis.tons')}</MenuItem>
+                                <MenuItem value="M3">{t('chip-management:modal.basis.m3')}</MenuItem>
+                                <MenuItem value="pcs">{t('chip-management:modal.basis.pcs')}</MenuItem>
                             </TextField>
                             <TextField label={t('chip-management:modal.instructions')} fullWidth multiline rows={2} sx={{ flex: 2 }} value={formData.ohjeet_kuljettajalle} onChange={(e) => setFormData({ ...formData, ohjeet_kuljettajalle: e.target.value })} />
                         </Box>
@@ -171,20 +173,20 @@ const ChipTitleModal = ({ open, onClose, onSuccess, titleData }: any) => {
                     <Box sx={{ p: 1 }}>
                         <Typography variant="subtitle1" sx={{ color: '#a38f6d', fontWeight: 'bold', mb: 3 }}>{t('chip-management:modal.confirmMsg')}</Typography>
                         <Box sx={{ display: 'flex', flexWrap: 'wrap' }}>
-                            <SummaryBox label="Title Name" value={formData.nimike_nimi} />
-                            <SummaryBox label="Customer" value={customers.find(c => String(c.asiakkaanId) === String(formData.asiakas_id))?.asiakkaanNimi} />
-                            <SummaryBox label="Loading" value={origins.find(o => String(o.puulaaniId) === String(formData.lahto_paikka_id))?.nimi} />
-                            <SummaryBox label="Demolition" value={destinations.find(d => String(d.purkupaikkaId) === String(formData.purku_paikka_id))?.purkupaikka} />
+                            <SummaryBox label={t('chip-management:modal.titleName')} value={formData.nimike_nimi} />
+                            <SummaryBox label={t('chip-management:modal.customer')} value={customers.find(c => String(c.asiakkaanId) === String(formData.asiakas_id))?.asiakkaanNimi} />
+                            <SummaryBox label={t('chip-management:table.loading')} value={origins.find(o => String(o.puulaaniId) === String(formData.lahto_paikka_id))?.nimi} />
+                            <SummaryBox label={t('chip-management:table.demolition')} value={destinations.find(d => String(d.purkupaikkaId) === String(formData.purku_paikka_id))?.purkupaikka} />
                         </Box>
                         <Divider sx={{ my: 2 }} />
-                        <Typography variant="caption" fontWeight="bold">INSTRUCTIONS:</Typography>
-                        <Typography variant="body2" sx={{ fontStyle: 'italic', mt: 1 }}>{formData.ohjeet_kuljettajalle || 'No instructions'}</Typography>
+                        <Typography variant="caption" fontWeight="bold">{t('chip-management:modal.instructionsTitle')}:</Typography>
+                        <Typography variant="body2" sx={{ fontStyle: 'italic', mt: 1 }}>{formData.ohjeet_kuljettajalle || t('chip-management:modal.noInstructions')}</Typography>
                     </Box>
                 )}
             </DialogContent>
 
             <DialogActions sx={{ p: 2, bgcolor: '#f8f9fa' }}>
-                <Button onClick={onClose} color="inherit">CANCEL</Button>
+                <Button onClick={onClose} color="inherit">{t('chip-management:modal.cancel')}</Button>
                 {step === 'form' ? (
                     <Button variant="contained" onClick={() => setStep('summary')} sx={{ bgcolor: '#a38f6d', borderRadius: '20px', px: 4 }}>{t('chip-management:modal.summary')}</Button>
                 ) : (

@@ -16,6 +16,16 @@ const chipService = {
         return response.data;
     },
 
+    // update order
+    updateOrder: async (orderId: number, orderData: any) => {
+        const response = await apiClient.put(`/chip-orders/orders/${orderId}`, orderData);
+        return response.data;
+    },
+    // delete order
+    deleteOrder: async (orderId: number) => {
+        const response = await apiClient.delete(`/chip-orders/orders/${orderId}`);
+        return response.data;
+    },
     // Load delete
     deleteLoad: async (loadId: number) => {
         const response = await apiClient.delete(`/chip-planning/delete-load/${loadId}`);
@@ -68,7 +78,9 @@ const chipService = {
     moveLoad: async (payload: { loadId: number, newProgramId: number, newDate: string }) => {
         const response = await apiClient.patch(`/chip-planning/move-load`, payload);
         return response.data;
-    }
+    },
+
+
 };
 
 export default chipService;

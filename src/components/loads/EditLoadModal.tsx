@@ -114,11 +114,26 @@ export default function EditLoadModal({ open, onCloseAction, onSaveSuccessAction
             lisatiedot: formData.lisatiedot || null,
         };
 
+        const actualId = loadData.kuormaId || loadData.legs?.[0]?.kuormaId;
+
         try {
-            await updateLoad(Number(displayId), payload, currentUser);
+            if (!actualId) {
+                throw new Error("Load ID is missing. Cannot update.");
+            }
+            await updateLoad(Number(actualId), payload, currentUser);
             onSaveSuccessAction(t('editLoadModal:snackbar.updated', { id: displayId }));
         } catch (err: any) {
-            setError(err?.response?.data?.message || t('editLoadModal:errors.updateFailed'));
+            console.error("Update Load failed:", err);
+
+            // Handle structured validation errors from backend
+            if (err?.response?.data?.errors && Array.isArray(err.response.data.errors)) {
+                const messages = err.response.data.errors.map((e: any) =>
+                    `${e.property}: ${e.constraints.join(', ')}`
+                ).join(' | ');
+                setError(`${t('editLoadModal:errors.updateFailed')}: ${messages}`);
+            } else {
+                setError(err?.response?.data?.message || err.message || t('editLoadModal:errors.updateFailed'));
+            }
         } finally {
             setIsSaving(false);
         }

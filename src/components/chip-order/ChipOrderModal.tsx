@@ -9,6 +9,7 @@ import {
     Dialog, DialogTitle, DialogContent, DialogActions,
     Button, TextField, Stack, MenuItem, CircularProgress, Typography
 } from '@mui/material';
+import { useTranslation } from '@/i18n/useTranslation';
 
 interface ChipOrderModalProps {
     open: boolean;
@@ -17,6 +18,7 @@ interface ChipOrderModalProps {
 }
 
 const ChipOrderModal: React.FC<ChipOrderModalProps> = ({ open, onClose, onSuccess }) => {
+    const { t } = useTranslation(['chip-management']);
     const [customers, setCustomers] = useState<any[]>([]);
     const [loading, setLoading] = useState(false);
     const [fetchingCustomers, setFetchingCustomers] = useState(false);
@@ -70,7 +72,7 @@ const ChipOrderModal: React.FC<ChipOrderModalProps> = ({ open, onClose, onSucces
     return (
         <Dialog open={open} onClose={onClose} fullWidth maxWidth="sm">
             <DialogTitle sx={{ bgcolor: '#f8f9fa', fontWeight: 'bold' }}>
-                Create New Chip Order
+                {t('chip-management:orderModal.createTitle')}
             </DialogTitle>
             <DialogContent dividers>
                 <Stack spacing={2} sx={{ mt: 1 }}>
@@ -79,7 +81,7 @@ const ChipOrderModal: React.FC<ChipOrderModalProps> = ({ open, onClose, onSucces
                     <TextField
                         select
                         fullWidth
-                        label={fetchingCustomers ? "Loading..." : "Select Customer *"}
+                        label={fetchingCustomers ? t('chip-management:orderModal.loading') : `${t('chip-management:orderModal.customerSelect')} *`}
                         name="asiakas_id"
                         value={formData.asiakas_id}
                         onChange={handleChange}
@@ -93,7 +95,7 @@ const ChipOrderModal: React.FC<ChipOrderModalProps> = ({ open, onClose, onSucces
                                 </MenuItem>
                             ))
                         ) : (
-                            <MenuItem disabled>No customers found</MenuItem>
+                            <MenuItem disabled>{t('chip-management:orderModal.noCustomers')}</MenuItem>
                         )}
                     </TextField>
 
@@ -101,7 +103,7 @@ const ChipOrderModal: React.FC<ChipOrderModalProps> = ({ open, onClose, onSucces
                     <Stack direction="row" spacing={2}>
                         <TextField
                             fullWidth
-                            label="Start Date *"
+                            label={`${t('chip-management:orderModal.startDate')} *`}
                             type="date"
                             name="pvm_alku"
                             InputLabelProps={{ shrink: true }}
@@ -111,7 +113,7 @@ const ChipOrderModal: React.FC<ChipOrderModalProps> = ({ open, onClose, onSucces
                         />
                         <TextField
                             fullWidth
-                            label="End Date *"
+                            label={`${t('chip-management:orderModal.endDate')} *`}
                             type="date"
                             name="pvm_loppu"
                             InputLabelProps={{ shrink: true }}
@@ -124,7 +126,7 @@ const ChipOrderModal: React.FC<ChipOrderModalProps> = ({ open, onClose, onSucces
                     <Stack direction="row" spacing={2}>
                         <TextField
                             fullWidth
-                            label="Target Loads (Qty)"
+                            label={t('chip-management:orderModal.targetLoads')}
                             type="number"
                             name="kuormia_tavoite"
                             value={formData.kuormia_tavoite}
@@ -132,9 +134,9 @@ const ChipOrderModal: React.FC<ChipOrderModalProps> = ({ open, onClose, onSucces
                         />
                         <TextField
                             fullWidth
-                            label="Product Type"
+                            label={t('chip-management:orderModal.productType')}
                             name="tuote_tyyppi"
-                            placeholder="e.g. Sawdust"
+                            placeholder={t('chip-management:orderModal.productPlaceholder')}
                             value={formData.tuote_tyyppi}
                             onChange={handleChange}
                         />
@@ -142,7 +144,7 @@ const ChipOrderModal: React.FC<ChipOrderModalProps> = ({ open, onClose, onSucces
 
                     <TextField
                         fullWidth
-                        label="Additional Notes"
+                        label={t('chip-management:orderModal.furtherInfo')}
                         multiline
                         rows={3}
                         name="lisatiedot"
@@ -152,14 +154,14 @@ const ChipOrderModal: React.FC<ChipOrderModalProps> = ({ open, onClose, onSucces
                 </Stack>
             </DialogContent>
             <DialogActions sx={{ p: 2, bgcolor: '#f8f9fa' }}>
-                <Button onClick={onClose} color="inherit">Cancel</Button>
+                <Button onClick={onClose} color="inherit">{t('chip-management:orderModal.cancel')}</Button>
                 <Button
                     onClick={handleSubmit}
                     variant="contained"
                     disabled={loading || !formData.asiakas_id}
                     sx={{ bgcolor: '#a38f6d', '&:hover': { bgcolor: '#8c7a5d' } }}
                 >
-                    {loading ? <CircularProgress size={24} color="inherit" /> : 'SAVE ORDER'}
+                    {loading ? <CircularProgress size={24} color="inherit" /> : t('chip-management:orderModal.saveOrder')}
                 </Button>
             </DialogActions>
         </Dialog>

@@ -10,6 +10,7 @@ import {
     Dialog, DialogTitle, DialogContent, DialogActions,
     Button, TextField, Stack, MenuItem, Typography, CircularProgress, Box
 } from '@mui/material';
+import { useTranslation } from '@/i18n/useTranslation';
 
 interface ScheduleLoadModalProps {
     open: boolean;
@@ -21,6 +22,7 @@ interface ScheduleLoadModalProps {
 }
 
 const ScheduleLoadModal: React.FC<ScheduleLoadModalProps> = ({ open, onClose, onSuccess, programId, selectedDate, vehicleName }) => {
+    const { t } = useTranslation(['chip-management']);
     const [orders, setOrders] = useState<any[]>([]);
     const [loadingSites, setLoadingSites] = useState<any[]>([]);
     const [unloadingSites, setUnloadingSites] = useState<any[]>([]);
@@ -68,7 +70,7 @@ const ScheduleLoadModal: React.FC<ScheduleLoadModalProps> = ({ open, onClose, on
 
     const handleSave = async () => {
         if (!formData.order_id || !formData.lahto_paikka || !formData.purku_paikka) {
-            alert("Please fill all required fields.");
+            alert(t('chip-management:planning.scheduleModal.fillAll'));
             return;
         }
 
@@ -86,7 +88,7 @@ const ScheduleLoadModal: React.FC<ScheduleLoadModalProps> = ({ open, onClose, on
             onClose();
         } catch (error) {
             console.error("Scheduling failed", error);
-            alert("Internal Server Error (500). Please check if IDs are valid.");
+            alert(t('chip-management:planning.scheduleModal.error500'));
         } finally {
             setIsSaving(false);
         }
@@ -95,7 +97,7 @@ const ScheduleLoadModal: React.FC<ScheduleLoadModalProps> = ({ open, onClose, on
     return (
         <Dialog open={open} onClose={onClose} fullWidth maxWidth="xs">
             <DialogTitle sx={{ fontWeight: 'bold', bgcolor: '#f8f9fa' }}>
-                Schedule Load: {vehicleName}
+                {t('chip-management:planning.scheduleModal.title')}: {vehicleName}
             </DialogTitle>
             <DialogContent dividers>
                 {isFetching ? (
@@ -105,13 +107,13 @@ const ScheduleLoadModal: React.FC<ScheduleLoadModalProps> = ({ open, onClose, on
                 ) : (
                     <Stack spacing={2} sx={{ mt: 1 }}>
                         <Typography variant="body2" color="textSecondary">
-                            Date: <b>{selectedDate ? new Date(selectedDate).toLocaleDateString() : ''}</b>
+                            {t('chip-management:planning.date')}: <b>{selectedDate ? new Date(selectedDate).toLocaleDateString() : ''}</b>
                         </Typography>
 
                         {/* TextField value එක කවදාවත් undefined නොවන බවට සහතික වීමට || '' එක් කළා */}
                         <TextField
                             select
-                            label="Select Chip Order"
+                            label={t('chip-management:planning.scheduleModal.selectOrder')}
                             fullWidth
                             value={formData.order_id || ''}
                             onChange={(e) => setFormData({ ...formData, order_id: e.target.value })}
@@ -125,7 +127,7 @@ const ScheduleLoadModal: React.FC<ScheduleLoadModalProps> = ({ open, onClose, on
 
                         <TextField
                             select
-                            label="Loading Site (Origin)"
+                            label={t('chip-management:planning.scheduleModal.loadingSite')}
                             fullWidth
                             value={formData.lahto_paikka || ''}
                             onChange={(e) => setFormData({ ...formData, lahto_paikka: e.target.value })}
@@ -137,7 +139,7 @@ const ScheduleLoadModal: React.FC<ScheduleLoadModalProps> = ({ open, onClose, on
 
                         <TextField
                             select
-                            label="Unloading Site (Destination)"
+                            label={t('chip-management:planning.scheduleModal.unloadingSite')}
                             fullWidth
                             value={formData.purku_paikka || ''}
                             onChange={(e) => setFormData({ ...formData, purku_paikka: e.target.value })}
@@ -148,7 +150,7 @@ const ScheduleLoadModal: React.FC<ScheduleLoadModalProps> = ({ open, onClose, on
                         </TextField>
 
                         <TextField
-                            label="Planned m³"
+                            label={t('chip-management:planning.scheduleModal.plannedM3')}
                             type="number"
                             fullWidth
                             value={formData.planned_m3 || ''}
@@ -158,14 +160,14 @@ const ScheduleLoadModal: React.FC<ScheduleLoadModalProps> = ({ open, onClose, on
                 )}
             </DialogContent>
             <DialogActions sx={{ p: 2, bgcolor: '#f8f9fa' }}>
-                <Button onClick={onClose} color="inherit">Cancel</Button>
+                <Button onClick={onClose} color="inherit">{t('chip-management:orderModal.cancel')}</Button>
                 <Button
                     variant="contained"
                     onClick={handleSave}
                     disabled={isSaving || isFetching}
                     sx={{ bgcolor: '#a38f6d', '&:hover': { bgcolor: '#8c7a5d' } }}
                 >
-                    {isSaving ? <CircularProgress size={24} color="inherit" /> : 'SAVE GIG'}
+                    {isSaving ? <CircularProgress size={24} color="inherit" /> : t('chip-management:planning.scheduleModal.saveGig')}
                 </Button>
             </DialogActions>
         </Dialog>

@@ -8,6 +8,6 @@ type Props = {
 };
 
 export default async function LangLayout({ children, params }: Props) {
-  const { lng } = await params;         
+  const { lng } = await params;
   return <div dir={dir(lng)}>{children}</div>;
 }

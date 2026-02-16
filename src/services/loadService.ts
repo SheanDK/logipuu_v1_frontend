@@ -1,10 +1,10 @@
 //frontend/src/services/loadService.ts
 import apiClient from './apiClient';
-import { 
-    ILoadListItem, 
-    ICreateLoadDto, 
+import {
+    ILoadListItem,
+    ICreateLoadDto,
     ILoad,
-    IUpdateLoadDto, 
+    IUpdateLoadDto,
     ILoadStatusUpdateDto,
     ILoadDetails,
     ITripDetails,
@@ -20,7 +20,7 @@ export interface ILoadListApiFilters {
     asiakasId?: string;
     kalustoNro?: string;
     kuljId?: string;
-    loadType?: number; 
+    loadType?: number;
 }
 
 /**
@@ -74,6 +74,7 @@ export const createLoad = async (data: ICreateLoadDto): Promise<ILoad> => {
 // if auth header handles it. But to match your component call:
 export const updateLoad = async (id: number, data: IUpdateLoadDto | any, user?: IUser): Promise<ILoad> => {
     try {
+        console.log(`[SERVICE] updateLoad called for ID: ${id}`, data);
         const response = await apiClient.put<ILoad>(`${API_ENDPOINT}/${id}`, data);
         return response.data;
     } catch (error) {
@@ -150,7 +151,7 @@ export const fetchMyCompletedLoads = async (): Promise<ILoadListItem[]> => {
         console.error("SERVICE ERROR: Failed to fetch driver's completed loads", error);
         throw error;
     }
-}; 
+};
 
 export const fetchMyLastCompletedLoad = async (): Promise<ILoadListItem | null> => {
     try {

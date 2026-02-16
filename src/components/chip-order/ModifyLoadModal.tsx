@@ -57,7 +57,7 @@ const ModifyLoadModal = ({ open, loadData, onClose, onSave, onDelete }: any) => 
                             position: 'absolute', top: -10, left: 10, bgcolor: '#fafafa', px: 1,
                             color: '#a38f6d', fontWeight: 'bold', fontSize: '10px', textTransform: 'uppercase'
                         }}>
-                            Vehicle & Item
+                            {t('chip-management:loadDetails.vehicleAndItem')}
                         </Typography>
                         <Typography variant="body1" sx={{ fontWeight: 700, color: '#333' }}>
                             {loadData?.rekNro || loadData?.reknro} | {loadData?.titleName || loadData?.titlename}

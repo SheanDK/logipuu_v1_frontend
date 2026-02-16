@@ -1,4 +1,4 @@
-//app\[lng]\[(main)]\chip-management\planning\page.tsx
+//app[lng][(main)]\chip-management\planning\page.tsx
 'use client';
 
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
@@ -20,6 +20,7 @@ import * as clientService from '@/services/clientService';
 import * as vehicleService from '@/services/vehicleService';
 import { IBackendClient } from '@/types';
 import ModifyLoadModal from '@/components/chip-order/ModifyLoadModal';
+import { useTranslation } from '@/i18n/useTranslation';
 
 // Status Styles (Logitar Theme)
 const getStatusStyles = (status: string) => {
@@ -33,6 +34,7 @@ const getStatusStyles = (status: string) => {
 };
 
 const PlanningPage = () => {
+    const { t } = useTranslation(['chip-management']);
     // Basic States
     const [week, setWeek] = useState(7);
     const [year, setYear] = useState(2026);
@@ -57,7 +59,7 @@ const PlanningPage = () => {
     const [selectedLoad, setSelectedLoad] = useState<any | null>(null);
     const [editModalOpen, setEditModalOpen] = useState(false);
 
-    const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+    const days = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
 
     // 1. Timezone Safe Date Calculation
     const getDatesOfWeek = useCallback((w: number, y: number) => {
@@ -179,7 +181,7 @@ const PlanningPage = () => {
     // --- ACTIONS ---
     const handleDeleteLoad = async (e: React.MouseEvent | null, loadId: number) => {
         if (e) e.stopPropagation();
-        if (!window.confirm("Delete this load?")) return;
+        if (!window.confirm(t('chip-management:planning.confirms.deleteLoad'))) return;
         try {
             await chipService.deleteLoad(loadId);
             setEditModalOpen(false);
@@ -196,7 +198,7 @@ const PlanningPage = () => {
     };
 
     const handleDispatchRow = async (programId: number) => {
-        if (!window.confirm("Send loads to driver?")) return;
+        if (!window.confirm(t('chip-management:planning.confirms.sendToDriver'))) return;
         try { await chipService.dispatchRow(programId); fetchData(); } catch (err) { console.error(err); }
     };
 
@@ -208,20 +210,20 @@ const PlanningPage = () => {
 
                 <Paper sx={{ p: 1, display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 2 }}>
                     <TextField
-                        size="small" placeholder="Search vehicles..." sx={{ width: 300 }}
+                        size="small" placeholder={t('chip-management:planning.searchVehicles')} sx={{ width: 300 }}
                         value={searchVehicle} onChange={(e) => setSearchVehicle(e.target.value)}
                         InputProps={{ startAdornment: <InputAdornment position="start"><SearchIcon fontSize="small" /></InputAdornment> }}
                     />
 
                     <Stack direction="row" alignItems="center" spacing={2}>
                         <IconButton onClick={() => setWeek(w => w - 1)}><ArrowBackIosIcon fontSize="small" /></IconButton>
-                        <Stack alignItems="center"><Typography variant="h6" fontWeight="bold">Week {week}</Typography><Typography variant="caption">{year}</Typography></Stack>
+                        <Stack alignItems="center"><Typography variant="h6" fontWeight="bold">{t('chip-management:planning.week')} {week}</Typography><Typography variant="caption">{year}</Typography></Stack>
                         <IconButton onClick={() => setWeek(w => w + 1)}><ArrowForwardIosIcon fontSize="small" /></IconButton>
                     </Stack>
 
                     <ToggleButtonGroup value={shift} exclusive onChange={(_, v) => v && setShift(v)} size="small">
-                        <ToggleButton value="Morning" sx={{ px: 3, fontWeight: 'bold' }}>Morning</ToggleButton>
-                        <ToggleButton value="Evening" sx={{ px: 3, fontWeight: 'bold' }}>Evening</ToggleButton>
+                        <ToggleButton value="Morning" sx={{ px: 3, fontWeight: 'bold' }}>{t('chip-management:planning.shifts.morning')}</ToggleButton>
+                        <ToggleButton value="Evening" sx={{ px: 3, fontWeight: 'bold' }}>{t('chip-management:planning.shifts.evening')}</ToggleButton>
                     </ToggleButtonGroup>
                 </Paper>
 
@@ -230,13 +232,13 @@ const PlanningPage = () => {
                         <Box sx={{ minWidth: 1600 }}>
                             {/* Headers */}
                             <Box sx={{ display: 'flex', bgcolor: '#f1f4f8', borderBottom: '2px solid #ddd', p: 1, position: 'sticky', top: 0, zIndex: 10 }}>
-                                <Box sx={{ width: 220, fontWeight: 'bold' }}>VEHICLE</Box>
+                                <Box sx={{ width: 220, fontWeight: 'bold' }}>{t('chip-management:planning.table.vehicle')}</Box>
                                 {days.map((day, i) => (
                                     <Box key={day} sx={{ flex: 1, textAlign: 'center', fontWeight: 'bold', borderLeft: '1px solid #eee' }}>
-                                        {day} <br /> <Typography variant="caption" sx={{ color: '#a38f6d', fontWeight: 'bold' }}>{weekDates[i].split('-').reverse().slice(0, 2).join('.')}</Typography>
+                                        {t(`chip-management:planning.days.${day}`)} <br /> <Typography variant="caption" sx={{ color: '#a38f6d', fontWeight: 'bold' }}>{weekDates[i].split('-').reverse().slice(0, 2).join('.')}</Typography>
                                     </Box>
                                 ))}
-                                <Box sx={{ width: 60, textAlign: 'center', fontWeight: 'bold', borderLeft: '1px solid #eee' }}>SEND</Box>
+                                <Box sx={{ width: 60, textAlign: 'center', fontWeight: 'bold', borderLeft: '1px solid #eee' }}>{t('chip-management:planning.table.send')}</Box>
                             </Box>
 
                             {/* Rows */}
@@ -244,7 +246,7 @@ const PlanningPage = () => {
                                 <Box key={v.rekNro} sx={{ display: 'flex', borderBottom: '1px solid #eee', minHeight: 95 }}>
                                     <Box sx={{ width: 220, p: 1.5, bgcolor: '#fafafa', borderRight: '2px solid #ddd', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
                                         <Typography variant="subtitle2" fontWeight="800" sx={{ color: '#333' }}>{v.rekNro}</Typography>
-                                        <Typography variant="caption" color="primary.main" fontWeight="bold" sx={{ fontSize: '11px' }}>{v.driver || 'Waiting...'}</Typography>
+                                        <Typography variant="caption" color="primary.main" fontWeight="bold" sx={{ fontSize: '11px' }}>{v.driver || t('chip-management:planning.table.waiting')}</Typography>
                                     </Box>
 
                                     {weekDates.map((date) => {
@@ -290,13 +292,14 @@ const PlanningPage = () => {
             <Paper sx={{ width: 380, display: 'flex', flexDirection: 'column', borderRadius: '8px', border: '1px solid #ddd', bgcolor: '#f8f9fa' }}>
                 <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
                     <Tabs value={rightTab} onChange={(_, v) => setRightTab(v)} variant="fullWidth">
-                        <Tab label="SUBS" sx={{ fontWeight: 'bold' }} /><Tab label="TITLES" sx={{ fontWeight: 'bold' }} />
+                        <Tab label={t('chip-management:planning.sidebar.tabs.subs')} sx={{ fontWeight: 'bold' }} />
+                        <Tab label={t('chip-management:planning.sidebar.tabs.titles')} sx={{ fontWeight: 'bold' }} />
                     </Tabs>
                 </Box>
                 <Box sx={{ p: 1.5, bgcolor: 'white', borderBottom: '1px solid #eee' }}>
                     <Autocomplete options={customers} size="small" getOptionLabel={(o) => o.asiakkaanNimi || ''}
-                        value={selectedCustomer} onChange={(_, v) => setSelectedCustomer(v)} renderInput={(p) => <TextField {...p} label="Filter Customer" />} />
-                    <TextField fullWidth size="small" placeholder="Search..." sx={{ mt: 1 }} onChange={(e) => setSearchTitle(e.target.value)} />
+                        value={selectedCustomer} onChange={(_, v) => setSelectedCustomer(v)} renderInput={(p) => <TextField {...p} label={t('chip-management:planning.sidebar.filterCustomer')} />} />
+                    <TextField fullWidth size="small" placeholder={t('chip-management:planning.sidebar.search')} sx={{ mt: 1 }} onChange={(e) => setSearchTitle(e.target.value)} />
                 </Box>
                 <Box sx={{ flex: 1, overflow: 'auto', p: 1 }}>
                     {rightTab === 0 ? (
@@ -312,7 +315,7 @@ const PlanningPage = () => {
                                     </Box>
                                     <Box>
                                         <Typography variant="caption" fontWeight="bold" color="primary">{s.customerName || s.asiakkaan_nimi}</Typography>
-                                        <Typography variant="body2" sx={{ fontSize: '11px', lineHeight: 1.2 }}>{s.lyhenne || s.productType || 'Active Order'}</Typography>
+                                        <Typography variant="body2" sx={{ fontSize: '11px', lineHeight: 1.2 }}>{s.lyhenne || s.productType || t('chip-management:planning.sidebar.activeOrder')}</Typography>
                                     </Box>
                                 </Paper>
                             ))}
@@ -323,7 +326,7 @@ const PlanningPage = () => {
                                 .filter(t => (t.nimikeNimi || '').toLowerCase().includes(searchTitle.toLowerCase())).map((t) => (
                                     <Paper key={t.titleId || t.title_id} draggable onDragStart={(e) => onSidebarDragStart(e, t, 'title')}
                                         sx={{ p: 1.5, cursor: 'grab', border: '1px solid #eee', '&:hover': { bgcolor: '#f0f7ff' } }}>
-                                        <Typography variant="body2" fontWeight="800" color="primary">{t.lyhenne || 'N/A'}</Typography>
+                                        <Typography variant="body2" fontWeight="800" color="primary">{t.lyhenne || t('chip-management:planning.sidebar.na')}</Typography>
                                         <Typography variant="caption" display="block" fontWeight="bold">{t.nimikeNimi || t.nimike_nimi}</Typography>
                                     </Paper>
                                 ))}

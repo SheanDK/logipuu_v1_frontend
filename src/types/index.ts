@@ -489,7 +489,8 @@ export interface ITripLeg {
 }
 
 export interface ITripDetails {
-    tripId: string;
+    tripId: string | null;
+    kuormaId?: number; // Added to handle actual DB record ID
     ajomaaraysNro: string | null;
     asiakasId: number;
     asiakkaanNimi: string;

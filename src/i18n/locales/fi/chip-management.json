@@ -1,14 +1,30 @@
 {
-    "title": "Hakkuujätteen nimikkeet",
-    "subtitle": "Hallinnoi hakkuujätteen logistiikan perusnimikkeitä",
+    "title": "Nimikkeet (Chip Titles)",
+    "subtitle": "Hallitse hake-logistiikan master-nimikkeitä",
     "newItem": "UUSI NIMIKE",
     "searchPlaceholder": "Hae nimellä tai asiakkaalla...",
     "showInactive": "Näytä passiiviset nimikkeet",
+    "days": {
+        "mon": "MA",
+        "tue": "TI",
+        "wed": "KE",
+        "thu": "TO",
+        "fri": "PE",
+        "sat": "LA",
+        "sun": "SU"
+    },
+    "tooltips": {
+        "pcs": "Kpl",
+        "cubes": "Kuutiot",
+        "tons": "Tonnit",
+        "hours": "Tunnit",
+        "mileage": "Kilometrit"
+    },
     "table": {
         "id": "ID",
         "customer": "Asiakas",
-        "loading": "Lastauspaikka",
-        "demolition": "Purkupaikka",
+        "loading": "Lastaus (Lastaus)",
+        "demolition": "Purku (Purku)",
         "product": "Tuote",
         "titleName": "Nimikkeen nimi",
         "reqInfo": "Pyydetyt tiedot"
@@ -17,19 +33,36 @@
         "createTitle": "Luo nimike",
         "editTitle": "Muokkaa nimikettä",
         "summaryTitle": "Nimikkeen yhteenveto ja vahvistus",
+        "titleName": "Nimikkeen nimi",
+        "abbr": "Lyhenne",
+        "active": "Aktiivinen",
+        "customer": "Asiakas",
+        "product": "Tuote",
+        "loadingPoint": "Lastauspiste",
+        "demolitionPoint": "Purkupiste",
         "general": "Yleiset tiedot",
-        "requestedInfo": "KULJETTAJALTA PYYDETYT TIEDOT",
+        "requestedInfo": "KULJETTAJALTA PYYDETTYTIEDOT",
         "instructions": "Ohjeet kuljettajalle",
-        "confirmMsg": "Tarkista alla olevat tiedot:",
+        "instructionsTitle": "OHJEET",
+        "noInstructions": "Ei ohjeita",
+        "invoicingBasis": "Laskutusperuste",
+        "basis": {
+            "tons": "Tonnit",
+            "m3": "M3",
+            "pcs": "kpl"
+        },
+        "confirmMsg": "Vahvista alla olevat tiedot:",
         "save": "VAHVISTA JA TALLENNA",
         "summary": "SIIRRY YHTEENVETOON",
-        "back": "TAKASIN MUOKKAUKSEEN"
+        "back": "TAKAISIN MUOKKAUKSEEN",
+        "cancel": "PERUUTA"
     },
     "loadDetails": {
         "title": "Kuorman tiedot",
         "instructionsLabel": "Kuljettajan ohjeet",
         "instructionsPlaceholder": "Kirjoita kuljettajalle annettavat ohjeet tähän...",
         "plannedVolume": "Suunniteltu tilavuus (m³)",
+        "vehicleAndItem": "Auto & Nimike",
         "buttons": {
             "close": "SULJE",
             "delete": "POISTA",
@@ -37,13 +70,18 @@
         }
     },
     "planning": {
-        "title": "Hakkuujätteen suunnittelu",
-        "subtitle": "Viikkosuunnittelu",
+        "title": "Hake suunnittelu",
+        "subtitle": "Viikoittainen suunnittelunäkymä",
+        "searchVehicles": "Hae autoja...",
         "week": "Viikko",
         "year": "Vuosi",
         "shift": "Vuoro",
+        "shifts": {
+            "morning": "Aamu",
+            "evening": "Ilta"
+        },
         "morning": "Aamu",
-        "afternoon": "Iltavuoro",
+        "afternoon": "Iltapäivä",
         "vehicle": "Ajoneuvo",
         "driver": "Kuljettaja",
         "loads": "Kuormat",
@@ -55,7 +93,35 @@
         "addVehicle": "LISÄÄ AJONEUVO",
         "deleteLoad": "POISTA KUORMA",
         "modifyLoad": "MUOKKAA KUORMAA",
-        "assignTitle": "MÄÄRITÄ NIMIKE",
+        "assignTitle": "VALITSE NIMIKE",
+        "table": {
+            "vehicle": "AUTO",
+            "send": "LÄHETÄ",
+            "waiting": "Odottaa..."
+        },
+        "days": {
+            "monday": "Maanantai",
+            "tuesday": "Tiistai",
+            "wednesday": "Keskiviikko",
+            "thursday": "Torstai",
+            "friday": "Perjantai",
+            "saturday": "Lauantai",
+            "sunday": "Sunnuntai"
+        },
+        "confirms": {
+            "deleteLoad": "Poistetaanko tämä kuorma?",
+            "sendToDriver": "Lähetä kuormat kuljettajalle?"
+        },
+        "sidebar": {
+            "tabs": {
+                "subs": "TILAUKSET",
+                "titles": "NIMIKKEET"
+            },
+            "filterCustomer": "Suodata asiakas",
+            "search": "Hae...",
+            "activeOrder": "Aktiivinen tilaus",
+            "na": "N/A"
+        },
         "assignTitleModal": {
             "title": "Määritä nimike ajoneuvolle",
             "selectTitle": "Valitse nimike",
@@ -63,6 +129,83 @@
             "selectShift": "Valitse vuoro",
             "assign": "MÄÄRITÄ",
             "cancel": "PERUUTA"
+        },
+        "scheduleModal": {
+            "title": "Aikatauluta kuorma",
+            "selectOrder": "Valitse tilaus",
+            "loadingSite": "Lastauspaikka (Lähtö)",
+            "unloadingSite": "Purkupaikka (Kohde)",
+            "plannedM3": "Suunniteltu m³",
+            "saveGig": "TALLENNA",
+            "fillAll": "Täytä kaikki pakolliset kentät.",
+            "error500": "Sisäinen palvelinvirhe (500). Tarkista, että tunnukset ovat voimassa."
         }
+    },
+    "orderModal": {
+        "title": "Tilauksen tiedot",
+        "createTitle": "Luo tilaus",
+        "editTitle": "Tilauksen muokkaus",
+        "startDate": "Alkamispäivä",
+        "flex": "Jousto",
+        "repetition": "Toistot",
+        "endDate": "Päättymispäivä",
+        "weeks": "Viikkoa",
+        "validUntilNotice": "Voimassa toistaiseksi",
+        "allDays": "KAIKKI PÄIVÄT",
+        "pcsPerDay": "Kpl per päivä",
+        "furtherInfo": "Lisätietoja",
+        "dailyInfoPlaceholder": "Päivän tiedot...",
+        "cancel": "PERUUTA",
+        "save": "TALLENNA",
+        "saveOrder": "TALLENNA TILAUS",
+        "customerSelect": "Valitse asiakas",
+        "noCustomers": "Asiakkaita ei löytynyt",
+        "loading": "Ladataan...",
+        "targetLoads": "Kuormatavoite (kpl)",
+        "productType": "Tuotetyyppi",
+        "productPlaceholder": "esim. Sahanpuru",
+        "tabs": {
+            "monFri": "MA-PE",
+            "maSu": "MA-SU",
+            "free": "VAPAA"
+        },
+        "days": {
+            "mon": "MA",
+            "tue": "TI",
+            "wed": "KE",
+            "thu": "TO",
+            "fri": "PE",
+            "sat": "LA",
+            "sun": "SU"
+        }
+    },
+    "flexOptions": {
+        "noFlex": "Ei joustavuutta",
+        "1_3days": "1-3 päivää",
+        "withinWeek": "Viikon sisällä",
+        "steadily": "Tasaisesti koko viikon"
+    },
+    "subscriptions": {
+        "title": "Haketilaukset",
+        "subtitle": "Hallitse aktiivisia kuljetustilauksia",
+        "newSubscription": "UUSI TILAUS",
+        "searchPlaceholder": "Hae asiakasta tai tuotetta...",
+        "table": {
+            "id": "ID",
+            "customer": "Asiakas",
+            "item": "Nimike",
+            "validityPeriod": "Voimassaoloaika",
+            "targetQty": "Tavoitemäärä",
+            "status": "Tila"
+        },
+        "status": {
+            "active": "Aktiivinen"
+        }
+    },
+    "notifications": {
+        "createSuccess": "Uusi tilaus luotu onnistuneesti",
+        "updateSuccess": "Tilaus päivitetty onnistuneesti",
+        "deleteSuccess": "Tilaus poistettu onnistuneesti",
+        "error": "Tapahtui virhe"
     }
 }
