@@ -55,19 +55,41 @@
         "save": "CONFIRM & SAVE",
         "summary": "GO TO SUMMARY",
         "back": "BACK TO EDIT",
-        "cancel": "CANCEL"
+        "cancel": "CANCEL",
+        "newArea": "New Area",
+        "address": "Address",
+        "coordinates": "Coordinates",
+        "radius": "Radius (m)",
+        "customerCode": "Customer Code",
+        "files": "Files",
+        "upload": "Upload",
+        "noFiles": "No files uploaded",
+        "clickMap": "Click map to set precise location",
+        "saveArea": "Save Area",
+        "fillRequired": "Please fill all required fields (*) and select a location on map.",
+        "requestedData": "REQUESTED DATA FROM DRIVER",
+        "driverInstructions": "DRIVER INSTRUCTIONS",
+        "noInstructionsProvided": "No specific instructions provided.",
+        "saveItem": "SAVE ITEM",
+        "pieces": "Pieces (KPL)",
+        "cubes": "Cubes (M3)",
+        "tonsFull": "Tons (TON)",
+        "hoursFull": "Hours (H)",
+        "waiting": "Waiting (ODOTUS)",
+        "mileageFull": "Mileage (KM)"
     },
     "loadDetails": {
         "title": "Load Details",
         "instructionsLabel": "Driver Instructions",
         "instructionsPlaceholder": "Enter specific instructions for the driver here...",
         "plannedVolume": "Planned Volume (m³)",
-        "vehicleAndItem": "Vehicle & Item",
         "buttons": {
             "close": "CLOSE",
             "delete": "DELETE",
             "save": "SAVE"
-        }
+        },
+        "deleteTitle": "Delete Load Assignment",
+        "deleteMessage": "Are you sure you want to delete this assignment for vehicle {{rekNro}}?"
     },
     "planning": {
         "title": "Chip Planning",
@@ -177,7 +199,9 @@
             "fri": "FR",
             "sat": "SA",
             "sun": "SU"
-        }
+        },
+        "deleteTitle": "Delete Subscription",
+        "deleteMessage": "Are you sure you want to delete this subscription? This action cannot be undone."
     },
     "flexOptions": {
         "noFlex": "No flexibility",
@@ -190,6 +214,7 @@
         "subtitle": "Manage active transport orders",
         "newSubscription": "NEW SUBSCRIPTION",
         "searchPlaceholder": "Search customer or item...",
+        "noResults": "No subscriptions found.",
         "table": {
             "id": "ID",
             "customer": "Customer",
@@ -206,6 +231,11 @@
         "createSuccess": "New subscription created successfully",
         "updateSuccess": "Subscription updated successfully",
         "deleteSuccess": "Subscription deleted successfully",
-        "error": "An error occurred"
+        "error": "An error occurred",
+        "titleCreateSuccess": "New nimike created successfully",
+        "titleUpdateSuccess": "Nimike updated successfully",
+        "titleError": "Error saving item",
+        "areaCreateSuccess": "New area created successfully",
+        "areaCreateError": "Failed to save new area"
     }
 }

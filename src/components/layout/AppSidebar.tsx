@@ -24,15 +24,11 @@ export default function AppSidebar() {
   const { user } = useAuth();
   const { mobileDrawerOpen, toggleMobileDrawer } = useLayout();
   const { t } = useTranslation(['navbar']);
-
-  // Resolve the current language from the URL (fallback if missing)
   const { lng } = useParams() as { lng?: string };
   const currentLng = (lng && languages.includes(lng)) ? lng : fallbackLng;
 
-  // Track which categories are open (keyed by translation key or fallback text)
   const [openCategories, setOpenCategories] = useState<Record<string, boolean>>({});
 
-  // Filter navigation items by user permissions/roles
   const sidebarNavLinks = useMemo(() => {
     if (!user) return [];
 
@@ -56,7 +52,6 @@ export default function AppSidebar() {
     return filterItems(navigationItems);
   }, [user]);
 
-  // Auto-open the active parent category when route changes
   useEffect(() => {
     const activeParent = sidebarNavLinks.find(item =>
       item.children?.some(
@@ -71,7 +66,6 @@ export default function AppSidebar() {
     }
   }, [pathname, sidebarNavLinks, openCategories, currentLng]);
 
-  // Toggle a category by its key
   const handleCategoryClick = (key: string) => {
     setOpenCategories(prev => ({ ...prev, [key]: !prev[key] }));
   };
@@ -82,7 +76,6 @@ export default function AppSidebar() {
       <Divider />
       <List sx={{ p: 1 }}>
         {sidebarNavLinks.map((item) => {
-          // Use tKey when available, otherwise fallback to the plain text
           const itemKey = item.tKey;
           const isCategoryOpen = openCategories[itemKey] || false;
 
@@ -98,7 +91,6 @@ export default function AppSidebar() {
                   sx={{ borderRadius: 1.5, mb: 0.5 }}
                 >
                   <ListItemIcon sx={{ minWidth: 40 }}>{item.icon}</ListItemIcon>
-                  {/* Translate category title */}
                   <ListItemText
                     primary={t(`navbar.${itemKey}`)}
                     primaryTypographyProps={{
@@ -114,7 +106,7 @@ export default function AppSidebar() {
                     {item.children.map(child => {
                       const childKey = child.tKey;
                       const fullPath = withLng(currentLng, child.path!);
-                      const isChildActive = pathname.startsWith(fullPath);
+                      const isChildActive = pathname === fullPath;
 
                       return (
                         <ListItem key={child.path} disablePadding sx={{ mb: 0.5 }}>
@@ -140,9 +132,8 @@ export default function AppSidebar() {
             );
           }
 
-          // Leaf item (no children)
           const leafPath = item.path ? withLng(currentLng, item.path) : undefined;
-          const isLeafActive = leafPath ? pathname.startsWith(leafPath) : false;
+          const isLeafActive = leafPath ? pathname === leafPath : false;
 
           return (
             <ListItem key={item.path} disablePadding sx={{ mb: 0.5 }}>
@@ -168,7 +159,6 @@ export default function AppSidebar() {
 
   return (
     <Box component="nav" sx={{ width: { md: drawerWidth }, flexShrink: { md: 0 } }}>
-      {/* Mobile drawer */}
       <Drawer
         variant="temporary"
         open={mobileDrawerOpen}
@@ -182,7 +172,6 @@ export default function AppSidebar() {
         {drawerContent}
       </Drawer>
 
-      {/* Desktop drawer */}
       <Drawer
         variant="permanent"
         sx={{

@@ -110,7 +110,6 @@ const ScheduleLoadModal: React.FC<ScheduleLoadModalProps> = ({ open, onClose, on
                             {t('chip-management:planning.date')}: <b>{selectedDate ? new Date(selectedDate).toLocaleDateString() : ''}</b>
                         </Typography>
 
-                        {/* TextField value එක කවදාවත් undefined නොවන බවට සහතික වීමට || '' එක් කළා */}
                         <TextField
                             select
                             label={t('chip-management:planning.scheduleModal.selectOrder')}

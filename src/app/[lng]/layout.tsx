@@ -1,4 +1,4 @@
-// src/app/[lng]/layout.tsx
+//frontend/src/app/[lng]/layout.tsx
 import React from 'react';
 import { dir } from 'i18next';
 

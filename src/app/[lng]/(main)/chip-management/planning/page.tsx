@@ -48,7 +48,7 @@ const PlanningPage = () => {
     const [allRegisteredVehicles, setAllRegisteredVehicles] = useState<any[]>([]);
 
     // Interaction States
-    const [rightTab, setRightTab] = useState(0); // 0: SUBS, 1: TITLES
+    const [rightTab, setRightTab] = useState(0);
     const [selectedCustomer, setSelectedCustomer] = useState<IBackendClient | null>(null);
     const [dragOverCell, setDragOverCell] = useState<{ vehicleId: number, date: string } | null>(null);
     const [searchTitle, setSearchTitle] = useState('');

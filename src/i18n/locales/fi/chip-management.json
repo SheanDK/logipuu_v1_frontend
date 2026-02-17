@@ -55,19 +55,41 @@
         "save": "VAHVISTA JA TALLENNA",
         "summary": "SIIRRY YHTEENVETOON",
         "back": "TAKAISIN MUOKKAUKSEEN",
-        "cancel": "PERUUTA"
+        "cancel": "PERUUTA",
+        "newArea": "Uusi alue",
+        "address": "Osoite",
+        "coordinates": "Koordinaatit",
+        "radius": "Säde (m)",
+        "customerCode": "Asiakaskoodi",
+        "files": "Tiedostot",
+        "upload": "Lataa",
+        "noFiles": "Ei ladattuja tiedostoja",
+        "clickMap": "Aseta tarkka sijainti klikkaamalla karttaa",
+        "saveArea": "Tallenna alue",
+        "fillRequired": "Täytä kaikki pakolliset kentät (*) ja valitse sijainti kartalta.",
+        "requestedData": "KULJETTAJALTA PYYDETTYTIEDOT",
+        "driverInstructions": "OHJEET KULJETTAJALLE",
+        "noInstructionsProvided": "Ei annettuja ohjeita.",
+        "saveItem": "TALLENNA NIMIKE",
+        "pieces": "Kappaletta (KPL)",
+        "cubes": "Kuutiot (M3)",
+        "tonsFull": "Tonnit (TON)",
+        "hoursFull": "Tunnit (H)",
+        "waiting": "Odotus (ODOTUS)",
+        "mileageFull": "Kilometrit (KM)"
     },
     "loadDetails": {
         "title": "Kuorman tiedot",
         "instructionsLabel": "Kuljettajan ohjeet",
         "instructionsPlaceholder": "Kirjoita kuljettajalle annettavat ohjeet tähän...",
         "plannedVolume": "Suunniteltu tilavuus (m³)",
-        "vehicleAndItem": "Auto & Nimike",
         "buttons": {
             "close": "SULJE",
             "delete": "POISTA",
             "save": "TALLENNA"
-        }
+        },
+        "deleteTitle": "Poista kuormamääritys",
+        "deleteMessage": "Oletko varma, että haluat poistaa tämän määrityksen ajoneuvolta {{rekNro}}?"
     },
     "planning": {
         "title": "Hake suunnittelu",
@@ -177,7 +199,9 @@
             "fri": "PE",
             "sat": "LA",
             "sun": "SU"
-        }
+        },
+        "deleteTitle": "Poista tilaus",
+        "deleteMessage": "Oletko varma, että haluat poistaa tämän tilauksen? Tätä toimintoa ei voi peruuttaa."
     },
     "flexOptions": {
         "noFlex": "Ei joustavuutta",
@@ -190,6 +214,7 @@
         "subtitle": "Hallitse aktiivisia kuljetustilauksia",
         "newSubscription": "UUSI TILAUS",
         "searchPlaceholder": "Hae asiakasta tai tuotetta...",
+        "noResults": "Tilauksia ei löytynyt.",
         "table": {
             "id": "ID",
             "customer": "Asiakas",
@@ -206,6 +231,11 @@
         "createSuccess": "Uusi tilaus luotu onnistuneesti",
         "updateSuccess": "Tilaus päivitetty onnistuneesti",
         "deleteSuccess": "Tilaus poistettu onnistuneesti",
-        "error": "Tapahtui virhe"
+        "error": "Tapahtui virhe",
+        "titleCreateSuccess": "Uusi nimike luotu onnistuneesti",
+        "titleUpdateSuccess": "Nimike päivitetty onnistuneesti",
+        "titleError": "Virhe tallennettaessa nimikettä",
+        "areaCreateSuccess": "Uusi alue luotu onnistuneesti",
+        "areaCreateError": "Uuden alueen tallennus epäonnistui"
     }
 }
