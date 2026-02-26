@@ -339,7 +339,6 @@ const ChipTitlesPage = () => {
                             {t('common:manageColumns') || 'Manage Columns'}
                         </Typography>
                     </Stack>
-                    {/* සියල්ල Reset කිරීමට කුඩා බොත්තමක් */}
                     <Button
                         size="small"
                         onClick={() => setHiddenColumns([])}

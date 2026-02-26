@@ -64,13 +64,12 @@ const NewAreaModal = ({ open, onClose, onSave, type }: any) => {
         }
     }, [open, type]);
 
-    // ලිපිනය සෙවීමේ ශ්‍රිතය (Fixed Address Search)
+    // Address Search
     const handleAddressSearch = async () => {
         if (!formData.address || isSearching) return;
 
         setIsSearching(true);
         try {
-            // Updated to use our backend proxy via apiClient
             const response = await apiClient.get(
                 `/locations/search-address?q=${encodeURIComponent(formData.address)}`
             );
@@ -83,7 +82,6 @@ const NewAreaModal = ({ open, onClose, onSave, type }: any) => {
             }
         } catch (error) {
             console.error("Geocoding error:", error);
-            // Alert එකක් වෙනුවට console log එකක් පමණක් භාවිතා කරයි
         } finally {
             setIsSearching(false);
         }

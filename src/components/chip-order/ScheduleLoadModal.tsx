@@ -29,7 +29,6 @@ const ScheduleLoadModal: React.FC<ScheduleLoadModalProps> = ({ open, onClose, on
     const [isFetching, setIsFetching] = useState(false);
     const [isSaving, setIsSaving] = useState(false);
 
-    // FIX: Initial state (Empty string)
     const [formData, setFormData] = useState({
         order_id: '',
         lahto_paikka: '',

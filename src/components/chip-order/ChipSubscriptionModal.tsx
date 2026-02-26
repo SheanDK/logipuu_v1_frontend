@@ -204,7 +204,6 @@ const ChipSubscriptionModal = ({ open, onClose, onSuccess, initialData }: any) =
         setFormData({ ...formData, distribution: newDist });
     };
 
-    // FIX: Only one declaration of handleDayChange
     const handleDayChange = (day: string, field: 'qty' | 'info', value: any) => {
         setFormData(prev => ({
             ...prev,

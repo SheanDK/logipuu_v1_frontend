@@ -20,11 +20,9 @@ import type { IBackendClient, IBackendPuulaani, IBackendPurkupaikkaResponse, ICh
 import NewAreaModal from './NewAreaModal';
 
 const ChipTitleModal = ({ open, onClose, onSuccess, titleData }: any) => {
-    // භාෂා සහාය ලබා ගැනීම
     const { t } = useTranslation(['chip-management', 'common']);
     const { showNotification } = useNotification();
 
-    // JSON ගොනුවෙන් Suggestions ලැයිස්තුව ලබා ගැනීම
     const infoSuggestions = (t('chip-management:modal.infoSuggestions', { returnObjects: true }) as unknown as string[]) || [];
 
     const [step, setStep] = useState<'form' | 'summary'>('form');
@@ -243,7 +241,6 @@ const ChipTitleModal = ({ open, onClose, onSuccess, titleData }: any) => {
                                     {formData.req_details && (
                                         <Stack direction="row" spacing={1} alignItems="center" sx={{ flex: 1 }}>
                                             <Typography variant="caption" color="text.secondary" sx={{ whiteSpace: 'nowrap' }}>{t('chip-management:modal.detailsLabel')}:</Typography>
-                                            {/* FREE-SOLO AUTOCOMPLETE සමඟ භාෂා සහාය */}
                                             <Autocomplete
                                                 freeSolo
                                                 fullWidth

@@ -1058,6 +1058,10 @@ export interface IActiveTripListItem {
     progress: number;
 }
 
+// =============================================================================
+// SECTION 7: CHIP TRANSPORT MANAGEMENT TYPES
+// =============================================================================
+
 export interface IChipTitleFormData {
     title_id: string;
     title_number: string,

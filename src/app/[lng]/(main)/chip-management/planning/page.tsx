@@ -163,14 +163,12 @@ const PlanningPage = () => {
 
         try {
             if (moveLoadId) {
-                // Load එකක් තවත් තැනකට ගෙන යාම
                 await chipService.moveLoad({
                     loadId: Number(moveLoadId),
                     newKalustoNro: vehicle.kalustoNro,
                     newDate: date
                 });
             } else if (titleId || orderId) {
-                // අලුත් Load එකක් assign කිරීම (කලින් තිබූ program_id ඉවත් කර ඇත)
                 await chipService.assignTitle({
                     kalusto_nro: vehicle.kalustoNro,
                     title_id: titleId ? Number(titleId) : 0,
