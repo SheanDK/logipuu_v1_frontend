@@ -18,11 +18,13 @@ import {
     IClientBasicInfo, IMapTimberStack, IMapDropoffLocation, IMapOtherMarker,
     IVehicleLocation, MarkerType, ICreateOtherMarkerDto, PendingPuulaaniData, PuulaaniBasicDetailsFormData, IUpdateOtherMarkerDto, IMapFilterState
 } from '../../../../types';
+import ChipMarker from '@/components/map/markers/ChipMarker';
 import { updateTimberStackLocation } from '../../../../services/timberStackService';
 import { deleteDropoffLocation } from '../../../../services/unloadingSiteService';
 import { createOtherMarker, deleteOtherMarker, updateOtherMarker } from '../../../../services/otherInfoService';
 
 import { useTranslation } from '@/i18n/useTranslation';
+import apiClient from '@/services/apiClient';
 const MML_MAASTOKARTTA_URL = 'https://avoin-karttakuva.maanmittauslaitos.fi/avoin/wmts/1.0.0/maastokartta/default/WGS84_Pseudo-Mercator/{z}/{y}/{x}.png?api-key=903ff7d0-9792-4c41-9515-d66f76ccb69f';
 
 // Dynamic component imports
@@ -71,12 +73,12 @@ export default function TimberStacksPage() {
     const router = useRouter();
     const pathname = usePathname();
     const searchParams = useSearchParams();
-    
+
     const [filters, setFilters] = useState<IMapFilterState>({
         status: 'active',
         clientId: null,
         vehicleId: null,
-        markerTypes: ['puulaani', 'purkupaikka'],
+        markerTypes: ['puulaani', 'purkupaikka', 'chip-transport'],
     });
 
     // useMapData is not aware of markerTypes, so we pass only what it needs
@@ -89,7 +91,7 @@ export default function TimberStacksPage() {
     const { isLoading, mapError, data, lists, reloadData, setLocalData } = useMapData(filters);
     const { timberStacks, dropoffLocations, otherMarkers } = data;
     const { clientList, vehicleList } = lists;
-    
+
     const [isSaving, setIsSaving] = useState(false);
     const [snackbar, setSnackbar] = useState<{ open: boolean, message: string, severity: AlertColor }>({ open: false, message: '', severity: 'info' });
     const [vehicleLocations] = useState<Record<string, IVehicleLocation>>({});
@@ -103,16 +105,23 @@ export default function TimberStacksPage() {
     const [selectedOtherMarkerForEditing, setSelectedOtherMarkerForEditing] = useState<IMapOtherMarker | null>(null);
     const [moveConfirmation, setMoveConfirmation] = useState<IMapTimberStack | null>(null);
     const [markerToEnableMove, setMarkerToEnableMove] = useState<number | null>(null);
+    const [chipMarkers, setChipMarkers] = useState<any[]>([]);
+
+    useEffect(() => {
+        apiClient.get('/chip-planning/map-data')
+            .then(res => setChipMarkers(res.data))
+            .catch(err => console.error("Chip Map Data Error:", err));
+    }, []);
 
     const canView = useMemo(() => user?.permissions?.includes('timber map_view'), [user]);
     const canCreate = useMemo(() => user?.permissions?.includes('timber map_create'), [user]);
 
     const theme = useTheme();
-    const isDarkMode = theme.palette.mode === 'dark'; 
+    const isDarkMode = theme.palette.mode === 'dark';
     const isFinland = mapSettings.key === 'finland';
     const { t } = useTranslation('map');
 
-    
+
     useEffect(() => {
         const markerTypesFromUrl = searchParams.get('markerTypes')?.split(',');
         setFilters({
@@ -140,6 +149,15 @@ export default function TimberStacksPage() {
         }
         return locations.filter(loc => loc.latitude != null && loc.longitude != null && loc.isVisibleOnMap);
     }, [dropoffLocations, filters.markerTypes, filters.clientId]);
+
+    const filteredChipTransports = useMemo(() => {
+        let transports = chipMarkers ?? [];
+        if (!filters.markerTypes.includes('chip-transport')) return [];
+        if (filters.clientId) {
+            transports = transports.filter(transport => String(transport.clientId) === String(filters.clientId));
+        }
+        return transports.filter(transport => transport.originLat != null && transport.originLong != null);
+    }, [chipMarkers, filters.markerTypes, filters.clientId]);
 
     const handleFilterChange = useCallback((name: keyof IMapFilterState, value: any) => {
         const currentParams = new URLSearchParams(searchParams.toString());
@@ -188,7 +206,7 @@ export default function TimberStacksPage() {
             let successMessageKey = ''; // Variable to hold the correct translation key
 
             if (type === 'Puulaani') {
-                await deactivateTimberStack(item.id); 
+                await deactivateTimberStack(item.id);
                 successMessageKey = 'messages.archived'; // Use 'archived' for soft-delete
             } else if (type === 'Purkupaikka') {
                 await deleteDropoffLocation(item.id);
@@ -197,15 +215,15 @@ export default function TimberStacksPage() {
                 await deleteOtherMarker(item.id);
                 successMessageKey = 'messages.deleted'; // Use 'deleted' for hard-delete
             }
-            
+
             // --- THE FIX IS HERE ---
             // Use the determined key to show the correct snackbar message.
-            setSnackbar({ 
-                open: true, 
-                message: t(successMessageKey, { type: typeLabel(type), name: item.name }), 
-                severity: 'success' 
+            setSnackbar({
+                open: true,
+                message: t(successMessageKey, { type: typeLabel(type), name: item.name }),
+                severity: 'success'
             });
-            
+
             await reloadData();
 
         } catch (err: any) {
@@ -314,35 +332,35 @@ export default function TimberStacksPage() {
     return (
         <Box sx={{ height: 'calc(100vh - 55px)', width: '100%', position: 'relative', overflow: 'hidden' }}>
             <Box sx={{ position: 'absolute', top: 0, left: 35, right: 0, zIndex: 1000, p: 2 }}>
-                 <Paper sx={{ 
-                    p: 2, 
-                    backgroundColor: isDarkMode 
-                        ? alpha(theme.palette.background.paper, 0.8) 
-                        : 'rgba(255, 255, 255, 0.8)', 
-                    backdropFilter: 'blur(8px)', 
+                <Paper sx={{
+                    p: 2,
+                    backgroundColor: isDarkMode
+                        ? alpha(theme.palette.background.paper, 0.8)
+                        : 'rgba(255, 255, 255, 0.8)',
+                    backdropFilter: 'blur(8px)',
                     borderRadius: 2,
                     border: isDarkMode ? `1px solid ${theme.palette.divider}` : 'none'
                 }}>
                     <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
                         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                             <ForestIcon color="primary" />
-                            <Typography 
-                                variant="h5" 
-                                sx={{ 
+                            <Typography
+                                variant="h5"
+                                sx={{
                                     fontWeight: 'bold',
-                                    color: 'text.primary' 
+                                    color: 'text.primary'
                                 }}
                             >
                                 {t('title')}
                             </Typography>
                         </Box>
                     </Box>
-                    <TimberStackFilterBar 
-                        filters={filters} 
-                        onFilterChange={handleFilterChange} 
-                        clientList={clientList} 
-                        vehicleList={vehicleList} 
-                        isLoading={isLoading} 
+                    <TimberStackFilterBar
+                        filters={filters}
+                        onFilterChange={handleFilterChange}
+                        clientList={clientList}
+                        vehicleList={vehicleList}
+                        isLoading={isLoading}
                     />
                     {mapError && <Alert severity="error" sx={{ mt: 1 }}>{mapError}</Alert>}
                 </Paper>
@@ -378,8 +396,10 @@ export default function TimberStacksPage() {
                                 url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
                             />
                         </LayersControl.BaseLayer>
-                        <LayersControl.BaseLayer name={t('layers.satellite')}><TileLayer url='https://{s}.google.com/vt/lyrs=s,h&x={x}&y={y}&z={z}' maxZoom={20} subdomains={['mt0', 'mt1', 'mt2', 'mt3']} /></LayersControl.BaseLayer>
-                        <LayersControl.BaseLayer checked name={t('layers.topographic')}><TileLayer url="https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png" maxZoom={17} /></LayersControl.BaseLayer>
+                        <LayersControl.BaseLayer name={t('layers.satellite')}>
+                            <TileLayer url='https://{s}.google.com/vt/lyrs=s,h&x={x}&y={y}&z={z}' maxZoom={20} subdomains={['mt0', 'mt1', 'mt2', 'mt3']} /></LayersControl.BaseLayer>
+                        <LayersControl.BaseLayer name={t('layers.topographic')}>
+                            <TileLayer url="https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png" maxZoom={17} /></LayersControl.BaseLayer>
 
                         {/* Overlays */}
                         <LayersControl.Overlay checked name={t('layers.timberStacks')}>
@@ -407,24 +427,24 @@ export default function TimberStacksPage() {
                         <LayersControl.Overlay checked name={t('layers.unloadingSites')}>
                             <FeatureGroup>
                                 {filteredDropoffLocations.map((loc: IMapDropoffLocation) => (
-                                    <PurkupaikkaMarker 
-                                        key={`loc-${loc.id}`} 
-                                        marker={loc} 
-                                        onEdit={handleOpenEditDropoffModal} 
-                                        onDelete={(m) => setDeleteConfirmation({ type: 'Purkupaikka', item: m })} 
+                                    <PurkupaikkaMarker
+                                        key={`loc-${loc.id}`}
+                                        marker={loc}
+                                        onEdit={handleOpenEditDropoffModal}
+                                        onDelete={(m) => setDeleteConfirmation({ type: 'Purkupaikka', item: m })}
                                     />
                                 ))}
                             </FeatureGroup>
                         </LayersControl.Overlay>
-                        
+
                         <LayersControl.Overlay checked name={t('layers.otherMarkers')}>
-                             <FeatureGroup>
+                            <FeatureGroup>
                                 {(otherMarkers || []).map((marker: IMapOtherMarker) => (
-                                    <MuuMerkkiMarker 
-                                        key={`other-${marker.id}`} 
-                                        marker={marker} 
-                                        onEdit={handleOpenEditOtherMarkerModal} 
-                                        onDelete={(m: IMapOtherMarker) => setDeleteConfirmation({ type: 'Muu merkki', item: m })} 
+                                    <MuuMerkkiMarker
+                                        key={`other-${marker.id}`}
+                                        marker={marker}
+                                        onEdit={handleOpenEditOtherMarkerModal}
+                                        onDelete={(m: IMapOtherMarker) => setDeleteConfirmation({ type: 'Muu merkki', item: m })}
                                     />
                                 ))}
                             </FeatureGroup>
@@ -433,6 +453,14 @@ export default function TimberStacksPage() {
                         <LayersControl.Overlay checked name={t('layers.vehicles')}>
                             <FeatureGroup>
                                 {Object.values(vehicleLocations).map(vehicle => <VehicleMarker key={`vehicle-${vehicle.id}`} vehicle={vehicle} />)}
+                            </FeatureGroup>
+                        </LayersControl.Overlay>
+
+                        <LayersControl.Overlay checked name={t('layers.chipTransports', 'Chip Transports')}>
+                            <FeatureGroup>
+                                {filteredChipTransports.map((marker) => (
+                                    <ChipMarker key={`chip-title-${marker.id}`} marker={marker} />
+                                ))}
                             </FeatureGroup>
                         </LayersControl.Overlay>
                     </LayersControl>

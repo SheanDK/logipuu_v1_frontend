@@ -53,7 +53,7 @@ const ChipSubscriptionsPage = () => {
 
     const filteredSubs = subs.filter(s =>
         (s.customerName || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
-        (s.lyhenne || '').toLowerCase().includes(searchTerm.toLowerCase())
+        (s.abbreviation || '').toLowerCase().includes(searchTerm.toLowerCase())
     );
 
     return (
@@ -113,7 +113,7 @@ const ChipSubscriptionsPage = () => {
                                     <Typography variant="body2" fontWeight="bold">{s.customerName}</Typography>
                                 </TableCell>
                                 <TableCell>
-                                    <Typography variant="body2">{s.lyhenne} | {s.productType}</Typography>
+                                    <Typography variant="body2">{s.abbreviation} | {s.productType}</Typography>
                                     <Typography variant="caption" color="textSecondary" sx={{ fontSize: '11px' }}>{s.titleName}</Typography>
                                 </TableCell>
 

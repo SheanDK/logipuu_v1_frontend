@@ -1,5 +1,4 @@
-//frontend/src/services/chipTitleService.ts
-
+// frontend/src/services/chipTitleService.ts
 import apiClient from './apiClient';
 
 export const chipTitleService = {

@@ -25,11 +25,11 @@ const ChipOrderModal: React.FC<ChipOrderModalProps> = ({ open, onClose, onSucces
 
     const [formData, setFormData] = useState({
         asiakas_id: '',
-        pvm_alku: '',
-        pvm_loppu: '',
-        kuormia_tavoite: 1,
+        start_date: '',
+        end_date: '',
+        target_qty: 1,
         tuote_tyyppi: '',
-        lisatiedot: ''
+        notes: ''
     });
 
     // fetch all clients
@@ -89,7 +89,6 @@ const ChipOrderModal: React.FC<ChipOrderModalProps> = ({ open, onClose, onSucces
                     >
                         {customers.length > 0 ? (
                             customers.map((c) => (
-                                // Database එකේ ඇති field names (asiakkaanId, asiakkaanNimi) මෙහිදී භාවිතා කරන්න
                                 <MenuItem key={c.asiakkaanId} value={c.asiakkaanId}>
                                     {c.asiakkaanNimi}
                                 </MenuItem>
@@ -105,9 +104,9 @@ const ChipOrderModal: React.FC<ChipOrderModalProps> = ({ open, onClose, onSucces
                             fullWidth
                             label={`${t('chip-management:orderModal.startDate')} *`}
                             type="date"
-                            name="pvm_alku"
+                            name="start_date"
                             InputLabelProps={{ shrink: true }}
-                            value={formData.pvm_alku}
+                            value={formData.start_date}
                             onChange={handleChange}
                             required
                         />
@@ -115,9 +114,9 @@ const ChipOrderModal: React.FC<ChipOrderModalProps> = ({ open, onClose, onSucces
                             fullWidth
                             label={`${t('chip-management:orderModal.endDate')} *`}
                             type="date"
-                            name="pvm_loppu"
+                            name="end_date"
                             InputLabelProps={{ shrink: true }}
-                            value={formData.pvm_loppu}
+                            value={formData.end_date}
                             onChange={handleChange}
                             required
                         />
@@ -128,8 +127,8 @@ const ChipOrderModal: React.FC<ChipOrderModalProps> = ({ open, onClose, onSucces
                             fullWidth
                             label={t('chip-management:orderModal.targetLoads')}
                             type="number"
-                            name="kuormia_tavoite"
-                            value={formData.kuormia_tavoite}
+                            name="target_qty"
+                            value={formData.target_qty}
                             onChange={handleChange}
                         />
                         <TextField
@@ -147,8 +146,8 @@ const ChipOrderModal: React.FC<ChipOrderModalProps> = ({ open, onClose, onSucces
                         label={t('chip-management:orderModal.furtherInfo')}
                         multiline
                         rows={3}
-                        name="lisatiedot"
-                        value={formData.lisatiedot}
+                        name="notes"
+                        value={formData.notes}
                         onChange={handleChange}
                     />
                 </Stack>

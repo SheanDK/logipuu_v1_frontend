@@ -1,7 +1,7 @@
 // frontend/src/components/loads/TripMap.tsx
 'use client';
 
-import React, { useEffect, useMemo} from 'react';
+import React, { useEffect, useMemo } from 'react';
 import { Box, Stack, Typography } from '@mui/material';
 import { useTheme, alpha } from '@mui/material/styles';
 import L, { LatLngTuple, LeafletMouseEvent } from 'leaflet';
@@ -20,21 +20,21 @@ import { useLayout } from '@/contexts/LayoutContext';
 // --- Leaflet Icon setup ---
 // @ts-ignore
 delete L.Icon.Default.prototype._getIconUrl;
-L.Icon.Default.mergeOptions({ 
-    iconRetinaUrl: '/images/marker-icon-2x.png', 
-    iconUrl: '/images/marker-icon.png', 
-    shadowUrl: '/images/marker-shadow.png' 
+L.Icon.Default.mergeOptions({
+    iconRetinaUrl: '/images/marker-icon-2x.png',
+    iconUrl: '/images/marker-icon.png',
+    shadowUrl: '/images/marker-shadow.png'
 });
 
 // Specific icon for an active trip's numbered pickup points
 const createPickupIcon = (index: number, scale: number = 1) => {
     const size = 32 * scale;
-    return L.divIcon({ 
-        className: `custom-icon-pickup-${index}`, 
-        html: `<div style="background-color: #d32f2f; width: ${size}px; height: ${size}px; border-radius: 50%; display: flex; justify-content: center; align-items: center; border: 2px solid white; box-shadow: 0 3px 6px rgba(0,0,0,0.4);"><span style="color: white; font-weight: bold; font-size: ${14 * scale}px;">${index + 1}</span></div>`, 
-        iconSize: [size + 4, size + 4], 
-        iconAnchor: [(size + 4) / 2, size + 4], 
-        popupAnchor: [0, -(size + 4)] 
+    return L.divIcon({
+        className: `custom-icon-pickup-${index}`,
+        html: `<div style="background-color: #d32f2f; width: ${size}px; height: ${size}px; border-radius: 50%; display: flex; justify-content: center; align-items: center; border: 2px solid white; box-shadow: 0 3px 6px rgba(0,0,0,0.4);"><span style="color: white; font-weight: bold; font-size: ${14 * scale}px;">${index + 1}</span></div>`,
+        iconSize: [size + 4, size + 4],
+        iconAnchor: [(size + 4) / 2, size + 4],
+        popupAnchor: [0, -(size + 4)]
     });
 }
 
@@ -43,23 +43,23 @@ const createPickupIcon = (index: number, scale: number = 1) => {
 const MML_MAASTOKARTTA_URL = 'https://avoin-karttakuva.maanmittauslaitos.fi/avoin/wmts/1.0.0/maastokartta/default/WGS84_Pseudo-Mercator/{z}/{y}/{x}.png?api-key=903ff7d0-9792-4c41-9515-d66f76ccb69f';
 
 // Icon for the driver's live location (red navigation icon)
-const driverIcon = L.divIcon({ 
-    className: 'custom-icon-driver', 
+const driverIcon = L.divIcon({
+    className: 'custom-icon-driver',
     html: renderToStaticMarkup(
-        <NavigationIcon 
-            style={{ 
-                fontSize: '38px', 
-                color: '#f72b07ff', 
-                fill: '#ff5e00ff', 
-                transform: 'rotate(-45deg)', 
-                filter: 'drop-shadow(0 2px 3px rgba(0,0,0,0.6))', 
-                stroke: 'white', 
-                strokeWidth: 2 
-            }} 
+        <NavigationIcon
+            style={{
+                fontSize: '38px',
+                color: '#f72b07ff',
+                fill: '#ff5e00ff',
+                transform: 'rotate(-45deg)',
+                filter: 'drop-shadow(0 2px 3px rgba(0,0,0,0.6))',
+                stroke: 'white',
+                strokeWidth: 2
+            }}
         />
-    ), 
-    iconSize: [38, 38], 
-    iconAnchor: [19, 19] 
+    ),
+    iconSize: [38, 38],
+    iconAnchor: [19, 19]
 });
 
 const LayerControlEventHandler = ({ onFilterChange }: { onFilterChange: (name: string, added: boolean) => void }) => {
@@ -165,39 +165,39 @@ const createHighlightedPuulaaniIcon = (color?: string, scale: number = 1) => {
 };
 
 // 4. Drop-off (Purkupaikka) Icon
-const createPurkupaikkaIcon = (scale: number = 1) => L.divIcon({ 
-    className: 'custom-icon-purkupaikka', 
+const createPurkupaikkaIcon = (scale: number = 1) => L.divIcon({
+    className: 'custom-icon-purkupaikka',
     html: renderToStaticMarkup(
-        <FlagIcon 
-            style={{ 
-                fontSize: `${20 * scale}px`, 
-                color: '#000000', 
-                stroke: 'white', 
-                strokeWidth: 0.5 
-            }} 
+        <FlagIcon
+            style={{
+                fontSize: `${20 * scale}px`,
+                color: '#000000',
+                stroke: 'white',
+                strokeWidth: 0.5
+            }}
         />
-    ), 
-    iconSize: [24 * scale, 24 * scale], 
-    iconAnchor: [4 * scale, 24 * scale], 
-    popupAnchor: [8 * scale, -24 * scale] 
+    ),
+    iconSize: [24 * scale, 24 * scale],
+    iconAnchor: [4 * scale, 24 * scale],
+    popupAnchor: [8 * scale, -24 * scale]
 });
 
 // 5. Driver Icon
-const createDriverIcon = (scale: number = 1) => L.divIcon({ 
-    className: 'custom-icon-driver', 
+const createDriverIcon = (scale: number = 1) => L.divIcon({
+    className: 'custom-icon-driver',
     html: renderToStaticMarkup(
-        <NavigationIcon 
-            style={{ 
-                fontSize: `${38 * scale}px`, 
-                color: '#f72b07', 
-                transform: 'rotate(-45deg)', 
-                stroke: 'white', 
-                strokeWidth: 2 
-            }} 
+        <NavigationIcon
+            style={{
+                fontSize: `${38 * scale}px`,
+                color: '#f72b07',
+                transform: 'rotate(-45deg)',
+                stroke: 'white',
+                strokeWidth: 2
+            }}
         />
-    ), 
-    iconSize: [38 * scale, 38 * scale], 
-    iconAnchor: [19 * scale, 19 * scale] 
+    ),
+    iconSize: [38 * scale, 38 * scale],
+    iconAnchor: [19 * scale, 19 * scale]
 });
 
 
@@ -224,7 +224,7 @@ export interface TripMapProps {
     onManualPanOrZoomAction: () => void; // To disable follow mode
     followUser: boolean; // To enable/disable follow mode
     sidebarWidth?: number;
-     markerScale: number; 
+    markerScale: number;
 }
 
 const MapFocusController = ({ focusedTripId, trips, onFocusCompleteAction }: { focusedTripId: number | null | undefined; trips: TripLegForMap[]; onFocusCompleteAction: () => void; }) => {
@@ -234,26 +234,26 @@ const MapFocusController = ({ focusedTripId, trips, onFocusCompleteAction }: { f
             const selectedTrip = trips.find(t => t.kuormaId === focusedTripId);
             if (selectedTrip?.originCoords) {
                 const targetLatLng: L.LatLngTuple = [selectedTrip.originCoords.lat, selectedTrip.originCoords.lng];
-              
+
                 // Fly to the location with a smooth animation
-                map.flyTo(targetLatLng, 16, { 
+                map.flyTo(targetLatLng, 16, {
                     animate: true,
-                    duration: 1.5 
+                    duration: 1.5
                 });
-                
+
                 // Open the popup after the flight animation is complete
                 const onFlyEnd = () => {
                     L.popup({ offset: [0, -20] })
-                     .setLatLng(targetLatLng)
-                     .setContent(selectedTrip.originName)
-                     .openOn(map);
+                        .setLatLng(targetLatLng)
+                        .setContent(selectedTrip.originName)
+                        .openOn(map);
                     onFocusCompleteAction();
-                    map.off('moveend', onFlyEnd); 
+                    map.off('moveend', onFlyEnd);
                 };
                 map.on('moveend', onFlyEnd);
 
             } else {
-                onFocusCompleteAction(); 
+                onFocusCompleteAction();
             }
         }
     }, [focusedTripId, trips, map, onFocusCompleteAction]);
@@ -261,10 +261,10 @@ const MapFocusController = ({ focusedTripId, trips, onFocusCompleteAction }: { f
 };
 
 //Create a new LocationController component ---
-const LocationController = ({ driverLocation, followUser, onManualPanOrZoomAction }: { 
+const LocationController = ({ driverLocation, followUser, onManualPanOrZoomAction }: {
     driverLocation: { lat: number; lng: number } | null,
     followUser: boolean,
-    onManualPanOrZoomAction: () => void 
+    onManualPanOrZoomAction: () => void
 }) => {
     const map = useMap();
 
@@ -297,15 +297,15 @@ const LocationController = ({ driverLocation, followUser, onManualPanOrZoomActio
     return null;
 };
 
-export default function TripMap({ 
-    legs, puulaanit, purkupaikat, driverLocation, 
+export default function TripMap({
+    legs, puulaanit, purkupaikat, driverLocation,
     focusedTripId, onFocusCompleteAction, onMarkerClickAction,
     markerFilters, onFilterChangeAction,
     onManualPanOrZoomAction, followUser,
     sidebarWidth = 0,
     markerScale = 1.0
 }: TripMapProps) {
-    
+
     const { t } = useTranslation('tripMap');
     const theme = useTheme();
     const isDarkMode = theme.palette.mode === 'dark';
@@ -317,20 +317,20 @@ export default function TripMap({
 
     const bounds = useMemo(() => {
         const allCoords: LatLngTuple[] = [];
-        
+
         legs.forEach(leg => {
             if (leg.originCoords) allCoords.push([leg.originCoords.lat, leg.originCoords.lng]);
             if (leg.destinationCoords) allCoords.push([leg.destinationCoords.lat, leg.destinationCoords.lng]);
         });
-        
-        puulaanit.forEach(trip => { 
-            if (trip.originCoords) allCoords.push([trip.originCoords.lat, trip.originCoords.lng]); 
+
+        puulaanit.forEach(trip => {
+            if (trip.originCoords) allCoords.push([trip.originCoords.lat, trip.originCoords.lng]);
         });
-        
-        purkupaikat.forEach(trip => { 
-            if (trip.originCoords) allCoords.push([trip.originCoords.lat, trip.originCoords.lng]); 
+
+        purkupaikat.forEach(trip => {
+            if (trip.originCoords) allCoords.push([trip.originCoords.lat, trip.originCoords.lng]);
         });
-        
+
         if (driverLocation) allCoords.push([driverLocation.lat, driverLocation.lng]);
 
         return allCoords.length > 0 ? L.latLngBounds(allCoords) : undefined;
@@ -338,14 +338,14 @@ export default function TripMap({
 
     if (!bounds) {
         return (
-            <Box 
-                sx={{ 
-                    height: '100%', 
-                    width: '100%', 
-                    bgcolor: isDarkMode ? 'background.paper' : 'grey.300', 
-                    display: 'flex', 
-                    alignItems: 'center', 
-                    justifyContent: 'center' 
+            <Box
+                sx={{
+                    height: '100%',
+                    width: '100%',
+                    bgcolor: isDarkMode ? 'background.paper' : 'grey.300',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center'
                 }}
             >
                 <Typography color="text.secondary">{t('noLocations')}</Typography>
@@ -354,8 +354,8 @@ export default function TripMap({
     }
 
     const handleFilterEvent = (filterName: 'showPuulaanit' | 'showPurkupaikat') => {
-    onFilterChangeAction(filterName);
-};
+        onFilterChangeAction(filterName);
+    };
 
     return (
         <MapContainer
@@ -375,9 +375,9 @@ export default function TripMap({
             </Box>
 
             {/* <LayerControlEventHandler onFilterChange={handleFilterEvent} /> */}
-            
+
             <LayersControl position="topleft" key={`layers-${theme.palette.mode}`}>
-                 {/* new MML Map Layer --- */}
+                {/* new MML Map Layer --- */}
                 {isFinland && (
                     <LayersControl.BaseLayer checked name={t('layers.finnishTopographic', 'MML Maastokartta (FI)')}>
                         <TileLayer
@@ -418,36 +418,36 @@ export default function TripMap({
                     />
                 </LayersControl.BaseLayer>
 
-                 {/* --- Overlays --- */}
+                {/* --- Overlays --- */}
                 <LayersControl.Overlay checked={markerFilters.showPuulaanit} name={t('layers.puulaanit', 'Timber Sites')}>
-                            <LayerGroup>
-                                {puulaanit.map((trip: any, index) => (
-                                    trip.originCoords && (
-                                        <Marker
-                                            key={`puulaani-layer-${trip.kuormaId || index}`}
-                                            position={[trip.originCoords.lat, trip.originCoords.lng]}
-                                            icon={
-                                                focusedTripId === trip.kuormaId 
-                                                    ? createHighlightedPuulaaniIcon(trip.color, markerScale)
-                                                    : createDynamicPuulaaniIcon(trip.color, markerScale)
-                                            }
-                                            eventHandlers={{ click: (e) => onMarkerClickAction(trip.kuormaId, e) }}
-                                            zIndexOffset={50} // General markers
-                                        >
-                                            <Popup>
-                                                <Box>
-                                                    <Typography variant="subtitle1" sx={{ fontWeight: 'bold' }}>{trip.originName}</Typography>
-                                                    <Typography variant="body2" color="text.secondary">
-                                                        {t('popup.clientLabel')}: <strong>{trip.customer?.clientName || 'N/A'}</strong>
-                                                    </Typography>
-                                                </Box>
-                                            </Popup>
-                                        </Marker>
-                                    )
-                                ))}
-                            </LayerGroup>
-                        </LayersControl.Overlay>
-                
+                    <LayerGroup>
+                        {puulaanit.map((trip: any, index) => (
+                            trip.originCoords && (
+                                <Marker
+                                    key={`puulaani-layer-${trip.kuormaId || index}`}
+                                    position={[trip.originCoords.lat, trip.originCoords.lng]}
+                                    icon={
+                                        focusedTripId === trip.kuormaId
+                                            ? createHighlightedPuulaaniIcon(trip.color, markerScale)
+                                            : createDynamicPuulaaniIcon(trip.color, markerScale)
+                                    }
+                                    eventHandlers={{ click: (e) => onMarkerClickAction(trip.kuormaId, e) }}
+                                    zIndexOffset={50} // General markers
+                                >
+                                    <Popup>
+                                        <Box>
+                                            <Typography variant="subtitle1" sx={{ fontWeight: 'bold' }}>{trip.originName}</Typography>
+                                            <Typography variant="body2" color="text.secondary">
+                                                {t('popup.clientLabel')}: <strong>{trip.customer?.clientName || 'N/A'}</strong>
+                                            </Typography>
+                                        </Box>
+                                    </Popup>
+                                </Marker>
+                            )
+                        ))}
+                    </LayerGroup>
+                </LayersControl.Overlay>
+
                 <LayersControl.Overlay checked={markerFilters.showPurkupaikat} name={t('layers.purkupaikat', 'Drop-off Sites')}>
                     <LayerGroup>
                         {purkupaikat.map((trip) => (
@@ -470,8 +470,8 @@ export default function TripMap({
             {legs.map((leg, index) => (
                 <React.Fragment key={`leg-${leg.kuormaId}`}>
                     {leg.originCoords && (
-                        <Marker 
-                            position={[leg.originCoords.lat, leg.originCoords.lng]} 
+                        <Marker
+                            position={[leg.originCoords.lat, leg.originCoords.lng]}
                             icon={createPickupIcon(index)}
                         >
                             <Popup>
@@ -482,8 +482,8 @@ export default function TripMap({
                         </Marker>
                     )}
                     {leg.destinationCoords && (
-                        <Marker 
-                            position={[leg.destinationCoords.lat, leg.destinationCoords.lng]} 
+                        <Marker
+                            position={[leg.destinationCoords.lat, leg.destinationCoords.lng]}
                             icon={createPurkupaikkaIcon(markerScale)}
                         >
                             <Popup>
@@ -496,12 +496,12 @@ export default function TripMap({
                 </React.Fragment>
             ))}
 
-            
+
 
             {/* Driver Live Location Marker with Scaling */}
             {driverLocation && (
-                <Marker 
-                    position={[driverLocation.lat, driverLocation.lng]} 
+                <Marker
+                    position={[driverLocation.lat, driverLocation.lng]}
                     icon={createDriverIcon(markerScale)} // Scale යොදන ලදී
                 >
                     <Popup>{t('yourLocation')}</Popup>
@@ -510,12 +510,12 @@ export default function TripMap({
 
             <MapFocusController trips={puulaanit} focusedTripId={focusedTripId} onFocusCompleteAction={onFocusCompleteAction} />
             <LayerControlEventHandler onFilterChange={handleFilterEvent as any} />
-            <LocationController 
-                driverLocation={driverLocation} 
-                followUser={followUser} 
-                onManualPanOrZoomAction={onManualPanOrZoomAction} 
+            <LocationController
+                driverLocation={driverLocation}
+                followUser={followUser}
+                onManualPanOrZoomAction={onManualPanOrZoomAction}
             />
-            
+
             {/* Dark mode styling for map controls */}
             <GlobalStyles styles={(theme) => ({
                 '.leaflet-dark .leaflet-control-layers': {

@@ -77,7 +77,7 @@ const ScheduleLoadModal: React.FC<ScheduleLoadModalProps> = ({ open, onClose, on
         setIsSaving(true);
         try {
             await chipService.scheduleLoad({
-                program_id: Number(programId),
+                kalusto_nro: Number(programId),
                 order_id: Number(formData.order_id),
                 pvm: selectedDate,
                 lahto_paikka: Number(formData.lahto_paikka),

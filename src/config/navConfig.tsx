@@ -48,19 +48,20 @@ export const officeNavigationItems: NavItemConfig[] = [
 
             // --- CHIP TRANSPORT SECTION ---
             {
-                text: 'Chip Titles',
-                tKey: 'chipManagement',
-                icon: <TableChartIcon />,
-                path: '/chip-management',
-                permission: 'chip management_view'
-            },
-            {
                 text: 'Chip Planning',
                 tKey: 'chipPlanning',
                 icon: <CalendarMonthIcon />,
                 path: '/chip-management/planning',
                 permission: 'chip management_planning'
             },
+            {
+                text: 'Chip Titles',
+                tKey: 'chipManagement',
+                icon: <TableChartIcon />,
+                path: '/chip-management',
+                permission: 'chip management_view'
+            },
+
             {
                 text: 'Chip Subscriptions',
                 tKey: 'chipSubscriptions',

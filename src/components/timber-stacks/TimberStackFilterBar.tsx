@@ -2,7 +2,8 @@
 'use client';
 
 import React from 'react';
-import {Autocomplete, TextField, Paper, Typography,
+import {
+    Autocomplete, TextField, Paper, Typography,
     Stack, Box, Divider, ToggleButton, ToggleButtonGroup
 } from '@mui/material';
 import ForestIcon from '@mui/icons-material/Forest';
@@ -10,6 +11,7 @@ import WarehouseIcon from '@mui/icons-material/Warehouse';
 import { IMapFilterState, IClientBasicInfo, IVehicleBasicInfo } from '../../types';
 import { useTranslation } from '@/i18n/useTranslation';
 import { useTheme, alpha } from '@mui/material/styles';
+import LocalShippingIcon from '@mui/icons-material/LocalShipping';
 
 interface TimberStackFilterBarProps {
     filters: IMapFilterState;
@@ -35,30 +37,30 @@ const TimberStackFilterBar: React.FC<TimberStackFilterBarProps> = ({
     };
 
     return (
-        <Paper 
-            elevation={0} 
-            sx={{ 
-                p: 2, 
+        <Paper
+            elevation={0}
+            sx={{
+                p: 2,
                 borderRadius: 2,
-                backgroundColor: isDarkMode 
-                    ? alpha(theme.palette.background.paper, 0.8) 
-                    : 'rgba(255, 255, 255, 0.49)', 
-                border: isDarkMode ? `1px solid ${theme.palette.divider}` : 'none' 
+                backgroundColor: isDarkMode
+                    ? alpha(theme.palette.background.paper, 0.8)
+                    : 'rgba(255, 255, 255, 0.49)',
+                border: isDarkMode ? `1px solid ${theme.palette.divider}` : 'none'
             }}
         >
-            <Stack 
+            <Stack
                 direction={{ xs: 'column', md: 'row' }}
-                spacing={2} 
+                spacing={2}
                 alignItems={{ xs: 'flex-start', md: 'center' }}
             >
                 {/* Status Filter (All/Active) */}
                 <Stack direction="row" alignItems="center" spacing={1}>
-                    <Typography 
-                    variant="body2" 
-                    sx={{ 
-                        fontWeight: 'medium', 
-                        color: 'text.primary', 
-                        flexShrink: 0 
+                    <Typography
+                        variant="body2"
+                        sx={{
+                            fontWeight: 'medium',
+                            color: 'text.primary',
+                            flexShrink: 0
                         }}>
                         {t('filters.status.title', 'Status:')}
                     </Typography>
@@ -73,7 +75,7 @@ const TimberStackFilterBar: React.FC<TimberStackFilterBarProps> = ({
                         <ToggleButton value="active">{t('filters.status.active', 'Active')}</ToggleButton>
                     </ToggleButtonGroup>
                 </Stack>
-                
+
                 <Divider orientation="vertical" flexItem sx={{ display: { xs: 'none', md: 'block' } }} />
 
                 {/* Marker Type Filter (Puulaani/Purkupaikka) */}
@@ -96,9 +98,13 @@ const TimberStackFilterBar: React.FC<TimberStackFilterBarProps> = ({
                             <WarehouseIcon sx={{ mr: 1 }} />
                             {t('filters.markerType.purkupaikka', 'Drop-offs')}
                         </ToggleButton>
+                        <ToggleButton value="chip-transport" aria-label="chip transports">
+                            <LocalShippingIcon sx={{ mr: 1 }} />
+                            {t('filters.markerType.chipTransport', 'Chip Transports')}
+                        </ToggleButton>
                     </ToggleButtonGroup>
                 </Stack>
-                
+
                 <Box sx={{ minWidth: 240, flexGrow: 1 }}>
                     <Autocomplete
                         fullWidth
@@ -114,7 +120,7 @@ const TimberStackFilterBar: React.FC<TimberStackFilterBarProps> = ({
                         renderInput={(params) => <TextField {...params} label={t('filters.client')} variant="outlined" fullWidth />}
                     />
                 </Box>
-                
+
                 <Box sx={{ minWidth: 200, flexGrow: 1 }}>
                     <Autocomplete
                         fullWidth
