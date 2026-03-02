@@ -3,11 +3,11 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import chipService from '@/services/chipService';
+import chipOrderService from '@/services/chipOrderService';
 import * as clientService from '@/services/clientService';
 import {
     Dialog, DialogTitle, DialogContent, DialogActions,
-    Button, TextField, Stack, MenuItem, CircularProgress, Typography
+    Button, TextField, Stack, MenuItem, CircularProgress, useTheme, alpha
 } from '@mui/material';
 import { useTranslation } from '@/i18n/useTranslation';
 
@@ -19,6 +19,8 @@ interface ChipOrderModalProps {
 
 const ChipOrderModal: React.FC<ChipOrderModalProps> = ({ open, onClose, onSuccess }) => {
     const { t } = useTranslation(['chip-management']);
+    const theme = useTheme();
+    const isDarkMode = theme.palette.mode === 'dark';
     const [customers, setCustomers] = useState<any[]>([]);
     const [loading, setLoading] = useState(false);
     const [fetchingCustomers, setFetchingCustomers] = useState(false);
@@ -59,7 +61,7 @@ const ChipOrderModal: React.FC<ChipOrderModalProps> = ({ open, onClose, onSucces
         if (!formData.asiakas_id) return;
         setLoading(true);
         try {
-            await chipService.createOrder(formData);
+            await chipOrderService.create(formData);
             onSuccess();
             onClose();
         } catch (error) {
@@ -71,7 +73,7 @@ const ChipOrderModal: React.FC<ChipOrderModalProps> = ({ open, onClose, onSucces
 
     return (
         <Dialog open={open} onClose={onClose} fullWidth maxWidth="sm">
-            <DialogTitle sx={{ bgcolor: '#f8f9fa', fontWeight: 'bold' }}>
+            <DialogTitle sx={{ bgcolor: isDarkMode ? alpha('#fff', 0.05) : '#f8f9fa', fontWeight: 'bold', borderBottom: '1px solid', borderColor: 'divider' }}>
                 {t('chip-management:orderModal.createTitle')}
             </DialogTitle>
             <DialogContent dividers>
@@ -152,13 +154,13 @@ const ChipOrderModal: React.FC<ChipOrderModalProps> = ({ open, onClose, onSucces
                     />
                 </Stack>
             </DialogContent>
-            <DialogActions sx={{ p: 2, bgcolor: '#f8f9fa' }}>
+            <DialogActions sx={{ p: 2, bgcolor: isDarkMode ? alpha('#fff', 0.02) : '#f8f9fa', borderTop: '1px solid', borderColor: 'divider' }}>
                 <Button onClick={onClose} color="inherit">{t('chip-management:orderModal.cancel')}</Button>
                 <Button
                     onClick={handleSubmit}
                     variant="contained"
                     disabled={loading || !formData.asiakas_id}
-                    sx={{ bgcolor: '#a38f6d', '&:hover': { bgcolor: '#8c7a5d' } }}
+                    sx={{ bgcolor: '#a38f6d', borderRadius: '8px', fontWeight: 'bold', '&:hover': { bgcolor: '#8c7a5d' } }}
                 >
                     {loading ? <CircularProgress size={24} color="inherit" /> : t('chip-management:orderModal.saveOrder')}
                 </Button>

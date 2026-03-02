@@ -256,6 +256,7 @@ export interface IVehicleBackendResponse {
     edKatsastus: string;
     katsastusAik: string;
     aktiivinen: boolean;
+    planning_group?: string | null;
 }
 
 export interface IVehicle {
@@ -264,6 +265,7 @@ export interface IVehicle {
     previousInspectionDate: string;
     nextInspectionDate: string;
     isActive: boolean;
+    planning_group?: string | null;
 }
 
 export interface IVehicleGridRow extends IVehicle {

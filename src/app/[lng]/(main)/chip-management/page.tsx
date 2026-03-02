@@ -291,29 +291,6 @@ const ChipTitlesPage = () => {
                         primaryTypographyProps={{ variant: 'body2' }}
                     />
                 </MenuItem>
-                <Divider />
-                <MenuItem>
-                    <ListItemIcon><FilterListIcon fontSize="small" /></ListItemIcon>
-                    <ListItemText
-                        primary={t('common:filter') || 'Filter'}
-                        primaryTypographyProps={{ variant: 'body2' }}
-                    />
-                </MenuItem>
-                <Divider />
-                <MenuItem onClick={() => activeCol && toggleColumnHide(columns.find(c => c.key === activeCol)?.id || '')}>
-                    <ListItemIcon><VisibilityOffIcon fontSize="small" /></ListItemIcon>
-                    <ListItemText
-                        primary={t('common:hideColumn') || 'Hide column'}
-                        primaryTypographyProps={{ variant: 'body2' }}
-                    />
-                </MenuItem>
-                <MenuItem onClick={() => { setManageDialogOpen(true); handleMenuClose(); }}>
-                    <ListItemIcon><ViewColumnIcon fontSize="small" /></ListItemIcon>
-                    <ListItemText
-                        primary={t('common:manageColumns') || 'Manage columns'}
-                        primaryTypographyProps={{ variant: 'body2' }}
-                    />
-                </MenuItem>
 
             </Menu>
 

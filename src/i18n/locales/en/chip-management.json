@@ -179,16 +179,16 @@
             "deleteLoadTitle": "Delete Load",
             "deleteLoadMessage": "Are you sure you want to remove this assignment from the plan?"
         },
-        "sidebar": {
-            "tabs": {
-                "subs": "SUBS",
-                "titles": "TITLES"
-            },
-            "filterCustomer": "Filter Customer",
-            "search": "Search...",
-            "activeOrder": "Active Order",
-            "na": "N/A"
+        "tabs": {
+            "subs": "SUBS",
+            "titles": "TITLES"
         },
+        "filterCustomer": "Filter Customer",
+        "search": "Search...",
+        "activeOrder": "Active Order",
+        "na": "N/A",
+        "total": "Total",
+        "remaining": "Remaining",
         "assignTitleModal": {
             "title": "Assign Title to Vehicle",
             "selectTitle": "Select Title",
@@ -218,6 +218,20 @@
             "instructions": "INSTRUCTIONS",
             "noNotes": "No specific notes.",
             "yes": "YES"
+        },
+        "common": {
+            "buttons": {
+                "refresh": "Refresh",
+                "vehicleGrouping": "Vehicle Grouping"
+            }
+        },
+        "dispatchDialog": {
+            "title": "Send loads to driver",
+            "message": "Are you sure you want to send these load assignments to the driver?"
+        },
+        "deleteDialog": {
+            "title": "Delete load",
+            "message": "Are you sure you want to delete this load?"
         }
     },
     "orderModal": {
@@ -243,9 +257,10 @@
         "targetLoads": "Target Loads (Qty)",
         "productType": "Product Type",
         "productPlaceholder": "e.g. Sawdust",
+        "weeklyDistribution": "Weekly Distribution",
         "tabs": {
             "monFri": "MO-FR",
-            "laSu": "SA-SU",
+            "laSu": "MO-SU",
             "free": "FREE"
         },
         "days": {
@@ -278,10 +293,8 @@
             "item": "Item (Nimike)",
             "validityPeriod": "Validity Period",
             "targetQty": "Target Qty",
-            "status": "Status"
-        },
-        "status": {
-            "active": "Active"
+            "status": "Status",
+            "furtherInfo": "Further Info"
         }
     },
     "notifications": {
@@ -294,5 +307,16 @@
         "titleError": "Error saving title",
         "areaCreateSuccess": "New area created successfully",
         "areaCreateError": "Failed to save new area"
+    },
+    "vehicleGrouping": {
+        "title": "Vehicle Grouping",
+        "subtitle": "Manage vehicle groups",
+        "newGroup": "Add",
+        "noResults": "No groups found.",
+        "buttons": {
+            "done": "DONE",
+            "cancel": "CANCEL",
+            "add": "ADD"
+        }
     }
 }

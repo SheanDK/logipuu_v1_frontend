@@ -1,6 +1,6 @@
 // frontend/src/services/clientService.ts
 import apiClient from './apiClient';
-import { IBackendClient, ICreateClientDto, IUpdateClientDto, IClient, IClientBasicInfo } from '../types';
+import { IBackendClient, ICreateClientDto, IUpdateClientDto, IClientBasicInfo } from '../types';
 
 const API_ENDPOINT = '/clients';
 
@@ -31,13 +31,13 @@ export const checkTargetColorExists = async (color: string, clientId?: string): 
             params: {
                 color: color,
                 // Axios will omit the `clientId` param if it is undefined, which is what we want.
-                clientId: clientId, 
+                clientId: clientId,
             }
         });
         return response.data;
     } catch (error) {
         console.error("Error checking color existence:", error);
-        return false; 
+        return false;
     }
 };
 

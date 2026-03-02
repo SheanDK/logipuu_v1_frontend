@@ -178,16 +178,16 @@
             "deleteLoadTitle": "Poista kuorma",
             "deleteLoadMessage": "Oletko varma, että haluat poistaa tämän varauksen suunnitelmasta?"
         },
-        "sidebar": {
-            "tabs": {
-                "subs": "TILAUKSET",
-                "titles": "NIMIKKEET"
-            },
-            "filterCustomer": "Suodata asiakas",
-            "search": "Hae...",
-            "activeOrder": "product_type_name tilaus",
-            "na": "N/A"
+        "tabs": {
+            "subs": "TILAUKSET",
+            "titles": "NIMIKKEET"
         },
+        "filterCustomer": "Suodata asiakas",
+        "search": "Hae...",
+        "activeOrder": "product_type_name tilaus",
+        "na": "N/A",
+        "total": "Yhteensä",
+        "remaining": "Jäljellä",
         "assignTitleModal": {
             "title": "Määritä nimike ajoneuvolle",
             "selectTitle": "Valitse nimike",
@@ -217,6 +217,20 @@
             "instructions": "OHJEET",
             "noNotes": "Ei erityisiä ohjeita.",
             "yes": "KYLLÄ"
+        },
+        "common": {
+            "buttons": {
+                "refresh": "Päivitä",
+                "vehicleGrouping": "Ajoneuvoryhmittely"
+            }
+        },
+        "dispatchDialog": {
+            "title": "Lähetä kuormat kuljettajalle",
+            "message": "Oletko varma, että haluat lähettää nämä kuormamääritykset kuljettajalle?"
+        },
+        "deleteDialog": {
+            "title": "Poista kuorma",
+            "message": "Oletko varma, että haluat poistaa tämän kuorman?"
         }
     },
     "orderModal": {
@@ -242,9 +256,10 @@
         "targetLoads": "Kuormatavoite (kpl)",
         "productType": "Tuotetyyppi",
         "productPlaceholder": "esim. Sahanpuru",
+        "weeklyDistribution": "Viikoittainen jakelu",
         "tabs": {
             "monFri": "MA-PE",
-            "laSu": "LA-SU",
+            "laSu": "MA-SU",
             "free": "VAPAA"
         },
         "days": {
@@ -277,10 +292,11 @@
             "item": "Nimike",
             "validityPeriod": "Voimassaoloaika",
             "targetQty": "Tavoitemäärä",
-            "status": "Tila"
+            "status": "Tila",
+            "furtherInfo": "Lisätietoja"
         },
         "status": {
-            "active": "product_type_name"
+            "active": "aktiivinen"
         }
     },
     "notifications": {
@@ -293,5 +309,16 @@
         "titleError": "Virhe tallennettaessa nimikettä",
         "areaCreateSuccess": "Uusi alue luotu onnistuneesti",
         "areaCreateError": "Uuden alueen tallennus epäonnistui"
+    },
+    "vehicleGrouping": {
+        "title": "Ajoneuvoryhmittely",
+        "subtitle": "Hallitse ajoneuvoryhmiä",
+        "newGroup": "Uusi",
+        "noResults": "Ajoneuvoryhmiä ei löytynyt.",
+        "buttons": {
+            "done": "VALMISTA",
+            "cancel": "PERUUTA",
+            "add": "LISÄÄ"
+        }
     }
 }

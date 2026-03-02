@@ -9,6 +9,7 @@ import {
     Tabs, Tab, FormControlLabel, Checkbox, MenuItem, Divider,
     Radio, RadioGroup, IconButton
 } from '@mui/material';
+import { useTheme, alpha } from '@mui/material/styles';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import { DateCalendar } from '@mui/x-date-pickers/DateCalendar';
@@ -21,7 +22,7 @@ import 'dayjs/locale/en-gb';
 
 import DeleteIcon from '@mui/icons-material/Delete';
 import SaveIcon from '@mui/icons-material/Save';
-import chipService from '@/services/chipService';
+import chipOrderService from '@/services/chipOrderService';
 import { chipTitleService } from '@/services/chipTitleService';
 import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline';
 import RemoveCircleOutlineIcon from '@mui/icons-material/RemoveCircleOutline';
@@ -31,6 +32,8 @@ import DeleteConfirmationDialog from '../common/DeleteConfirmationDialog';
 
 const ChipSubscriptionModal = ({ open, onClose, onSuccess, initialData }: any) => {
     const { t } = useTranslation(['chip-management', 'common']);
+    const theme = useTheme();
+    const isDarkMode = theme.palette.mode === 'dark';
     const { lng } = useParams();
     const [titles, setTitles] = useState<any[]>([]);
     const [tabValue, setTabValue] = useState(0);
@@ -57,50 +60,27 @@ const ChipSubscriptionModal = ({ open, onClose, onSuccess, initialData }: any) =
 
     const renderHighlightedDay = (props: PickersDayProps) => {
         const { day, outsideCurrentMonth, ...other } = props;
-
         const startDate = selectedDate ? selectedDate.startOf('day') : null;
-        if (!startDate || outsideCurrentMonth) {
-            return <PickersDay {...props} />;
-        }
-
-        if (day.isBefore(startDate)) {
-            return <PickersDay {...props} />;
-        }
+        if (!startDate || outsideCurrentMonth || day.isBefore(startDate)) return <PickersDay {...props} />;
 
         const activeWeekdays = Object.keys(formData.distribution).filter(
             (d) => Number((formData.distribution as any)[d].qty) > 0
         );
 
         let endDate: Dayjs | null = null;
-        if (formData.valid_until_notice) {
-            endDate = day.add(1, 'year');
-        } else if (formData.repetition_type === 'repetition') {
-            endDate = startDate.add(formData.weeks_left, 'week').subtract(1, 'day');
-        } else if (formData.repetition_type === 'end_date' && formData.end_date) {
-            endDate = dayjs(formData.end_date);
-        }
+        if (formData.valid_until_notice) endDate = day.add(1, 'year');
+        else if (formData.repetition_type === 'repetition') endDate = startDate.add(formData.weeks_left, 'week').subtract(1, 'day');
+        else if (formData.repetition_type === 'end_date' && formData.end_date) endDate = dayjs(formData.end_date);
 
-        const dayName = day.format('dddd');
-        const isWorkingDay = activeWeekdays.includes(dayName);
+        const isWorkingDay = activeWeekdays.includes(day.format('dddd'));
         const isWithinRange = endDate ? !day.isAfter(endDate, 'day') : true;
-
         const isSelected = isWorkingDay && isWithinRange;
 
         return (
-            <PickersDay
-                {...other}
-                day={day}
-                outsideCurrentMonth={outsideCurrentMonth}
+            <PickersDay {...other} day={day} outsideCurrentMonth={outsideCurrentMonth}
                 sx={{
-                    ...(isSelected && {
-                        bgcolor: '#499ec5ff !important',
-                        color: 'white !important',
-                        borderRadius: '50%',
-                        '&:hover': { bgcolor: '#499ec5ff !important' },
-                    }),
-                    ...(day.isSame(dayjs(), 'day') && !isSelected && {
-                        border: '1px solid #a38f6d',
-                    })
+                    ...(isSelected && { bgcolor: '#499ec5ff !important', color: 'white !important', borderRadius: '50%' }),
+                    ...(day.isSame(dayjs(), 'day') && !isSelected && { border: '1px solid #a38f6d' })
                 }}
             />
         );
@@ -111,8 +91,6 @@ const ChipSubscriptionModal = ({ open, onClose, onSuccess, initialData }: any) =
             chipTitleService.getAll().then(setTitles);
 
             if (initialData) {
-                console.log("🛠 Loading Initial Data:", initialData);
-
                 const parseDate = (dateStr: string) => {
                     if (!dateStr) return dayjs();
                     if (dateStr.includes('.')) {
@@ -125,8 +103,6 @@ const ChipSubscriptionModal = ({ open, onClose, onSuccess, initialData }: any) =
 
                 const rawDist = initialData.weeklyDistribution || initialData.weekly_dist || {};
                 const dbDist = typeof rawDist === 'string' ? JSON.parse(rawDist) : rawDist;
-
-                // FIX: Extract meta first to avoid scope errors
                 const meta = dbDist._metadata || {};
 
                 const normalizedDist = { ...initialDistribution };
@@ -142,27 +118,29 @@ const ChipSubscriptionModal = ({ open, onClose, onSuccess, initialData }: any) =
                     }
                 });
 
-                // FIX: Define activeDays before using it for pcsFromDist and autoTab
                 const distValues = Object.values(normalizedDist) as { qty: number, info: string }[];
                 const activeDays = distValues.filter(day => Number(day.qty) > 0);
                 const weeklySum = distValues.reduce((sum: number, day: any) => sum + Number(day.qty || 0), 0);
                 const pcsFromDist = activeDays.length > 0 ? Number(activeDays[0].qty) : 0;
-                const targetQty: number = Number(initialData.targetQty || initialData.target_qty || 0);
+                const targetQty = Number(initialData.targetQty || initialData.target_qty || 0);
 
-                const hasCustomInfo = distValues.some(day => day.info && day.info.trim() !== "");
+                const hasCustomDayInfo = distValues.some(day => day.info && day.info.trim() !== "");
                 const hasWeekendWork = Number((normalizedDist as any).Saturday?.qty || 0) > 0 ||
                     Number((normalizedDist as any).Sunday?.qty || 0) > 0;
+                const allQtysSame = activeDays.every(d => Number(d.qty) === pcsFromDist);
 
+                // Tab Detection logic
                 let autoTab = 2;
-                if (!hasCustomInfo && !hasWeekendWork && activeDays.length === 5) autoTab = 0;
-                else if (!hasCustomInfo && activeDays.length === 7) autoTab = 1;
-
+                if (!hasCustomDayInfo && allQtysSame) {
+                    if (!hasWeekendWork && activeDays.length === 5) autoTab = 0;
+                    else if (activeDays.length === 7) autoTab = 1;
+                }
                 setTabValue(autoTab);
 
                 setFormData({
                     title_id: initialData.titleId || initialData.title_id || '',
                     flexibility_type: meta.flex || initialData.flexibility_type || 'No Flexibility',
-                    weeks_left: meta.weeks || initialData.weeks_left || (weeklySum > 0 ? Math.round(targetQty / weeklySum) : 1),
+                    weeks_left: meta.weeks || (weeklySum > 0 ? Math.round(targetQty / weeklySum) : 1),
                     pcs_per_day: pcsFromDist,
                     valid_until_notice: meta.valid ?? (initialData.endDate ? false : true),
                     repetition_type: (initialData.endDate || initialData.end_date) ? 'end_date' : 'repetition',
@@ -171,7 +149,6 @@ const ChipSubscriptionModal = ({ open, onClose, onSuccess, initialData }: any) =
                     further_info: initialData.notes || initialData.further_info || '',
                     distribution: normalizedDist
                 });
-
             } else {
                 resetFormState();
             }
@@ -180,15 +157,8 @@ const ChipSubscriptionModal = ({ open, onClose, onSuccess, initialData }: any) =
 
     const resetFormState = () => {
         setFormData({
-            title_id: '',
-            flexibility_type: 'No Flexibility',
-            weeks_left: 1,
-            pcs_per_day: 0,
-            valid_until_notice: false,
-            repetition_type: 'repetition',
-            end_date: '',
-            repeat_every_day: 0,
-            further_info: '',
+            title_id: '', flexibility_type: 'No Flexibility', weeks_left: 1, pcs_per_day: 0,
+            valid_until_notice: false, repetition_type: 'repetition', end_date: '', repeat_every_day: 0, further_info: '',
             distribution: initialDistribution
         });
         setSelectedDate(dayjs());
@@ -214,7 +184,7 @@ const ChipSubscriptionModal = ({ open, onClose, onSuccess, initialData }: any) =
     const handleDeleteConfirm = async () => {
         if (!initialData?.orderId) return;
         try {
-            await chipService.deleteOrder(initialData.orderId);
+            await chipOrderService.delete(initialData.orderId);
             setDeleteDialogOpen(false);
             onSuccess("Subscription deleted successfully", "success");
             onClose();
@@ -233,13 +203,21 @@ const ChipSubscriptionModal = ({ open, onClose, onSuccess, initialData }: any) =
         if (tabValue === 0 || tabValue === 1) {
             const daysInWeek = tabValue === 0 ? 5 : 7;
             totalTavoite = formData.pcs_per_day * daysInWeek * formData.weeks_left;
-            const daysToFill = tabValue === 0 ? ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'] : Object.keys(initialDistribution);
-            Object.keys(finalDistribution).forEach(day => {
-                finalDistribution[day] = { qty: daysToFill.includes(day) ? formData.pcs_per_day : 0, info: finalDistribution[day].info || '' };
+
+            const daysToFill = tabValue === 0
+                ? ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday']
+                : ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+
+            Object.keys(initialDistribution).forEach(day => {
+                finalDistribution[day] = {
+                    qty: daysToFill.includes(day) ? formData.pcs_per_day : 0,
+                    info: ''
+                };
             });
         } else {
             totalTavoite = Object.values(formData.distribution).reduce((a, b: any) => a + Number(b.qty), 0) * formData.weeks_left;
         }
+
 
         finalDistribution._metadata = {
             flex: formData.flexibility_type,
@@ -258,16 +236,13 @@ const ChipSubscriptionModal = ({ open, onClose, onSuccess, initialData }: any) =
         };
 
         try {
-            if (initialData) {
-                await chipService.updateOrder(initialData.orderId, payload);
-            } else {
-                await chipService.createOrder(payload);
-            }
-            onSuccess("Successfully Saved", "success");
+            if (initialData) await chipOrderService.update(initialData.orderId, payload);
+            else await chipOrderService.create(payload);
+            onSuccess("Successfully updated", "success");
             onClose();
         } catch (err: any) {
             console.error("❌ API Error:", err.response?.data || err.message);
-            alert("cannot save data: " + (err.response?.data?.error || "Unknown Error"));
+            alert("cannot save data");
         }
     };
 
@@ -279,7 +254,7 @@ const ChipSubscriptionModal = ({ open, onClose, onSuccess, initialData }: any) =
     return (
         <LocalizationProvider dateAdapter={AdapterDayjs} adapterLocale={lng === 'fi' ? 'fi' : 'en-gb'}>
             <Dialog open={open} onClose={onClose} fullWidth maxWidth="md">
-                <DialogTitle component="div" sx={{ fontWeight: 'bold', bgcolor: '#f8f9fa', borderBottom: '1px solid #eee', color: '#333' }}>
+                <DialogTitle component="div" sx={{ fontWeight: 'bold', bgcolor: isDarkMode ? alpha('#fff', 0.05) : '#f8f9fa', borderBottom: '1px solid', borderColor: 'divider', color: 'text.primary' }}>
                     <Typography variant="h6" component="span" fontWeight="bold">
                         {initialData ? t('chip-management:orderModal.editTitle') : t('chip-management:orderModal.createTitle')}
                     </Typography>
@@ -309,9 +284,7 @@ const ChipSubscriptionModal = ({ open, onClose, onSuccess, initialData }: any) =
                                     return (name || abbr) ? `${name} ${abbr}`.trim() : '';
                                 }}
                                 getOptionKey={(option: any) => option.title_id || option.titleId}
-                                isOptionEqualToValue={(o: any, v: any) =>
-                                    String(o.title_id || o.titleId) === String(v.title_id || v.titleId)
-                                }
+                                isOptionEqualToValue={(o: any, v: any) => String(o.title_id || o.titleId) === String(v.title_id || v.titleId)}
                                 renderOption={(props, option: any) => {
                                     const { key, ...otherProps } = props;
                                     return (
@@ -320,9 +293,7 @@ const ChipSubscriptionModal = ({ open, onClose, onSuccess, initialData }: any) =
                                         </Box>
                                     );
                                 }}
-                                value={titles.find((t: any) =>
-                                    String(t.title_id || t.titleId) === String(formData.title_id)
-                                ) || null}
+                                value={titles.find((t: any) => String(t.title_id || t.titleId) === String(formData.title_id)) || null}
                                 onChange={(_, v: any) => {
                                     const selectedId = v ? (v.title_id || v.titleId) : '';
                                     setFormData(prev => ({ ...prev, title_id: selectedId }));
@@ -342,7 +313,7 @@ const ChipSubscriptionModal = ({ open, onClose, onSuccess, initialData }: any) =
 
                         {tabValue === 2 ? (
                             <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-                                <Box sx={{ display: 'flex', alignItems: 'center', bgcolor: '#fdfaf5', p: 1.5, borderRadius: '8px', border: '1px solid #eee' }}>
+                                <Box sx={{ display: 'flex', alignItems: 'center', bgcolor: isDarkMode ? alpha('#fff', 0.03) : '#fdfaf5', p: 1.5, borderRadius: '8px', border: '1px solid', borderColor: 'divider' }}>
                                     <RadioGroup row value={formData.repetition_type} onChange={(e) => setFormData({ ...formData, repetition_type: e.target.value })}>
                                         <FormControlLabel value="repetition" control={<Radio size="small" sx={{ color: '#a38f6d' }} />} label={<Typography variant="caption" fontWeight="bold">Repetition Left</Typography>} />
                                         <FormControlLabel value="end_date" control={<Radio size="small" sx={{ color: '#a38f6d' }} />} label={<Typography variant="caption" fontWeight="bold">Ends date</Typography>} />
@@ -352,7 +323,7 @@ const ChipSubscriptionModal = ({ open, onClose, onSuccess, initialData }: any) =
                                 <Box sx={{ display: 'flex', gap: 2, alignItems: 'center', px: 1 }}>
                                     <FormControlLabel
                                         control={<Checkbox size="small" checked={formData.valid_until_notice} onChange={(e) => setFormData({ ...formData, valid_until_notice: e.target.checked })} />}
-                                        label={<Typography variant="caption" sx={{ fontWeight: 'bold' }}>Valid until further notice</Typography>}
+                                        label={<Typography variant="caption" sx={{ fontWeight: 'bold' }}>{t('chip-management:orderModal.validUntilNotice')}</Typography>}
                                     />
                                     <TextField label="Weeks left" type="number" size="small" sx={{ width: 100 }} disabled={formData.valid_until_notice || formData.repetition_type !== 'repetition'} value={formData.weeks_left} onChange={(e) => setFormData({ ...formData, weeks_left: Number(e.target.value) })} />
                                     <TextField label="End date" type="date" size="small" sx={{ width: 140 }} InputLabelProps={{ shrink: true }} disabled={formData.valid_until_notice || formData.repetition_type !== 'end_date'} value={formData.end_date} onChange={(e) => setFormData({ ...formData, end_date: e.target.value })} />
@@ -361,23 +332,29 @@ const ChipSubscriptionModal = ({ open, onClose, onSuccess, initialData }: any) =
 
                                 <Box sx={{ display: 'flex', gap: 2 }}>
                                     <Box sx={{ flex: 1.3 }}>
-                                        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1, px: 1, bgcolor: '#f5f5f5', py: 0.5, borderRadius: '4px' }}>
-                                            <Typography variant="caption" fontWeight="bold" color="textSecondary">WEEKLY DISTRIBUTION</Typography>
+                                        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1, px: 1, bgcolor: isDarkMode ? alpha('#fff', 0.05) : '#f5f5f5', py: 0.5, borderRadius: '4px' }}>
+                                            <Typography variant="caption" fontWeight="bold" color="textSecondary">{t('chip-management:orderModal.weeklyDistribution')}</Typography>
                                             <Stack direction="row" alignItems="center" spacing={0.5}>
-                                                <Typography variant="caption" sx={{ fontWeight: 'bold', color: '#a38f6d', mr: 1 }}>ALL DAYS:</Typography>
+                                                <Typography variant="caption" sx={{ fontWeight: 'bold', color: '#a38f6d', mr: 1 }}>{t('chip-management:orderModal.allDays')}:</Typography>
                                                 <IconButton size="small" onClick={() => handleAdjustAllDays(-1)} sx={{ color: '#d32f2f', p: 0 }}><RemoveCircleOutlineIcon fontSize="small" /></IconButton>
                                                 <IconButton size="small" onClick={() => handleAdjustAllDays(1)} sx={{ color: '#2e7d32', p: 0 }}><AddCircleOutlineIcon fontSize="small" /></IconButton>
                                             </Stack>
                                         </Box>
 
-                                        <Box sx={{ border: '1px solid #eee', borderRadius: '8px', overflow: 'hidden' }}>
+                                        <Box sx={{ border: '1px solid', borderColor: 'divider', borderRadius: '8px', overflow: 'hidden' }}>
                                             {dayLabels.map((day) => (
-                                                <Box key={day.name} sx={{ display: 'flex', borderBottom: '1px solid #f5f5f5', '&:last-child': { borderBottom: 0 }, alignItems: 'center', p: 0.8 }}>
+                                                <Box key={day.name} sx={{ display: 'flex', borderBottom: '1px solid', borderColor: 'divider', '&:last-child': { borderBottom: 0 }, alignItems: 'center', p: 0.8 }}>
                                                     <Box sx={{ width: 90 }}>
-                                                        <Typography variant="caption" sx={{ fontSize: '11px', fontWeight: 900, color: '#444' }}>{day.name}</Typography>
                                                         <TextField
-                                                            variant="outlined" size="small" type="number"
-                                                            sx={{ width: 65, '& .MuiOutlinedInput-input': { p: '4px 6px', fontSize: '12px', textAlign: 'center' } }}
+                                                            label={day.name}
+                                                            variant="outlined"
+                                                            size="small"
+                                                            type="number"
+                                                            sx={{
+                                                                width: 90,
+                                                                '& .MuiInputLabel-root': { fontSize: '12px', fontWeight: 'bold', color: '#a38f6d' },
+                                                                '& .MuiOutlinedInput-input': { p: '8px', textAlign: 'center', fontSize: '13px', fontWeight: 'bold' }
+                                                            }}
                                                             value={(formData.distribution as any)[day.name].qty}
                                                             onChange={(e) => handleDayChange(day.name, 'qty', e.target.value)}
                                                         />
@@ -394,17 +371,8 @@ const ChipSubscriptionModal = ({ open, onClose, onSuccess, initialData }: any) =
                                         </Box>
                                     </Box>
 
-                                    <Box sx={{ flex: 0.7, border: '1px solid #eee', borderRadius: '8px', bgcolor: '#fff', p: 1 }}>
-                                        <DateCalendar
-                                            value={selectedDate}
-                                            onChange={(newVal) => setSelectedDate(newVal)}
-                                            slots={{ day: renderHighlightedDay }}
-                                            sx={{
-                                                '& .MuiPickersDay-root.Mui-selected': { backgroundColor: '#a38f6d !important' },
-                                                width: '100%',
-                                                height: 'auto'
-                                            }}
-                                        />
+                                    <Box sx={{ flex: 0.7, border: '1px solid', borderColor: 'divider', borderRadius: '8px', bgcolor: 'background.paper', p: 1 }}>
+                                        <DateCalendar value={selectedDate} onChange={(newVal) => setSelectedDate(newVal)} slots={{ day: renderHighlightedDay }} sx={{ '& .MuiPickersDay-root.Mui-selected': { backgroundColor: '#a38f6d !important' }, width: '100%', height: 'auto' }} />
                                     </Box>
                                 </Box>
                             </Box>
@@ -420,8 +388,8 @@ const ChipSubscriptionModal = ({ open, onClose, onSuccess, initialData }: any) =
                     </Stack>
                 </DialogContent>
 
-                <DialogActions sx={{ p: 2, bgcolor: '#f8f9fa', borderTop: '1px solid #eee', justifyContent: 'space-between' }}>
-                    <Button onClick={onClose} variant="outlined" sx={{ borderRadius: '20px', color: '#666', borderColor: '#ccc', px: 3 }}>
+                <DialogActions sx={{ p: 2, bgcolor: isDarkMode ? alpha('#fff', 0.02) : '#f8f9fa', borderTop: '1px solid', borderColor: 'divider', justifyContent: 'space-between' }}>
+                    <Button onClick={onClose} variant="outlined" sx={{ borderRadius: '20px', color: 'text.secondary', borderColor: 'divider', px: 3 }}>
                         {t('chip-management:orderModal.cancel')}
                     </Button>
                     <Box sx={{ display: 'flex', gap: 1.5 }}>
@@ -433,13 +401,7 @@ const ChipSubscriptionModal = ({ open, onClose, onSuccess, initialData }: any) =
                 </DialogActions>
             </Dialog>
 
-            <DeleteConfirmationDialog
-                open={deleteDialogOpen}
-                onClose={() => setDeleteDialogOpen(false)}
-                onConfirm={handleDeleteConfirm}
-                title="Delete Subscription"
-                message="Are you sure you want to delete this subscription? This action cannot be undone."
-            />
+            <DeleteConfirmationDialog open={deleteDialogOpen} onClose={() => setDeleteDialogOpen(false)} onConfirm={handleDeleteConfirm} title="Delete Subscription" message="Are you sure you want to delete this subscription? This action cannot be undone." />
         </LocalizationProvider>
     );
 };
