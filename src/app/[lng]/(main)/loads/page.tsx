@@ -1,164 +1,62 @@
-// frontend/src/app/(main)/loads/page.tsx
+// frontend/src/app/[lng]/(main)/loads/page.tsx
+
 'use client';
 
 import React, { useEffect, useState, useCallback, useMemo } from 'react';
-import { Box, Typography, Paper, Alert, Button, IconButton, Tooltip, Snackbar, Chip, Stack, Divider, Tabs, Tab } from '@mui/material';
+import { useRouter, useParams } from 'next/navigation';
+import { Box, Typography, Paper, Alert, Button, Snackbar, Stack, Divider, Tabs, Tab } from '@mui/material';
 import type { AlertColor } from '@mui/material';
-import { DataGrid, GridColDef, GridRenderCellParams, GridRowId, GridRowModel } from '@mui/x-data-grid';
-import EditIcon from '@mui/icons-material/Edit';
-import DeleteIcon from '@mui/icons-material/Delete';
+import { GridRowId } from '@mui/x-data-grid';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import ReportIcon from '@mui/icons-material/Report';
-import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline';
-import RemoveCircleOutlineIcon from '@mui/icons-material/RemoveCircleOutline';
-import ForestIcon from '@mui/icons-material/Forest'; 
-import DescriptionIcon from '@mui/icons-material/Description'; 
-import dayjs from 'dayjs';
+import ForestIcon from '@mui/icons-material/Forest';
+import DescriptionIcon from '@mui/icons-material/Description';
+import LocalShippingIcon from '@mui/icons-material/LocalShipping';
 import { useTranslation } from 'react-i18next';
-import type { ChipProps } from '@mui/material/Chip';
 
-import EditLoadModal from '../../../../components/loads/EditLoadModal';
-import EditConsignmentModal from '../../../../components/loads/EditConsignmentModal';
 import ConfirmationDialog from '../../../../components/common/ConfirmationDialog';
 import InspectionFilterBar, { ILoadFilters } from '../../../../components/loads/InspectionFilterBar';
-import { ILoadListItem, IClientBasicInfo, IVehicleBasicInfo, IDriver, IBackendClient, IVehicleBackendResponse, IBackendDriver, ITripDetails, IUpdateLoadDto } from '../../../../types';
-import { fetchAllLoads, getTripById, deleteLoad, updateLoad, fetchLoadsForInspection, acceptLoadsForInvoicing, ILoadListApiFilters } from '../../../../services/loadService';
+import { ILoadListItem, IClientBasicInfo, IVehicleBasicInfo, IDriver, IBackendClient, IVehicleBackendResponse, IBackendDriver } from '../../../../types';
+import { deleteLoad, acceptLoadsForInvoicing, fetchAllLoads } from '../../../../services/loadService';
 import { fetchAllClients } from '@/services/clientService';
 import { fetchAllVehicles } from '@/services/vehicleService';
 import { fetchAllDrivers } from '@/services/driverService';
 import { useAuth } from '@/contexts/AuthContext';
-import useSocket from '@/hooks/useSocket'; 
-import ViewConsignmentModal from '../../../../components/loads/ViewConsignmentModal';
 
-const STATUS_COLOR: Record<string, ChipProps['color']> = {
-    assigned: 'warning',
-    in_progress: 'info',
-    at_origin: 'warning',
-    en_route_to_destination: 'info',
-    at_destination: 'warning',
-    completed: 'success',
-    paused: 'error',
-    draft: 'default', // Added draft color
-};
-
-const STATUS_TKEY: Record<string, string> = {
-    'Assigned': 'assigned',
-    'In Progress': 'in_progress',
-    'At Origin': 'at_origin',
-    'En Route to Destination': 'en_route_to_destination',
-    'At Destination': 'at_destination',
-    'Completed': 'completed',
-    'Paused': 'paused',
-    'Draft': 'draft',
-};
+import TimberLoadTable from '@/components/loads/TimberLoadTable';
+import ConsignmentTable from '@/components/loads/ConsignmentTable';
+import ChipTransportTable from '@/components/loads/ChipTransportTable';
 
 export default function DrivenInspectionPage() {
-
     const { t } = useTranslation('loadsPage');
     const { user } = useAuth();
-    const { socket } = useSocket(); 
 
-    const [rows, setRows] = useState<ILoadListItem[]>([]);
-    const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
-    const [isEditModalOpen, setIsEditModalOpen] = useState(false);
-    const [selectedLoadForEditing, setSelectedLoadForEditing] = useState<ITripDetails | null>(null);
     const [snackbar, setSnackbar] = useState<{ open: boolean, message: string, severity: AlertColor } | null>(null);
     const [deleteConfirmation, setDeleteConfirmation] = useState<ILoadListItem | null>(null);
     const [isDeleting, setIsDeleting] = useState(false);
-    
-    // Default loadType set to '0' (Timber)
-    const [filters, setFilters] = useState<ILoadFilters>({ 
-        status: 'pending_inspection', 
-        asiakasId: '', 
-        kalustoNro: '', 
+
+    const [filters, setFilters] = useState<ILoadFilters>({
+        status: 'pending_inspection',
+        asiakasId: '',
+        kalustoNro: '',
         kuljId: '',
-        loadType: '0' 
+        loadType: '0'
     });
-    
+
     const [clientList, setClientList] = useState<IClientBasicInfo[]>([]);
     const [vehicleList, setVehicleList] = useState<IVehicleBasicInfo[]>([]);
     const [driverList, setDriverList] = useState<IDriver[]>([]);
     const [selectionModel, setSelectionModel] = useState<Set<GridRowId>>(new Set());
+    const [currentRows, setCurrentRows] = useState<any[]>([]);
     const [isAccepting, setIsAccepting] = useState(false);
     const [acceptConfirmationOpen, setAcceptConfirmationOpen] = useState(false);
-    
-    // View Modal State
-    const [viewModalOpen, setViewModalOpen] = useState(false);
-    const [selectedLoadIdForView, setSelectedLoadIdForView] = useState<number | null>(null);
+
+    const router = useRouter();
+    const params = useParams();
+    const lng = params.lng as string;
 
     const isInspectionView = useMemo(() => filters.status === 'pending_inspection', [filters.status]);
-    const isConsignmentTab = filters.loadType === '1';
-
-    const loadData = useCallback(async (currentFilters: ILoadFilters) => {
-        try {
-            setIsLoading(true);
-            setError(null);
-            setSelectionModel(new Set());
-
-            let data;
-            if (currentFilters.status === 'pending_inspection') {
-                data = await fetchLoadsForInspection();
-                
-                if (currentFilters.loadType !== '' && currentFilters.loadType !== undefined) {
-                    const typeNum = parseInt(currentFilters.loadType, 10);
-                    data = data.filter((d: any) => d.tyyppi === typeNum); 
-                }
-
-            } else {
-                const filtersForApi: ILoadListApiFilters = {
-                    asiakasId: currentFilters.asiakasId || undefined,
-                    kalustoNro: currentFilters.kalustoNro || undefined,
-                    kuljId: currentFilters.kuljId || undefined,
-                    loadType: (currentFilters.loadType !== '' && currentFilters.loadType !== undefined) 
-                        ? parseInt(currentFilters.loadType, 10) 
-                        : undefined,
-                };
-
-                if (currentFilters.status === 'active' || currentFilters.status === 'all') {
-                    filtersForApi.status = currentFilters.status;
-                }
-
-                data = await fetchAllLoads(filtersForApi);
-            }
-
-            setRows(data);
-        } catch (err: any) {
-            console.error(err);
-            setError(err.response?.data?.message || t('errors.fetchLoads'));
-        } finally {
-            setIsLoading(false);
-        }
-    }, [t]);
-
-    useEffect(() => {
-        if (!socket) return;
-        const handleStatusUpdate = (updatedLoad: any) => {
-            console.log("Socket: Load status updated", updatedLoad);
-            setRows((prevRows) => {
-                const index = prevRows.findIndex(r => r.kuormaId === updatedLoad.kuormaId);
-                if (index > -1) {
-                    const newRows = [...prevRows];
-                    newRows[index] = { ...newRows[index], ...updatedLoad };
-                    
-                    if (filters.status === 'active' && updatedLoad.status === 'Completed') {
-                         return newRows.filter(r => r.kuormaId !== updatedLoad.kuormaId);
-                    }
-                    
-                    if (filters.loadType !== '' && updatedLoad.tyyppi !== parseInt(filters.loadType, 10)) {
-                         return newRows.filter(r => r.kuormaId !== updatedLoad.kuormaId);
-                    }
-
-                    return newRows;
-                }
-                return prevRows;
-            });
-        };
-        socket.on('loadStatusUpdated', handleStatusUpdate);
-        return () => {
-            socket.off('loadStatusUpdated', handleStatusUpdate);
-        };
-    }, [socket, filters, loadData]);
 
     useEffect(() => {
         const loadFilterDropdowns = async () => {
@@ -173,45 +71,23 @@ export default function DrivenInspectionPage() {
             }
         };
         loadFilterDropdowns();
-    }, []);
-
-    useEffect(() => { loadData(filters); }, [filters, loadData]);
+    }, [t]);
 
     const handleLoadTypeChange = (event: React.SyntheticEvent, newValue: string) => {
         if (newValue !== null) {
             setFilters(prev => ({ ...prev, loadType: newValue }));
+            setSelectionModel(new Set());
+            setCurrentRows([]);
         }
     };
-
-    const handleOpenEditModal = async (loadItem: ILoadListItem) => {
-        try {
-            const fullLoadData = await getTripById(loadItem.kuormaId);
-            setSelectedLoadForEditing(fullLoadData);
-            setIsEditModalOpen(true);
-        } catch (err) {
-            setSnackbar({ open: true, message: t('errors.fetchLoadDetails'), severity: 'error' });
-        }
-    };
-
-    const handleFilterChange = (name: keyof ILoadFilters, value: string | null) => { 
-        setFilters(prev => ({ ...prev, [name]: value as any })); 
-    };
-    
-    const handleResetFilters = () => { 
-        setFilters({ status: 'pending_inspection', asiakasId: '', kalustoNro: '', kuljId: '', loadType: '0' }); 
-    };
-    
-    const handleCloseModal = () => { setIsEditModalOpen(false); setSelectedLoadForEditing(null); };
-    const handleSaveSuccess = (message: string) => { handleCloseModal(); loadData(filters); setSnackbar({ open: true, message, severity: 'success' }); };
 
     const handleConfirmDelete = async () => {
-        if (!deleteConfirmation || !user) return; 
+        if (!deleteConfirmation || !user) return;
         setIsDeleting(true);
         try {
             await deleteLoad(deleteConfirmation.kuormaId, user);
             setSnackbar({ open: true, message: t('snackbar.deleted', { id: deleteConfirmation.kuormaId }), severity: 'success' });
             setDeleteConfirmation(null);
-            await loadData(filters);
         } catch (err: any) {
             setSnackbar({ open: true, message: err.response?.data?.message || t('errors.deleteFailed'), severity: 'error' });
         } finally {
@@ -219,45 +95,13 @@ export default function DrivenInspectionPage() {
         }
     };
 
-    const handleProcessRowUpdate = useCallback(async (newRow: GridRowModel<ILoadListItem>): Promise<ILoadListItem> => {
-        if (!user) {
-             setSnackbar({ open: true, message: 'User not authenticated', severity: 'error' });
-             return rows.find(r => r.kuormaId === newRow.kuormaId)!;
-        }
-
-        const payload: IUpdateLoadDto = {
-            pvm: dayjs(newRow.pvm, "DD.MM.YYYY").toDate(),
-            vastaanottoNro: newRow.vastaanottoNro, reitti: newRow.reitti,
-            m3: newRow.m3, km: newRow.km, tunnit: newRow.tunnit,
-            kpl: newRow.kpl, lisatiedot: newRow.lisatiedot
-        };
-        try {
-            await updateLoad(newRow.kuormaId, payload, user);
-            setSnackbar({ open: true, message: t('snackbar.updated', { id: newRow.kuormaId }), severity: 'success' });
-            return newRow;
-        } catch (err: any) {
-            setSnackbar({ open: true, message: t('snackbar.updateFailed'), severity: 'error' });
-            return rows.find(r => r.kuormaId === newRow.kuormaId)!;
-        }
-    }, [rows, user, t]);
-
-    const toggleSelection = (id: GridRowId) => {
-        setSelectionModel(prev => {
-            const newSet = new Set(prev);
-            if (newSet.has(id)) { newSet.delete(id); } else { newSet.add(id); }
-            return newSet;
-        });
-    };
-
-    const handleAcceptClick = () => { setAcceptConfirmationOpen(true); };
-
     const handleConfirmAccept = async () => {
         setIsAccepting(true);
         try {
             const acceptedIds = Array.from(selectionModel);
-            await acceptLoadsForInvoicing(acceptedIds);
+            await acceptLoadsForInvoicing(acceptedIds as number[]);
             setSnackbar({ open: true, message: t('snackbar.acceptedForInvoicing', { count: acceptedIds.length }), severity: 'success' });
-            await loadData(filters); 
+            setSelectionModel(new Set());
         } catch (err: any) {
             setSnackbar({ open: true, message: err.response?.data?.message || t('errors.acceptFailed'), severity: 'error' });
         } finally {
@@ -272,164 +116,17 @@ export default function DrivenInspectionPage() {
             setSnackbar({ open: true, message: t('warnings.selectRowsForReport'), severity: 'warning' });
             return;
         }
-        const selectedRowsData = rows.filter(row => selectedIds.includes(row.kuormaId));
-        localStorage.setItem('reportData', JSON.stringify(selectedRowsData));
-        window.open('/reports/load-report', '_blank');
-    };
 
-    const handleCloseSnackbar = () => setSnackbar(null);
+        const selectedRows = currentRows.filter(row => selectionModel.has(row.kuormaId || row.loadId || row.id));
 
-    const translateStatus = (t: (k: string, o?: any) => string, status?: string | null) => {
-        if (!status) return t('status.na', { defaultValue: '—' }); 
-        const key = STATUS_TKEY[status];
-        return key ? t(`status.${key}`, { defaultValue: status }) : status;
-    };
-
-    const getStatusChipColorByStatus = (status?: string | null): ChipProps['color'] => {
-        const key = status ? STATUS_TKEY[status] : undefined;
-        return key ? (STATUS_COLOR[key] ?? 'default') : 'default';
-    };
-
-    // --- Row Click & Edit Handlers ---
-    const handleRowClick = (params: any, event: React.MouseEvent) => {
-        // 1. Prevent if clicked on a button, checkbox, or input inside the cell
-        const target = event.target as HTMLElement;
-        if (target.closest('button') || target.closest('input') || target.closest('a')) {
+        if (selectedRows.length === 0) {
+            setSnackbar({ open: true, message: t('errors.noData'), severity: 'error' });
             return;
         }
 
-        // 2. Prevent if clicked specifically on the 'select' or 'actions' column
-        // (Though step 1 usually covers the buttons inside them)
-        if (params.field === 'select' || params.field === 'actions') {
-            return;
-        }
-
-        if (isConsignmentTab) {
-            setSelectedLoadIdForView(params.row.kuormaId);
-            setViewModalOpen(true);
-        }
+        localStorage.setItem('reportData', JSON.stringify(selectedRows));
+        window.open(`/${lng}/reports/load-report`, '_blank');
     };
-
-    const handleEditClick = (e: React.MouseEvent, row: any) => {
-        e.stopPropagation();
-        handleOpenEditModal(row);
-    };
-
-    const handleDeleteClick = (e: React.MouseEvent, row: any) => {
-        e.stopPropagation();
-        setDeleteConfirmation(row);
-    };
-
-    // DYNAMIC COLUMNS
-    const columns = useMemo((): GridColDef[] => {
-        const commonColumns: GridColDef[] = [
-            {
-                field: 'select',
-                headerName: t('columns.select'),
-                width: 60,
-                sortable: false,
-                filterable: false,
-                renderCell: (params: GridRenderCellParams<any, ILoadListItem>) => {
-                    const isSelected = selectionModel.has(params.id);
-                    return (
-                        <Tooltip title={isSelected ? t('tooltips.removeFromSelection') : t('tooltips.addToSelection')}>
-                            <IconButton size="small" color={isSelected ? "error" : "primary"} onClick={() => toggleSelection(params.id)}>
-                                {isSelected ? <RemoveCircleOutlineIcon /> : <AddCircleOutlineIcon />}
-                            </IconButton>
-                        </Tooltip>
-                    );
-                },
-            },
-            { 
-                field: 'pvm', 
-                headerName: t('columns.date'), 
-                width: 110,
-                valueFormatter: (value: any) => value ? dayjs(value).format('DD.MM.YYYY') : ''
-            },
-            { field: 'rekNro', headerName: t('columns.vehicleNo'), width: 110 },
-            { field: 'kuljettajanNimi', headerName: t('columns.driver'), width: 120 },
-        ];
-
-        // TIMBER LOAD COLUMNS
-        if (!isConsignmentTab) {
-            return [
-                ...commonColumns,
-                { field: 'ajomaaraysNro', headerName: t('columns.drivingOrder'), width: 130 },
-                { field: 'vastaanottoNro', headerName: t('columns.receptionNo'), width: 130 },
-                { field: 'puulaaniNimi', headerName: t('columns.puulaani'), width: 100 },
-                { field: 'asiakkaanNimi', headerName: t('columns.customer'), width: 140 },
-                { field: 'timberType', headerName: t('columns.timber'), width: 120 },
-                { field: 'reitti', headerName: t('columns.route'), width: 100 },
-                { field: 'm3', headerName: t('columns.cubicMetres'), type: 'number', width: 120 },
-                { field: 'km', headerName: t('columns.freightKm'), type: 'number', width: 120 },
-                {
-                    field: 'status', headerName: t('columns.status'), width: 120,
-                    renderCell: (params) => <Chip label={translateStatus(t, params.row.status)} color={getStatusChipColorByStatus(params.row.status)} size="small" />
-                },
-                {
-                    field: 'actions', headerName: t('columns.action'), width: 100, sortable: false, filterable: false,
-                    renderCell: (params) => (
-                        <Box>
-                            <Tooltip title={t('tooltips.editLoad')}>
-                                <IconButton onClick={(e) => handleEditClick(e, params.row)} size="small"><EditIcon /></IconButton>
-                            </Tooltip>
-                            <Tooltip title={t('tooltips.deleteLoad')}>
-                                <IconButton onClick={(e) => handleDeleteClick(e, params.row)} size="small" color="error"><DeleteIcon /></IconButton>
-                            </Tooltip>
-                        </Box>
-                    ),
-                }
-            ];
-        } 
-        
-        // CONSIGNMENT COLUMNS
-        else {
-            return [
-                ...commonColumns,
-                { 
-                    field: 'totalM3', 
-                    headerName: 'Total m3', // Ensure 'columns.totalM3' key exists or use hardcoded default
-                    width: 120, 
-                    align: 'right', 
-                    headerAlign: 'right',
-                    valueGetter: (value: any, row: any) => row.m3 || 0,
-                    valueFormatter: (value: any) => Number(value).toFixed(2)
-                },
-                { 
-                    field: 'waybillCount', 
-                    headerName: 'Waybills', // Ensure 'columns.waybills' key exists or use hardcoded default
-                    width: 100, 
-                    align: 'center', 
-                    headerAlign: 'center',
-                    renderCell: (params) => (
-                        <Chip 
-                            icon={<DescriptionIcon style={{fontSize: '1rem'}} />} 
-                            label={params.row.waybillCount || '0'} 
-                            size="small" 
-                            variant="outlined" 
-                        />
-                    )
-                },
-                {
-                    field: 'status', headerName: t('columns.status'), width: 120,
-                    renderCell: (params) => <Chip label={translateStatus(t, params.row.status)} color={getStatusChipColorByStatus(params.row.status)} size="small" />
-                },
-                {
-                    field: 'actions', headerName: t('columns.action'), width: 100, sortable: false, filterable: false,
-                    renderCell: (params) => (
-                        <Box>
-                            <Tooltip title={t('tooltips.editLoad')}>
-                                <IconButton onClick={(e) => handleEditClick(e, params.row)} size="small"><EditIcon /></IconButton>
-                            </Tooltip>
-                            <Tooltip title={t('tooltips.deleteLoad')}>
-                                <IconButton onClick={(e) => handleDeleteClick(e, params.row)} size="small" color="error"><DeleteIcon /></IconButton>
-                            </Tooltip>
-                        </Box>
-                    ),
-                }
-            ];
-        }
-    }, [isConsignmentTab, selectionModel, t]);
 
     return (
         <Box sx={{ p: 3, width: '100%', height: 'calc(100vh - 64px)', display: 'flex', flexDirection: 'column' }}>
@@ -439,7 +136,7 @@ export default function DrivenInspectionPage() {
                         <Typography variant="h5" component="h1" sx={{ fontWeight: 'bold' }}>{t('title')}</Typography>
                         <Stack direction="row" spacing={1}>
                             {isInspectionView && (
-                                <Button variant="contained" color="success" startIcon={<CheckCircleIcon />} disabled={selectionModel.size === 0} onClick={handleAcceptClick}>
+                                <Button variant="contained" color="success" startIcon={<CheckCircleIcon />} disabled={selectionModel.size === 0} onClick={() => setAcceptConfirmationOpen(true)}>
                                     {t('buttons.accept', { count: selectionModel.size })}
                                 </Button>
                             )}
@@ -449,36 +146,27 @@ export default function DrivenInspectionPage() {
                         </Stack>
                     </Box>
                     <Divider />
-                    
-                    <Tabs 
-                        value={filters.loadType} 
+
+                    <Tabs
+                        value={filters.loadType}
                         onChange={handleLoadTypeChange}
                         variant="standard"
                         indicatorColor="primary"
                         textColor="primary"
                         sx={{ mb: 1, borderBottom: 1, borderColor: 'divider' }}
                     >
-                        <Tab 
-                            label={t('tabs.timber', { defaultValue: 'Timber Load' })} 
-                            value="0" 
-                            icon={<ForestIcon />} 
-                            iconPosition="start"
-                        />
-                        <Tab 
-                            label={t('tabs.consignment', { defaultValue: 'Consignment' })} 
-                            value="1" 
-                            icon={<DescriptionIcon />} 
-                            iconPosition="start"
-                        />
+                        <Tab label={t('tabs.timber', { defaultValue: 'Timber Load' })} value="0" icon={<ForestIcon />} iconPosition="start" />
+                        <Tab label={t('tabs.consignment', { defaultValue: 'Consignment' })} value="1" icon={<DescriptionIcon />} iconPosition="start" />
+                        <Tab label={t('tabs.chip', { defaultValue: 'Chip Transport' })} value="2" icon={<LocalShippingIcon />} iconPosition="start" />
                     </Tabs>
 
-                    <InspectionFilterBar 
-                        filters={filters} 
-                        onFilterChangeAction={handleFilterChange} 
-                        onResetFiltersAction={handleResetFilters} 
-                        clientList={clientList} 
-                        vehicleList={vehicleList} 
-                        driverList={driverList} 
+                    <InspectionFilterBar
+                        filters={filters}
+                        onFilterChangeAction={(n, v) => setFilters(p => ({ ...p, [n]: v }))}
+                        onResetFiltersAction={() => setFilters({ status: 'pending_inspection', asiakasId: '', kalustoNro: '', kuljId: '', loadType: filters.loadType })}
+                        clientList={clientList}
+                        vehicleList={vehicleList}
+                        driverList={driverList}
                     />
                 </Stack>
             </Paper>
@@ -486,61 +174,57 @@ export default function DrivenInspectionPage() {
             {error && <Alert severity="error" sx={{ flexShrink: 0, mt: 2 }}>{error}</Alert>}
 
             <Paper sx={{ flexGrow: 1, width: '100%', mt: 2, overflow: 'hidden' }}>
-                <DataGrid
-                    rows={rows}
-                    columns={columns}
-                    getRowId={(r) => r.kuormaId}
-                    loading={isLoading}
-                    processRowUpdate={isInspectionView ? handleProcessRowUpdate : undefined}
-                    isCellEditable={(params) => !!(isInspectionView && params.colDef.editable)}
-                    onProcessRowUpdateError={(e) => console.error(e)}
-                    editMode="row"
-                    hideFooterSelectedRowCount
-                    // ADDED: Row click handler for View Modal
-                    onRowClick={handleRowClick}
-                    sx={{
-                        border: 'none',
-                        '& .MuiDataGrid-columnHeaders': { backgroundColor: '#f5f5f5', borderBottom: '1px solid #e0e0e0' },
-                        '& .MuiDataGrid-columnHeaderTitle': { fontWeight: '600', textTransform: 'uppercase', fontSize: '0.75rem' },
-                        // ADDED: Cursor pointer for Consignments
-                        ...(isConsignmentTab && {
-                            '& .MuiDataGrid-row:hover': { cursor: 'pointer', backgroundColor: '#f5f5f5' }
-                        })
-                    }}
-                />
+                {filters.loadType === '0' && (
+                    <TimberLoadTable
+                        filters={filters}
+                        selectionModel={selectionModel}
+                        toggleSelectionAction={(id: GridRowId) => setSelectionModel(prev => {
+                            const next = new Set(prev);
+                            if (next.has(id)) next.delete(id); else next.add(id);
+                            return next;
+                        })}
+                        onDeleteAction={setDeleteConfirmation}
+                        onErrorAction={setError}
+                        onSuccessAction={(msg: string) => setSnackbar({ open: true, message: msg, severity: 'success' })}
+                        onRowsUpdateAction={setCurrentRows}
+                    />
+                )}
+                {filters.loadType === '1' && (
+                    <ConsignmentTable
+                        filters={filters}
+                        selectionModel={selectionModel}
+                        toggleSelectionAction={(id: GridRowId) => setSelectionModel(prev => {
+                            const next = new Set(prev);
+                            if (next.has(id)) next.delete(id); else next.add(id);
+                            return next;
+                        })}
+                        onDeleteAction={setDeleteConfirmation}
+                        onErrorAction={setError}
+                        onSuccessAction={(msg: string) => setSnackbar({ open: true, message: msg, severity: 'success' })}
+                        onRowsUpdateAction={setCurrentRows}
+                    />
+                )}
+                {filters.loadType === '2' && (
+                    <ChipTransportTable
+                        filters={filters}
+                        selectionModel={selectionModel}
+                        toggleSelectionAction={(id: GridRowId) => setSelectionModel(prev => {
+                            const next = new Set(prev);
+                            if (next.has(id)) next.delete(id); else next.add(id);
+                            return next;
+                        })}
+                        onErrorAction={setError}
+                        onSuccessAction={(msg: string) => setSnackbar({ open: true, message: msg, severity: 'success' })}
+                        onRowsUpdateAction={setCurrentRows}
+                    />
+                )}
             </Paper>
-            
-            {/* Modal Logic */}
-            {isEditModalOpen && selectedLoadForEditing && user && (
-                isConsignmentTab ? (
-                    <EditConsignmentModal 
-                        open={isEditModalOpen}
-                        onCloseAction={handleCloseModal}
-                        onSaveSuccessAction={handleSaveSuccess}
-                        loadData={selectedLoadForEditing}
-                        currentUser={user}
-                    />
-                ) : (
-                    <EditLoadModal 
-                        open={isEditModalOpen} 
-                        onCloseAction={handleCloseModal} 
-                        onSaveSuccessAction={handleSaveSuccess} 
-                        loadData={selectedLoadForEditing} 
-                        currentUser={user} 
-                    />
-                )
-            )}
-
-            {/* View Modal for Consignment */}
-            <ViewConsignmentModal 
-                open={viewModalOpen} 
-                onClose={() => setViewModalOpen(false)} 
-                loadId={selectedLoadIdForView} 
-            />
 
             <ConfirmationDialog open={!!deleteConfirmation} onClose={() => setDeleteConfirmation(null)} onConfirm={handleConfirmDelete} title={t('confirm.delete.title')} message={t('confirm.delete.message', { id: deleteConfirmation?.kuormaId ?? '' })} isConfirming={isDeleting} />
             <ConfirmationDialog open={acceptConfirmationOpen} onClose={() => setAcceptConfirmationOpen(false)} onConfirm={handleConfirmAccept} title={t('confirm.accept.title')} message={t('confirm.accept.message', { count: selectionModel.size })} isConfirming={isAccepting} confirmButtonText={t('confirm.accept.confirmButtonText')} confirmButtonColor="success" />
-            <Snackbar open={!!snackbar} autoHideDuration={6000} onClose={handleCloseSnackbar} anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}><Alert onClose={handleCloseSnackbar} severity={snackbar?.severity || 'info'} sx={{ width: '100%' }}>{snackbar?.message}</Alert></Snackbar>
+            <Snackbar open={!!snackbar} autoHideDuration={6000} onClose={() => setSnackbar(null)} anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}>
+                <Alert onClose={() => setSnackbar(null)} severity={snackbar?.severity || 'info'} sx={{ width: '100%' }}>{snackbar?.message}</Alert>
+            </Snackbar>
         </Box>
     );
 }

@@ -18,7 +18,6 @@ import FolderIcon from '@mui/icons-material/Folder';
 import ManageGroupsModal from '@/components/chip-order/ManageGroupsModal';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import ChevronRightIcon from '@mui/icons-material/ChevronRight';
-import ViewColumnIcon from '@mui/icons-material/ViewColumn';
 
 import dayjs from 'dayjs';
 import isoWeek from 'dayjs/plugin/isoWeek';
@@ -127,11 +126,11 @@ const PlanningPage = () => {
         return allRegisteredVehicles
             .filter(v => (v.rekNro || '').toLowerCase().includes(searchVehicle.toLowerCase()) && v.aktiivinen)
             .map(regV => {
-                // Backend planning service එකෙන් එන දත්ත සොයා ගැනීම
+                // Backend planning service
                 const plan = vehiclesData.find(p => p.kalustoNro === regV.kalustoNro);
                 return {
                     ...regV,
-                    // වැදගත්: Backend එකෙන් එන planning_group අගය මෙහි පවතින බව තහවුරු කරයි
+                    // Use planning_group if available, otherwise use planningGroup or 'General'
                     groupName: regV.planning_group || regV.planningGroup || 'General',
                     loads: plan?.loads || []
                 };
@@ -197,14 +196,14 @@ const PlanningPage = () => {
     const groupedVehicles = useMemo(() => {
         const list = displayVehicles;
         const grouped = list.reduce((acc: any, v: any) => {
-            // මෙහිදී groupName අගය භාවිතා කරයි
+            // Use groupName if available, otherwise use 'General'
             const group = v.groupName || 'General';
             if (!acc[group]) acc[group] = [];
             acc[group].push(v);
             return acc;
         }, {});
 
-        // කාණ්ඩ අකාරාදී පිළිවෙලට Sort කිරීම (Alphabetical Sort)
+        // Alphabetical Sort
         return Object.keys(grouped).sort().reduce((obj: any, key) => {
             obj[key] = grouped[key];
             return obj;
@@ -214,9 +213,9 @@ const PlanningPage = () => {
     return (
         <Box sx={{ display: 'flex', height: 'calc(100vh - 110px)', bgcolor: isDarkMode ? 'background.default' : '#f4f7f9', p: 1.5, gap: 1, overflow: 'hidden' }}>
 
-            <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 1.5, overflow: 'hidden', minWidth: 0 }}>
+            <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 1, overflow: 'hidden', minWidth: 0 }}>
 
-                {/* Dashboard Toolbar (Refresh, Grouping buttons ආදිය පවතින පරිදිම) */}
+                {/* Dashboard Toolbar (Refresh, Grouping buttons) */}
                 <Paper elevation={0} sx={{ p: 1.5, display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderRadius: '12px', border: '1px solid', borderColor: 'divider' }}>
                     <Stack direction="row" spacing={2} sx={{ width: '40%' }}>
                         <TextField
@@ -242,7 +241,7 @@ const PlanningPage = () => {
                     <Box sx={{ display: 'flex', gap: 1 }}>
                         <Button
                             variant="outlined" size="small"
-                            startIcon={<ViewColumnIcon />}
+                            startIcon={<FolderIcon />}
                             onClick={() => setGroupModalOpen(true)}
                             sx={{ borderColor: '#a38f6d', color: '#a38f6d', fontWeight: 'bold' }}
                         >
@@ -280,8 +279,11 @@ const PlanningPage = () => {
                                         </Typography>
                                     </Box>
                                 ))}
-                                <Box sx={{ width: 60, textAlign: 'center', p: 2, fontWeight: '900', color: 'text.secondary', fontSize: '11px', borderLeft: '1px solid', borderColor: 'divider' }}>
+                                <Box sx={{ width: 30, textAlign: 'center', p: 2, fontWeight: '900', color: 'text.secondary', fontSize: '11px', borderLeft: '3px solid', borderColor: 'divider' }}>
                                     {t('chip-management:planning.table.send')}
+                                </Box>
+                                <Box sx={{ width: 10, textAlign: 'center', p: 2, fontWeight: '900', color: 'text.secondary', fontSize: '11px' }}>
+
                                 </Box>
                             </Box>
 
@@ -312,7 +314,7 @@ const PlanningPage = () => {
                                             {/* Vehicles In This Group (Visible only if expanded) */}
                                             {isExpanded && vehicles.map((v: any) => (
                                                 <Box key={v.kalustoNro} sx={{ display: 'flex', borderBottom: '1px solid', borderColor: 'divider', '&:hover': { bgcolor: alpha(theme.palette.primary.main, 0.01) } }}>
-                                                    {/* Vehicle Side-cell පවතින කේතය එලෙසම භාවිතා කර ඇත */}
+                                                    {/* Vehicle Side-cell*/}
                                                     <Box sx={{ width: 160, minWidth: 160, p: 2, bgcolor: isDarkMode ? alpha('#fff', 0.02) : '#fafafa', borderRight: '2px solid', borderColor: 'divider', display: 'flex', alignItems: 'center', gap: 1.5 }}>
                                                         <LocalShippingIcon sx={{ color: '#a38f6d', fontSize: 20 }} />
                                                         <Box>
@@ -321,7 +323,7 @@ const PlanningPage = () => {
                                                         </Box>
                                                     </Box>
 
-                                                    {/* Planning Cells (7 Days) පවතින කේතය එලෙසම භාවිතා කර ඇත */}
+                                                    {/* Planning Cells (7 Days) */}
                                                     {weekDates.map((date) => {
                                                         const dayLoads = v.loads.filter((l: any) => l.date === date);
                                                         const isHovered = dragOverCell?.kalustoNro === v.kalustoNro && dragOverCell?.date === date;
