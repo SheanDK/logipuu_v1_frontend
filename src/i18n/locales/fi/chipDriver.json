@@ -1,0 +1,55 @@
+{
+  "title": "Hakekuormat",
+  "subtitle": "Kuljettajan viikkonäkymä",
+  "buttons": {
+    "previousWeek": "Edellinen viikko",
+    "nextWeek": "Seuraava viikko",
+    "sendAll": "Lähetä kaikki",
+    "load": "Lastattu",
+    "unload": "Purettu",
+    "send": "Lähetä"
+  },
+  "labels": {
+    "week": "Viikko",
+    "scheduledDate": "Ajoitettu päivä",
+    "serial": "Sarja",
+    "titleId": "Tilausnimi",
+    "titleName": "Nimike",
+    "orderId": "Tilaus",
+    "loadingPoint": "Lähtöpaikka",
+    "unloadingPoint": "Purkupaikka",
+    "loadingCoords": "Lähtökoordinaatit",
+    "unloadingCoords": "Purkukoordinaatit",
+    "invoicingBasis": "Laskutusperuste",
+    "actualTon": "Tonnit",
+    "actualM3": "m3",
+    "actualPcs": "Kpl",
+    "actualHr": "Tunnit",
+    "actualKm": "Kilometrit",
+    "actualWaiting": "Odotus",
+    "details": "Lisätiedot",
+    "startedAt": "Kuormattu",
+    "completedAt": "Purettu",
+    "driverInstructions": "Kuljettajan ohje",
+    "detailsInfo": "Lisätietovaatimus",
+    "requiredTon": "Vaad ton",
+    "requiredM3": "Vaad m3",
+    "requiredPcs": "Vaad kpl",
+    "requiredKm": "Vaad km",
+    "requiredHr": "Vaad h",
+    "requiredWaiting": "Vaad odotus",
+    "requiredDetails": "Vaad lisatieto"
+  },
+  "statuses": {
+    "NOT_SENT": "Ei lähetetty",
+    "LOADED": "Kuormattu",
+    "UNLOADED": "Purettu",
+    "SENT": "Lähetetty"
+  },
+  "messages": {
+    "noLoadsThisWeek": "Tällä viikolla ei ole hakekuormia.",
+    "loading": "Ladataan hakekuormia...",
+    "loadFailed": "Hakekuormien lataus epäonnistui.",
+    "sendRequiresRequiredInfo": "Täytä kaikki vaaditut tiedot ja merkitse kuorma puretuksi ennen lähetystä."
+  }
+}

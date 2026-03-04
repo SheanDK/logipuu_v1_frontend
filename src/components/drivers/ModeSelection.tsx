@@ -6,6 +6,7 @@ import { Box, Paper, Typography, Grid } from '@mui/material';
 import { styled } from '@mui/material/styles';
 import ForestIcon from '@mui/icons-material/Forest';
 import LocalShippingIcon from '@mui/icons-material/LocalShipping';
+import LocalFireDepartmentIcon from '@mui/icons-material/LocalFireDepartment';
 import { useTranslation } from 'react-i18next';
 
 const ModeCard = styled(Paper)(({ theme }) => ({
@@ -20,7 +21,7 @@ const ModeCard = styled(Paper)(({ theme }) => ({
 }));
 
 interface ModeSelectionProps {
-    onModeSelectAction: (mode: 'timber' | 'consignment') => void;
+    onModeSelectAction: (mode: 'timber' | 'consignment' | 'chip') => void;
 }
 
 export default function ModeSelection({ onModeSelectAction }: ModeSelectionProps) {
@@ -75,6 +76,17 @@ export default function ModeSelection({ onModeSelectAction }: ModeSelectionProps
                         </Typography>
                         <Typography color="text.secondary">
                             {t('mode.consignment.subtitle')}
+                        </Typography>
+                    </ModeCard>
+                </Box>
+                <Box role="listitem" sx={{ width: '100%', maxWidth: 420 }}>
+                    <ModeCard elevation={4} onClick={() => onModeSelectAction('chip')}>
+                        <LocalFireDepartmentIcon sx={{ fontSize: 60, color: 'warning.main', mb: 2 }} />
+                        <Typography variant="h5" fontWeight={600}>
+                            {t('mode.chip.title')}
+                        </Typography>
+                        <Typography color="text.secondary">
+                            {t('mode.chip.subtitle')}
                         </Typography>
                     </ModeCard>
                 </Box>

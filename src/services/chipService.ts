@@ -2,6 +2,27 @@
 import apiClient from './apiClient';
 
 const chipService = {
+    // Unified create/update for chip loads
+    setLoad: async (payload: any) => {
+        const response = await apiClient.post(`/chip-planning/set-load`, payload);
+        return response.data;
+    },
+
+    // Driver chip loads
+    getDriverLoads: async (params?: {
+        vehicleNumber?: number;
+        startDate?: string;
+        endDate?: string;
+        week?: number;
+        year?: number;
+        ts?: number;
+    }) => {
+        const response = await apiClient.get(`/chip-planning/loads`, {
+            params: params || undefined
+        });
+        return response.data;
+    },
+
     // 1. Get Weekly Plan
     getWeeklyPlanning: async (week: number, year: number) => {
         const response = await apiClient.get(`/chip-planning/weekly-view`, {
@@ -13,6 +34,19 @@ const chipService = {
     // 2. Assign Title
     assignTitle: async (payload: { kalusto_nro: number, title_id: number, order_id?: number | null, pvm: string }) => {
         const response = await apiClient.post(`/chip-planning/assign`, payload);
+        return response.data;
+    },
+
+    // 2b. Schedule Load
+    scheduleLoad: async (payload: {
+        kalusto_nro: number;
+        order_id: number;
+        pvm: string;
+        lahto_paikka: number;
+        purku_paikka: number;
+        planned_m3: number;
+    }) => {
+        const response = await apiClient.post(`/chip-planning/schedule-load`, payload);
         return response.data;
     },
 
@@ -32,7 +66,7 @@ const chipService = {
         return response.data;
     },
     // 5. Load update
-    updateLoad: async (loadId: number, data: { driverNotes: string }) => {
+    updateLoad: async (loadId: number, data: any) => {
         const response = await apiClient.put(`/chip-planning/load/${loadId}`, data);
         return response.data;
     },

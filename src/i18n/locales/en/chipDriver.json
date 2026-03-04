@@ -1,0 +1,55 @@
+{
+  "title": "Chip Loads",
+  "subtitle": "Driver weekly view",
+  "buttons": {
+    "previousWeek": "Previous week",
+    "nextWeek": "Next week",
+    "sendAll": "Send all",
+    "load": "Load",
+    "unload": "Unload",
+    "send": "Send"
+  },
+  "labels": {
+    "week": "Week",
+    "scheduledDate": "Scheduled date",
+    "serial": "Serial",
+    "titleId": "Title",
+    "titleName": "Title name",
+    "orderId": "Order",
+    "loadingPoint": "Loading point",
+    "unloadingPoint": "Unloading point",
+    "loadingCoords": "Loading coords",
+    "unloadingCoords": "Unloading coords",
+    "invoicingBasis": "Invoicing basis",
+    "actualTon": "Tons",
+    "actualM3": "m3",
+    "actualPcs": "Pieces",
+    "actualHr": "Hours",
+    "actualKm": "Kilometres",
+    "actualWaiting": "Waiting",
+    "details": "Details",
+    "startedAt": "Loaded at",
+    "completedAt": "Unloaded at",
+    "driverInstructions": "Driver instructions",
+    "detailsInfo": "Details requirement",
+    "requiredTon": "Req ton",
+    "requiredM3": "Req m3",
+    "requiredPcs": "Req pcs",
+    "requiredKm": "Req km",
+    "requiredHr": "Req hr",
+    "requiredWaiting": "Req waiting",
+    "requiredDetails": "Req details"
+  },
+  "statuses": {
+    "NOT_SENT": "Not sent",
+    "LOADED": "Loaded",
+    "UNLOADED": "Unloaded",
+    "SENT": "Sent"
+  },
+  "messages": {
+    "noLoadsThisWeek": "No chip loads for this week.",
+    "loading": "Loading chip loads...",
+    "loadFailed": "Failed to load chip loads.",
+    "sendRequiresRequiredInfo": "Fill all required information and unload first."
+  }
+}

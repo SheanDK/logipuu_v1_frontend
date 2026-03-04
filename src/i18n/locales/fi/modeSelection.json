@@ -12,6 +12,11 @@
 "title": "Rahtikuljetukset",
 "subtitle": "(Rahtikirja)",
 "aria": "Valitse rahtikuljetustila"
+},
+"chip": {
+"title": "Hakekuormat",
+"subtitle": "(Hakekuljetus)",
+"aria": "Valitse hakekuormien tila"
 }
 }
 }
