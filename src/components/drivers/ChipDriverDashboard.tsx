@@ -23,6 +23,8 @@ import LocalShippingIcon from '@mui/icons-material/LocalShipping';
 import MoveToInboxIcon from '@mui/icons-material/MoveToInbox';
 import SendIcon from '@mui/icons-material/Send';
 import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined';
+import LoginIcon from '@mui/icons-material/Login';
+import LogoutIcon from '@mui/icons-material/Logout';
 import dayjs, { Dayjs } from 'dayjs';
 import { useDriverSession } from '@/contexts/DriverSessionContext';
 import { useTranslation } from '@/i18n/useTranslation';
@@ -48,6 +50,7 @@ interface DriverChipLoad {
     actual_km: number | null;
     actual_waiting: number | null;
     actual_details: string;
+    load_notes?: string | null;
     is_sent_from_app: boolean;
     title_name?: string;
     invoicing_basis?: string | null;
@@ -77,7 +80,12 @@ interface ChipDriverDashboardProps {
     onBackAction: () => void;
 }
 
-const getWeekStart = (date: Dayjs): Dayjs => date.startOf('week');
+const getWeekStart = (date: Dayjs): Dayjs => {
+    // Force Monday as week start to match ISO/backend week logic.
+    const day = date.day(); // 0=Sunday ... 6=Saturday
+    const daysFromMonday = (day + 6) % 7;
+    return date.startOf('day').subtract(daysFromMonday, 'day');
+};
 const getISOWeekAndYear = (date: Date): { week: number; year: number } => {
     const d = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
     const dayNum = d.getUTCDay() || 7;
@@ -114,6 +122,7 @@ const mapApiLoad = (raw: any): DriverChipLoad => {
         actual_km: raw.actual_km != null ? Number(raw.actual_km) : (raw.actualKm != null ? Number(raw.actualKm) : null),
         actual_waiting: raw.actual_waiting != null ? Number(raw.actual_waiting) : (raw.actualWaiting != null ? Number(raw.actualWaiting) : null),
         actual_details: String(raw.actual_details ?? raw.actualDetails ?? raw.driver_notes ?? raw.driverNotes ?? ''),
+        load_notes: raw.load_notes ?? raw.loadNotes ?? null,
         is_sent_from_app: Boolean(raw.is_sent_from_app ?? raw.isSentFromApp ?? false),
         title_name: raw.title_name ?? raw.titleName ?? null,
         invoicing_basis: raw.invoicing_basis ?? raw.invoicingBasis ?? null,
@@ -157,7 +166,7 @@ export default function ChipDriverDashboard({ onBackAction }: ChipDriverDashboar
     const [allLoads, setAllLoads] = useState<DriverChipLoad[]>([]);
     const [isLoading, setIsLoading] = useState<boolean>(false);
     const [instructionAnchorEl, setInstructionAnchorEl] = useState<HTMLElement | null>(null);
-    const [instructionPayload, setInstructionPayload] = useState<{ instructions?: string | null } | null>(null);
+    const [instructionPayload, setInstructionPayload] = useState<{ instructions?: string | null; labelKey?: string } | null>(null);
     const weekStartDate = useMemo(() => weekStart.startOf('day'), [weekStart]);
     const weekEndDate = useMemo(() => weekStart.add(6, 'day').endOf('day'), [weekStart]);
     const weekStartDateStr = useMemo(() => weekStartDate.format('YYYY-MM-DD'), [weekStartDate]);
@@ -350,7 +359,7 @@ export default function ChipDriverDashboard({ onBackAction }: ChipDriverDashboar
 
     const handleOpenInstructions = (
         event: React.MouseEvent<HTMLElement>,
-        payload: { instructions?: string | null }
+        payload: { instructions?: string | null; labelKey?: string }
     ) => {
         setInstructionAnchorEl(event.currentTarget);
         setInstructionPayload(payload);
@@ -462,41 +471,82 @@ export default function ChipDriverDashboard({ onBackAction }: ChipDriverDashboar
                                         mb={0.75}
                                     >
                                         <Box>
-                                            <Typography variant="subtitle2" fontWeight={700}>
-                                                {(load.serial_no ?? 0) + 1} - {load.title_name || '-'} - {productLabel}
-                                            </Typography>
+                                            <Stack direction="row" spacing={0.5} alignItems="center">
+                                                <Typography variant="subtitle2" fontWeight={700}>
+                                                    {(load.serial_no ?? 0) + 1} - {load.title_name || '-'} - {productLabel}
+                                                </Typography>
+                                                <IconButton
+                                                    size="medium"
+                                                    sx={{
+                                                        p: 0.35,
+                                                        visibility: load.driver_instructions ? 'visible' : 'hidden'
+                                                    }}
+                                                    onClick={(e) =>
+                                                        load.driver_instructions
+                                                            ? handleOpenInstructions(e, {
+                                                                instructions: load.driver_instructions,
+                                                                labelKey: 'labels.titleInstructions'
+                                                            })
+                                                            : undefined
+                                                    }
+                                                    aria-label={t('labels.titleInstructions')}
+                                                    disabled={!load.driver_instructions}
+                                                >
+                                                    <InfoOutlinedIcon sx={{ fontSize: 21 }} />
+                                                </IconButton>
+                                            </Stack>
                                             <Typography variant="caption" color="text.secondary" display="block">
                                                 {t('labels.scheduledDate')}:{' '}
                                                 {dayjs(load.scheduled_date).locale(i18n.language).format('ddd DD.MM.YYYY')}
                                                 {'  '}| {t('buttons.load')}: {load.started_at ? dayjs(load.started_at).locale(i18n.language).format('DD.MM.YYYY HH:mm') : '-'}
                                                 {'  '}| {t('buttons.unload')}: {load.completed_at ? dayjs(load.completed_at).locale(i18n.language).format('DD.MM.YYYY HH:mm') : '-'}
                                             </Typography>
-                                            <Typography variant="caption" color="text.secondary" display="block">
-                                                {t('labels.loadingPoint')}: {load.loading_point_name || '-'}
-                                                {'  '}| {t('labels.unloadingPoint')}: {load.unloading_point_name || '-'}
-                                            </Typography>
-                                            <Typography variant="caption" color="text.secondary" display="block">
-                                                {t('labels.loadingCoords')}: {formatCoords(load.loading_point_lat, load.loading_point_lng)}
-                                                {'  '}| {t('labels.unloadingCoords')}: {formatCoords(load.unloading_point_lat, load.unloading_point_lng)}
-                                            </Typography>
+                                            <Box
+                                                sx={{
+                                                    mt: 0.5,
+                                                    px: 0.75,
+                                                    py: 0.5,
+                                                    borderRadius: 1,
+                                                    border: '1px solid',
+                                                    borderColor: 'divider',
+                                                    backgroundColor: 'rgba(25,118,210,0.06)',
+                                                    display: 'grid',
+                                                    gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr' },
+                                                    gap: 0.5
+                                                }}
+                                            >
+                                                <Stack spacing={0.1}>
+                                                    <Stack direction="row" spacing={0.5} alignItems="center">
+                                                        <LoginIcon fontSize="inherit" sx={{ color: 'primary.main' }} />
+                                                        <Typography variant="caption" sx={{ fontWeight: 700 }}>
+                                                            {t('labels.loadingPoint')}:
+                                                        </Typography>
+                                                        <Typography variant="caption">{load.loading_point_name || '-'}</Typography>
+                                                    </Stack>
+                                                    <Typography variant="caption" color="text.secondary" sx={{ pl: 2.5 }}>
+                                                        {formatCoords(load.loading_point_lat, load.loading_point_lng)}
+                                                    </Typography>
+                                                </Stack>
+                                                <Stack spacing={0.1}>
+                                                    <Stack direction="row" spacing={0.5} alignItems="center">
+                                                        <LogoutIcon fontSize="inherit" sx={{ color: 'warning.main' }} />
+                                                        <Typography variant="caption" sx={{ fontWeight: 700 }}>
+                                                            {t('labels.unloadingPoint')}:
+                                                        </Typography>
+                                                        <Typography variant="caption">{load.unloading_point_name || '-'}</Typography>
+                                                    </Stack>
+                                                    <Typography variant="caption" color="text.secondary" sx={{ pl: 2.5 }}>
+                                                        {formatCoords(load.unloading_point_lat, load.unloading_point_lng)}
+                                                    </Typography>
+                                                </Stack>
+                                            </Box>
                                         </Box>
-                                        <Stack direction="row" spacing={0.5} alignItems="center">
-                                            {load.driver_instructions && (
-                                                <IconButton
-                                                    size="medium"
-                                                    sx={{ p: 0.5 }}
-                                                    onClick={(e) =>
-                                                        handleOpenInstructions(e, {
-                                                            instructions: load.driver_instructions
-                                                        })
-                                                    }
-                                                    aria-label={t('labels.driverInstructions')}
-                                                >
-                                                    <InfoOutlinedIcon sx={{ fontSize: 24 }} />
-                                                </IconButton>
-                                            )}
-                                            <Chip size="small" label={t(`statuses.${load.status}`)} color={getStatusColor(load.status)} />
-                                        </Stack>
+                                        <Chip
+                                            size="small"
+                                            label={t(`statuses.${load.status}`)}
+                                            color={getStatusColor(load.status)}
+                                            sx={{ width: 110, justifyContent: 'center' }}
+                                        />
                                     </Stack>
 
                                     <Box
@@ -523,7 +573,35 @@ export default function ChipDriverDashboard({ onBackAction }: ChipDriverDashboar
                                         >
                                             {t('buttons.load')}
                                         </Button>
-                                        <Box sx={{ display: 'flex', gap: 0.75, alignItems: 'center', flexWrap: 'wrap', flexGrow: 1, ml: 2 }}>
+                                        <IconButton
+                                            size="small"
+                                            sx={{
+                                                p: 0.35,
+                                                visibility: load.load_notes ? 'visible' : 'hidden'
+                                            }}
+                                            onClick={(e) =>
+                                                load.load_notes
+                                                    ? handleOpenInstructions(e, {
+                                                        instructions: load.load_notes,
+                                                        labelKey: 'labels.loadInstructions'
+                                                    })
+                                                    : undefined
+                                            }
+                                            aria-label={t('labels.loadInstructions')}
+                                            disabled={!load.load_notes}
+                                        >
+                                            <InfoOutlinedIcon sx={{ fontSize: 20 }} />
+                                        </IconButton>
+                                        <Box
+                                            sx={{
+                                                display: 'flex',
+                                                gap: 0.75,
+                                                alignItems: 'center',
+                                                flexWrap: 'wrap',
+                                                flexGrow: 1,
+                                                ml: 2
+                                            }}
+                                        >
                                             {load.req_ton && (
                                                 <TextField
                                                     sx={highlightSx('actual_ton')}
@@ -692,7 +770,7 @@ export default function ChipDriverDashboard({ onBackAction }: ChipDriverDashboar
             >
                 {instructionPayload?.instructions && (
                     <Typography variant="body2">
-                        <strong>{t('labels.driverInstructions')}:</strong> {instructionPayload.instructions}
+                        <strong>{t(instructionPayload.labelKey || 'labels.titleInstructions')}:</strong> {instructionPayload.instructions}
                     </Typography>
                 )}
             </Popover>

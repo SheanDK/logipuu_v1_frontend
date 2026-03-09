@@ -31,6 +31,8 @@
     "startedAt": "Loaded at",
     "completedAt": "Unloaded at",
     "driverInstructions": "Driver instructions",
+    "titleInstructions": "Title instructions",
+    "loadInstructions": "Load instructions",
     "detailsInfo": "Details requirement",
     "requiredTon": "Req ton",
     "requiredM3": "Req m3",

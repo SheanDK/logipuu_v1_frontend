@@ -31,6 +31,8 @@
     "startedAt": "Kuormattu",
     "completedAt": "Purettu",
     "driverInstructions": "Kuljettajan ohje",
+    "titleInstructions": "Nimikkeen ohje",
+    "loadInstructions": "Kuorman ohje",
     "detailsInfo": "Lisätietovaatimus",
     "requiredTon": "Vaad ton",
     "requiredM3": "Vaad m3",
@@ -42,7 +44,7 @@
   },
   "statuses": {
     "NOT_SENT": "Ei lähetetty",
-    "LOADED": "Kuormattu",
+    "LOADED": "Lastattu",
     "UNLOADED": "Purettu",
     "SENT": "Lähetetty"
   },
