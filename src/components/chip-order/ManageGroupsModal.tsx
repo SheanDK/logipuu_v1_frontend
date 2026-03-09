@@ -15,6 +15,7 @@ import CloseIcon from '@mui/icons-material/Close';
 import chipPlanningService from '@/services/chipPlanningService';
 import { useTranslation } from '@/i18n/useTranslation';
 
+// Chip Title Modal Component
 const ManageGroupsModal = ({ open, onClose, vehicles, onUpdate }: any) => {
     const theme = useTheme();
     const isDarkMode = theme.palette.mode === 'dark';
@@ -26,15 +27,15 @@ const ManageGroupsModal = ({ open, onClose, vehicles, onUpdate }: any) => {
     const [renameValue, setRenameValue] = useState('');
     const [localExtraGroups, setLocalExtraGroups] = useState<string[]>([]);
 
-    // වැදගත්: Modal එක ඇතුළත තාවකාලිකව වාහන දත්ත තබා ගැනීමට
+    // temp vehicles
     const [tempVehicles, setTempVehicles] = useState<any[]>([]);
-    // Accordion පාලනය කිරීමට
+    // Accordion control
     const [expanded, setExpanded] = useState<string | false>('General');
 
-    // Modal එක විවෘත වන විට දත්ත පිටපත් කර ගැනීම
+    // Modal open
     useEffect(() => {
         if (open) {
-            setTempVehicles(JSON.parse(JSON.stringify(vehicles))); // Deep copy
+            setTempVehicles(JSON.parse(JSON.stringify(vehicles)));
         }
     }, [open, vehicles]);
 
@@ -53,13 +54,12 @@ const ManageGroupsModal = ({ open, onClose, vehicles, onUpdate }: any) => {
         return data;
     }, [activeVehicles, localExtraGroups]);
 
-    // --- Logic ---
-
+    // Accordion toggle
     const handleAccordionToggle = (panel: string) => (event: React.SyntheticEvent, isExpanded: boolean) => {
         setExpanded(isExpanded ? panel : false);
     };
 
-    // වාහනයක් තාවකාලිකව සමූහයකට එක් කිරීම (Local Only)
+    // Vehicle toggle to local group
     const handleLocalToggleVehicle = (kalustoNro: number, targetGroup: string, isChecking: boolean) => {
         const nextGroup = isChecking ? targetGroup : 'General';
         setTempVehicles(prev => prev.map(v =>
@@ -70,11 +70,12 @@ const ManageGroupsModal = ({ open, onClose, vehicles, onUpdate }: any) => {
     const handleAddGroupLocal = () => {
         if (newGroupName.trim()) {
             setLocalExtraGroups(prev => [...prev, newGroupName.trim()]);
-            setExpanded(newGroupName.trim()); // අලුත් group එක expand කරයි
+            setExpanded(newGroupName.trim());
             setNewGroupName('');
         }
     };
 
+    // Rename group
     const handleRenameConfirm = async (oldName: string) => {
         if (!renameValue.trim() || oldName === renameValue) { setEditingGroup(null); return; }
         await chipPlanningService.renameGroup(oldName, renameValue.trim());
@@ -87,6 +88,7 @@ const ManageGroupsModal = ({ open, onClose, vehicles, onUpdate }: any) => {
         setExpanded(renameValue.trim());
     };
 
+    // Delete group
     const handleDeleteGroup = async (groupName: string) => {
         if (groupName === 'General') return;
         if (window.confirm(`Delete group "${groupName}"?`)) {
@@ -99,21 +101,21 @@ const ManageGroupsModal = ({ open, onClose, vehicles, onUpdate }: any) => {
         }
     };
 
-    // "DONE" එබූ විට පමණක් දත්ත සුරැකීම
+    // Final save
     const handleFinalSave = async () => {
         try {
-            // වෙනස් වූ වාහන පමණක් සොයා ගැනීම
+            // Find updated vehicles
             const updates = tempVehicles.filter(tv => {
                 const original = vehicles.find((v: any) => v.kalustoNro === tv.kalustoNro);
                 return (tv.planningGroup || tv.planning_group) !== (original?.planningGroup || original?.planning_group);
             });
 
-            // සියල්ල එක්වර update කිරීම
+            // Update vehicles
             await Promise.all(updates.map(v =>
                 chipPlanningService.updateVehicleGroup(v.kalustoNro, v.planningGroup || v.planning_group || 'General')
             ));
 
-            onUpdate(); // Main page එක refresh කරයි
+            onUpdate();
             onClose();
         } catch (err) { console.error(err); }
     };

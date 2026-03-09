@@ -1,5 +1,3 @@
-//frontend/src/app/[lng]/(main)/chip-management/page.tsx
-
 // frontend/src/app/[lng]/(main)/chip-management/page.tsx
 
 'use client';
@@ -10,12 +8,8 @@ import {
     TableContainer, TableHead, TableRow, Stack, TextField,
     InputAdornment, Tooltip, Switch, FormControlLabel, useTheme,
     IconButton, Menu, MenuItem, ListItemIcon, ListItemText, Divider,
-    Dialog,
-    DialogTitle,
-    DialogContent,
-    Checkbox,
-    DialogActions,
-    alpha
+    Dialog, DialogTitle, DialogContent, Checkbox, DialogActions,
+    alpha, TablePagination
 } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
 import SearchIcon from '@mui/icons-material/Search';
@@ -48,6 +42,10 @@ const ChipTitlesPage = () => {
     const [selectedTitle, setSelectedTitle] = useState<any | null>(null);
     const [showInactive, setShowInactive] = useState(false);
     const [manageDialogOpen, setManageDialogOpen] = useState(false);
+
+    // --- Pagination States ---
+    const [page, setPage] = useState(0);
+    const [rowsPerPage, setRowsPerPage] = useState(25);
 
     // Sorting & Menu States
     const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
@@ -121,6 +119,7 @@ const ChipTitlesPage = () => {
         );
     };
 
+    //  Filtered List
     const sortedAndFilteredTitles = useMemo(() => {
         let result = titles.filter(t => {
             const matchesSearch = (t.titleName || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -141,6 +140,11 @@ const ChipTitlesPage = () => {
         return result;
     }, [titles, searchTerm, showInactive, sortConfig]);
 
+    // paginatedTitles
+    const paginatedTitles = useMemo(() => {
+        return sortedAndFilteredTitles.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage);
+    }, [sortedAndFilteredTitles, page, rowsPerPage]);
+
     return (
         <Box sx={{ p: 3, bgcolor: 'background.default', minHeight: '100vh' }}>
             <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 3 }}>
@@ -157,41 +161,34 @@ const ChipTitlesPage = () => {
             </Stack>
 
             <Paper sx={{ p: 2, mb: 3, borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', bgcolor: 'background.paper' }}>
-                {/* search bar */}
                 <TextField
                     size="small" placeholder={t('chip-management:searchPlaceholder')} sx={{ width: 400 }}
-                    value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)}
+                    value={searchTerm}
+                    onChange={(e) => {
+                        setSearchTerm(e.target.value);
+                        setPage(0);
+                    }}
                     InputProps={{ startAdornment: <InputAdornment position="start"><SearchIcon fontSize="small" /></InputAdornment> }}
                 />
 
-
-
-                {/* Control Group  */}
                 <Stack direction="row" alignItems="center" spacing={3}>
-                    {/* Show Inactive Switch  */}
                     <FormControlLabel
                         control={
                             <Switch
                                 size="small"
                                 checked={showInactive}
-                                onChange={(e) => setShowInactive(e.target.checked)
-
-                                }
+                                onChange={(e) => {
+                                    setShowInactive(e.target.checked);
+                                    setPage(0);
+                                }}
                                 sx={{
-                                    '& .MuiSwitch-switchBase.Mui-checked': {
-                                        color: '#a38f6d'
-                                    },
-                                    '& .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track': {
-                                        bgcolor: '#a38f6d'
-                                    }
+                                    '& .MuiSwitch-switchBase.Mui-checked': { color: '#a38f6d' },
+                                    '& .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track': { bgcolor: '#a38f6d' }
                                 }} />
                         }
-                        label={<Typography
-                            variant="body2"
-                            sx={{ fontWeight: '500' }}>{t('chip-management:showInactive')}</Typography>}
+                        label={<Typography variant="body2" sx={{ fontWeight: '500' }}>{t('chip-management:showInactive')}</Typography>}
                         sx={{ mr: 0 }}
                     />
-                    {/* --- Column Management Button  --- */}
                     <Button
                         onClick={() => setManageDialogOpen(true)}
                         startIcon={<ViewColumnIcon />}
@@ -215,60 +212,77 @@ const ChipTitlesPage = () => {
                             {t('chip-management:manageColumns')}
                         </Typography>
                     </Button>
-
-
                 </Stack>
             </Paper>
 
-            <TableContainer component={Paper} sx={{ borderRadius: '12px', overflow: 'hidden', bgcolor: 'background.paper' }}>
-                <Table size="small">
-                    <TableHead sx={{ bgcolor: isDarkMode ? 'rgba(255,255,255,0.05)' : '#f8f9fa' }}>
-                        <TableRow>
-                            {columns.map((col) => !hiddenColumns.includes(col.id) && (
-                                <TableCell key={col.id} sx={{ fontWeight: 'bold', color: 'text.primary', py: 1 }}>
-                                    <Stack direction="row" alignItems="center" justifyContent={col.id === 'reqInfo' ? 'center' : 'flex-start'} spacing={1}>
-                                        <span>{col.label}</span>
-                                        <IconButton size="small" onClick={(e) => handleMenuOpen(e, col.key)}>
-                                            <MoreVertIcon sx={{ fontSize: 16 }} />
-                                        </IconButton>
-                                    </Stack>
-                                </TableCell>
-                            ))}
-                        </TableRow>
-                    </TableHead>
-                    <TableBody>
-                        {sortedAndFilteredTitles.map((t) => {
-                            const isInactive = t.isActive === false || t.aktiivinen === false;
-                            return (
-                                <TableRow
-                                    key={t.titleId || t.title_id}
-                                    hover
-                                    onClick={() => handleRowClick(t)}
-                                    sx={{
-                                        cursor: 'pointer',
-                                        bgcolor: isInactive ? (isDarkMode ? 'rgba(0, 0, 0, 0.4)' : '#f2f2f2') : 'inherit',
-                                        opacity: isInactive ? 0.7 : 1,
-                                        '&:hover': {
-                                            bgcolor: isInactive
-                                                ? (isDarkMode ? 'rgba(0, 0, 0, 0.6) !important' : '#e0e0e0 !important')
-                                                : (isDarkMode ? 'rgba(163, 143, 109, 0.1) !important' : '#fdfaf5 !important')
-                                        },
-                                        transition: 'all 0.2s ease'
-                                    }}
-                                >
-                                    {!hiddenColumns.includes('id') && <TableCell sx={{ color: 'text.primary' }}>{t.titleId}</TableCell>}
-                                    {!hiddenColumns.includes('customer') && <TableCell sx={{ color: 'text.primary' }}><Typography variant="body2" fontWeight="bold">{t.customerName}</Typography></TableCell>}
-                                    {!hiddenColumns.includes('loading') && <TableCell sx={{ color: 'text.primary', fontSize: '12px' }}>{t.loadingPointName}</TableCell>}
-                                    {!hiddenColumns.includes('demolition') && <TableCell sx={{ color: 'text.primary', fontSize: '12px' }}>{t.unloadingPointName}</TableCell>}
-                                    {!hiddenColumns.includes('product') && <TableCell sx={{ color: 'text.primary', fontSize: '12px' }}>{t.productName}</TableCell>}
-                                    {!hiddenColumns.includes('titleName') && <TableCell><Typography variant="body2" sx={{ color: '#a38f6d', fontWeight: '600' }}>{t.titleName}</Typography></TableCell>}
-                                    {!hiddenColumns.includes('reqInfo') && <TableCell align="center">{renderRequestedInfo(t)}</TableCell>}
-                                </TableRow>
-                            );
-                        })}
-                    </TableBody>
-                </Table>
-            </TableContainer>
+            <Paper sx={{ borderRadius: '12px', overflow: 'hidden', bgcolor: 'background.paper', border: '1px solid', borderColor: 'divider' }}>
+                <TableContainer>
+                    <Table size="small">
+                        <TableHead sx={{ bgcolor: isDarkMode ? 'rgba(255,255,255,0.05)' : '#f8f9fa' }}>
+                            <TableRow>
+                                {columns.map((col) => !hiddenColumns.includes(col.id) && (
+                                    <TableCell key={col.id} sx={{ fontWeight: 'bold', color: 'text.primary', py: 1.5 }}>
+                                        <Stack direction="row" alignItems="center" justifyContent={col.id === 'reqInfo' ? 'center' : 'flex-start'} spacing={1}>
+                                            <span style={{ fontSize: '13px' }}>{col.label}</span>
+                                            <IconButton size="small" onClick={(e) => handleMenuOpen(e, col.key)}>
+                                                <MoreVertIcon sx={{ fontSize: 16 }} />
+                                            </IconButton>
+                                        </Stack>
+                                    </TableCell>
+                                ))}
+                            </TableRow>
+                        </TableHead>
+                        <TableBody>
+                            {paginatedTitles.map((t) => {
+                                const isInactive = t.isActive === false || t.aktiivinen === false;
+                                return (
+                                    <TableRow
+                                        key={t.titleId || t.title_id}
+                                        hover
+                                        onClick={() => handleRowClick(t)}
+                                        sx={{
+                                            cursor: 'pointer',
+                                            bgcolor: isInactive ? (isDarkMode ? 'rgba(0, 0, 0, 0.4)' : '#f2f2f2') : 'inherit',
+                                            opacity: isInactive ? 0.7 : 1,
+                                            '&:hover': {
+                                                bgcolor: isInactive
+                                                    ? (isDarkMode ? 'rgba(0, 0, 0, 0.6) !important' : '#e0e0e0 !important')
+                                                    : (isDarkMode ? 'rgba(163, 143, 109, 0.1) !important' : '#fdfaf5 !important')
+                                            },
+                                            transition: 'all 0.2s ease'
+                                        }}
+                                    >
+                                        {!hiddenColumns.includes('id') && <TableCell sx={{ fontSize: '13px' }}>{t.titleId}</TableCell>}
+                                        {!hiddenColumns.includes('customer') && <TableCell sx={{ fontWeight: 'bold', fontSize: '13px' }}>{t.customerName}</TableCell>}
+                                        {!hiddenColumns.includes('loading') && <TableCell sx={{ fontSize: '12px' }}>{t.loadingPointName}</TableCell>}
+                                        {!hiddenColumns.includes('demolition') && <TableCell sx={{ fontSize: '12px' }}>{t.unloadingPointName}</TableCell>}
+                                        {!hiddenColumns.includes('product') && <TableCell sx={{ fontSize: '12px' }}>{t.productName}</TableCell>}
+                                        {!hiddenColumns.includes('titleName') && <TableCell><Typography variant="body2" sx={{ color: '#a38f6d', fontWeight: '600', fontSize: '13px' }}>{t.titleName}</Typography></TableCell>}
+                                        {!hiddenColumns.includes('reqInfo') && <TableCell align="center">{renderRequestedInfo(t)}</TableCell>}
+                                    </TableRow>
+                                );
+                            })}
+                        </TableBody>
+                    </Table>
+                </TableContainer>
+
+                {/* Pagination Footer */}
+                <Divider />
+                <Box sx={{ px: 2, bgcolor: isDarkMode ? alpha('#fff', 0.02) : '#f8f9fa' }}>
+                    <TablePagination
+                        component="div"
+                        count={sortedAndFilteredTitles.length}
+                        page={page}
+                        onPageChange={(_, newPage) => setPage(newPage)}
+                        rowsPerPage={rowsPerPage}
+                        onRowsPerPageChange={(e) => { setRowsPerPage(parseInt(e.target.value, 10)); setPage(0); }}
+                        rowsPerPageOptions={[10, 25, 50, 100]}
+                        labelRowsPerPage={t('chip-management:pagination.rowsPerPage') || 'Rows per page:'}
+                    />
+                </Box>
+            </Paper>
+
+
 
             {/* Column Interaction Menu */}
             <Menu

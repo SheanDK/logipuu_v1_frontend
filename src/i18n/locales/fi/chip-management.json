@@ -320,5 +320,8 @@
             "cancel": "PERUUTA",
             "add": "LISÄÄ"
         }
+    },
+    "pagination": {
+        "rowsPerPage": "Rivejä sivulla:"
     }
 }

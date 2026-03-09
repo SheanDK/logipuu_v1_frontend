@@ -5,7 +5,7 @@ import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import {
     Box, Stack, Typography, Paper, IconButton, TextField,
     InputAdornment, Tooltip, Autocomplete, Tabs, Tab, useTheme,
-    CircularProgress, alpha, Button, Divider, TableContainer
+    CircularProgress, alpha, Button, Divider, TableContainer, TablePagination
 } from '@mui/material';
 import ArrowBackIosNewIcon from '@mui/icons-material/ArrowBackIosNew';
 import ArrowForwardIosIcon from '@mui/icons-material/ArrowForwardIos';
@@ -68,6 +68,9 @@ const PlanningPage = () => {
     const [loading, setLoading] = useState(false);
     const [sidebarWidth, setSidebarWidth] = useState(360);
     const [isResizing, setIsResizing] = useState(false);
+
+    const [page, setPage] = useState(0);
+    const [rowsPerPage, setRowsPerPage] = useState(25);
 
     const [selectedLoad, setSelectedLoad] = useState<any | null>(null);
     const [editModalOpen, setEditModalOpen] = useState(false);
@@ -192,11 +195,25 @@ const PlanningPage = () => {
         );
     };
 
+    // Filter and Pagination logic for vehicles
+    const filteredVehicleList = useMemo(() => {
+        return allRegisteredVehicles
+            .filter(v => (v.rekNro || '').toLowerCase().includes(searchVehicle.toLowerCase()) && v.aktiivinen)
+            .map(regV => {
+                const plan = vehiclesData.find(p => p.kalustoNro === regV.kalustoNro);
+                return {
+                    ...regV,
+                    groupName: regV.planning_group || regV.planningGroup || 'General',
+                    loads: plan?.loads || []
+                };
+            });
+    }, [allRegisteredVehicles, vehiclesData, searchVehicle]);
+
     // Group Vehicles logic
     const groupedVehicles = useMemo(() => {
-        const list = displayVehicles;
-        const grouped = list.reduce((acc: any, v: any) => {
-            // Use groupName if available, otherwise use 'General'
+        const paginatedList = filteredVehicleList.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage);
+        //const list = displayVehicles;
+        const grouped = paginatedList.reduce((acc: any, v: any) => {
             const group = v.groupName || 'General';
             if (!acc[group]) acc[group] = [];
             acc[group].push(v);
@@ -208,7 +225,7 @@ const PlanningPage = () => {
             obj[key] = grouped[key];
             return obj;
         }, {});
-    }, [displayVehicles]);
+    }, [filteredVehicleList, page, rowsPerPage]);
 
     return (
         <Box sx={{ display: 'flex', height: 'calc(100vh - 110px)', bgcolor: isDarkMode ? 'background.default' : '#f4f7f9', p: 1.5, gap: 1, overflow: 'hidden' }}>
@@ -386,6 +403,22 @@ const PlanningPage = () => {
                             )}
                         </TableContainer>
                     </Box>
+
+                    {/* pagination */}
+                    <Divider />
+                    <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', bgcolor: isDarkMode ? alpha('#fff', 0.02) : '#f8f9fa', px: 2 }}>
+                        <TablePagination
+                            component="div"
+                            count={filteredVehicleList.length}
+                            page={page}
+                            onPageChange={(_, newPage) => setPage(newPage)}
+                            rowsPerPage={rowsPerPage}
+                            onRowsPerPageChange={(e) => { setRowsPerPage(parseInt(e.target.value, 10)); setPage(0); }}
+                            rowsPerPageOptions={[10, 25, 50, 100]}
+                            labelRowsPerPage={t('chip-management:pagination.rowsPerPage') || 'Rows per page:'}
+                        />
+                    </Box>
+
                 </Paper>
             </Box>
 

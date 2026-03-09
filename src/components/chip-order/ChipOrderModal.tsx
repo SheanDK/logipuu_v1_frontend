@@ -17,6 +17,7 @@ interface ChipOrderModalProps {
     onSuccess: () => void;
 }
 
+// Chip Order Modal Component
 const ChipOrderModal: React.FC<ChipOrderModalProps> = ({ open, onClose, onSuccess }) => {
     const { t } = useTranslation(['chip-management', 'common']);
     const theme = useTheme();
@@ -35,7 +36,7 @@ const ChipOrderModal: React.FC<ChipOrderModalProps> = ({ open, onClose, onSucces
         notes: ''
     });
 
-    // පාරිභෝගික දත්ත ලබා ගැනීම
+    // Fetch customers when modal opens
     useEffect(() => {
         const loadCustomers = async () => {
             if (open) {
@@ -53,10 +54,12 @@ const ChipOrderModal: React.FC<ChipOrderModalProps> = ({ open, onClose, onSucces
         loadCustomers();
     }, [open]);
 
+    // Handle form field changes
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         setFormData({ ...formData, [e.target.name]: e.target.value });
     };
 
+    // Handle form submission
     const handleSubmit = async () => {
         if (!formData.asiakas_id) return;
         setLoading(true);

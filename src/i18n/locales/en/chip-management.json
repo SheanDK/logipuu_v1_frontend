@@ -318,5 +318,8 @@
             "cancel": "CANCEL",
             "add": "ADD"
         }
+    },
+    "pagination": {
+        "rowsPerPage": "Rows per page:"
     }
 }

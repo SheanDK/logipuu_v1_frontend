@@ -19,6 +19,7 @@ import { useTranslation } from '@/i18n/useTranslation';
 import type { IBackendClient, IBackendPuulaani, IBackendPurkupaikkaResponse, IChipTitleFormData } from '@/types';
 import NewAreaModal from './NewAreaModal';
 
+// Chip Title Modal Component
 const ChipTitleModal = ({ open, onClose, onSuccess, titleData }: any) => {
     const { t } = useTranslation(['chip-management', 'common']);
     const { showNotification } = useNotification();
@@ -57,6 +58,7 @@ const ChipTitleModal = ({ open, onClose, onSuccess, titleData }: any) => {
         created_at: ''
     });
 
+    // Load data for form
     const loadData = useCallback(async () => {
         try {
             const [clients, timber, dropoff, prodRes] = await Promise.all([
@@ -112,6 +114,7 @@ const ChipTitleModal = ({ open, onClose, onSuccess, titleData }: any) => {
         }
     }, [open, titleData, loadData]);
 
+    // Handle quick area save
     const handleQuickAreaSave = async (data: any) => {
         try {
             const endpoint = data.type === 'Loading' ? '/locations/quick-puulaani' : '/locations/quick-purkupaikka';
@@ -126,6 +129,7 @@ const ChipTitleModal = ({ open, onClose, onSuccess, titleData }: any) => {
         } catch (error) { console.error("Quick Save Error:", error); }
     };
 
+    // Handle form submission
     const handleSave = async () => {
         const payload = {
             ...formData,
@@ -148,6 +152,7 @@ const ChipTitleModal = ({ open, onClose, onSuccess, titleData }: any) => {
         } catch (error: any) { showNotification(t('common:notifications.error'), "error"); }
     };
 
+    // Summary box component
     const SummaryBox = ({ label, value }: { label: string, value: any }) => (
         <Box sx={{ width: '48%', mb: 1.5 }}>
             <Typography variant="caption" sx={{ color: theme.palette.text.secondary, fontWeight: 'bold', display: 'block', textTransform: 'uppercase', fontSize: '10px' }}>{label}</Typography>

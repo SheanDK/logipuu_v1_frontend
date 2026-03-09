@@ -13,6 +13,7 @@ import {
 } from '@mui/material';
 import { useTranslation } from '@/i18n/useTranslation';
 
+// Schedule Load Modal Props
 interface ScheduleLoadModalProps {
     open: boolean;
     onClose: () => void;
@@ -22,6 +23,7 @@ interface ScheduleLoadModalProps {
     vehicleName: string;
 }
 
+// Schedule Load Modal Component
 const ScheduleLoadModal: React.FC<ScheduleLoadModalProps> = ({ open, onClose, onSuccess, programId, selectedDate, vehicleName }) => {
     const { t } = useTranslation(['chip-management']);
     const [orders, setOrders] = useState<any[]>([]);
@@ -70,6 +72,7 @@ const ScheduleLoadModal: React.FC<ScheduleLoadModalProps> = ({ open, onClose, on
         }
     }, [open]);
 
+    // Save schedule
     const handleSave = async () => {
         if (!formData.order_id || !formData.lahto_paikka || !formData.purku_paikka) {
             alert(t('chip-management:planning.scheduleModal.fillAll'));

@@ -13,6 +13,7 @@ import CancelIcon from '@mui/icons-material/Cancel';
 import LocalShippingIcon from '@mui/icons-material/LocalShipping';
 import { useTranslation } from '@/i18n/useTranslation';
 
+// Chip Load Modal Component
 const ModifyLoadModal = ({ open, loadData, onClose, onSave, onDelete }: any) => {
     const { t } = useTranslation(['chip-management']);
     const [notes, setNotes] = useState('');

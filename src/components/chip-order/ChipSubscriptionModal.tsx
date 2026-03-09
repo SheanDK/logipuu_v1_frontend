@@ -30,6 +30,7 @@ import { useTranslation } from '@/i18n/useTranslation';
 import { useParams } from 'next/navigation';
 import DeleteConfirmationDialog from '../common/DeleteConfirmationDialog';
 
+// Chip Subscription Modal Component
 const ChipSubscriptionModal = ({ open, onClose, onSuccess, initialData }: any) => {
     const { t } = useTranslation(['chip-management', 'common']);
     const theme = useTheme();
@@ -58,6 +59,7 @@ const ChipSubscriptionModal = ({ open, onClose, onSuccess, initialData }: any) =
         distribution: initialDistribution
     });
 
+    // Render highlighted days
     const renderHighlightedDay = (props: PickersDayProps) => {
         const { day, outsideCurrentMonth, ...other } = props;
         const startDate = selectedDate ? selectedDate.startOf('day') : null;
@@ -86,6 +88,7 @@ const ChipSubscriptionModal = ({ open, onClose, onSuccess, initialData }: any) =
         );
     };
 
+    // Fetch titles when modal opens
     useEffect(() => {
         if (open) {
             chipTitleService.getAll().then(setTitles);
@@ -165,6 +168,7 @@ const ChipSubscriptionModal = ({ open, onClose, onSuccess, initialData }: any) =
         setTabValue(0);
     };
 
+    // Adjust all days
     const handleAdjustAllDays = (amount: number) => {
         const newDist = { ...formData.distribution };
         Object.keys(newDist).forEach((day) => {
@@ -174,6 +178,7 @@ const ChipSubscriptionModal = ({ open, onClose, onSuccess, initialData }: any) =
         setFormData({ ...formData, distribution: newDist });
     };
 
+    // Handle day change
     const handleDayChange = (day: string, field: 'qty' | 'info', value: any) => {
         setFormData(prev => ({
             ...prev,
@@ -181,6 +186,7 @@ const ChipSubscriptionModal = ({ open, onClose, onSuccess, initialData }: any) =
         }));
     };
 
+    // Handle delete confirmation
     const handleDeleteConfirm = async () => {
         if (!initialData?.orderId) return;
         try {
@@ -191,6 +197,7 @@ const ChipSubscriptionModal = ({ open, onClose, onSuccess, initialData }: any) =
         } catch (err) { onSuccess("Failed to delete", "error"); }
     };
 
+    // Handle save
     const handleSave = async () => {
         if (!formData.title_id) {
             alert("please select a chip order");
@@ -218,7 +225,7 @@ const ChipSubscriptionModal = ({ open, onClose, onSuccess, initialData }: any) =
             totalTavoite = Object.values(formData.distribution).reduce((a, b: any) => a + Number(b.qty), 0) * formData.weeks_left;
         }
 
-
+        // Add metadata to distribution
         finalDistribution._metadata = {
             flex: formData.flexibility_type,
             weeks: formData.weeks_left,
@@ -246,6 +253,7 @@ const ChipSubscriptionModal = ({ open, onClose, onSuccess, initialData }: any) =
         }
     };
 
+    // Day labels
     const dayLabels = [
         { key: 'mon', name: 'Monday' }, { key: 'tue', name: 'Tuesday' }, { key: 'wed', name: 'Wednesday' },
         { key: 'thu', name: 'Thursday' }, { key: 'fri', name: 'Friday' }, { key: 'sat', name: 'Saturday' }, { key: 'sun', name: 'Sunday' }

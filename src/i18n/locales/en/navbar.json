@@ -22,7 +22,7 @@
     "navbar": {
         "dashboard": "Dashboard",
         "arrangement": "Arrangement",
-        "timberMap": "Timber Map",
+        "timberMap": "Map",
         "loadManagement": "Load Management",
         "timberManagement": "Timber Management",
         "chipManagement": "Chip Management",
@@ -30,7 +30,7 @@
         "chipPlanning": "Chip Planning",
         "chipOrders": "Chip Orders",
         "chipSubscriptions": "Chip Subscriptions",
-        "office": "Office",
+        "office": "Invoicing",
         "drivenInspection": "Driven & Inspection",
         "puulaaniInvoicing": "Timber Stack Invoicing",
         "consignmentInvoicing": "Consignment Invoicing",

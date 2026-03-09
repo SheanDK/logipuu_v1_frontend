@@ -5,6 +5,7 @@ import React from 'react';
 import { Box, Typography, Stack, Paper } from '@mui/material';
 import { useTranslation } from '@/i18n/useTranslation';
 
+// Info row component
 const InfoRow = ({ label, requested, actual }: { label: string, requested: any, actual: any }) => (
     <Box sx={{ display: 'flex', borderBottom: '1px solid #eee', py: 0.5 }}>
         <Typography variant="caption" sx={{ flex: 1, fontWeight: 'bold', color: '#666' }}>{label}</Typography>
@@ -13,6 +14,7 @@ const InfoRow = ({ label, requested, actual }: { label: string, requested: any, 
     </Box>
 );
 
+// Planning tooltip component
 const PlanningTooltip = ({ load, vehicle }: { load: any, vehicle: string }) => {
     const { t } = useTranslation(['chip-management']);
 

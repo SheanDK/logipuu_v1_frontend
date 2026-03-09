@@ -185,6 +185,40 @@ export default function ConsignmentTable({
             valueFormatter: (value: any) => Number(value).toFixed(2)
         },
         {
+            field: 'totalPcs',
+            headerName: 'PCS',
+            width: 80,
+            align: 'center',
+            valueGetter: (value, row) => row.kpl || 0
+        },
+        {
+            field: 'totalKm',
+            headerName: 'Total km',
+            width: 120,
+            align: 'right',
+            headerAlign: 'right',
+            valueGetter: (value: any, row: any) => row.km || 0,
+            valueFormatter: (value: any) => Number(value).toFixed(2)
+        },
+        {
+            field: 'totalHrs',
+            headerName: 'Total Hrs',
+            width: 120,
+            align: 'right',
+            headerAlign: 'right',
+            valueGetter: (value: any, row: any) => row.jako || 0,
+            valueFormatter: (value: any) => Number(value).toFixed(2)
+        },
+        {
+            field: 'totalTax',
+            headerName: 'Total Tax',
+            width: 120,
+            align: 'right',
+            headerAlign: 'right',
+            valueGetter: (value: any, row: any) => row.tievero || 0,
+            valueFormatter: (value: any) => Number(value).toFixed(2)
+        },
+        {
             field: 'waybillCount',
             headerName: 'Waybills',
             width: 100,
@@ -200,11 +234,22 @@ export default function ConsignmentTable({
             )
         },
         {
-            field: 'status', headerName: t('columns.status'), width: 120,
-            renderCell: (params) => <Chip label={translateStatus(t, params.row.status)} color={getStatusChipColorByStatus(params.row.status)} size="small" />
+            field: 'status',
+            headerName: t('columns.status'),
+            width: 120,
+            renderCell: (params) =>
+                <Chip
+                    label={translateStatus(t, params.row.status)}
+                    color={getStatusChipColorByStatus(params.row.status)}
+                    size="small"
+                />
         },
         {
-            field: 'actions', headerName: t('columns.action'), width: 100, sortable: false, filterable: false,
+            field: 'actions',
+            headerName: t('columns.action'),
+            width: 100,
+            sortable: false,
+            filterable: false,
             renderCell: (params) => (
                 <Box>
                     <Tooltip title={t('tooltips.editLoad')}>

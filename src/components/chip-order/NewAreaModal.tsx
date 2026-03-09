@@ -27,20 +27,20 @@ const markerIcon = new L.Icon({
     iconSize: [25, 41],
     iconAnchor: [12, 41]
 });
-
+// Map change view
 function ChangeView({ center }: { center: L.LatLngExpression }) {
     const map = useMap();
     map.setView(center);
     return null;
 }
-
+// Map location marker
 function LocationMarker({ position, setPosition }: any) {
     useMapEvents({
         click(e) { setPosition(e.latlng); },
     });
     return position ? <Marker position={position} icon={markerIcon} /> : null;
 }
-
+// New area modal
 const NewAreaModal = ({ open, onClose, onSave, type }: any) => {
     const { t } = useTranslation(['chip-management']);
     const [isOrigin, setIsOrigin] = useState(type === 'Loading');
@@ -87,6 +87,7 @@ const NewAreaModal = ({ open, onClose, onSave, type }: any) => {
         }
     };
 
+    // Save local
     const handleLocalSave = async () => {
         if (!formData.name || !pos || formData.customer_ids.length === 0) {
             alert(t('modal.fillRequired') || "Please fill all required fields");
