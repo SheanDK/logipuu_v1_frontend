@@ -21,6 +21,8 @@ import HistoryIcon from '@mui/icons-material/History';
 import ForestIcon from '@mui/icons-material/Forest';
 import TableChartIcon from '@mui/icons-material/TableChart';
 import CalendarMonthIcon from '@mui/icons-material/CalendarMonth';
+import CalculateIcon from '@mui/icons-material/Calculate';
+import AssignmentLateIcon from '@mui/icons-material/AssignmentLate';
 
 
 export interface NavItemConfig {
@@ -37,23 +39,17 @@ export interface NavItemConfig {
 // --- NAVIGATION FOR OFFICE STAFF, ADMINS, ETC. ---
 export const officeNavigationItems: NavItemConfig[] = [
     { text: 'Dashboard', tKey: 'dashboard', icon: <DashboardIcon />, path: '/dashboard', isTopNav: true },
+    { text: 'Map', tKey: 'timberMap', icon: <MapIcon />, path: '/timber-stacks', permission: 'timber map_view' },
     {
         text: 'Arrangement',
         tKey: 'arrangement',
         icon: <WorkspacesIcon />,
         isTopNav: true,
         children: [
-            { text: 'Timber Map', tKey: 'timberMap', icon: <MapIcon />, path: '/timber-stacks', permission: 'timber map_view' },
+            { text: 'Load Management', tKey: 'loadManagement', icon: <LocalShippingIcon />, path: '/loads', permission: 'load management_view' },
             { text: 'Timber Management', tKey: 'timberManagement', icon: <ViewListIcon />, path: '/timber-management', permission: 'timber management_view' },
 
             // --- CHIP TRANSPORT SECTION ---
-            {
-                text: 'Chip Titles',
-                tKey: 'chipManagement',
-                icon: <TableChartIcon />,
-                path: '/chip-management',
-                permission: 'chip management_view'
-            },
             {
                 text: 'Chip Planning',
                 tKey: 'chipPlanning',
@@ -62,23 +58,32 @@ export const officeNavigationItems: NavItemConfig[] = [
                 permission: 'chip management_planning'
             },
             {
+                text: 'Chip Titles',
+                tKey: 'chipManagement',
+                icon: <TableChartIcon />,
+                path: '/chip-management',
+                permission: 'chip management_view'
+            },
+
+            {
                 text: 'Chip Subscriptions',
                 tKey: 'chipSubscriptions',
-                icon: <ReceiptLongIcon />,
+                icon: <AssignmentLateIcon />,
                 path: '/chip-management/subscriptions',
                 permission: 'chip management_subscriptions'
             },
         ]
     },
     {
-        text: 'Office',
+        text: 'Invoicing',
         tKey: 'office',
-        icon: <ReceiptLongIcon />,
+        icon: <CalculateIcon />,
         isTopNav: true,
         children: [
-            { text: 'Load Management', tKey: 'loadManagement', icon: <LocalShippingIcon />, path: '/loads', permission: 'load management_view' },
+
             { text: 'Puulaani Invoicing', tKey: 'puulaaniInvoicing', icon: <ReceiptLongIcon />, path: '/puulaani-invoicing' },
             { text: 'Consignment Invoicing', tKey: 'consignmentInvoicing', icon: <ReceiptLongIcon />, path: '/consignment-invoicing' },
+            { text: 'Chip Invoicing', tKey: 'chipInvoicing', icon: <ReceiptLongIcon />, path: '/chip-invoicing' },
         ]
     },
     {

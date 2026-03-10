@@ -5,8 +5,8 @@ import React, { useEffect, useState, useMemo } from 'react';
 import {
     Dialog, DialogTitle, DialogContent, DialogActions, Button, TextField,
     CircularProgress, Alert, Box, FormControl, InputLabel, Select, MenuItem,
-    FormControlLabel, FormHelperText, Switch, Typography
-} from '@mui/material'; // Grid ඉවත් කරන ලදී
+    FormControlLabel, FormHelperText, Switch, Typography, Stack, useTheme, alpha
+} from '@mui/material';
 import { useForm, Controller, SubmitHandler } from 'react-hook-form';
 import * as yup from 'yup';
 import { yupResolver } from '@hookform/resolvers/yup';
@@ -66,6 +66,8 @@ const getValidationSchema = (isEditMode: boolean, selectedRoleId: number | "") =
 }) as yup.ObjectSchema<UserFormData>);
 
 export default function UserFormModal({ open, onCloseAction, onSaveAction, user, isSaving, apiError }: UserFormModalProps) {
+    const theme = useTheme();
+    const isDarkMode = theme.palette.mode === 'dark';
     const isEditMode = Boolean(user);
     const [allRoles, setAllRoles] = useState<IRole[]>([]);
     const [driversNoAccount, setDriversNoAccount] = useState<IDriverBasicInfo[]>([]);
@@ -159,23 +161,41 @@ export default function UserFormModal({ open, onCloseAction, onSaveAction, user,
     };
 
     return (
-        <Dialog open={open} onClose={onCloseAction} fullWidth maxWidth="sm">
-            <DialogTitle sx={{ fontWeight: 'bold' }}>
+        <Dialog
+            open={open}
+            onClose={onCloseAction}
+            fullWidth
+            maxWidth="sm"
+            PaperProps={{
+                sx: {
+                    borderRadius: '12px',
+                    bgcolor: isDarkMode ? '#1e1e1e' : '#fff',
+                    backgroundImage: 'none'
+                }
+            }}
+        >
+            <DialogTitle sx={{
+                fontWeight: 800,
+                bgcolor: isDarkMode ? '#252525' : '#f8f9fa',
+                borderBottom: '1px solid',
+                borderColor: 'divider',
+                py: 2
+            }}>
                 {user ? t('titles.edit') : t('titles.add')}
             </DialogTitle>
+
             <form id="user-form" onSubmit={handleSubmit(onSubmitHandler)}>
-                <DialogContent dividers>
+                <DialogContent dividers sx={{ p: 3, bgcolor: isDarkMode ? '#1e1e1e' : '#fff' }}>
                     {apiError && <Alert severity="error" sx={{ mb: 2 }}>{apiError}</Alert>}
 
-                    {/* Grid වෙනුවට Box display: grid භාවිතා කරන ලදී */}
                     <Box sx={{
                         display: 'grid',
-                        gap: 2,
+                        gap: 2.5,
                         pt: 1,
                         gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr' }
                     }}>
 
-                        {/* Role Selection - Full width */}
+                        {/* Role Selection */}
                         <Box sx={{ gridColumn: { xs: 'span 1', sm: 'span 2' } }}>
                             <FormControl fullWidth required size="small" error={!!errors.roleId}>
                                 <InputLabel id="role-select-label">{t('fields.role')}</InputLabel>
@@ -213,7 +233,6 @@ export default function UserFormModal({ open, onCloseAction, onSaveAction, user,
                                         render={({ field }) => (
                                             <Select
                                                 {...field}
-                                                // avoid null values
                                                 value={field.value !== null && field.value !== undefined ? field.value : ''}
                                                 labelId="driver-link-label"
                                                 label="Link to Existing Driver"
@@ -224,7 +243,6 @@ export default function UserFormModal({ open, onCloseAction, onSaveAction, user,
                                                     if (numericVal !== null) handleDriverSelect(numericVal);
                                                 }}
                                             >
-                                                {/* if no drivers available without an account */}
                                                 {driversNoAccount.length === 0 ? (
                                                     <MenuItem disabled value="">
                                                         <em>No drivers available without an account</em>
@@ -320,26 +338,59 @@ export default function UserFormModal({ open, onCloseAction, onSaveAction, user,
                             </>
                         )}
 
-                        {/* Status Switch - Full width */}
+                        {/* Status Switch Strip */}
                         <Box sx={{ gridColumn: { xs: 'span 1', sm: 'span 2' } }}>
-                            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', bgcolor: 'grey.50', p: 1, borderRadius: 1 }}>
-                                <Typography variant="body2">{t('fields.status')} <b>{watch('isActive') ? t('status.active') : t('status.inactive')}</b></Typography>
+                            <Box sx={{
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'space-between',
+                                bgcolor: isDarkMode ? alpha('#fff', 0.05) : '#f8f9fa',
+                                p: 1.5,
+                                borderRadius: '10px',
+                                border: '1px solid',
+                                borderColor: 'divider'
+                            }}>
+                                <Typography variant="body2" sx={{ fontWeight: 600 }}>
+                                    {t('fields.status')} : <Box component="span" sx={{ color: watch('isActive') ? 'success.main' : 'error.main' }}>
+                                        {watch('isActive') ? t('status.active') : t('status.inactive')}
+                                    </Box>
+                                </Typography>
                                 <Controller
                                     name="isActive"
                                     control={control}
-                                    render={({ field }) => <Switch {...field} checked={field.value} />}
+                                    render={({ field }) => <Switch {...field} checked={field.value} size="small" color="primary" />}
                                 />
                             </Box>
                         </Box>
                     </Box>
                 </DialogContent>
 
-                <DialogActions sx={{ p: 2, bgcolor: 'grey.50' }}>
-                    <Button onClick={onCloseAction} disabled={isSaving}>{t('common:buttons.cancel')}</Button>
+                <DialogActions sx={{
+                    p: 2.5,
+                    bgcolor: isDarkMode ? '#252525' : '#f8f9fa',
+                    borderTop: '1px solid',
+                    borderColor: 'divider',
+                    justifyContent: 'space-between'
+                }}>
+                    <Button
+                        onClick={onCloseAction}
+                        disabled={isSaving}
+                        variant="outlined"
+                        sx={{ borderRadius: '20px', px: 3, color: theme.palette.text.secondary, borderColor: 'divider' }}
+                    >
+                        {t('common:buttons.cancel')}
+                    </Button>
                     <Button
                         type="submit"
                         variant="contained"
                         disabled={isSaving || !isValid || (isEditMode && !hasFormChanged)}
+                        sx={{
+                            bgcolor: '#a38f6d',
+                            borderRadius: '20px',
+                            px: 4,
+                            fontWeight: 'bold',
+                            '&:hover': { bgcolor: '#8c7a5d' }
+                        }}
                     >
                         {isSaving ? <CircularProgress size={24} color="inherit" /> : t('common:buttons.save')}
                     </Button>

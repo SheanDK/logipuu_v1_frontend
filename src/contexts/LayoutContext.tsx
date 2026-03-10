@@ -5,10 +5,11 @@ import React, { createContext, useContext, useState, useEffect, ReactNode, useMe
 import { PaletteMode } from '@mui/material';
 import { MapSettings, countryMapSettings, DEFAULT_MAP_SETTING_KEY } from '../config/mapConfig';
 
-// --- CORRECTION 1: Add more icon names to the type ---
+// --- TYPES DEFINITION ---
 export type PuulaaniIconType = 'LocationOn' | 'Forest' | 'Room' | 'FmdGood' | 'PinDrop';
-// --- NEW: Define the type for Drop-off icon names ---
 export type DropoffIconType = 'Warehouse' | 'Factory' | 'LocalShipping' | 'Business';
+// NEW: Chip Icon Types
+export type ChipIconType = 'Category' | 'Grain' | 'Hub' | 'Business';
 
 interface LayoutState {
     themeMode: PaletteMode;
@@ -20,6 +21,10 @@ interface LayoutState {
     dropoffIcon: DropoffIconType;
     dropoffIconSize: number;
     otherMarkerIconSize: number;
+    // NEW: Chip Transport States
+    chipIcon: ChipIconType;
+    chipIconSize: number;
+    chipPathOpacity: number;
 }
 
 interface LayoutContextType extends LayoutState {
@@ -33,49 +38,73 @@ interface LayoutContextType extends LayoutState {
     setDropoffIcon: (iconName: DropoffIconType) => void;
     setDropoffIconSize: (size: number) => void;
     setOtherMarkerIconSize: (size: number) => void;
+    // NEW: Setters for Chips
+    setChipIcon: (iconName: ChipIconType) => void;
+    setChipIconSize: (size: number) => void;
+    setChipPathOpacity: (opacity: number) => void;
 }
 
 const LayoutContext = createContext<LayoutContextType | undefined>(undefined);
 
 export const LayoutProvider = ({ children }: { children: ReactNode }) => {
+    // Basic States
     const [themeMode, setThemeMode] = useState<PaletteMode>('light');
     const [navLayout, setNavLayout] = useState<'left' | 'top'>('left');
     const [mobileDrawerOpen, setMobileDrawerOpen] = useState(false);
     const [mapSettingKey, setMapSettingKey] = useState<string>(DEFAULT_MAP_SETTING_KEY);
+
+    // Icon States
     const [puulaaniIcon, setPuulaaniIcon] = useState<PuulaaniIconType>('LocationOn');
     const [puulaaniIconSize, setPuulaaniIconSize] = useState<number>(30);
     const [dropoffIcon, setDropoffIcon] = useState<DropoffIconType>('Warehouse');
     const [dropoffIconSize, setDropoffIconSize] = useState<number>(22);
     const [otherMarkerIconSize, setOtherMarkerIconSize] = useState<number>(22);
 
+    // NEW: Chip Transport States
+    const [chipIcon, setChipIcon] = useState<ChipIconType>('Category');
+    const [chipIconSize, setChipIconSize] = useState<number>(32);
+    const [chipPathOpacity, setChipPathOpacity] = useState<number>(0.5);
 
+    // --- 1. Effect to Load from LocalStorage on Mount ---
     useEffect(() => {
-        const storedTheme = localStorage.getItem('themeMode') as PaletteMode | null;
+        const load = (key: string) => localStorage.getItem(key);
+
+        const storedTheme = load('themeMode') as PaletteMode | null;
         if (storedTheme) setThemeMode(storedTheme);
-        
-        const storedNav = localStorage.getItem('navLayout') as 'left' | 'top' | null;
+
+        const storedNav = load('navLayout') as 'left' | 'top' | null;
         if (storedNav) setNavLayout(storedNav);
 
-        const storedMapKey = localStorage.getItem('mapSettingKey');
+        const storedMapKey = load('mapSettingKey');
         if (storedMapKey) setMapSettingKey(storedMapKey);
 
-        const storedIcon = localStorage.getItem('puulaaniIcon') as PuulaaniIconType | null;
+        const storedIcon = load('puulaaniIcon') as PuulaaniIconType | null;
         if (storedIcon) setPuulaaniIcon(storedIcon);
 
-        const storedIconSize = localStorage.getItem('puulaaniIconSize');
+        const storedIconSize = load('puulaaniIconSize');
         if (storedIconSize) setPuulaaniIconSize(Number(storedIconSize));
 
-        const storedDropoffIcon = localStorage.getItem('dropoffIcon') as DropoffIconType | null;
+        const storedDropoffIcon = load('dropoffIcon') as DropoffIconType | null;
         if (storedDropoffIcon) setDropoffIcon(storedDropoffIcon);
 
-        const storedDropoffIconSize = localStorage.getItem('dropoffIconSize');
+        const storedDropoffIconSize = load('dropoffIconSize');
         if (storedDropoffIconSize) setDropoffIconSize(Number(storedDropoffIconSize));
 
-        const storedOtherMarkerIconSize = localStorage.getItem('otherMarkerIconSize');
+        const storedOtherMarkerIconSize = load('otherMarkerIconSize');
         if (storedOtherMarkerIconSize) setOtherMarkerIconSize(Number(storedOtherMarkerIconSize));
+
+        // NEW: Load Chip Settings
+        const storedChipIcon = load('chipIcon') as ChipIconType | null;
+        if (storedChipIcon) setChipIcon(storedChipIcon);
+
+        const storedChipIconSize = load('chipIconSize');
+        if (storedChipIconSize) setChipIconSize(Number(storedChipIconSize));
+
+        const storedChipPathOpacity = load('chipPathOpacity');
+        if (storedChipPathOpacity) setChipPathOpacity(Number(storedChipPathOpacity));
     }, []);
 
-    // --- Add persistence for all states ---
+    // --- 2. Effects to Persist to LocalStorage ---
     useEffect(() => { localStorage.setItem('themeMode', themeMode); }, [themeMode]);
     useEffect(() => { localStorage.setItem('navLayout', navLayout); }, [navLayout]);
     useEffect(() => { localStorage.setItem('mapSettingKey', mapSettingKey); }, [mapSettingKey]);
@@ -85,16 +114,28 @@ export const LayoutProvider = ({ children }: { children: ReactNode }) => {
     useEffect(() => { localStorage.setItem('dropoffIconSize', String(dropoffIconSize)); }, [dropoffIconSize]);
     useEffect(() => { localStorage.setItem('otherMarkerIconSize', String(otherMarkerIconSize)); }, [otherMarkerIconSize]);
 
+    // NEW: Persist Chip Settings
+    useEffect(() => { localStorage.setItem('chipIcon', chipIcon); }, [chipIcon]);
+    useEffect(() => { localStorage.setItem('chipIconSize', String(chipIconSize)); }, [chipIconSize]);
+    useEffect(() => { localStorage.setItem('chipPathOpacity', String(chipPathOpacity)); }, [chipPathOpacity]);
 
+
+    // --- HANDLER FUNCTIONS ---
     const toggleThemeMode = () => setThemeMode((prev) => (prev === 'light' ? 'dark' : 'light'));
     const toggleNavLayout = () => setNavLayout((prev) => (prev === 'left' ? 'top' : 'left'));
     const toggleMobileDrawer = () => setMobileDrawerOpen((prev) => !prev);
     const setMapCountry = (countryKey: string) => setMapSettingKey(countryKey);
+
     const handleSetPuulaaniIcon = (iconName: PuulaaniIconType) => setPuulaaniIcon(iconName);
     const handleSetPuulaaniIconSize = (size: number) => setPuulaaniIconSize(size);
     const handleSetDropoffIcon = (iconName: DropoffIconType) => setDropoffIcon(iconName);
     const handleSetDropoffIconSize = (size: number) => setDropoffIconSize(size);
     const handleSetOtherMarkerIconSize = (size: number) => setOtherMarkerIconSize(size);
+
+    // NEW: Chip Handlers
+    const handleSetChipIcon = (iconName: ChipIconType) => setChipIcon(iconName);
+    const handleSetChipIconSize = (size: number) => setChipIconSize(size);
+    const handleSetChipPathOpacity = (opacity: number) => setChipPathOpacity(opacity);
 
 
     const mapSettings = useMemo(() => {
@@ -104,27 +145,22 @@ export const LayoutProvider = ({ children }: { children: ReactNode }) => {
     return (
         <LayoutContext.Provider
             value={{
-                themeMode, 
-                navLayout, 
-                mobileDrawerOpen, 
-                mapSettings,
-                puulaaniIcon,
-                puulaaniIconSize,
-                dropoffIcon,
-                dropoffIconSize,
-                otherMarkerIconSize,
+                themeMode, navLayout, mobileDrawerOpen, mapSettings,
+                puulaaniIcon, puulaaniIconSize, dropoffIcon, dropoffIconSize, otherMarkerIconSize,
+                // NEW
+                chipIcon, chipIconSize, chipPathOpacity,
 
-                
+                toggleThemeMode, toggleNavLayout, toggleMobileDrawer,
+                setMobileDrawerOpen, setMapCountry,
                 setPuulaaniIcon: handleSetPuulaaniIcon,
                 setPuulaaniIconSize: handleSetPuulaaniIconSize,
-                toggleThemeMode, 
-                toggleNavLayout, 
-                toggleMobileDrawer, 
-                setMapCountry, 
-                setMobileDrawerOpen,
                 setDropoffIcon: handleSetDropoffIcon,
                 setDropoffIconSize: handleSetDropoffIconSize,
                 setOtherMarkerIconSize: handleSetOtherMarkerIconSize,
+                // NEW Setters
+                setChipIcon: handleSetChipIcon,
+                setChipIconSize: handleSetChipIconSize,
+                setChipPathOpacity: handleSetChipPathOpacity
             }}
         >
             {children}

@@ -158,7 +158,7 @@ export default function UserSettingsPage() {
 
     return (
         // FIX: Removed "mx: auto" to align content to the left
-        <Box sx={{ p: { xs: 2, md: 3 } }}> 
+        <Box sx={{ p: { xs: 2, md: 3 } }}>
             <Typography variant="h4" component="h1" gutterBottom sx={{ mb: 4 }}>
                 {t('title')}
             </Typography>
@@ -169,7 +169,6 @@ export default function UserSettingsPage() {
                 </Alert>
             )}
 
-            {/* FIX: Keep maxWidth for readability, but Stack defaults to left alignment in the parent Box */}
             <Stack spacing={4} sx={{ maxWidth: 800 }}>
                 {/* Profile Details Card */}
                 <Card elevation={2}>

@@ -1,11 +1,12 @@
-//frontend/src/components/chip-order/NewAreaModal.tsx
+// frontend/src/components/chip-order/NewAreaModal.tsx
 'use client';
 
 import React, { useState, useEffect } from 'react';
 import {
     Dialog, DialogTitle, DialogContent, DialogActions,
     Button, TextField, Stack, Box, Typography, Switch,
-    FormControlLabel, Autocomplete, IconButton, InputAdornment, Divider, Paper, Chip
+    FormControlLabel, Autocomplete, IconButton, InputAdornment,
+    Divider, Chip, CircularProgress
 } from '@mui/material';
 import { MapContainer, TileLayer, Marker, useMapEvents, useMap } from 'react-leaflet';
 import L from 'leaflet';
@@ -15,6 +16,7 @@ import MyLocationIcon from '@mui/icons-material/MyLocation';
 import CloudUploadIcon from '@mui/icons-material/CloudUpload';
 
 import * as clientService from '@/services/clientService';
+import apiClient from '@/services/apiClient';
 import { useTranslation } from '@/i18n/useTranslation';
 import type { IBackendClient } from '@/types';
 
@@ -25,33 +27,34 @@ const markerIcon = new L.Icon({
     iconSize: [25, 41],
     iconAnchor: [12, 41]
 });
-
+// Map change view
 function ChangeView({ center }: { center: L.LatLngExpression }) {
     const map = useMap();
     map.setView(center);
     return null;
 }
-
+// Map location marker
 function LocationMarker({ position, setPosition }: any) {
     useMapEvents({
         click(e) { setPosition(e.latlng); },
     });
     return position ? <Marker position={position} icon={markerIcon} /> : null;
 }
-
+// New area modal
 const NewAreaModal = ({ open, onClose, onSave, type }: any) => {
     const { t } = useTranslation(['chip-management']);
     const [isOrigin, setIsOrigin] = useState(type === 'Loading');
     const [customers, setCustomers] = useState<IBackendClient[]>([]);
     const [mapCenter, setMapCenter] = useState<L.LatLngExpression>([62.2426, 25.7473]);
     const [pos, setPos] = useState<L.LatLng | null>(new L.LatLng(62.2426, 25.7473));
+    const [isSearching, setIsSearching] = useState(false);
 
     const [formData, setFormData] = useState({
         name: '',
         address: '',
         instructions: '',
         radius: 500,
-        customer_ids: [] as string[] // Array for multiple customers
+        customer_ids: [] as string[]
     });
 
     useEffect(() => {
@@ -61,22 +64,33 @@ const NewAreaModal = ({ open, onClose, onSave, type }: any) => {
         }
     }, [open, type]);
 
+    // Address Search
     const handleAddressSearch = async () => {
-        if (!formData.address) return;
+        if (!formData.address || isSearching) return;
+
+        setIsSearching(true);
         try {
-            const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(formData.address)}`);
-            const data = await res.json();
-            if (data.length > 0) {
+            const response = await apiClient.get(
+                `/locations/search-address?q=${encodeURIComponent(formData.address)}`
+            );
+
+            const data = response.data;
+            if (data && data.length > 0) {
                 const newPos = new L.LatLng(parseFloat(data[0].lat), parseFloat(data[0].lon));
                 setPos(newPos);
-                setMapCenter([newPos.lat, newPos.lng]);
+                setMapCenter([parseFloat(data[0].lat), parseFloat(data[0].lon)]);
             }
-        } catch (error) { console.error("Search error", error); }
+        } catch (error) {
+            console.error("Geocoding error:", error);
+        } finally {
+            setIsSearching(false);
+        }
     };
 
+    // Save local
     const handleLocalSave = async () => {
         if (!formData.name || !pos || formData.customer_ids.length === 0) {
-            alert(t('modal.fillRequired'));
+            alert(t('modal.fillRequired') || "Please fill all required fields");
             return;
         }
 
@@ -93,7 +107,6 @@ const NewAreaModal = ({ open, onClose, onSave, type }: any) => {
 
     return (
         <Dialog open={open} onClose={onClose} fullWidth maxWidth="lg">
-            {/* FIX: DialogTitle component="div" to avoid h2/h6 error */}
             <DialogTitle component="div" sx={{ fontWeight: 'bold', bgcolor: '#f8f9fa', display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid #eee' }}>
                 <Typography variant="h6" component="span" sx={{ fontWeight: 800 }}>{t('modal.newArea')}</Typography>
                 <FormControlLabel
@@ -104,21 +117,27 @@ const NewAreaModal = ({ open, onClose, onSave, type }: any) => {
 
             <DialogContent dividers>
                 <Box sx={{ display: 'flex', gap: 3, height: '550px' }}>
-
                     {/* LEFT SIDE: FORM */}
                     <Stack spacing={2.5} sx={{ flex: 1, overflowY: 'auto', pr: 1, pt: 1 }}>
-
-                        <TextField label={`${t('modal.titleName')} *`} fullWidth size="small" value={formData.name} onChange={(e) => setFormData({ ...formData, name: e.target.value })} />
+                        <TextField
+                            label={`${t('modal.titleName')} *`}
+                            fullWidth size="small"
+                            value={formData.name}
+                            onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                        />
 
                         <TextField
                             label={t('modal.address')}
                             fullWidth size="small"
                             value={formData.address}
                             onChange={(e) => setFormData({ ...formData, address: e.target.value })}
+                            onKeyPress={(e) => e.key === 'Enter' && handleAddressSearch()}
                             InputProps={{
                                 endAdornment: (
                                     <InputAdornment position="end">
-                                        <IconButton onClick={handleAddressSearch} size="small" color="primary"><SearchIcon /></IconButton>
+                                        <IconButton onClick={handleAddressSearch} size="small" color="primary" disabled={isSearching}>
+                                            {isSearching ? <CircularProgress size={20} /> : <SearchIcon />}
+                                        </IconButton>
                                     </InputAdornment>
                                 )
                             }}
@@ -129,12 +148,11 @@ const NewAreaModal = ({ open, onClose, onSave, type }: any) => {
                                 value={pos ? `${pos.lat.toFixed(5)}, ${pos.lng.toFixed(5)}` : ''}
                                 InputProps={{ startAdornment: <InputAdornment position="start"><MyLocationIcon fontSize="small" /></InputAdornment> }}
                             />
-                            <TextField label={t('modal.radius')} type="number" size="small" sx={{ width: '150px' }} value={formData.radius} onChange={(e) => setFormData({ ...formData, radius: Number(e.target.value) })} />
+                            <TextField label={`${t('modal.radius')} (m)`} type="number" size="small" sx={{ width: '150px' }} value={formData.radius} onChange={(e) => setFormData({ ...formData, radius: Number(e.target.value) })} />
                         </Box>
 
                         <TextField label={t('modal.instructions')} multiline rows={3} fullWidth size="small" value={formData.instructions} onChange={(e) => setFormData({ ...formData, instructions: e.target.value })} />
 
-                        {/* FIX: MULTI-SELECT CUSTOMER DROPDOWN */}
                         <Autocomplete
                             multiple
                             options={customers}
@@ -145,17 +163,12 @@ const NewAreaModal = ({ open, onClose, onSave, type }: any) => {
                                 setFormData({ ...formData, customer_ids: newValue.map(v => String(v.asiakkaanId)) });
                             }}
                             renderInput={(params) => (
-                                <TextField {...params} label={`${t('modal.customerCode')} *`} size="small" placeholder={t('orderModal.noCustomers')} />
+                                <TextField {...params} label={`${t('modal.customerCode')} *`} size="small" />
                             )}
                             renderTags={(tagValue, getTagProps) =>
                                 tagValue.map((option, index) => {
                                     const { key, ...tagProps } = getTagProps({ index });
-                                    return (
-                                        <Chip
-                                            key={key}
-                                            label={option.asiakkaanNimi}
-                                            size="small" />
-                                    )
+                                    return <Chip key={key} label={option.asiakkaanNimi} size="small" {...tagProps} />;
                                 })
                             }
                         />
@@ -181,20 +194,20 @@ const NewAreaModal = ({ open, onClose, onSave, type }: any) => {
                             <LocationMarker position={pos} setPosition={setPos} />
                         </MapContainer>
                         <Box sx={{ position: 'absolute', bottom: 10, left: 10, zIndex: 1000, bgcolor: 'rgba(255,255,255,0.9)', p: 1, borderRadius: '4px', border: '1px solid #ccc' }}>
-                            <Typography variant="caption" fontWeight="bold">{t('modal.clickMap')}</Typography>
+                            <Typography variant="caption" fontWeight="bold">{t('modal.clickMap') || "Click map to set precise location"}</Typography>
                         </Box>
                     </Box>
                 </Box>
             </DialogContent>
 
             <DialogActions sx={{ p: 2, bgcolor: '#f8f9fa' }}>
-                <Button onClick={onClose} color="inherit" sx={{ fontWeight: 'bold' }}>{t('modal.cancel')}</Button>
+                <Button onClick={onClose} color="inherit" sx={{ fontWeight: 'bold' }}>{t('modal.cancel') || "CANCEL"}</Button>
                 <Button
                     variant="contained"
                     onClick={handleLocalSave}
                     sx={{ bgcolor: '#a38f6d', '&:hover': { bgcolor: '#8c7a5d' }, borderRadius: '25px', px: 4, fontWeight: 'bold' }}
                 >
-                    {t('modal.saveArea')}
+                    {t('modal.saveArea') || "SAVE AREA"}
                 </Button>
             </DialogActions>
         </Dialog>

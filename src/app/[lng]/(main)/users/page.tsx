@@ -146,28 +146,28 @@ export default function UserManagementPage() {
             setIsSaving(false);
         }
     };
-
-    // --- UPDATED COLUMNS DEFINITION ---
-     const columns: GridColDef<IUser>[] = useMemo(() => {
-        
+    const columns: GridColDef<IUser>[] = useMemo(() => {
         const baseColumns: GridColDef<IUser>[] = [
-            { 
-                field: 'fullName', 
-                headerName: t('columns.fullName'), 
-                width: 250 
+            {
+                field: 'fullName',
+                headerName: t('columns.fullName'),
+                width: 250
             },
-            { 
-                field: 'username', 
-                headerName: t('columns.username'), 
-                width: 150 
+            {
+                field: 'username',
+                headerName: t('columns.username'),
+                width: 150
             },
             {
                 field: 'roles',
                 headerName: t('columns.role'),
-                width: 200, 
-                renderCell: ({ value }) => {
-                    const rolesArray: string[] = Array.isArray(value) ? value : [];
-                    const rawRole = rolesArray.length > 0 ? rolesArray[0] : 'N/A';
+                width: 200,
+                valueGetter: (_value, row: IUser) => {
+                    const roles = row?.roles;
+                    return (Array.isArray(roles) && roles.length > 0) ? roles[0] : '';
+                },
+                renderCell: (params) => {
+                    const rawRole = params.value || 'N/A';
                     const key = roleKeyOf(rawRole);
 
                     return (
@@ -189,53 +189,53 @@ export default function UserManagementPage() {
                     );
                 },
             },
-            { 
-                field: 'isActive', 
-                headerName: t('columns.status'), 
-                width: 120, 
-                type: 'boolean', 
+            {
+                field: 'isActive',
+                headerName: t('columns.status'),
+                width: 120,
+                type: 'boolean',
                 renderCell: (params) => (
-                    <Chip 
-                        icon={params.value ? <CheckCircleIcon /> : <CancelIcon />} 
-                        label={params.value ? t('status.active') : t('status.inactive')} 
-                        color={params.value ? 'success' : 'default'} 
-                        size="small" 
-                        variant="outlined" 
+                    <Chip
+                        icon={params.value ? <CheckCircleIcon /> : <CancelIcon />}
+                        label={params.value ? t('status.active') : t('status.inactive')}
+                        color={params.value ? 'success' : 'default'}
+                        size="small"
+                        variant="outlined"
                     />
-                ) 
+                )
             },
         ];
 
-       
+
         if (canEdit || canDelete) {
             baseColumns.push({
-                field: 'actions', 
-                type: 'actions', 
-                headerName: t('columns.actions'), 
+                field: 'actions',
+                type: 'actions',
+                headerName: t('columns.actions'),
                 width: 100,
                 getActions: ({ row }) => {
                     const isTargetSuperUser = row.roles.includes('Superuser');
                     const canPerformAction = !isTargetSuperUser || isCurrentUserSuperUser;
                     const actions = [];
-                    
-                    
+
+
                     if (canEdit && canPerformAction) {
                         actions.push(
-                            <GridActionsCellItem 
-                                icon={<EditIcon />} 
-                                label={t('actions.edit')} 
-                                onClick={() => handleOpenModalForEdit(row)} 
+                            <GridActionsCellItem
+                                icon={<EditIcon />}
+                                label={t('actions.edit')}
+                                onClick={() => handleOpenModalForEdit(row)}
                             />
                         );
                     }
-                    
-                    
+
+
                     if (canDelete && canPerformAction) {
                         actions.push(
-                            <GridActionsCellItem 
-                                icon={<DeleteIcon color="error" />} 
-                                label={t('actions.delete')} 
-                                onClick={() => handleDeleteClick(row)} 
+                            <GridActionsCellItem
+                                icon={<DeleteIcon color="error" />}
+                                label={t('actions.delete')}
+                                onClick={() => handleDeleteClick(row)}
                             />
                         );
                     }
@@ -260,13 +260,13 @@ export default function UserManagementPage() {
             {feedback && <Alert severity={feedback.type} onClose={() => setFeedback(null)} sx={{ mb: 2 }}>{feedback.message}</Alert>}
 
             <Box sx={{ height: `calc(100% - ${feedback ? '112px' : '56px'})`, width: '100%' }}>
-                <DataGrid 
-                    rows={users} 
-                    columns={columns} 
-                    getRowId={(row) => row.id} 
-                    loading={isLoading} 
-                    disableRowSelectionOnClick 
-                    slots={{ toolbar: GridToolbar }} 
+                <DataGrid
+                    rows={users}
+                    columns={columns}
+                    getRowId={(row) => row.id}
+                    loading={isLoading}
+                    disableRowSelectionOnClick
+                    slots={{ toolbar: GridToolbar }}
                     // --- Header Styling (Bold & Uppercase) ---
                     sx={{
                         '& .MuiDataGrid-columnHeaderTitle': {

@@ -3,7 +3,8 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import chipService from '@/services/chipService';
+import chipService from '@/services/chipPlanningService';
+import chipOrderService from '@/services/chipOrderService';
 import * as puulaaniService from '@/services/timberStackService';
 import * as unloadingSiteService from '@/services/unloadingSiteService';
 import {
@@ -12,6 +13,7 @@ import {
 } from '@mui/material';
 import { useTranslation } from '@/i18n/useTranslation';
 
+// Schedule Load Modal Props
 interface ScheduleLoadModalProps {
     open: boolean;
     onClose: () => void;
@@ -21,6 +23,7 @@ interface ScheduleLoadModalProps {
     vehicleName: string;
 }
 
+// Schedule Load Modal Component
 const ScheduleLoadModal: React.FC<ScheduleLoadModalProps> = ({ open, onClose, onSuccess, programId, selectedDate, vehicleName }) => {
     const { t } = useTranslation(['chip-management']);
     const [orders, setOrders] = useState<any[]>([]);
@@ -29,9 +32,9 @@ const ScheduleLoadModal: React.FC<ScheduleLoadModalProps> = ({ open, onClose, on
     const [isFetching, setIsFetching] = useState(false);
     const [isSaving, setIsSaving] = useState(false);
 
-    // FIX: Initial state (Empty string)
     const [formData, setFormData] = useState({
         order_id: '',
+        title_id: '',
         lahto_paikka: '',
         purku_paikka: '',
         planned_m3: 45,
@@ -42,6 +45,7 @@ const ScheduleLoadModal: React.FC<ScheduleLoadModalProps> = ({ open, onClose, on
         if (!open) {
             setFormData({
                 order_id: '',
+                title_id: '',
                 lahto_paikka: '',
                 purku_paikka: '',
                 planned_m3: 45,
@@ -51,7 +55,7 @@ const ScheduleLoadModal: React.FC<ScheduleLoadModalProps> = ({ open, onClose, on
                 setIsFetching(true);
                 try {
                     const [activeOrders, p_laani, p_sites] = await Promise.all([
-                        chipService.getActiveOrders(),
+                        chipOrderService.getActiveOrders(),
                         puulaaniService.fetchAllTimberStacks({ status: 'all', clientId: '', vehicleId: '', markerTypes: [] }),
                         unloadingSiteService.fetchAllDropoffLocations()
                     ]);
@@ -68,6 +72,7 @@ const ScheduleLoadModal: React.FC<ScheduleLoadModalProps> = ({ open, onClose, on
         }
     }, [open]);
 
+    // Save schedule
     const handleSave = async () => {
         if (!formData.order_id || !formData.lahto_paikka || !formData.purku_paikka) {
             alert(t('chip-management:planning.scheduleModal.fillAll'));
@@ -76,9 +81,10 @@ const ScheduleLoadModal: React.FC<ScheduleLoadModalProps> = ({ open, onClose, on
 
         setIsSaving(true);
         try {
-            await chipService.scheduleLoad({
-                program_id: Number(programId),
+            await chipOrderService.scheduleLoad({
+                kalusto_nro: Number(programId),
                 order_id: Number(formData.order_id),
+                title_id: Number(formData.title_id),
                 pvm: selectedDate,
                 lahto_paikka: Number(formData.lahto_paikka),
                 purku_paikka: Number(formData.purku_paikka),
@@ -115,11 +121,19 @@ const ScheduleLoadModal: React.FC<ScheduleLoadModalProps> = ({ open, onClose, on
                             label={t('chip-management:planning.scheduleModal.selectOrder')}
                             fullWidth
                             value={formData.order_id || ''}
-                            onChange={(e) => setFormData({ ...formData, order_id: e.target.value })}
+                            onChange={(e) => {
+                                const orderId = e.target.value;
+                                const selectedOrder = orders.find(o => o.orderId === orderId);
+                                setFormData({
+                                    ...formData,
+                                    order_id: orderId,
+                                    title_id: selectedOrder?.titleId || ''
+                                });
+                            }}
                         >
                             {orders.map(o => (
-                                <MenuItem key={o.order_id} value={o.order_id}>
-                                    {o.asiakkaan_nimi} - {o.tuote_tyyppi}
+                                <MenuItem key={o.orderId} value={o.orderId}>
+                                    {o.customerName} - {o.productType}
                                 </MenuItem>
                             ))}
                         </TextField>

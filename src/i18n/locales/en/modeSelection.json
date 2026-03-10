@@ -12,6 +12,11 @@
             "title": "Consignments",
             "subtitle": "(Rahtikirja)",
             "aria": "Select consignments mode"
+        },
+        "chip": {
+            "title": "Chip Loads",
+            "subtitle": "(Chip Transport)",
+            "aria": "Select chip loads mode"
         }
     }
 }

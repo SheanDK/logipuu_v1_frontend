@@ -256,6 +256,7 @@ export interface IVehicleBackendResponse {
     edKatsastus: string;
     katsastusAik: string;
     aktiivinen: boolean;
+    planning_group?: string | null;
 }
 
 export interface IVehicle {
@@ -264,6 +265,7 @@ export interface IVehicle {
     previousInspectionDate: string;
     nextInspectionDate: string;
     isActive: boolean;
+    planning_group?: string | null;
 }
 
 export interface IVehicleGridRow extends IVehicle {
@@ -824,7 +826,7 @@ export interface PuulaaniFormData {
 // =============================================================================
 // SECTION 4: LOCATION, MAP & MISC TYPES
 // =============================================================================
-export type MarkerType = 'Puulaani' | 'Purkupaikka' | 'Muu merkki';
+export type MarkerType = 'Puulaani' | 'Purkupaikka' | 'Muu merkki' | 'Chip transport';
 export interface IMapDropoffLocation {
     id: number;
     clientId: number | null;
@@ -951,7 +953,7 @@ export interface IMapFilterState {
     status: 'all' | 'active';
     clientId: string | null;
     vehicleId: string | null;
-    markerTypes: ('puulaani' | 'purkupaikka')[];
+    markerTypes: ('puulaani' | 'purkupaikka' | 'chip-transport')[];
 }
 
 
@@ -1056,4 +1058,37 @@ export interface IActiveTripListItem {
     vehicleRegNo: string | null;
     status: string;
     progress: number;
+}
+
+// =============================================================================
+// SECTION 7: CHIP TRANSPORT MANAGEMENT TYPES
+// =============================================================================
+
+export interface IChipTitleFormData {
+    title_id: string;
+    title_number: string,
+    customer_id: string;
+    loading_point_id: string;
+    unloading_point_id: string;
+    product_number: string;
+    title_name: string;
+    abbreviation: string;
+    invoicing_basis: string;
+    driver_instructions: string;
+    req_pcs: boolean;
+    req_m3: boolean;
+    req_ton: boolean;
+    req_hr: boolean;
+    req_waiting: boolean;
+    req_km: boolean;
+    req_details: boolean;
+    req_details_info: string;
+    is_active: boolean;
+    created_at: string;
+
+}
+
+export interface DayLabel {
+    key: string;
+    name: string;
 }

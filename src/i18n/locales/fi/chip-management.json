@@ -1,9 +1,10 @@
 {
-    "title": "Nimikkeet (Chip Titles)",
+    "title": "Nimikkeet",
     "subtitle": "Hallitse hake-logistiikan master-nimikkeitä",
     "newItem": "UUSI NIMIKE",
     "searchPlaceholder": "Hae nimellä tai asiakkaalla...",
     "showInactive": "Näytä passiiviset nimikkeet",
+    "manageColumns": "Sarakkeiden hallinta",
     "days": {
         "mon": "MA",
         "tue": "TI",
@@ -23,8 +24,8 @@
     "table": {
         "id": "ID",
         "customer": "Asiakas",
-        "loading": "Lastaus (Lastaus)",
-        "demolition": "Purku (Purku)",
+        "loading": "Lastaus",
+        "demolition": "Purku",
         "product": "Tuote",
         "titleName": "Nimikkeen nimi",
         "reqInfo": "Pyydetyt tiedot"
@@ -34,8 +35,8 @@
         "editTitle": "Muokkaa nimikettä",
         "summaryTitle": "Nimikkeen yhteenveto ja vahvistus",
         "titleName": "Nimikkeen nimi",
-        "abbr": "Lyhenne",
-        "active": "Aktiivinen",
+        "abbr": "abbreviation",
+        "active": "Actiivinen",
         "customer": "Asiakas",
         "product": "Tuote",
         "loadingPoint": "Lastauspiste",
@@ -45,7 +46,18 @@
         "instructions": "Ohjeet kuljettajalle",
         "instructionsTitle": "OHJEET",
         "noInstructions": "Ei ohjeita",
-        "invoicingBasis": "Laskutusperuste",
+        "requestedInfoHeader": "KULJETTAJALTA PYYDETTYTIEDOT",
+        "requestedDataSummary": "KULJETTAJALTA PYYDETTYTIEDOT",
+        "furtherInfo": "Lisätiedot",
+        "notRequested": "Ei pyydetty",
+        "taaraBr": "Taara/Br",
+        "lfSuorite": "LF suorite/VOT 2221",
+        "loadDetails": "Kuorman tiedot",
+        "tons": "Tonnit",
+        "hours": "Tunnit",
+        "mileage": "Kilometrit",
+        "invoicingBasis": "invoicing_basis",
+        "detailsLabel": "Tiedot",
         "basis": {
             "tons": "Tonnit",
             "m3": "M3",
@@ -76,11 +88,41 @@
         "tonsFull": "Tonnit (TON)",
         "hoursFull": "Tunnit (H)",
         "waiting": "Odotus (ODOTUS)",
-        "mileageFull": "Kilometrit (KM)"
+        "mileageFull": "Kilometrit (KM)",
+        "typeInstructionsPlaceholder": "Kirjoita kuljettajalle annettavat ohjeet tähän...",
+        "infoSuggestions": [
+            "LF suoritenumero:",
+            "VOT-NUMERO:",
+            "Logforce-suoritenumero:",
+            "Mikä kuorma jäi noutamatta?:",
+            "Käsikirjan numero: / M-vaaka kuittinumero:",
+            "Rahtikirjan numero:",
+            "Rahtinumero ja kokonaisodotusaika",
+            "Jakelulistan numero:",
+            "Rahtinumero ja lastausaika:",
+            "Vot: / Forest hub -suorite",
+            "Työseloste",
+            "ei lisätietoja saatavilla",
+            "Punnituskuittinumero:",
+            "Vaakapeitteen numero:",
+            "Manuaalinen nro;",
+            "Logforcen suorite:",
+            "Paistopuun kuittinumero:",
+            "VOT-numero / LF-suorite:",
+            "manuaalinen numero / LF-suorite;",
+            "Rahtinumero: / pelto vai laitos?",
+            "Rahtinumero: / kilometrit",
+            "Lyhyesti mitä autolle/vaunulle tehtiin.",
+            "Työseloste, työtunnit:",
+            "Työseloste, lopetus- ja aloitusaika",
+            "Riitan lisätietojen kuvaus",
+            "Rahtikirja"
+        ]
     },
     "loadDetails": {
         "title": "Kuorman tiedot",
         "instructionsLabel": "Kuljettajan ohjeet",
+        "vehicleAndItem": "Ajoneuvo ja nimike",
         "instructionsPlaceholder": "Kirjoita kuljettajalle annettavat ohjeet tähän...",
         "plannedVolume": "Suunniteltu tilavuus (m³)",
         "buttons": {
@@ -132,18 +174,20 @@
         },
         "confirms": {
             "deleteLoad": "Poistetaanko tämä kuorma?",
-            "sendToDriver": "Lähetä kuormat kuljettajalle?"
+            "sendToDriver": "Lähetä kuormat kuljettajalle?",
+            "deleteLoadTitle": "Poista kuorma",
+            "deleteLoadMessage": "Oletko varma, että haluat poistaa tämän varauksen suunnitelmasta?"
         },
-        "sidebar": {
-            "tabs": {
-                "subs": "TILAUKSET",
-                "titles": "NIMIKKEET"
-            },
-            "filterCustomer": "Suodata asiakas",
-            "search": "Hae...",
-            "activeOrder": "Aktiivinen tilaus",
-            "na": "N/A"
+        "tabs": {
+            "subs": "TILAUKSET",
+            "titles": "NIMIKKEET"
         },
+        "filterCustomer": "Suodata asiakas",
+        "search": "Hae...",
+        "activeOrder": "product_type_name tilaus",
+        "na": "N/A",
+        "total": "Yhteensä",
+        "remaining": "Jäljellä",
         "assignTitleModal": {
             "title": "Määritä nimike ajoneuvolle",
             "selectTitle": "Valitse nimike",
@@ -161,6 +205,32 @@
             "saveGig": "TALLENNA",
             "fillAll": "Täytä kaikki pakolliset kentät.",
             "error500": "Sisäinen palvelinvirhe (500). Tarkista, että tunnukset ovat voimassa."
+        },
+        "tooltip": {
+            "auto": "Auto",
+            "loadId": "Kuorma ID",
+            "req": "PYYD.",
+            "actual": "TOT.",
+            "tons": "Tonnit (TN)",
+            "cubes": "Kuutiot (M3)",
+            "pieces": "Kpl (KPL)",
+            "instructions": "OHJEET",
+            "noNotes": "Ei erityisiä ohjeita.",
+            "yes": "KYLLÄ"
+        },
+        "common": {
+            "buttons": {
+                "refresh": "Päivitä",
+                "vehicleGrouping": "Ajoneuvoryhmittely"
+            }
+        },
+        "dispatchDialog": {
+            "title": "Lähetä kuormat kuljettajalle",
+            "message": "Oletko varma, että haluat lähettää nämä kuormamääritykset kuljettajalle?"
+        },
+        "deleteDialog": {
+            "title": "Poista kuorma",
+            "message": "Oletko varma, että haluat poistaa tämän kuorman?"
         }
     },
     "orderModal": {
@@ -186,9 +256,10 @@
         "targetLoads": "Kuormatavoite (kpl)",
         "productType": "Tuotetyyppi",
         "productPlaceholder": "esim. Sahanpuru",
+        "weeklyDistribution": "Viikoittainen jakelu",
         "tabs": {
             "monFri": "MA-PE",
-            "maSu": "MA-SU",
+            "laSu": "MA-SU",
             "free": "VAPAA"
         },
         "days": {
@@ -221,10 +292,11 @@
             "item": "Nimike",
             "validityPeriod": "Voimassaoloaika",
             "targetQty": "Tavoitemäärä",
-            "status": "Tila"
+            "status": "Tila",
+            "furtherInfo": "Lisätietoja"
         },
         "status": {
-            "active": "Aktiivinen"
+            "active": "aktiivinen"
         }
     },
     "notifications": {
@@ -237,5 +309,19 @@
         "titleError": "Virhe tallennettaessa nimikettä",
         "areaCreateSuccess": "Uusi alue luotu onnistuneesti",
         "areaCreateError": "Uuden alueen tallennus epäonnistui"
+    },
+    "vehicleGrouping": {
+        "title": "Ajoneuvoryhmittely",
+        "subtitle": "Hallitse ajoneuvoryhmiä",
+        "newGroup": "Uusi",
+        "noResults": "Ajoneuvoryhmiä ei löytynyt.",
+        "buttons": {
+            "done": "VALMISTA",
+            "cancel": "PERUUTA",
+            "add": "LISÄÄ"
+        }
+    },
+    "pagination": {
+        "rowsPerPage": "Rivejä sivulla:"
     }
 }

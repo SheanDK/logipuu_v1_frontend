@@ -18,9 +18,14 @@ import FactoryIcon from '@mui/icons-material/Factory';
 import LocalShippingIcon from '@mui/icons-material/LocalShipping';
 import BusinessIcon from '@mui/icons-material/Business';
 import HelpOutlineIcon from '@mui/icons-material/HelpOutline';
+import CategoryIcon from '@mui/icons-material/Category';
+import GrainIcon from '@mui/icons-material/Grain';
+import HubIcon from '@mui/icons-material/Hub';
+
+
 
 import { useAuth } from '../../../../../contexts/AuthContext';
-import { useLayout, PuulaaniIconType, DropoffIconType } from '../../../../../contexts/LayoutContext';
+import { useLayout, PuulaaniIconType, DropoffIconType, ChipIconType } from '../../../../../contexts/LayoutContext';
 import { countryMapSettings } from '../../../../../config/mapConfig';
 import RolesAndPermissionsTab from '../../../../../components/settings/RolesAndPermissionsTab';
 
@@ -58,6 +63,17 @@ const getDropoffIconComponent = (iconName: DropoffIconType) => {
     return icons[iconName] || WarehouseIcon;
 };
 
+const getChipIconComponent = (iconName: ChipIconType) => {
+    const icons: { [key in ChipIconType]: React.ElementType } = {
+        Category: CategoryIcon,
+        Grain: GrainIcon,
+        Hub: HubIcon,
+        Business: BusinessIcon,
+    };
+    return icons[iconName] || CategoryIcon;
+};
+
+
 const SettingCard = ({ title, subheader, children }: { title: string, subheader: string, children: React.ReactNode }) => (
     <Card elevation={2} sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
         <CardHeader title={title} subheader={subheader} />
@@ -70,6 +86,7 @@ const SettingCard = ({ title, subheader, children }: { title: string, subheader:
 export default function AppSettingsPage() {
     const { user, isLoading: isAuthLoading } = useAuth();
     const { t } = useTranslation('settings');
+
     // --- CORRECTION: Destructure all required state and functions from useLayout ---
     const {
         mapSettings, setMapCountry,
@@ -77,8 +94,13 @@ export default function AppSettingsPage() {
         puulaaniIconSize, setPuulaaniIconSize,
         dropoffIcon, setDropoffIcon,
         dropoffIconSize, setDropoffIconSize, // <<< These were missing
-        otherMarkerIconSize, setOtherMarkerIconSize
+        otherMarkerIconSize, setOtherMarkerIconSize,
+        chipIcon, setChipIcon,
+        chipIconSize, setChipIconSize,
+        chipPathOpacity, setChipPathOpacity
     } = useLayout();
+
+    const ChipPreviewIconComponent = getChipIconComponent(chipIcon);
 
     const [tabIndex, setTabIndex] = useState(0);
     const [feedback, setFeedback] = useState<{ type: AlertColor; message: string } | null>(null);
@@ -117,6 +139,11 @@ export default function AppSettingsPage() {
         setOtherMarkerIconSize(newValue as number);
     };
 
+    const handleChipIconChange = (event: React.MouseEvent<HTMLElement>, newIcon: ChipIconType | null) => {
+        if (newIcon) setChipIcon(newIcon);
+    };
+
+
     useEffect(() => {
         if (feedback) {
             const timer = setTimeout(() => setFeedback(null), 5000);
@@ -130,6 +157,7 @@ export default function AppSettingsPage() {
 
     const PuulaaniPreviewIcon = getPuulaaniIconComponent(puulaaniIcon);
     const DropoffPreviewIcon = getDropoffIconComponent(dropoffIcon);
+    const ChipPreviewIcon = getChipIconComponent(chipIcon);
 
     return (
         <Paper
@@ -177,20 +205,20 @@ export default function AppSettingsPage() {
                                 <Box flexGrow={1}>
                                     <Typography variant="subtitle2" gutterBottom>{t('puulaani.selectIcon')}</Typography>
                                     <ToggleButtonGroup value={puulaaniIcon} exclusive onChange={handlePuulaaniIconChange} aria-label={t('puulaani.aria.group')}>
-                                            <ToggleButton value="LocationOn" aria-label="location pin"><Tooltip title={t('puulaani.icons.locationOn')}><LocationOnIcon /></Tooltip></ToggleButton>
-                                            <ToggleButton value="Forest" aria-label="forest"><Tooltip title={t('puulaani.icons.forest')}><ForestIcon /></Tooltip></ToggleButton>
-                                            <ToggleButton value="Room" aria-label="pin"><Tooltip title={t('puulaani.icons.room')}><RoomIcon /></Tooltip></ToggleButton>
-                                            <ToggleButton value="FmdGood" aria-label="good pin"><Tooltip title={t('puulaani.icons.fmdGood')}><FmdGoodIcon /></Tooltip></ToggleButton>
-                                            <ToggleButton value="PinDrop" aria-label="drop pin"><Tooltip title={t('puulaani.icons.pinDrop')}><PinDropIcon /></Tooltip></ToggleButton>
-                                        </ToggleButtonGroup>
+                                        <ToggleButton value="LocationOn" aria-label="location pin"><Tooltip title={t('puulaani.icons.locationOn')}><LocationOnIcon /></Tooltip></ToggleButton>
+                                        <ToggleButton value="Forest" aria-label="forest"><Tooltip title={t('puulaani.icons.forest')}><ForestIcon /></Tooltip></ToggleButton>
+                                        <ToggleButton value="Room" aria-label="pin"><Tooltip title={t('puulaani.icons.room')}><RoomIcon /></Tooltip></ToggleButton>
+                                        <ToggleButton value="FmdGood" aria-label="good pin"><Tooltip title={t('puulaani.icons.fmdGood')}><FmdGoodIcon /></Tooltip></ToggleButton>
+                                        <ToggleButton value="PinDrop" aria-label="drop pin"><Tooltip title={t('puulaani.icons.pinDrop')}><PinDropIcon /></Tooltip></ToggleButton>
+                                    </ToggleButtonGroup>
                                     <Typography variant="subtitle2" gutterBottom sx={{ mt: 2.5 }}>{t('puulaani.iconSize')}</Typography>
                                     <Slider value={puulaaniIconSize} onChange={handlePuulaaniIconSizeChange} aria-label={t('puulaani.aria.sizeSlider')} valueLabelDisplay="auto" step={2} marks min={28} max={50} />
                                 </Box>
                             </Stack>
                         </SettingCard>
-                        
+
                         <SettingCard title={t('dropoff.title')} subheader={t('dropoff.subheader')}>
-                             <Stack direction="row" spacing={3} alignItems="center" sx={{ flexGrow: 1 }}>
+                            <Stack direction="row" spacing={3} alignItems="center" sx={{ flexGrow: 1 }}>
                                 <Box textAlign="center" sx={{ p: 2, borderRight: '1px solid', borderColor: 'divider' }}>
                                     <Typography variant="subtitle2" gutterBottom>{t('dropoff.iconPreview')}</Typography>
                                     <DropoffPreviewIcon sx={{ fontSize: `${dropoffIconSize}px`, color: 'text.secondary', mt: 1 }} />
@@ -198,11 +226,11 @@ export default function AppSettingsPage() {
                                 <Box flexGrow={1}>
                                     <Typography variant="subtitle2" gutterBottom>{t('dropoff.selectIcon')}</Typography>
                                     <ToggleButtonGroup value={dropoffIcon} exclusive onChange={handleDropoffIconChange} aria-label={t('dropoff.aria.group')}>
-                                            <ToggleButton value="Warehouse" aria-label="warehouse"><Tooltip title={t('dropoff.icons.warehouse')}><WarehouseIcon /></Tooltip></ToggleButton>
-                                            <ToggleButton value="Factory" aria-label="factory"><Tooltip title={t('dropoff.icons.factory')}><FactoryIcon /></Tooltip></ToggleButton>
-                                            <ToggleButton value="LocalShipping" aria-label="shipping truck"><Tooltip title={t('dropoff.icons.localShipping')}><LocalShippingIcon /></Tooltip></ToggleButton>
-                                            <ToggleButton value="Business" aria-label="business"><Tooltip title={t('dropoff.icons.business')}><BusinessIcon /></Tooltip></ToggleButton>
-                                        </ToggleButtonGroup>
+                                        <ToggleButton value="Warehouse" aria-label="warehouse"><Tooltip title={t('dropoff.icons.warehouse')}><WarehouseIcon /></Tooltip></ToggleButton>
+                                        <ToggleButton value="Factory" aria-label="factory"><Tooltip title={t('dropoff.icons.factory')}><FactoryIcon /></Tooltip></ToggleButton>
+                                        <ToggleButton value="LocalShipping" aria-label="shipping truck"><Tooltip title={t('dropoff.icons.localShipping')}><LocalShippingIcon /></Tooltip></ToggleButton>
+                                        <ToggleButton value="Business" aria-label="business"><Tooltip title={t('dropoff.icons.business')}><BusinessIcon /></Tooltip></ToggleButton>
+                                    </ToggleButtonGroup>
                                     <Typography variant="subtitle2" gutterBottom sx={{ mt: 2.5 }}>{t('dropoff.iconSize')}</Typography>
                                     <Slider value={dropoffIconSize} onChange={handleDropoffIconSizeChange} aria-label={t('dropoff.aria.sizeSlider')} valueLabelDisplay="auto" step={2} marks min={26} max={50} />
                                 </Box>
@@ -210,37 +238,107 @@ export default function AppSettingsPage() {
                         </SettingCard>
 
                         {/* --- ROW 2 --- */}
-                         <SettingCard 
-                            title={t('otherMarker.title')} 
+                        <SettingCard
+                            title={t('otherMarker.title')}
                             subheader={t('otherMarker.subheader')}
                         >
-                             <Stack direction="row" spacing={3} alignItems="center" sx={{ flexGrow: 1 }}>
+                            <Stack direction="row" spacing={3} alignItems="center" sx={{ flexGrow: 1 }}>
                                 <Box textAlign="center" sx={{ p: 2, borderRight: '1px solid', borderColor: 'divider' }}>
                                     <Typography variant="subtitle2" gutterBottom>
                                         {t('otherMarker.iconPreview')}
                                     </Typography>
-                                    <HelpOutlineIcon sx={{ 
-                                        fontSize: `${otherMarkerIconSize}px`, 
-                                        color: 'text.secondary', mt: 1 
+                                    <HelpOutlineIcon sx={{
+                                        fontSize: `${otherMarkerIconSize}px`,
+                                        color: 'text.secondary', mt: 1
                                     }} />
                                 </Box>
                                 <Box flexGrow={1}>
                                     <Typography variant="subtitle2" gutterBottom>
                                         {t('otherMarker.iconSize')}
                                     </Typography>
-                                    <Slider 
-                                        value={otherMarkerIconSize} 
-                                        onChange={handleOtherMarkerIconSizeChange} 
-                                        aria-label={t('otherMarker.aria.sizeSlider')} 
-                                        valueLabelDisplay="auto" 
-                                        step={2} 
-                                        marks 
-                                        min={22} 
-                                        max={48} 
+                                    <Slider
+                                        value={otherMarkerIconSize}
+                                        onChange={handleOtherMarkerIconSizeChange}
+                                        aria-label={t('otherMarker.aria.sizeSlider')}
+                                        valueLabelDisplay="auto"
+                                        step={2}
+                                        marks
+                                        min={22}
+                                        max={48}
                                     />
                                 </Box>
                             </Stack>
                         </SettingCard>
+
+                        <SettingCard title="Chip Marker & Path" subheader="Configure Wood Chip transport visuals">
+                            <Stack direction="row" spacing={3} alignItems="center" sx={{ flexGrow: 1 }}>
+
+                                <Box textAlign="center" sx={{ p: 2, borderRight: '1px solid', borderColor: 'divider', minWidth: '120px' }}>
+                                    <Typography variant="caption" sx={{ fontWeight: 'bold', display: 'block', mb: 2 }}>
+                                        PREVIEW
+                                    </Typography>
+                                    <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '80px' }}>
+                                        <Box sx={{
+                                            position: 'relative',
+                                            bgcolor: '#a38f6d',
+                                            width: `${chipIconSize}px`,
+                                            height: `${chipIconSize}px`,
+                                            borderRadius: '50% 50% 0 50%',
+                                            transform: 'rotate(45deg)',
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            justifyContent: 'center',
+                                            border: '2px solid white',
+                                            boxShadow: '0 4px 10px rgba(0,0,0,0.2)',
+                                        }}>
+                                            <Box sx={{ transform: 'rotate(-45deg)', display: 'flex', color: 'white' }}>
+                                                <ChipPreviewIconComponent sx={{ fontSize: `${chipIconSize * 0.65}px` }} />
+                                            </Box>
+                                        </Box>
+                                    </Box>
+                                </Box>
+
+                                {/* 2. CONTROLS */}
+                                <Box flexGrow={1}>
+                                    <Typography variant="caption" sx={{ fontWeight: 800, color: 'text.secondary', display: 'block', mb: 1 }}>
+                                        SELECT ICON TYPE
+                                    </Typography>
+                                    <ToggleButtonGroup
+                                        value={chipIcon}
+                                        exclusive
+                                        onChange={handleChipIconChange}
+                                        size="small"
+                                        sx={{ mb: 2 }}
+                                    >
+                                        <ToggleButton value="Category"><Tooltip title="General"><CategoryIcon /></Tooltip></ToggleButton>
+                                        <ToggleButton value="Grain"><Tooltip title="Grain/Bio"><GrainIcon /></Tooltip></ToggleButton>
+                                        <ToggleButton value="Hub"><Tooltip title="Hub/Station"><HubIcon /></Tooltip></ToggleButton>
+                                        <ToggleButton value="Business"><Tooltip title="Plant/Factory"><BusinessIcon /></Tooltip></ToggleButton>
+                                    </ToggleButtonGroup>
+
+                                    <Typography variant="caption" sx={{ fontWeight: 800, color: 'text.secondary', display: 'block', mb: 0.5 }}>
+                                        ICON SIZE: {chipIconSize}px
+                                    </Typography>
+                                    <Slider
+                                        value={chipIconSize}
+                                        onChange={(_, v) => setChipIconSize(v as number)}
+                                        min={24} max={50} step={2}
+                                        sx={{ color: '#a38f6d' }}
+                                    />
+
+                                    <Typography variant="caption" sx={{ fontWeight: 800, color: 'text.secondary', display: 'block', mt: 1.5, mb: 0.5 }}>
+                                        PATH OPACITY: {Math.round(chipPathOpacity * 100)}%
+                                    </Typography>
+                                    <Slider
+                                        value={chipPathOpacity * 100}
+                                        onChange={(_, v) => setChipPathOpacity((v as number) / 100)}
+                                        min={10} max={100}
+                                        sx={{ color: '#a38f6d' }}
+                                    />
+                                </Box>
+                            </Stack>
+                        </SettingCard>
+
 
                         <SettingCard title={t('map.defaultView.title')} subheader={t('map.defaultView.subheader')}>
                             <FormControl fullWidth sx={{ maxWidth: 400, mt: 2 }}>

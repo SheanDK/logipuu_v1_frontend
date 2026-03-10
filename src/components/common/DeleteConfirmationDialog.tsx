@@ -13,6 +13,8 @@ interface DeleteConfirmationDialogProps {
     message: string;
     cancelText?: string;
     confirmText?: string;
+    confirmButtonColor?: 'inherit' | 'primary' | 'secondary' | 'success' | 'error' | 'info' | 'warning';
+    confirmButtonText?: string;
 }
 
 const DeleteConfirmationDialog: React.FC<DeleteConfirmationDialogProps> = ({

@@ -3,11 +3,11 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import chipService from '@/services/chipService';
+import chipOrderService from '@/services/chipOrderService';
 import * as clientService from '@/services/clientService';
 import {
     Dialog, DialogTitle, DialogContent, DialogActions,
-    Button, TextField, Stack, MenuItem, CircularProgress, Typography
+    Button, TextField, Stack, MenuItem, CircularProgress, useTheme, alpha, Typography
 } from '@mui/material';
 import { useTranslation } from '@/i18n/useTranslation';
 
@@ -17,29 +17,32 @@ interface ChipOrderModalProps {
     onSuccess: () => void;
 }
 
+// Chip Order Modal Component
 const ChipOrderModal: React.FC<ChipOrderModalProps> = ({ open, onClose, onSuccess }) => {
-    const { t } = useTranslation(['chip-management']);
+    const { t } = useTranslation(['chip-management', 'common']);
+    const theme = useTheme();
+    const isDarkMode = theme.palette.mode === 'dark';
+
     const [customers, setCustomers] = useState<any[]>([]);
     const [loading, setLoading] = useState(false);
     const [fetchingCustomers, setFetchingCustomers] = useState(false);
 
     const [formData, setFormData] = useState({
         asiakas_id: '',
-        pvm_alku: '',
-        pvm_loppu: '',
-        kuormia_tavoite: 1,
+        start_date: '',
+        end_date: '',
+        target_qty: 1,
         tuote_tyyppi: '',
-        lisatiedot: ''
+        notes: ''
     });
 
-    // fetch all clients
+    // Fetch customers when modal opens
     useEffect(() => {
         const loadCustomers = async () => {
             if (open) {
                 setFetchingCustomers(true);
                 try {
                     const data = await clientService.fetchAllClients();
-                    console.log("Customers Data:", data);
                     setCustomers(data || []);
                 } catch (err) {
                     console.error("Error loading customers", err);
@@ -51,15 +54,17 @@ const ChipOrderModal: React.FC<ChipOrderModalProps> = ({ open, onClose, onSucces
         loadCustomers();
     }, [open]);
 
+    // Handle form field changes
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         setFormData({ ...formData, [e.target.name]: e.target.value });
     };
 
+    // Handle form submission
     const handleSubmit = async () => {
         if (!formData.asiakas_id) return;
         setLoading(true);
         try {
-            await chipService.createOrder(formData);
+            await chipOrderService.create(formData);
             onSuccess();
             onClose();
         } catch (error) {
@@ -70,14 +75,30 @@ const ChipOrderModal: React.FC<ChipOrderModalProps> = ({ open, onClose, onSucces
     };
 
     return (
-        <Dialog open={open} onClose={onClose} fullWidth maxWidth="sm">
-            <DialogTitle sx={{ bgcolor: '#f8f9fa', fontWeight: 'bold' }}>
-                {t('chip-management:orderModal.createTitle')}
+        <Dialog
+            open={open}
+            onClose={onClose}
+            fullWidth
+            maxWidth="sm"
+            PaperProps={{ sx: { borderRadius: '12px', boxShadow: theme.shadows[10] } }}
+        >
+            {/* Header: Theme responsive styling */}
+            <DialogTitle sx={{
+                bgcolor: isDarkMode ? alpha(theme.palette.background.paper, 0.8) : '#f8f9fa',
+                fontWeight: 800,
+                borderBottom: '1px solid',
+                borderColor: 'divider',
+                color: theme.palette.text.primary
+            }}>
+                <Typography variant="h6" fontWeight="800">
+                    {t('chip-management:orderModal.createTitle')}
+                </Typography>
             </DialogTitle>
-            <DialogContent dividers>
-                <Stack spacing={2} sx={{ mt: 1 }}>
 
-                    {/* Customer Dropdown */}
+            <DialogContent dividers sx={{ bgcolor: theme.palette.background.default, p: 3 }}>
+                <Stack spacing={3} sx={{ mt: 1 }}>
+
+                    {/* Customer Select */}
                     <TextField
                         select
                         fullWidth
@@ -86,10 +107,11 @@ const ChipOrderModal: React.FC<ChipOrderModalProps> = ({ open, onClose, onSucces
                         value={formData.asiakas_id}
                         onChange={handleChange}
                         required
+                        variant="outlined"
+                        size="small"
                     >
                         {customers.length > 0 ? (
                             customers.map((c) => (
-                                // Database එකේ ඇති field names (asiakkaanId, asiakkaanNimi) මෙහිදී භාවිතා කරන්න
                                 <MenuItem key={c.asiakkaanId} value={c.asiakkaanId}>
                                     {c.asiakkaanNimi}
                                 </MenuItem>
@@ -99,15 +121,16 @@ const ChipOrderModal: React.FC<ChipOrderModalProps> = ({ open, onClose, onSucces
                         )}
                     </TextField>
 
-                    {/* Date Selection */}
+                    {/* Date Row */}
                     <Stack direction="row" spacing={2}>
                         <TextField
                             fullWidth
                             label={`${t('chip-management:orderModal.startDate')} *`}
                             type="date"
-                            name="pvm_alku"
+                            name="start_date"
+                            size="small"
                             InputLabelProps={{ shrink: true }}
-                            value={formData.pvm_alku}
+                            value={formData.start_date}
                             onChange={handleChange}
                             required
                         />
@@ -115,51 +138,77 @@ const ChipOrderModal: React.FC<ChipOrderModalProps> = ({ open, onClose, onSucces
                             fullWidth
                             label={`${t('chip-management:orderModal.endDate')} *`}
                             type="date"
-                            name="pvm_loppu"
+                            name="end_date"
+                            size="small"
                             InputLabelProps={{ shrink: true }}
-                            value={formData.pvm_loppu}
+                            value={formData.end_date}
                             onChange={handleChange}
                             required
                         />
                     </Stack>
 
+                    {/* Qty & Product Row */}
                     <Stack direction="row" spacing={2}>
                         <TextField
                             fullWidth
                             label={t('chip-management:orderModal.targetLoads')}
                             type="number"
-                            name="kuormia_tavoite"
-                            value={formData.kuormia_tavoite}
+                            name="target_qty"
+                            size="small"
+                            value={formData.target_qty}
                             onChange={handleChange}
                         />
                         <TextField
                             fullWidth
                             label={t('chip-management:orderModal.productType')}
                             name="tuote_tyyppi"
+                            size="small"
                             placeholder={t('chip-management:orderModal.productPlaceholder')}
                             value={formData.tuote_tyyppi}
                             onChange={handleChange}
                         />
                     </Stack>
 
+                    {/* Further Info */}
                     <TextField
                         fullWidth
                         label={t('chip-management:orderModal.furtherInfo')}
                         multiline
-                        rows={3}
-                        name="lisatiedot"
-                        value={formData.lisatiedot}
+                        rows={4}
+                        name="notes"
+                        value={formData.notes}
                         onChange={handleChange}
+                        variant="outlined"
+                        placeholder="Add any additional notes here..."
                     />
                 </Stack>
             </DialogContent>
-            <DialogActions sx={{ p: 2, bgcolor: '#f8f9fa' }}>
-                <Button onClick={onClose} color="inherit">{t('chip-management:orderModal.cancel')}</Button>
+
+            {/* Footer: Theme responsive styling */}
+            <DialogActions sx={{
+                p: 2.5,
+                bgcolor: isDarkMode ? alpha(theme.palette.background.paper, 0.8) : '#f8f9fa',
+                borderTop: '1px solid',
+                borderColor: 'divider'
+            }}>
+                <Button
+                    onClick={onClose}
+                    variant="outlined"
+                    sx={{ borderRadius: '20px', px: 3, color: theme.palette.text.secondary, borderColor: 'divider' }}
+                >
+                    {t('common:buttons.cancel')}
+                </Button>
                 <Button
                     onClick={handleSubmit}
                     variant="contained"
                     disabled={loading || !formData.asiakas_id}
-                    sx={{ bgcolor: '#a38f6d', '&:hover': { bgcolor: '#8c7a5d' } }}
+                    sx={{
+                        bgcolor: '#a38f6d',
+                        borderRadius: '20px',
+                        px: 4,
+                        fontWeight: 'bold',
+                        '&:hover': { bgcolor: '#8c7a5d' }
+                    }}
                 >
                     {loading ? <CircularProgress size={24} color="inherit" /> : t('chip-management:orderModal.saveOrder')}
                 </Button>
