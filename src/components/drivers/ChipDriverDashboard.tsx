@@ -28,7 +28,7 @@ import LogoutIcon from '@mui/icons-material/Logout';
 import dayjs, { Dayjs } from 'dayjs';
 import { useDriverSession } from '@/contexts/DriverSessionContext';
 import { useTranslation } from '@/i18n/useTranslation';
-import chipService from '@/services/chipService';
+import chipService from '@/services/chipPlanningService';
 import { useSnackbar } from 'notistack';
 
 type ChipLoadStatus = 'NOT_SENT' | 'LOADED' | 'UNLOADED' | 'SENT';
