@@ -21,6 +21,39 @@ export const chipPlanningService = {
     deleteGroup: async (groupName: string) => apiClient.delete(`/chip-planning/delete-group/${groupName}`).then(r => r.data),
 
     updateVehicleGroup: async (kalustoNro: number, groupName: string) => apiClient.put(`/chip-planning/update-vehicle-group`, { kalustoNro, groupName }).then(r => r.data),
+
+    setLoad: async (payload: any) => {
+        const response = await apiClient.post(`/chip-planning/set-load`, payload);
+        return response.data;
+    },
+
+    // Driver chip loads
+    getDriverLoads: async (params?: {
+        vehicleNumber?: number;
+        startDate?: string;
+        endDate?: string;
+        week?: number;
+        year?: number;
+        ts?: number;
+    }) => {
+        const response = await apiClient.get(`/chip-planning/loads`, {
+            params: params || undefined
+        });
+        return response.data;
+    },
+
+    // 2b. Schedule Load
+    scheduleLoad: async (payload: {
+        kalusto_nro: number;
+        order_id: number;
+        pvm: string;
+        lahto_paikka: number;
+        purku_paikka: number;
+        planned_m3: number;
+    }) => {
+        const response = await apiClient.post(`/chip-planning/schedule-load`, payload);
+        return response.data;
+    },
 };
 
 export default chipPlanningService;
