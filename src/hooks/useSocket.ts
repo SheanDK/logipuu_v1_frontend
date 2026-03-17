@@ -49,7 +49,10 @@ const useSocket = (): UseSocketReturn => {
                 auth: {
                     token: token,
                 },
-                transports: ['websocket'] // Prefer WebSocket for real-time performance
+                transports: ['websocket', 'polling'], // Allow polling as fallback
+                reconnection: true,
+                reconnectionAttempts: 10,
+                reconnectionDelay: 1000
             });
 
             // --- Event Listeners ---

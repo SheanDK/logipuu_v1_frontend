@@ -1,3 +1,4 @@
+// frontend/src/components/drivers/ChipDriverDashboard.tsx
 'use client';
 
 import React, { useEffect, useMemo, useState } from 'react';
@@ -718,40 +719,40 @@ export default function ChipDriverDashboard({ onBackAction }: ChipDriverDashboar
                                         </Box>
 
                                         <Box sx={{ display: 'flex', gap: 0.75, alignItems: 'center', ml: 'auto' }}>
-                                        <Button
-                                            variant="outlined"
-                                            size="small"
-                                            color="secondary"
-                                            startIcon={<MoveToInboxIcon />}
-                                            onClick={() => handleUnload(load.load_id)}
-                                            disabled={isSent || load.status !== 'LOADED'}
-                                        >
-                                            {t('buttons.unload')}
-                                        </Button>
-                                        <Tooltip
-                                            arrow
-                                            placement="top"
-                                            title={
-                                                canSend(load)
-                                                    ? ''
-                                                    : t('messages.sendRequiresRequiredInfo', {
-                                                        defaultValue: 'Fill all required information and unload first.'
-                                                    })
-                                            }
-                                        >
-                                            <span>
-                                                <Button
-                                                    variant="contained"
-                                                    color="warning"
-                                                    size="small"
-                                                    startIcon={<SendIcon />}
-                                                    onClick={() => handleSend(load.load_id)}
-                                                    disabled={!canSend(load)}
-                                                >
-                                                    {t('buttons.send')}
-                                                </Button>
-                                            </span>
-                                        </Tooltip>
+                                            <Button
+                                                variant="outlined"
+                                                size="small"
+                                                color="secondary"
+                                                startIcon={<MoveToInboxIcon />}
+                                                onClick={() => handleUnload(load.load_id)}
+                                                disabled={isSent || load.status !== 'LOADED'}
+                                            >
+                                                {t('buttons.unload')}
+                                            </Button>
+                                            <Tooltip
+                                                arrow
+                                                placement="top"
+                                                title={
+                                                    canSend(load)
+                                                        ? ''
+                                                        : t('messages.sendRequiresRequiredInfo', {
+                                                            defaultValue: 'Fill all required information and unload first.'
+                                                        })
+                                                }
+                                            >
+                                                <span>
+                                                    <Button
+                                                        variant="contained"
+                                                        color="warning"
+                                                        size="small"
+                                                        startIcon={<SendIcon />}
+                                                        onClick={() => handleSend(load.load_id)}
+                                                        disabled={!canSend(load)}
+                                                    >
+                                                        {t('buttons.send')}
+                                                    </Button>
+                                                </span>
+                                            </Tooltip>
                                         </Box>
                                     </Box>
                                 </CardContent>

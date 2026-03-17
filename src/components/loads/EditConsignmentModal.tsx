@@ -3,16 +3,17 @@
 'use client';
 import React, { useEffect, useState } from 'react';
 import {
-    Dialog, DialogContent, Button, TextField,
+    Dialog, DialogContent, DialogActions, Button, TextField,
     Stack, Box, Table, TableBody, TableCell, TableContainer, TableHead,
     TableRow, Typography, CircularProgress, alpha, useTheme,
-    Paper, IconButton
+    Paper,
+    IconButton
 } from '@mui/material';
-import CloseIcon from '@mui/icons-material/Close';
 import { useForm, useFieldArray, Controller } from 'react-hook-form';
 import { updateLoad } from '@/services/loadService';
 import { useSnackbar } from 'notistack';
 import { useTranslation } from '@/i18n/useTranslation';
+import CloseIcon from '@mui/icons-material/Close';
 
 export default function EditConsignmentModal({ open, onCloseAction, onSaveSuccessAction, loadData, currentUser }: any) {
     const { t } = useTranslation(['loadsPage', 'common']);
@@ -26,20 +27,30 @@ export default function EditConsignmentModal({ open, onCloseAction, onSaveSucces
     });
     const { fields } = useFieldArray({ control, name: 'rahtikirjat' });
 
+    const getSafeAsiakasId = (data: any) => {
+        return data?.asiakasId || data?.asiakas_id || data?.customerId || null;
+    };
+
     useEffect(() => {
         if (loadData && open) {
+            console.log("🔍 Checking loadData structure:", loadData);
+
+            const mainAsiakasId = getSafeAsiakasId(loadData);
+
             const formatted = (loadData.rahtikirjat || []).map((wb: any) => ({
-                id: wb.rahtiId,
-                customerName: wb.customerName || 'N/A',
-                rahtikirjanNumero: wb.rahtikirjanNro || '',
+                id: wb.rahtiId || wb.rahti_id || wb.id,
+                asiakasId: getSafeAsiakasId(wb) || mainAsiakasId || '',
+                customerName: wb.customerName || wb.asiakkaan_nimi || 'N/A',
+                rahtikirjanNumero: wb.rahtikirjanNro || wb.waybillNumber || '',
                 reitti: wb.reitti || '',
                 m3: wb.m3 || 0,
-                km: wb.km || 0,
                 kpl: wb.kpl || 0,
+                km: wb.km || 0,
                 jako: wb.jako || 0,
                 tievero: wb.tievero || 0,
                 lisatiedot: wb.lisatiedot || ''
             }));
+
             reset({
                 pvm: loadData.pvm ? new Date(loadData.pvm).toISOString().split('T')[0] : '',
                 lisatiedot: loadData.lisatiedot || '',
@@ -51,21 +62,46 @@ export default function EditConsignmentModal({ open, onCloseAction, onSaveSucces
     const onSubmit = async (data: any) => {
         setIsSubmitting(true);
         try {
+            const mainId = getSafeAsiakasId(loadData) || (data.rahtikirjat.length > 0 ? getSafeAsiakasId(data.rahtikirjat[0]) : null);
+
+            if (!mainId) {
+                throw new Error("Customer ID could not be identified. Please check the data.");
+            }
+
             const payload = {
                 tyyppi: 1,
                 pvm: data.pvm,
                 lisatiedot: data.lisatiedot,
-                kalustoNro: loadData.kalusto_nro || loadData.kalustoNro,
-                kuljId: loadData.kulj_id || loadData.kuljId,
+                asiakasId: Number(mainId),
+                kalustoNro: Number(loadData.kalusto_nro || loadData.kalustoNro),
+                kuljId: Number(loadData.kulj_id || loadData.kuljId),
+
+                m3: data.rahtikirjat.reduce((s: number, w: any) => s + Number(w.m3 || 0), 0),
+                km: data.rahtikirjat.reduce((s: number, w: any) => s + Number(w.km || 0), 0),
+                kpl: data.rahtikirjat.reduce((s: number, w: any) => s + Number(w.kpl || 0), 0),
+                tunnit: data.rahtikirjat.reduce((s: number, w: any) => s + Number(w.jako || 0), 0),
+
                 rahtikirjat: data.rahtikirjat.map((wb: any) => ({
-                    ...wb,
-                    asiakasId: wb.asiakasId || loadData.asiakasId
+                    id: wb.id,
+                    asiakasId: Number(getSafeAsiakasId(wb) || mainId),
+                    rahtikirjanNumero: wb.rahtikirjanNumero,
+                    reitti: wb.reitti,
+                    m3: Number(wb.m3 || 0),
+                    kpl: Number(wb.kpl || 0),
+                    km: Number(wb.km || 0),
+                    jako: Number(wb.jako || 0),
+                    tievero: Number(wb.tievero || 0),
+                    lisatiedot: wb.lisatiedot
                 }))
             };
+
             await updateLoad(loadData.kuormaId, payload, currentUser);
             onSaveSuccessAction(t('common:notifications.updateSuccess'));
-        } catch (error) {
-            enqueueSnackbar(t('common:notifications.error'), { variant: 'error' });
+            onCloseAction();
+
+        } catch (error: any) {
+            console.error("❌ Final Update Error:", error.message);
+            enqueueSnackbar(error.message || t('common:notifications.error'), { variant: 'error' });
         } finally {
             setIsSubmitting(false);
         }
@@ -139,114 +175,39 @@ export default function EditConsignmentModal({ open, onCloseAction, onSaveSucces
                             alignItems: 'start'
                         }}
                     >
-                        <Controller
-                            name="pvm"
-                            control={control}
-                            render={({ field }) => (
-                                <TextField
-                                    {...field}
-                                    type="date"
-                                    label={t('columns.date')}
-                                    size="small"
-                                    InputLabelProps={{ shrink: true }}
-                                    fullWidth
-                                />
-                            )}
-                        />
-                        <Controller
-                            name="lisatiedot"
-                            control={control}
-                            render={({ field }) => (
-                                <TextField
-                                    {...field}
-                                    label={t('columns.globalNotes')}
-                                    size="small"
-                                    placeholder={t('columns.globalNotesPlaceholder') || 'Enter general notes...'}
-                                    fullWidth
-                                    InputLabelProps={{ shrink: true }}
-                                />
-                            )}
-                        />
+                        <Controller name="pvm" control={control} render={({ field }) => (
+                            <TextField {...field} type="date" label={t('loadsPage:columns.date')} size="small" InputLabelProps={{ shrink: true }} fullWidth />
+                        )} />
+                        <Controller name="lisatiedot" control={control} render={({ field }) => (
+                            <TextField {...field} label={t('loadsPage:columns.globalNotes')} size="small" fullWidth InputLabelProps={{ shrink: true }} />
+                        )} />
                     </Box>
 
-                    {/* Waybills Table */}
                     <Box>
-                        <Typography
-                            variant="subtitle2"
-                            sx={{
-                                fontWeight: 800,
-                                mb: 1.5,
-                                color: '#a38f6d',
-                                textTransform: 'uppercase',
-                                fontSize: '11px',
-                                letterSpacing: '0.5px'
-                            }}
-                        >
-                            {t('waybillsList') || 'Waybills List'} ({fields.length})
+                        <Typography variant="subtitle2" sx={{ fontWeight: 800, mb: 1.5, color: '#a38f6d', textTransform: 'uppercase', fontSize: '11px' }}>
+                            {t('loadsPage:waybillsList')} ({fields.length})
                         </Typography>
-
-                        <TableContainer
-                            component={Paper}
-                            variant="outlined"
-                            sx={{
-                                borderRadius: '8px',
-                                overflow: 'hidden',
-                                border: isDarkMode ? '1px solid #444' : '1px solid #eee'
-                            }}
-                        >
+                        <TableContainer component={Paper} variant="outlined" sx={{ borderRadius: '8px', overflow: 'hidden' }}>
                             <Table size="small" stickyHeader>
                                 <TableHead>
-                                    <TableRow>
-                                        {[
-                                            { label: t('columns.customer'), width: '15%' },
-                                            { label: t('columns.waybill'), width: '12%' },
-                                            { label: t('columns.cubicMeters'), width: '8%', center: true },
-                                            { label: t('columns.pcs'), width: '8%', center: true },
-                                            { label: t('columns.km'), width: '8%', center: true },
-                                            { label: t('columns.hours'), width: '6%', center: true },
-                                            { label: t('columns.tax'), width: '6%', center: true },
-                                            { label: t('columns.route'), width: '15%' },
-                                            { label: t('columns.notes'), width: '22%' }
-                                        ].map(({ label, width, center }) => (
-                                            <TableCell
-                                                key={label}
-                                                sx={{
-                                                    fontWeight: 'bold',
-                                                    fontSize: '11px',
-                                                    width,
-                                                    textAlign: center ? 'center' : 'left',
-                                                    bgcolor: isDarkMode ? '#252525' : '#f8f9fa'
-                                                }}
-                                            >
-                                                {label}
-                                            </TableCell>
-                                        ))}
+                                    <TableRow sx={{ bgcolor: isDarkMode ? '#252525' : '#f8f9fa' }}>
+                                        <TableCell sx={{ fontWeight: 'bold', fontSize: '11px', width: '15%', bgcolor: 'inherit' }}>CUSTOMER</TableCell>
+                                        <TableCell sx={{ fontWeight: 'bold', fontSize: '11px', width: '12%', bgcolor: 'inherit' }}>WAYBILL</TableCell>
+                                        <TableCell sx={{ fontWeight: 'bold', fontSize: '11px', width: '8%', textAlign: 'center', bgcolor: 'inherit' }}>m³</TableCell>
+                                        <TableCell sx={{ fontWeight: 'bold', fontSize: '11px', width: '8%', textAlign: 'center', bgcolor: 'inherit' }}>PCS</TableCell>
+                                        <TableCell sx={{ fontWeight: 'bold', fontSize: '11px', width: '8%', textAlign: 'center', bgcolor: 'inherit' }}>KM</TableCell>
+                                        <TableCell sx={{ fontWeight: 'bold', fontSize: '11px', width: '6%', textAlign: 'center', bgcolor: 'inherit' }}>HRS</TableCell>
+                                        <TableCell sx={{ fontWeight: 'bold', fontSize: '11px', width: '6%', textAlign: 'center', bgcolor: 'inherit' }}>TAX</TableCell>
+                                        <TableCell sx={{ fontWeight: 'bold', fontSize: '11px', width: '15%', bgcolor: 'inherit' }}>ROUTE</TableCell>
+                                        <TableCell sx={{ fontWeight: 'bold', fontSize: '11px', width: '22%', bgcolor: 'inherit' }}>NOTES</TableCell>
                                     </TableRow>
                                 </TableHead>
-
                                 <TableBody>
                                     {fields.map((wb: any, idx) => (
-                                        <TableRow
-                                            key={wb.id || idx}
-                                            hover
-                                            sx={{
-                                                '&:hover': {
-                                                    bgcolor: isDarkMode
-                                                        ? alpha('#fff', 0.02)
-                                                        : '#fdfdfd'
-                                                }
-                                            }}
-                                        >
+                                        <TableRow key={wb.id || idx} hover>
                                             <TableCell sx={{ py: 1.2 }}>
-                                                <Typography
-                                                    variant="body2"
-                                                    fontWeight="700"
-                                                    sx={{ fontSize: '12px' }}
-                                                >
-                                                    {wb.customerName}
-                                                </Typography>
+                                                <Typography variant="body2" fontWeight="700" sx={{ fontSize: '11px' }}>{wb.customerName}</Typography>
                                             </TableCell>
-
                                             {[
                                                 { name: 'rahtikirjanNumero', type: 'text' },
                                                 { name: 'm3', type: 'number' },
@@ -262,24 +223,8 @@ export default function EditConsignmentModal({ open, onCloseAction, onSaveSucces
                                                         name={`rahtikirjat.${idx}.${col.name}`}
                                                         control={control}
                                                         render={({ field }) => (
-                                                            <TextField
-                                                                {...field}
-                                                                type={col.type}
-                                                                size="small"
-                                                                variant="outlined"
-                                                                fullWidth
-                                                                sx={{
-                                                                    '& .MuiOutlinedInput-input': {
-                                                                        p: '6px 8px',
-                                                                        fontSize: '12px',
-                                                                        textAlign: col.type === 'number'
-                                                                            ? 'center'
-                                                                            : 'left'
-                                                                    },
-                                                                    '& .MuiOutlinedInput-root': {
-                                                                        bgcolor: isDarkMode ? '#2c2c2c' : '#fff'
-                                                                    }
-                                                                }}
+                                                            <TextField {...field} type={col.type} size="small" fullWidth
+                                                                sx={{ '& .MuiOutlinedInput-input': { p: '6px 8px', fontSize: '12px', textAlign: col.type === 'number' ? 'center' : 'left' }, '& .MuiOutlinedInput-root': { bgcolor: isDarkMode ? '#2c2c2c' : '#fff' } }}
                                                             />
                                                         )}
                                                     />
@@ -294,46 +239,12 @@ export default function EditConsignmentModal({ open, onCloseAction, onSaveSucces
                 </Stack>
             </DialogContent>
 
-            <Box
-                sx={{
-                    flexShrink: 0,
-                    display: 'flex',
-                    justifyContent: 'flex-end',
-                    alignItems: 'center',
-                    gap: 1.5,
-                    px: 2.5,
-                    py: 2,
-                    borderTop: '1px solid',
-                    borderColor: 'divider',
-                    bgcolor: isDarkMode ? '#252525' : '#fdfaf5'
-                }}
-            >
-                <Button
-                    onClick={onCloseAction}
-                    disabled={isSubmitting}
-                    color="inherit"
-                    sx={{ fontWeight: 'bold', borderRadius: '20px', px: 3 }}
-                >
-                    {t('common:buttons.cancel')}
+            <DialogActions sx={{ p: 2.5, borderTop: '1px solid', borderColor: 'divider', bgcolor: isDarkMode ? '#252525' : '#fdfaf5' }}>
+                <Button onClick={onCloseAction} disabled={isSubmitting} color="inherit" sx={{ fontWeight: 'bold', borderRadius: '20px', px: 3 }}>{t('common:buttons.cancel')}</Button>
+                <Button variant="contained" onClick={handleSubmit(onSubmit)} disabled={isSubmitting} sx={{ bgcolor: '#a38f6d', borderRadius: '25px', px: 4, fontWeight: 'bold' }}>
+                    {isSubmitting ? <CircularProgress size={24} color="inherit" /> : t('common:buttons.save')}
                 </Button>
-                <Button
-                    variant="contained"
-                    onClick={handleSubmit(onSubmit)}
-                    disabled={isSubmitting}
-                    sx={{
-                        bgcolor: '#a38f6d',
-                        borderRadius: '25px',
-                        px: 4,
-                        fontWeight: 'bold',
-                        '&:hover': { bgcolor: '#8c7a5d' }
-                    }}
-                >
-                    {isSubmitting
-                        ? <CircularProgress size={24} color="inherit" />
-                        : t('common:buttons.save')
-                    }
-                </Button>
-            </Box>
+            </DialogActions>
         </Dialog>
     );
 }

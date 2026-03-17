@@ -16,9 +16,8 @@ import SearchIcon from '@mui/icons-material/Search';
 import MoreVertIcon from '@mui/icons-material/MoreVert';
 import ArrowUpwardIcon from '@mui/icons-material/ArrowUpward';
 import ArrowDownwardIcon from '@mui/icons-material/ArrowDownward';
-import FilterListIcon from '@mui/icons-material/FilterList';
-import VisibilityOffIcon from '@mui/icons-material/VisibilityOff';
 import ViewColumnIcon from '@mui/icons-material/ViewColumn';
+import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined';
 
 // Indicators Icons
 import ScaleIcon from '@mui/icons-material/Scale';
@@ -106,11 +105,12 @@ const ChipTitlesPage = () => {
         const goldColor = '#a38f6d';
         const iconStyle = { fontSize: 16, color: goldColor };
 
-        if (title.reqPcs) info.push(<Tooltip key="kpl" title="Pcs"><PinIcon sx={iconStyle} /></Tooltip>);
+        if (title.reqPcs) info.push(<Tooltip key="pcs" title="Pcs"><PinIcon sx={iconStyle} /></Tooltip>);
         if (title.reqM3) info.push(<Tooltip key="m3" title="Cubes"><ViewInArIcon sx={iconStyle} /></Tooltip>);
         if (title.reqTon) info.push(<Tooltip key="ton" title="Tons"><ScaleIcon sx={iconStyle} /></Tooltip>);
-        if (title.reqHr) info.push(<Tooltip key="h" title="Hours"><AccessTimeIcon sx={iconStyle} /></Tooltip>);
+        if (title.reqHr) info.push(<Tooltip key="hr" title="Hours"><AccessTimeIcon sx={iconStyle} /></Tooltip>);
         if (title.reqKm) info.push(<Tooltip key="km" title="Mileage"><RouteIcon sx={iconStyle} /></Tooltip>);
+        if (title.req_details) info.push(<Tooltip key="info" title={`Details: ${title.req_details_info}`}><InfoOutlinedIcon sx={iconStyle} /></Tooltip>);
 
         return (
             <Stack direction="row" spacing={0.5} justifyContent="center">
@@ -146,21 +146,23 @@ const ChipTitlesPage = () => {
     }, [sortedAndFilteredTitles, page, rowsPerPage]);
 
     return (
-        <Box sx={{ p: 3, bgcolor: 'background.default', minHeight: '100vh' }}>
-            <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 3 }}>
-                <Box>
-                    <Typography variant="h5" fontWeight="bold" sx={{ color: 'text.primary' }}>{t('chip-management:title')}</Typography>
-                    <Typography variant="caption" color="text.secondary">{t('chip-management:subtitle')}</Typography>
-                </Box>
-                <Button
-                    variant="contained" startIcon={<AddIcon />} onClick={() => { setSelectedTitle(null); setModalOpen(true); }}
-                    sx={{ bgcolor: '#a38f6d', '&:hover': { bgcolor: '#8c7a5d' }, borderRadius: '8px', px: 3, fontWeight: 'bold' }}
-                >
-                    {t('chip-management:newItem')}
-                </Button>
-            </Stack>
+        <Box sx={{ p: 1.5, bgcolor: isDarkMode ? 'background.default' : '#f4f7f9', minHeight: 'calc(100vh - 110px)', display: 'flex', flexDirection: 'column', gap: 1 }}>
+            <Paper elevation={0} sx={{ p: 1.5, borderRadius: '12px', border: '1px solid', borderColor: 'divider' }}>
+                <Stack direction="row" justifyContent="space-between" alignItems="center">
+                    <Box>
+                        <Typography variant="h5" fontWeight="bold" sx={{ color: 'text.primary' }}>{t('chip-management:title')}</Typography>
+                        <Typography variant="caption" color="text.secondary">{t('chip-management:subtitle')}</Typography>
+                    </Box>
+                    <Button
+                        variant="contained" startIcon={<AddIcon />} onClick={() => { setSelectedTitle(null); setModalOpen(true); }}
+                        sx={{ bgcolor: '#a38f6d', '&:hover': { bgcolor: '#8c7a5d' }, borderRadius: '8px', px: 3, fontWeight: 'bold' }}
+                    >
+                        {t('chip-management:newItem')}
+                    </Button>
+                </Stack>
+            </Paper>
 
-            <Paper sx={{ p: 2, mb: 3, borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', bgcolor: 'background.paper' }}>
+            <Paper elevation={0} sx={{ p: 1.5, borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', bgcolor: 'background.paper', border: '1px solid', borderColor: 'divider' }}>
                 <TextField
                     size="small" placeholder={t('chip-management:searchPlaceholder')} sx={{ width: 400 }}
                     value={searchTerm}
@@ -215,15 +217,23 @@ const ChipTitlesPage = () => {
                 </Stack>
             </Paper>
 
-            <Paper sx={{ borderRadius: '12px', overflow: 'hidden', bgcolor: 'background.paper', border: '1px solid', borderColor: 'divider' }}>
-                <TableContainer>
-                    <Table size="small">
-                        <TableHead sx={{ bgcolor: isDarkMode ? 'rgba(255,255,255,0.05)' : '#f8f9fa' }}>
+            <Paper elevation={0} sx={{ flexGrow: 1, borderRadius: '12px', overflow: 'hidden', bgcolor: 'background.paper', border: '1px solid', borderColor: 'divider', display: 'flex', flexDirection: 'column' }}>
+                <TableContainer sx={{ flexGrow: 1 }}>
+                    <Table size="small" stickyHeader>
+                        <TableHead sx={{
+                            '& .MuiTableCell-root': {
+                                bgcolor: isDarkMode ? alpha('#fff', 0.05) : '#f8f9fa',
+                                borderBottom: '2px solid',
+                                borderColor: 'divider',
+                            }
+                        }}>
                             <TableRow>
                                 {columns.map((col) => !hiddenColumns.includes(col.id) && (
-                                    <TableCell key={col.id} sx={{ fontWeight: 'bold', color: 'text.primary', py: 1.5 }}>
+                                    <TableCell key={col.id} sx={{ py: 1.5 }}>
                                         <Stack direction="row" alignItems="center" justifyContent={col.id === 'reqInfo' ? 'center' : 'flex-start'} spacing={1}>
-                                            <span style={{ fontSize: '13px' }}>{col.label}</span>
+                                            <Typography variant="caption" sx={{ fontWeight: 900, color: 'text.secondary', fontSize: '11px', textTransform: 'uppercase', letterSpacing: '0.05rem' }}>
+                                                {col.label}
+                                            </Typography>
                                             <IconButton size="small" onClick={(e) => handleMenuOpen(e, col.key)}>
                                                 <MoreVertIcon sx={{ fontSize: 16 }} />
                                             </IconButton>
@@ -252,13 +262,13 @@ const ChipTitlesPage = () => {
                                             transition: 'all 0.2s ease'
                                         }}
                                     >
-                                        {!hiddenColumns.includes('id') && <TableCell sx={{ fontSize: '13px' }}>{t.titleId}</TableCell>}
-                                        {!hiddenColumns.includes('customer') && <TableCell sx={{ fontWeight: 'bold', fontSize: '13px' }}>{t.customerName}</TableCell>}
-                                        {!hiddenColumns.includes('loading') && <TableCell sx={{ fontSize: '12px' }}>{t.loadingPointName}</TableCell>}
-                                        {!hiddenColumns.includes('demolition') && <TableCell sx={{ fontSize: '12px' }}>{t.unloadingPointName}</TableCell>}
-                                        {!hiddenColumns.includes('product') && <TableCell sx={{ fontSize: '12px' }}>{t.productName}</TableCell>}
-                                        {!hiddenColumns.includes('titleName') && <TableCell><Typography variant="body2" sx={{ color: '#a38f6d', fontWeight: '600', fontSize: '13px' }}>{t.titleName}</Typography></TableCell>}
-                                        {!hiddenColumns.includes('reqInfo') && <TableCell align="center">{renderRequestedInfo(t)}</TableCell>}
+                                        {!hiddenColumns.includes('id') && <TableCell sx={{ fontSize: '13px', borderBottom: '1px solid', borderColor: 'divider' }}>{t.titleId}</TableCell>}
+                                        {!hiddenColumns.includes('customer') && <TableCell sx={{ fontWeight: 'bold', fontSize: '13px', borderBottom: '1px solid', borderColor: 'divider' }}>{t.customerName}</TableCell>}
+                                        {!hiddenColumns.includes('loading') && <TableCell sx={{ fontSize: '12px', borderBottom: '1px solid', borderColor: 'divider' }}>{t.loadingPointName}</TableCell>}
+                                        {!hiddenColumns.includes('demolition') && <TableCell sx={{ fontSize: '12px', borderBottom: '1px solid', borderColor: 'divider' }}>{t.unloadingPointName}</TableCell>}
+                                        {!hiddenColumns.includes('product') && <TableCell sx={{ fontSize: '12px', borderBottom: '1px solid', borderColor: 'divider' }}>{t.productName}</TableCell>}
+                                        {!hiddenColumns.includes('titleName') && <TableCell sx={{ borderBottom: '1px solid', borderColor: 'divider' }}><Typography variant="body2" sx={{ color: '#a38f6d', fontWeight: '600', fontSize: '13px' }}>{t.titleName}</Typography></TableCell>}
+                                        {!hiddenColumns.includes('reqInfo') && <TableCell align="center" sx={{ borderBottom: '1px solid', borderColor: 'divider' }}>{renderRequestedInfo(t)}</TableCell>}
                                     </TableRow>
                                 );
                             })}

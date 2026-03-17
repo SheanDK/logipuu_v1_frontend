@@ -1,6 +1,6 @@
 // frontend/src/components/loads/ViewConsignmentModal.tsx
 import React, { useEffect, useState } from 'react';
-import { Dialog, DialogTitle, DialogContent, DialogActions, Button, Typography, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Chip, Stack, Box, Divider, CircularProgress } from '@mui/material';
+import { Dialog, DialogTitle, DialogContent, DialogActions, Button, Typography, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Chip, Stack, Box, Divider, CircularProgress, alpha, useTheme } from '@mui/material';
 import { getTripById } from '@/services/loadService';
 import dayjs from 'dayjs';
 import { useTranslation } from 'react-i18next';
@@ -38,6 +38,8 @@ export default function ViewConsignmentModal({ open, onClose, loadId }: ViewCons
     const [loadData, setLoadData] = useState<any>(null);
     const [loading, setLoading] = useState(false);
     const { t } = useTranslation(['loadsPage', 'common']); // Load translations
+    const theme = useTheme();
+    const isDarkMode = theme.palette.mode === 'dark';
 
     useEffect(() => {
         if (open && loadId) {
@@ -124,7 +126,7 @@ export default function ViewConsignmentModal({ open, onClose, loadId }: ViewCons
                             </Typography>
                             <TableContainer sx={{ border: '1px solid #e0e0e0', borderRadius: 1 }}>
                                 <Table size="small">
-                                    <TableHead sx={{ bgcolor: '#f5f5f5' }}>
+                                    <TableHead sx={{ bgcolor: isDarkMode ? alpha('#fff', 0.05) : '#f8f9fa' }}>
                                         <TableRow>
                                             <TableCell sx={{ fontWeight: 'bold' }}>{t('columns.customer')}</TableCell>
                                             <TableCell sx={{ fontWeight: 'bold' }}>{t('modal.waybillNo', { defaultValue: 'Waybill #' })}</TableCell>
@@ -154,7 +156,7 @@ export default function ViewConsignmentModal({ open, onClose, loadId }: ViewCons
                                             ))
                                         )}
                                         {/* Totals Row */}
-                                        <TableRow sx={{ bgcolor: '#e3f2fd', '& td': { fontWeight: 'bold' } }}>
+                                        <TableRow sx={{ bgcolor: isDarkMode ? alpha('#fff', 0.02) : '#f0f7ff' }}>
                                             <TableCell colSpan={3} align="right">{t('modal.total', { defaultValue: 'Total:' })}</TableCell>
                                             <TableCell align="right">{fmtNum(totalM3)}</TableCell>
                                             <TableCell align="right">{fmtNum(totalKm)}</TableCell>
@@ -167,7 +169,7 @@ export default function ViewConsignmentModal({ open, onClose, loadId }: ViewCons
 
                         {/* Global Notes */}
                         {loadData.lisatiedot && (
-                            <Box sx={{ bgcolor: '#fffde7', p: 2, borderRadius: 1, border: '1px solid #fff9c4' }}>
+                            <Box sx={{ p: 2, bgcolor: isDarkMode ? alpha('#fff', 0.03) : '#f9f9f9', borderRadius: '8px', borderLeft: '4px solid #a38f6d' }}>
                                 <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 'bold' }}>{t('columns.additionalInfo')}</Typography>
                                 <Typography variant="body2" sx={{ mt: 0.5 }}>{loadData.lisatiedot}</Typography>
                             </Box>
@@ -177,7 +179,7 @@ export default function ViewConsignmentModal({ open, onClose, loadId }: ViewCons
                     <Typography color="error">{t('errors.loadFailed', { defaultValue: 'Failed to load data.' })}</Typography>
                 )}
             </DialogContent>
-            <DialogActions sx={{ px: 3, py: 2 }}>
+            <DialogActions sx={{ p: 2, borderTop: '1px solid', borderColor: 'divider', bgcolor: isDarkMode ? alpha('#fff', 0.02) : '#f8f9fa' }}>
                 <Button onClick={onClose} variant="contained" color="primary">{t('common:buttons.close', { defaultValue: 'Close' })}</Button>
             </DialogActions>
         </Dialog>

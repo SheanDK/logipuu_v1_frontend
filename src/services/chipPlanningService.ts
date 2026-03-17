@@ -1,33 +1,56 @@
-// frontend/src/services/chipService.ts
+// frontend/src/services/chipPlanningService.ts
 import apiClient from './apiClient';
 
 export const chipPlanningService = {
+    // 1. weekly planning
     getWeeklyPlanning: async (week: number, year: number) =>
         apiClient.get(`/chip-planning/weekly-view`, { params: { week, year } }).then(r => r.data),
 
-    assignTitle: async (payload: any) => apiClient.post(`/chip-planning/assign`, payload).then(r => r.data),
+    // 2. assign title to vehicle
+    assignTitle: async (payload: any) =>
+        apiClient.post(`/chip-planning/assign`, payload).then(r => r.data),
 
-    moveLoad: async (payload: any) => apiClient.patch(`/chip-planning/move-load`, payload).then(r => r.data),
+    // 3. move load
+    moveLoad: async (payload: any) =>
+        apiClient.patch(`/chip-planning/move-load`, payload).then(r => r.data),
 
+    // 4. dispatch row
     dispatchRow: async (kalustoNro: number, week: number, year: number) =>
         apiClient.post(`/chip-planning/dispatch-row`, { kalustoNro, week, year }).then(r => r.data),
 
-    updateLoad: async (loadId: number, data: any) => apiClient.put(`/chip-planning/load/${loadId}`, data).then(r => r.data),
+    // 5. update load
+    updateLoad: async (loadId: number, data: any) =>
+        apiClient.put(`/chip-planning/load/${loadId}`, data).then(r => r.data),
 
-    deleteLoad: async (loadId: number) => apiClient.delete(`/chip-planning/delete-load/${loadId}`).then(r => r.data),
+    // 6. delete load
+    deleteLoad: async (loadId: number) =>
+        apiClient.delete(`/chip-planning/delete-load/${loadId}`).then(r => r.data),
 
-    renameGroup: async (oldName: string, newName: string) => apiClient.put(`/chip-planning/rename-group`, { oldName, newName }).then(r => r.data),
+    // 7. rename group
+    renameGroup: async (oldName: string, newName: string) =>
+        apiClient.put(`/chip-planning/rename-group`, { oldName, newName }).then(r => r.data),
 
-    deleteGroup: async (groupName: string) => apiClient.delete(`/chip-planning/delete-group/${groupName}`).then(r => r.data),
+    // 8. delete group
+    deleteGroup: async (groupName: string) =>
+        apiClient.delete(`/chip-planning/delete-group/${groupName}`).then(r => r.data),
 
-    updateVehicleGroup: async (kalustoNro: number, groupName: string) => apiClient.put(`/chip-planning/update-vehicle-group`, { kalustoNro, groupName }).then(r => r.data),
+    // 9. update vehicle group
+    updateVehicleGroup: async (kalustoNro: number, groupName: string) =>
+        apiClient.put(`/chip-planning/update-vehicle-group`, { kalustoNro, groupName }).then(r => r.data),
 
+    // 10. update load metrics
+    updateLoadMetrics: async (loadId: number, data: any) => {
+        const response = await apiClient.post(`/chip-planning/set-metrics`, { loadId, ...data });
+        return response.data;
+    },
+
+    // 11. set load
     setLoad: async (payload: any) => {
         const response = await apiClient.post(`/chip-planning/set-load`, payload);
         return response.data;
     },
 
-    // Driver chip loads
+    // 12. get driver loads
     getDriverLoads: async (params?: {
         vehicleNumber?: number;
         startDate?: string;
@@ -42,7 +65,7 @@ export const chipPlanningService = {
         return response.data;
     },
 
-    // 2b. Schedule Load
+    // 13. schedule load
     scheduleLoad: async (payload: {
         kalusto_nro: number;
         order_id: number;
@@ -52,6 +75,12 @@ export const chipPlanningService = {
         planned_m3: number;
     }) => {
         const response = await apiClient.post(`/chip-planning/schedule-load`, payload);
+        return response.data;
+    },
+
+    // 14. search loads
+    searchLoads: async (params: any) => {
+        const response = await apiClient.get(`/chip-planning/search`, { params });
         return response.data;
     },
 };

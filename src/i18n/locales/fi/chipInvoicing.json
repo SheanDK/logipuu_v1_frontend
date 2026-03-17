@@ -1,0 +1,31 @@
+{
+    "title": "CHIP TRANSPORT BILLING REPORT",
+    "generatedOn": "Generated on",
+    "date": "Date",
+    "vehicle": "Vehicle",
+    "customer": "Customer",
+    "itemName": "Item Name",
+    "m3": "M3",
+    "tons": "Tons",
+    "totals": "TOTALS:",
+    "authorizedBy": "Authorized by WoodMaster LogiApp",
+    "plannerSignature": "Planner Signature: __________________",
+    "noDataFound": "No data found for the report.",
+    "errorReadingData": "Error reading data.",
+    "viewReport": "View Report",
+    "invoiceSelected": "Invoice Selected",
+    "back": "Back",
+    "filters": {
+        "title": "Filters",
+        "dateFrom": "Date From",
+        "dateTo": "Date To",
+        "customer": "Customer",
+        "vehicle": "Vehicle",
+        "billed": "Billed",
+        "all": "All",
+        "yes": "Yes",
+        "no": "No",
+        "search": "Search",
+        "clear": "Clear"
+    }
+}

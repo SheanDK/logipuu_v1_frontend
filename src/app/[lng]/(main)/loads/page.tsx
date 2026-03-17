@@ -47,6 +47,7 @@ export default function DrivenInspectionPage() {
     const [clientList, setClientList] = useState<IClientBasicInfo[]>([]);
     const [vehicleList, setVehicleList] = useState<IVehicleBasicInfo[]>([]);
     const [driverList, setDriverList] = useState<IDriver[]>([]);
+    const [refreshTrigger, setRefreshTrigger] = useState(0);
     const [selectionModel, setSelectionModel] = useState<Set<GridRowId>>(new Set());
     const [currentRows, setCurrentRows] = useState<any[]>([]);
     const [isAccepting, setIsAccepting] = useState(false);
@@ -88,6 +89,7 @@ export default function DrivenInspectionPage() {
             await deleteLoad(deleteConfirmation.kuormaId, user);
             setSnackbar({ open: true, message: t('snackbar.deleted', { id: deleteConfirmation.kuormaId }), severity: 'success' });
             setDeleteConfirmation(null);
+            setRefreshTrigger(prev => prev + 1); // Refresh tables after delete
         } catch (err: any) {
             setSnackbar({ open: true, message: err.response?.data?.message || t('errors.deleteFailed'), severity: 'error' });
         } finally {
@@ -99,9 +101,10 @@ export default function DrivenInspectionPage() {
         setIsAccepting(true);
         try {
             const acceptedIds = Array.from(selectionModel);
-            await acceptLoadsForInvoicing(acceptedIds as number[]);
+            await acceptLoadsForInvoicing(acceptedIds as number[], filters.loadType);
             setSnackbar({ open: true, message: t('snackbar.acceptedForInvoicing', { count: acceptedIds.length }), severity: 'success' });
             setSelectionModel(new Set());
+            setRefreshTrigger(prev => prev + 1);
         } catch (err: any) {
             setSnackbar({ open: true, message: err.response?.data?.message || t('errors.acceptFailed'), severity: 'error' });
         } finally {
@@ -177,6 +180,7 @@ export default function DrivenInspectionPage() {
                 {filters.loadType === '0' && (
                     <TimberLoadTable
                         filters={filters}
+                        refreshTrigger={refreshTrigger}
                         selectionModel={selectionModel}
                         toggleSelectionAction={(id: GridRowId) => setSelectionModel(prev => {
                             const next = new Set(prev);
@@ -192,6 +196,7 @@ export default function DrivenInspectionPage() {
                 {filters.loadType === '1' && (
                     <ConsignmentTable
                         filters={filters}
+                        refreshTrigger={refreshTrigger}
                         selectionModel={selectionModel}
                         toggleSelectionAction={(id: GridRowId) => setSelectionModel(prev => {
                             const next = new Set(prev);
@@ -207,6 +212,7 @@ export default function DrivenInspectionPage() {
                 {filters.loadType === '2' && (
                     <ChipTransportTable
                         filters={filters}
+                        refreshTrigger={refreshTrigger}
                         selectionModel={selectionModel}
                         toggleSelectionAction={(id: GridRowId) => setSelectionModel(prev => {
                             const next = new Set(prev);

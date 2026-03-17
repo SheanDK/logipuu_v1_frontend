@@ -46,17 +46,10 @@ export const officeNavigationItems: NavItemConfig[] = [
         icon: <WorkspacesIcon />,
         isTopNav: true,
         children: [
-            { text: 'Load Management', tKey: 'loadManagement', icon: <LocalShippingIcon />, path: '/loads', permission: 'load management_view' },
+
             { text: 'Timber Management', tKey: 'timberManagement', icon: <ViewListIcon />, path: '/timber-management', permission: 'timber management_view' },
 
             // --- CHIP TRANSPORT SECTION ---
-            {
-                text: 'Chip Planning',
-                tKey: 'chipPlanning',
-                icon: <CalendarMonthIcon />,
-                path: '/chip-management/planning',
-                permission: 'chip management_planning'
-            },
             {
                 text: 'Chip Titles',
                 tKey: 'chipManagement',
@@ -71,6 +64,20 @@ export const officeNavigationItems: NavItemConfig[] = [
                 icon: <AssignmentLateIcon />,
                 path: '/chip-management/subscriptions',
                 permission: 'chip management_subscriptions'
+            },
+            {
+                text: 'Chip Planning',
+                tKey: 'chipPlanning',
+                icon: <CalendarMonthIcon />,
+                path: '/chip-management/planning',
+                permission: 'chip management_planning'
+            },
+            {
+                text: 'Load Management',
+                tKey: 'loadManagement',
+                icon: <LocalShippingIcon />,
+                path: '/loads',
+                permission: 'load management_view'
             },
         ]
     },

@@ -1,13 +1,13 @@
 {
-  "title": "Timber Management",
+  "title": "Energy Storage Management",
   "buttons": {
-    "new": "New Timber Stacks"
+    "new": "New Energy Storage"
   },
   "footer": {
     "altogether": "Altogether"
   },
   "columns": {
-    "id": "Timber Stack ID",
+    "id": "Energy Storage ID",
     "date": "Date",
     "customer": "Customer",
     "objectName": "Object Name",
@@ -16,26 +16,26 @@
     "actions": "Actions"
   },
   "tooltips": {
-    "edit": "Edit Timber Stack",
-    "delete": "Delete Timber Stack"
+    "edit": "Edit Energy Storage",
+    "delete": "Delete Energy Storage"
   },
   "labels": {
     "unknownClient": "Unknown Client"
   },
   "confirm": {
-    "deleteTitle": "Confirm Timber Stack Deletion",
-    "deleteMessage": "Are you sure you want to delete Timber Stack \"{{name}}\"?"
+    "deleteTitle": "Confirm Energy Storage Deletion",
+    "deleteMessage": "Are you sure you want to delete Energy Storage \"{{name}}\"?"
   },
   "snackbar": {
-    "saved": "Timber Stack saved successfully!",
-    "deleted": "Timber Stack '{{name}}' deleted successfully."
+    "saved": "Energy Storage saved successfully!",
+    "deleted": "Energy Storage '{{name}}' deleted successfully."
   },
   "warnings": {
-    "detailsNotFound": "Could not find full details for this Timber Stack."
+    "detailsNotFound": "Could not find full details for this Energy Storage."
   },
   "errors": {
-    "loadDetails": "Failed to load Timber Stack details for editing.",
-    "deleteFailed": "Failed to delete Timber Stack.",
+    "loadDetails": "Failed to load Energy Storage details for editing.",
+    "deleteFailed": "Failed to delete Energy Storage.",
     "loadPage": "Failed to load page data. Please try again."
   }
 }

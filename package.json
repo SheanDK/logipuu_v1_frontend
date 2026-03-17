@@ -54,6 +54,7 @@
     "react-leaflet": "^5.0.0",
     "recharts": "^3.4.1",
     "scheduler": "^0.27.0",
+    "serialize-javascript": "7.0.4",
     "socket.io-client": "^4.8.1",
     "styled-components": "^6.1.18",
     "use-debounce": "^10.0.6",
@@ -84,5 +85,11 @@
     "rimraf": "^6.1.2",
     "tailwindcss": "^4.1.11",
     "typescript": "^5.9.3"
+  },
+  "overrides": {
+    "braces": "^3.0.3",
+    "micromatch": "^4.0.8",
+    "serialize-javascript": "$serialize-javascript",
+    "cross-spawn": "^7.0.5"
   }
 }

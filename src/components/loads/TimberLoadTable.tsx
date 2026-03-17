@@ -2,7 +2,8 @@
 'use client';
 
 import React, { useEffect, useState, useCallback, useMemo } from 'react';
-import { Box, Chip, IconButton, Tooltip } from '@mui/material';
+import { Box, Chip, IconButton, Tooltip, useTheme, alpha } from '@mui/material';
+
 import type { ChipProps } from '@mui/material/Chip';
 import { DataGrid, GridColDef, GridRenderCellParams, GridRowId, GridRowModel } from '@mui/x-data-grid';
 import EditIcon from '@mui/icons-material/Edit';
@@ -42,6 +43,7 @@ const STATUS_TKEY: Record<string, string> = {
 
 interface TimberLoadTableProps {
     filters: any;
+    refreshTrigger?: number;
     selectionModel: Set<GridRowId>;
     toggleSelectionAction: (id: GridRowId) => void;
     onDeleteAction: (row: ILoadListItem) => void;
@@ -52,6 +54,7 @@ interface TimberLoadTableProps {
 
 export default function TimberLoadTable({
     filters,
+    refreshTrigger,
     selectionModel,
     toggleSelectionAction,
     onDeleteAction,
@@ -62,6 +65,9 @@ export default function TimberLoadTable({
     const { t } = useTranslation('loadsPage');
     const { user } = useAuth();
     const { socket } = useSocket();
+    const theme = useTheme();
+    const isDarkMode = theme.palette.mode === 'dark';
+
 
     const [rows, setRows] = useState<ILoadListItem[]>([]);
     const [isLoading, setIsLoading] = useState(true);
@@ -97,7 +103,7 @@ export default function TimberLoadTable({
         } finally {
             setIsLoading(false);
         }
-    }, [filters, t, onErrorAction, onRowsUpdateAction]);
+    }, [filters, t, onErrorAction, onRowsUpdateAction, refreshTrigger]);
 
     useEffect(() => {
         loadData();
@@ -235,12 +241,33 @@ export default function TimberLoadTable({
                 isCellEditable={(params) => !!(isInspectionView && params.colDef.editable)}
                 onProcessRowUpdateError={(e) => console.error(e)}
                 editMode="row"
+                initialState={{
+                    pagination: {
+                        paginationModel: { pageSize: 25, page: 0 },
+                    },
+                }}
+                pageSizeOptions={[10, 25, 50, 100]}
                 hideFooterSelectedRowCount
                 sx={{
                     border: 'none',
-                    '& .MuiDataGrid-columnHeaders': { backgroundColor: '#f5f5f5', borderBottom: '1px solid #e0e0e0' },
-                    '& .MuiDataGrid-columnHeaderTitle': { fontWeight: '600', textTransform: 'uppercase', fontSize: '0.75rem' },
+                    '& .MuiDataGrid-columnHeaders': {
+                        backgroundColor: isDarkMode ? alpha('#fff', 0.05) : '#f8f9fa',
+                        borderBottom: '2px solid',
+                        borderColor: 'divider',
+                    },
+                    '& .MuiDataGrid-columnHeaderTitle': {
+                        fontWeight: 900,
+                        textTransform: 'uppercase',
+                        fontSize: '11px',
+                        color: 'text.secondary',
+                        letterSpacing: '0.05rem',
+                    },
+                    '& .MuiDataGrid-footerContainer': {
+                        backgroundColor: isDarkMode ? alpha('#fff', 0.02) : '#f8f9fa',
+                        borderTop: 'none',
+                    },
                 }}
+
             />
             {isEditModalOpen && selectedLoadForEditing && user && (
                 <EditLoadModal

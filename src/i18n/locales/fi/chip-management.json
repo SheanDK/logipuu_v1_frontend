@@ -163,14 +163,12 @@
             "send": "LÄHETÄ",
             "waiting": "Odottaa..."
         },
-        "days": {
-            "monday": "Maanantai",
-            "tuesday": "Tiistai",
-            "wednesday": "Keskiviikko",
-            "thursday": "Torstai",
-            "friday": "Perjantai",
-            "saturday": "Lauantai",
-            "sunday": "Sunnuntai"
+        "headers": {
+            "vehicle": "AUTO",
+            "send": "LÄHETÄ",
+            "waiting": "Odottaa...",
+            "weeklyAssignments": "Viikoittaiset määritykset",
+            "week": "Viikko"
         },
         "confirms": {
             "deleteLoad": "Poistetaanko tämä kuorma?",
@@ -323,5 +321,47 @@
     },
     "pagination": {
         "rowsPerPage": "Rivejä sivulla:"
+    },
+    "columns": {
+        "select": "SELECT",
+        "date": "DATE",
+        "vehicle": "VEHICLE",
+        "itemName": "ITEM NAME",
+        "requested": "REQUESTED",
+        "actualM3": "M3",
+        "actualTon": "TONS",
+        "actualPcs": "PCS",
+        "actualHr": "HR",
+        "actualWaiting": "WAIT",
+        "status": "STATUS",
+        "actions": "ACTION"
+    },
+    "details": {
+        "chipTransportDetails": "Hakelasten tiedot",
+        "date": "Päivämäärä",
+        "vehicleNo": "Ajoneuvon numero",
+        "driver": "Kuljettaja",
+        "loadDetails": "Lastin tiedot",
+        "customer": "Asiakas",
+        "itemName": "Nimike",
+        "m3": "m³",
+        "tons": "Tonnia",
+        "pcs": "Kpl",
+        "km": "km",
+        "total": "Yhteensä",
+        "driverNotes": "Kuljettajan huomautukset",
+        "noDriverNotes": "Ei kuljettajan huomautuksia",
+        "close": "Sulje",
+        "COMPLETED": "VALMIS",
+        "CANCELLED": "PERUUTETTU",
+        "IN_PROGRESS": "TYÖNALLA",
+        "PENDING_INSPECTION": "TARKASTETTAVA",
+        "WAITING": "ODOTTAA",
+        "NOT_SENT": "EI LÄHETETTY",
+        "DISPATCHED": "LÄHETETTY",
+        "LOADED": "LADATTU",
+        "UNLOADED": "PURKATTU",
+        "hours": "Tunnit",
+        "info": "Info"
     }
 }

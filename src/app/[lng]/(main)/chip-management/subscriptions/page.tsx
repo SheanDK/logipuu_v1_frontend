@@ -119,23 +119,25 @@ const ChipSubscriptionsPage = () => {
     };
 
     return (
-        <Box sx={{ p: 3, bgcolor: 'background.default', minHeight: '100vh' }}>
+        <Box sx={{ p: 1.5, bgcolor: isDarkMode ? 'background.default' : '#f4f7f9', minHeight: 'calc(100vh - 110px)', display: 'flex', flexDirection: 'column', gap: 1 }}>
             {/* Header Section */}
-            <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 3 }}>
-                <Box>
-                    <Typography variant="h5" fontWeight="bold" sx={{ color: 'text.primary' }}>{t('subscriptions.title')}</Typography>
-                    <Typography variant="caption" color="text.secondary">{t('subscriptions.subtitle')}</Typography>
-                </Box>
-                <Button
-                    variant="contained" startIcon={<AddIcon />} onClick={handleAddNew}
-                    sx={{ bgcolor: '#a38f6d', '&:hover': { bgcolor: '#8c7a5d' }, borderRadius: '8px', px: 3, fontWeight: 'bold' }}
-                >
-                    {t('subscriptions.newSubscription')}
-                </Button>
-            </Stack>
+            <Paper elevation={0} sx={{ p: 1.5, borderRadius: '12px', border: '1px solid', borderColor: 'divider' }}>
+                <Stack direction="row" justifyContent="space-between" alignItems="center">
+                    <Box>
+                        <Typography variant="h5" fontWeight="bold" sx={{ color: 'text.primary' }}>{t('subscriptions.title')}</Typography>
+                        <Typography variant="caption" color="text.secondary">{t('subscriptions.subtitle')}</Typography>
+                    </Box>
+                    <Button
+                        variant="contained" startIcon={<AddIcon />} onClick={handleAddNew}
+                        sx={{ bgcolor: '#a38f6d', '&:hover': { bgcolor: '#8c7a5d' }, borderRadius: '8px', px: 3, fontWeight: 'bold' }}
+                    >
+                        {t('subscriptions.newSubscription')}
+                    </Button>
+                </Stack>
+            </Paper>
 
             {/* Toolbar Section */}
-            <Paper sx={{ p: 2, mb: 3, borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', bgcolor: 'background.paper' }}>
+            <Paper elevation={0} sx={{ p: 1.5, borderRadius: '12px', border: '1px solid', borderColor: 'divider', display: 'flex', alignItems: 'center', justifyContent: 'space-between', bgcolor: 'background.paper' }}>
                 <TextField
                     size="small" placeholder={t('subscriptions.searchPlaceholder')} sx={{ width: 400 }}
                     value={searchTerm}
@@ -157,15 +159,23 @@ const ChipSubscriptionsPage = () => {
             </Paper>
 
             {/* Subscriptions Table Container */}
-            <Paper sx={{ borderRadius: '12px', overflow: 'hidden', bgcolor: 'background.paper', border: '1px solid', borderColor: 'divider' }}>
-                <TableContainer>
-                    <Table size="small">
-                        <TableHead sx={{ bgcolor: isDarkMode ? 'rgba(255,255,255,0.05)' : '#f8f9fa' }}>
+            <Paper elevation={0} sx={{ flexGrow: 1, borderRadius: '12px', overflow: 'hidden', bgcolor: 'background.paper', border: '1px solid', borderColor: 'divider', display: 'flex', flexDirection: 'column' }}>
+                <TableContainer sx={{ flexGrow: 1 }}>
+                    <Table size="small" stickyHeader>
+                        <TableHead sx={{
+                            '& .MuiTableCell-root': {
+                                bgcolor: isDarkMode ? alpha('#fff', 0.05) : '#f8f9fa',
+                                borderBottom: '2px solid',
+                                borderColor: 'divider',
+                            }
+                        }}>
                             <TableRow>
                                 {columns.map((col) => !hiddenColumns.includes(col.id) && (
-                                    <TableCell key={col.id} sx={{ fontWeight: 'bold', color: 'text.primary', py: 1.5 }}>
+                                    <TableCell key={col.id} sx={{ py: 1.5 }}>
                                         <Stack direction="row" alignItems="center" spacing={0.5} justifyContent={(col.id === 'qty' || col.id === 'status') ? 'center' : 'flex-start'}>
-                                            <span style={{ fontSize: '13px' }}>{col.label}</span>
+                                            <Typography variant="caption" sx={{ fontWeight: 900, color: 'text.secondary', fontSize: '11px', textTransform: 'uppercase', letterSpacing: '0.05rem' }}>
+                                                {col.label}
+                                            </Typography>
                                             <IconButton size="small" onClick={(e) => handleMenuOpen(e, col.key)}>
                                                 <MoreVertIcon sx={{ fontSize: 14, opacity: 0.5 }} />
                                             </IconButton>

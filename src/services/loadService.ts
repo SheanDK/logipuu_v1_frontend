@@ -133,9 +133,9 @@ export const fetchLoadsForInspection = async (): Promise<ILoadListItem[]> => {
     }
 };
 
-export const acceptLoadsForInvoicing = async (loadIds: (string | number)[]): Promise<{ count: number }> => {
+export const acceptLoadsForInvoicing = async (loadIds: (string | number)[], loadType?: string | number): Promise<{ count: number }> => {
     try {
-        const response = await apiClient.post<{ count: number }>('/loads/accept-for-invoicing', { loadIds });
+        const response = await apiClient.post<{ count: number }>('/loads/accept-for-invoicing', { loadIds, loadType: Number(loadType) });
         return response.data;
     } catch (error) {
         console.error("SERVICE ERROR: Failed to accept loads for invoicing", error);

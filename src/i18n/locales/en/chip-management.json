@@ -5,15 +5,6 @@
     "searchPlaceholder": "Search by name or customer...",
     "showInactive": "Show Inactive Items",
     "manageColumns": "Column Managemant",
-    "days": {
-        "mon": "MO",
-        "tue": "TU",
-        "wed": "WE",
-        "thu": "TH",
-        "fri": "FR",
-        "sat": "SA",
-        "sun": "SU"
-    },
     "tooltips": {
         "pcs": "Pcs",
         "cubes": "Cubes",
@@ -164,14 +155,12 @@
             "send": "SEND",
             "waiting": "Waiting..."
         },
-        "days": {
-            "monday": "Monday",
-            "tuesday": "Tuesday",
-            "wednesday": "Wednesday",
-            "thursday": "Thursday",
-            "friday": "Friday",
-            "saturday": "Saturday",
-            "sunday": "Sunday"
+        "headers": {
+            "vehicle": "VEHICLE",
+            "send": "SEND",
+            "waiting": "Waiting...",
+            "weeklyAssignments": "Weekly Assignments",
+            "week": "Week"
         },
         "confirms": {
             "deleteLoad": "Delete this load?",
@@ -321,5 +310,44 @@
     },
     "pagination": {
         "rowsPerPage": "Rows per page:"
+    },
+    "columns": {
+        "select": "SELECT",
+        "date": "DATE",
+        "vehicle": "VEHICLE",
+        "itemName": "ITEM NAME",
+        "requested": "REQUESTED",
+        "actualM3": "M3",
+        "actualTon": "TONS",
+        "actualPcs": "PCS",
+        "actualHr": "HR",
+        "actualWaiting": "WAIT",
+        "status": "STATUS",
+        "actions": "ACTION"
+    },
+    "details": {
+        "chipTransportDetails": "Chip Transport Details",
+        "driverNotes": "Driver Notes",
+        "noDriverNotes": "No driver notes",
+        "close": "Close",
+        "loadDetails": "Load Details",
+        "customer": "Customer",
+        "itemName": "Item Name",
+        "m3": "M3",
+        "tons": "Tons",
+        "pcs": "Pcs",
+        "km": "Km",
+        "total": "Total",
+        "COMPLETED": "COMPLETED",
+        "CANCELLED": "CANCELLED",
+        "IN_PROGRESS": "IN PROGRESS",
+        "PENDING_INSPECTION": "PENDING INSPECTION",
+        "WAITING": "WAITING",
+        "NOT_SENT": "NOT SENT",
+        "DISPATCHED": "DISPATCHED",
+        "LOADED": "LOADED",
+        "UNLOADED": "UNLOADED",
+        "hours": "Hours",
+        "info": "Info"
     }
 }
