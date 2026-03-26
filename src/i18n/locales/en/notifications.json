@@ -1,0 +1,22 @@
+{
+    "LOAD_ASSIGNED": {
+        "title": "LOAD ASSIGNED",
+        "message": "New loads have been assigned to you."
+    },
+    "REASSIGNMENT_REQUEST": {
+        "title": "TRANSFER REQUEST",
+        "message": "Transfer Request: Vehicle {{vehicle}} wants to transfer Load {{loadId}} to you. Do you approve?"
+    },
+    "TRANSFER_ACCEPTED": {
+        "title": "TRANSFER ACCEPTED",
+        "message": "Transfer Approved: Load {{loadId}} moved to Vehicle {{vehicle}}."
+    },
+    "TRANSFER_REJECTED": {
+        "title": "TRANSFER REJECTED",
+        "message": "Owner rejected transfer for Load {{loadId}}."
+    },
+    "LOAD_COMPLETED": {
+        "title": "LOAD COMPLETED",
+        "message": "Vehicle {{vehicle}} has completed and sent Load ID: {{loadId}}. Ready for invoicing."
+    }
+}

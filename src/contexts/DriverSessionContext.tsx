@@ -3,6 +3,7 @@
 
 import React, { createContext, useContext, useState, ReactNode, useMemo, useEffect } from 'react';
 import { useAuth } from './AuthContext';
+import * as userService from '../services/userService';
 
 const VEHICLE_ID_STORAGE_KEY = 'driver_vehicle_id';
 const VEHICLE_REGNO_STORAGE_KEY = 'driver_vehicle_regno';
@@ -40,6 +41,12 @@ export const DriverSessionProvider = ({ children }: { children: ReactNode }) => 
             if (storedVehicleId && storedVehicleRegNo) {
                 setSelectedVehicleId(storedVehicleId);
                 setSelectedVehicleRegNo(storedVehicleRegNo);
+                
+                // Sync with backend on initialization to ensure DB is up to date
+                if (localStorage.getItem('authToken')) {
+                    userService.updateCurrentVehicleApi(Number(storedVehicleId))
+                        .catch(err => console.error("Initial backend vehicle sync failed:", err));
+                }
             }
         } catch (error) {
             console.error("Failed to read from localStorage", error);
@@ -63,6 +70,11 @@ export const DriverSessionProvider = ({ children }: { children: ReactNode }) => 
         localStorage.setItem(VEHICLE_REGNO_STORAGE_KEY, regNo);
         setSelectedVehicleId(vehicleId);
         setSelectedVehicleRegNo(regNo);
+        // Only update backend if we have a token
+        if (typeof window !== 'undefined' && localStorage.getItem('authToken')) {
+            userService.updateCurrentVehicleApi(Number(vehicleId))
+                .catch(err => console.error("Failed to update current vehicle in backend:", err));
+        }
     };
 
     const [activeTripId, setActiveTripIdState] = useState<string | null>(() => {
@@ -86,6 +98,16 @@ export const DriverSessionProvider = ({ children }: { children: ReactNode }) => 
         setSelectedVehicleId(null);
         setSelectedVehicleRegNo(null);
         setActiveTrip(null);
+        // Only clear backend if we have a token
+        if (typeof window !== 'undefined' && localStorage.getItem('authToken')) {
+            userService.updateCurrentVehicleApi(null)
+                .catch(err => {
+                    // Ignore 401s during clear, as it means the session is already gone
+                    if (err.response?.status !== 401) {
+                        console.error("Failed to clear current vehicle in backend:", err);
+                    }
+                });
+        }
     };
 
     useEffect(() => {

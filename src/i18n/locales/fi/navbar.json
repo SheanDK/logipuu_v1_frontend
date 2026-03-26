@@ -47,6 +47,13 @@
         "myDashboard": "Oma näkymä",
         "completedTrips": "Päätetyt ajot",
         "woodCategories": "Puutavaralajit",
-        "userManual": "Käyttöopas"
+        "userManual": "Käyttöopas",
+        "notifications": "Ilmoitukset",
+        "new": "Uutta",
+        "noNewNotifications": "Ei uusia ilmoituksia",
+        "markAllAsRead": "MERKITSE KAIKKI LUETUKSI",
+        "clearRead": "TYHJENNÄ KAIKKI",
+        "profileSettings": "Profiiliasetukset",
+        "logout": "Kirjaudu ulos"
     }
 }

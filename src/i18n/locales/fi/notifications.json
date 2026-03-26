@@ -1,0 +1,22 @@
+{
+    "LOAD_ASSIGNED": {
+        "title": "KUORMA MÄÄRITETTY",
+        "message": "Sinulle on määritetty uusia kuormia."
+    },
+    "REASSIGNMENT_REQUEST": {
+        "title": "SIIRTOPYYNTÖ",
+        "message": "Siirtopyyntö: Ajoneuvo {{vehicle}} haluaa siirtää kuorman {{loadId}} sinulle. Hyväksytkö?"
+    },
+    "TRANSFER_ACCEPTED": {
+        "title": "SIIRTO HYVÄKSYTTY",
+        "message": "Siirto hyväksytty: Kuorma {{loadId}} siirretty ajoneuvoon {{vehicle}}."
+    },
+    "TRANSFER_REJECTED": {
+        "title": "SIIRTO HYLÄTTY",
+        "message": "Omistaja hylkäsi kuorman {{loadId}} siirron."
+    },
+    "LOAD_COMPLETED": {
+        "title": "KUORMA VALMIS",
+        "message": "Ajoneuvo {{vehicle}} on suorittanut ja lähettänyt kuorman ID: {{loadId}}. Valmis laskutukseen."
+    }
+}

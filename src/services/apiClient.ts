@@ -20,7 +20,8 @@ const apiClient = axios.create({
 
 apiClient.interceptors.request.use(
     (config) => {
-        config.baseURL = `${getApiBaseUrl()}/api`;
+        const baseUrl = getApiBaseUrl();
+        config.baseURL = `${baseUrl}/api`;
 
         // Ensure config.headers is a valid AxiosHeaders object.
         if (!config.headers) {

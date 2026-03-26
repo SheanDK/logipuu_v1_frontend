@@ -1,7 +1,7 @@
 // frontend/src/components/drivers/ChipDriverDashboard.tsx
 'use client';
 
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState, useCallback } from 'react';
 import {
     Box,
     Button,
@@ -15,7 +15,9 @@ import {
     Stack,
     TextField,
     Tooltip,
-    Typography
+    Typography,
+    TablePagination,
+    alpha,
 } from '@mui/material';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import NavigateBeforeIcon from '@mui/icons-material/NavigateBefore';
@@ -31,6 +33,10 @@ import { useDriverSession } from '@/contexts/DriverSessionContext';
 import { useTranslation } from '@/i18n/useTranslation';
 import chipService from '@/services/chipPlanningService';
 import { useSnackbar } from 'notistack';
+import useSocket from '@/hooks/useSocket';
+import TransferRequestPopup from './TransferRequestPopup';
+import { useAuth } from '@/contexts/AuthContext';
+
 
 type ChipLoadStatus = 'NOT_SENT' | 'LOADED' | 'UNLOADED' | 'SENT';
 
@@ -82,8 +88,7 @@ interface ChipDriverDashboardProps {
 }
 
 const getWeekStart = (date: Dayjs): Dayjs => {
-    // Force Monday as week start to match ISO/backend week logic.
-    const day = date.day(); // 0=Sunday ... 6=Saturday
+    const day = date.day();
     const daysFromMonday = (day + 6) % 7;
     return date.startOf('day').subtract(daysFromMonday, 'day');
 };
@@ -158,9 +163,16 @@ const formatCoords = (lat?: number | null, lng?: number | null): string => {
 };
 
 export default function ChipDriverDashboard({ onBackAction }: ChipDriverDashboardProps) {
+    const { user } = useAuth();
     const { selectedVehicleId } = useDriverSession();
-    const { t, i18n } = useTranslation(['chipDriver', 'common']);
+    const { t, i18n } = useTranslation(['chipDriver', 'chipPlanning', 'notifications', 'common']);
     const { enqueueSnackbar } = useSnackbar();
+    const [page, setPage] = useState(0);
+    const [rowsPerPage, setRowsPerPage] = useState(10);
+
+    // --- REALTIME UPDATES ---
+    const recipientUserId = user?.driverNumericId;
+    const { socket } = useSocket(recipientUserId);
 
     const initialWeekStart = useMemo(() => getWeekStart(dayjs()), []);
     const [weekStart, setWeekStart] = useState<Dayjs>(initialWeekStart);
@@ -168,6 +180,10 @@ export default function ChipDriverDashboard({ onBackAction }: ChipDriverDashboar
     const [isLoading, setIsLoading] = useState<boolean>(false);
     const [instructionAnchorEl, setInstructionAnchorEl] = useState<HTMLElement | null>(null);
     const [instructionPayload, setInstructionPayload] = useState<{ instructions?: string | null; labelKey?: string } | null>(null);
+    // Transfer Request
+    const [isPopupOpen, setIsPopupOpen] = useState(false);
+    const [pendingRequest, setPendingRequest] = useState<any>(null);
+
     const weekStartDate = useMemo(() => weekStart.startOf('day'), [weekStart]);
     const weekEndDate = useMemo(() => weekStart.add(6, 'day').endOf('day'), [weekStart]);
     const weekStartDateStr = useMemo(() => weekStartDate.format('YYYY-MM-DD'), [weekStartDate]);
@@ -175,8 +191,145 @@ export default function ChipDriverDashboard({ onBackAction }: ChipDriverDashboar
     const isoWeekInfo = useMemo(() => getISOWeekAndYear(weekStartDate.toDate()), [weekStartDate]);
 
     useEffect(() => {
+        setPage(0);
+    }, [weekStart]);
+
+    const fetchLoads = useCallback(async (isSilent: boolean = false) => {
+        if (!selectedVehicleId) return;
+        if (!isSilent) setIsLoading(true);
+        try {
+            const raw = await chipService.getDriverLoads({
+                vehicleNumber: Number(selectedVehicleId),
+                startDate: weekStartDateStr,
+                endDate: weekEndDateStr,
+                week: isoWeekInfo.week,
+                year: isoWeekInfo.year,
+                ts: Date.now()
+            });
+            const items = Array.isArray(raw) ? raw : (Array.isArray(raw?.loads) ? raw.loads : []);
+            setAllLoads(items.map(mapApiLoad).filter((x: DriverChipLoad) => x.load_id > 0 && x.scheduled_date));
+        } catch (error) {
+            console.error('Failed to fetch chip loads', error);
+            enqueueSnackbar(t('messages.loadFailed', { defaultValue: 'Failed to load chip loads.' }), { variant: 'error' });
+            setAllLoads([]);
+        } finally {
+            if (!isSilent) setIsLoading(false);
+        }
+    }, [enqueueSnackbar, isoWeekInfo.week, isoWeekInfo.year, selectedVehicleId, t, weekEndDateStr, weekStartDateStr]);
+
+    useEffect(() => {
+        if (!socket) return;
+        socket.on('chipLoadUpdated', handleUpdate);
+        socket.on('chipLoadDeleted', handleDeletion);
+        socket.on('newNotification', handleNewNotification);
+
+        return () => {
+            socket.off('chipLoadUpdated', handleUpdate);
+            socket.off('chipLoadDeleted', handleDeletion);
+            socket.off('newNotification', handleNewNotification);
+        };
+
+
+    }, [socket, fetchLoads]);
+
+    const handleNewNotification = (notification: any) => {
+        const currentUserId = user?.driverNumericId;
+        const recipientId = notification.recipient_user_id || notification.recipientUserId || notification.user_id;
+        console.log("🚀 Popup Triggered! Received:", notification);
+        console.log("🚀 Popup Triggered! Received:", currentUserId);
+        console.log("🚀 Popup Triggered! Received:", recipientId);
+
+        if (Number(recipientId) === Number(currentUserId)) {
+
+            if (notification.type === 'LOAD_DELETED' || notification.type === 'LOAD_ASSIGNED') {
+                setPendingRequest(notification);
+                setIsPopupOpen(true);
+
+                if (window.navigator.vibrate) window.navigator.vibrate(300);
+            }
+
+        }
+        fetchLoads(true);
+    };
+
+
+    const handleUpdate = (data: any) => {
+        setAllLoads(prevLoads => {
+            const loadId = Number(data.load_id || data.loadId);
+            const existingLoad = prevLoads.find(l => l.load_id === loadId);
+
+            if (existingLoad) {
+                const incomingLoad = mapApiLoad(data);
+
+                const isLoadActive = ['NOT_SENT', 'LOADED', 'UNLOADED'].includes(existingLoad.status);
+
+                return prevLoads.map(load => {
+                    if (load.load_id === loadId) {
+                        const mergedLoad: DriverChipLoad = {
+                            ...load,
+                            title_id: incomingLoad.title_id,
+                            vehicle_number: incomingLoad.vehicle_number,
+                            order_id: incomingLoad.order_id,
+                            scheduled_date: incomingLoad.scheduled_date,
+                            serial_no: incomingLoad.serial_no,
+                            status: incomingLoad.status,
+                            started_at: incomingLoad.started_at,
+                            completed_at: incomingLoad.completed_at,
+                            load_notes: incomingLoad.load_notes,
+                            is_sent_from_app: incomingLoad.is_sent_from_app,
+                        };
+
+                        if (!isLoadActive) {
+                            mergedLoad.actual_ton = incomingLoad.actual_ton;
+                            mergedLoad.actual_m3 = incomingLoad.actual_m3;
+                            mergedLoad.actual_pcs = incomingLoad.actual_pcs;
+                            mergedLoad.actual_hr = incomingLoad.actual_hr;
+                            mergedLoad.actual_km = incomingLoad.actual_km;
+                            mergedLoad.actual_waiting = incomingLoad.actual_waiting;
+                            mergedLoad.actual_details = incomingLoad.actual_details;
+                        }
+
+                        return mergedLoad;
+                    }
+                    return load;
+                });
+            } else {
+                fetchLoads(true);
+                return prevLoads;
+            }
+        });
+    };
+
+    const handleDeletion = (data: { loadId: number }) => {
+        setAllLoads(prev => prev.filter(load => load.load_id !== Number(data.loadId)));
+    };
+
+
+
+    // 2. Action Handler
+    const handlePopupAcknowledge = async () => {
+        const notifId = pendingRequest?.notification_id || pendingRequest?.notificationId;
+
+        try {
+            if (notifId) {
+                await chipService.markNotificationAsRead(Number(notifId));
+                window.dispatchEvent(new Event('refreshNotifications'));
+            }
+
+            setIsPopupOpen(false);
+            setPendingRequest(null);
+
+            fetchLoads(true);
+
+        } catch (error) {
+            console.error("Acknowledge failed:", error);
+        }
+    };
+
+
+    useEffect(() => {
         let active = true;
-        const fetchLoads = async () => {
+        const loadData = async () => {
             if (!selectedVehicleId) {
                 setAllLoads([]);
                 return;
@@ -203,7 +356,7 @@ export default function ChipDriverDashboard({ onBackAction }: ChipDriverDashboar
                 if (active) setIsLoading(false);
             }
         };
-        fetchLoads();
+        loadData();
         return () => {
             active = false;
         };
@@ -218,6 +371,11 @@ export default function ChipDriverDashboard({ onBackAction }: ChipDriverDashboar
             return inWeek;
         });
     }, [allLoads, weekEndDate, weekStartDate]);
+
+    const paginatedLoads = useMemo(() => {
+        const startIndex = page * rowsPerPage;
+        return currentWeekLoads.slice(startIndex, startIndex + rowsPerPage);
+    }, [currentWeekLoads, page, rowsPerPage]);
 
     const updateLoad = (loadId: number, updater: (load: DriverChipLoad) => DriverChipLoad) => {
         setAllLoads((prev) => prev.map((load) => (load.load_id === loadId ? updater(load) : load)));
@@ -373,6 +531,13 @@ export default function ChipDriverDashboard({ onBackAction }: ChipDriverDashboar
 
     return (
         <Box sx={{ p: { xs: 1, sm: 2 }, height: '100%', display: 'flex', flexDirection: 'column', gap: 1.5 }}>
+            {/* --- INJECTED POPUP COMPONENT --- */}
+            <TransferRequestPopup
+                open={isPopupOpen}
+                data={pendingRequest}
+                onAcknowledge={handlePopupAcknowledge}
+            />
+
             <Paper sx={{ p: 1.5, flexShrink: 0 }}>
                 <Stack
                     direction={{ xs: 'column', md: 'row' }}
@@ -430,336 +595,367 @@ export default function ChipDriverDashboard({ onBackAction }: ChipDriverDashboar
 
             <Box sx={{ overflowY: 'auto', pr: 0.5 }}>
                 <Stack spacing={1.2}>
-                    {isLoading && (
+                    {isLoading ? (
                         <Paper sx={{ p: 2 }}>
                             <Typography color="text.secondary">{t('messages.loading', { defaultValue: 'Loading...' })}</Typography>
                         </Paper>
-                    )}
-                    {currentWeekLoads.length === 0 && (
-                        <Paper sx={{ p: 2 }}>
-                            <Typography color="text.secondary">{t('messages.noLoadsThisWeek')}</Typography>
-                        </Paper>
-                    )}
+                    ) : (
+                        <>
+                            {currentWeekLoads.length === 0 && (
+                                <Paper sx={{ p: 2 }}>
+                                    <Typography color="text.secondary">{t('messages.noLoadsThisWeek')}</Typography>
+                                </Paper>
+                            )}
+                        </>)}
 
-                    {currentWeekLoads.map((load) => {
-                        const isSent = load.status === 'SENT' || load.is_sent_from_app;
-                        const primaryField = getInvoicingBasisField(load.invoicing_basis);
-                        const productLabel =
-                            load.product_name ||
-                            load.product_number ||
-                            load.abbreviation ||
-                            '-';
-                        const highlightSx = (field: string) => ({
-                            ...(primaryField === field
-                                ? {
-                                    '& .MuiOutlinedInput-root': {
-                                        backgroundColor: 'rgba(76, 175, 80, 0.16)',
-                                        borderColor: 'rgba(56, 142, 60, 0.45)',
-                                        fontWeight: 700
+                    {currentWeekLoads
+                        .slice(page * rowsPerPage, (page + 1) * rowsPerPage)
+                        .map((load) => {
+                            const isSent = load.status === 'SENT' || load.is_sent_from_app;
+                            const primaryField = getInvoicingBasisField(load.invoicing_basis);
+                            const productLabel =
+                                load.product_name ||
+                                load.product_number ||
+                                load.abbreviation ||
+                                '-';
+                            const highlightSx = (field: string) => ({
+                                ...(primaryField === field
+                                    ? {
+                                        '& .MuiOutlinedInput-root': {
+                                            backgroundColor: 'rgba(76, 175, 80, 0.16)',
+                                            borderColor: 'rgba(56, 142, 60, 0.45)',
+                                            fontWeight: 700
+                                        }
                                     }
-                                }
-                                : {})
-                        });
+                                    : {})
+                            });
 
-                        return (
-                            <Card key={load.load_id} variant="outlined">
-                                <CardContent sx={{ p: 1.25, '&:last-child': { pb: 1.25 } }}>
-                                    <Stack
-                                        direction={{ xs: 'column', md: 'row' }}
-                                        spacing={0.5}
-                                        justifyContent="space-between"
-                                        alignItems={{ xs: 'flex-start', md: 'center' }}
-                                        mb={0.75}
-                                    >
-                                        <Box>
-                                            <Stack direction="row" spacing={0.5} alignItems="center">
-                                                <Typography variant="subtitle2" fontWeight={700}>
-                                                    {(load.serial_no ?? 0) + 1} - {load.title_name || '-'} - {productLabel}
+                            return (
+                                <Card key={load.load_id} variant="outlined">
+                                    <CardContent sx={{ p: 1.25, '&:last-child': { pb: 1.25 } }}>
+                                        <Stack
+                                            direction={{ xs: 'column', md: 'row' }}
+                                            spacing={0.5}
+                                            justifyContent="space-between"
+                                            alignItems={{ xs: 'flex-start', md: 'center' }}
+                                            mb={0.75}
+                                        >
+                                            <Box>
+                                                <Stack direction="row" spacing={0.5} alignItems="center">
+                                                    <Typography variant="subtitle2" fontWeight={700}>
+                                                        {(load.serial_no ?? 0) + 1} - {load.title_name || '-'} - {productLabel}
+                                                    </Typography>
+                                                    <IconButton
+                                                        size="medium"
+                                                        sx={{
+                                                            p: 0.35,
+                                                            visibility: load.driver_instructions ? 'visible' : 'hidden'
+                                                        }}
+                                                        onClick={(e) =>
+                                                            load.driver_instructions
+                                                                ? handleOpenInstructions(e, {
+                                                                    instructions: load.driver_instructions,
+                                                                    labelKey: 'labels.titleInstructions'
+                                                                })
+                                                                : undefined
+                                                        }
+                                                        aria-label={t('labels.titleInstructions')}
+                                                        disabled={!load.driver_instructions}
+                                                    >
+                                                        <InfoOutlinedIcon sx={{ fontSize: 21 }} />
+                                                    </IconButton>
+                                                </Stack>
+                                                <Typography variant="caption" color="text.secondary" display="block">
+                                                    {t('labels.scheduledDate')}:{' '}
+                                                    {dayjs(load.scheduled_date).locale(i18n.language).format('ddd DD.MM.YYYY')}
+                                                    {'  '}| {t('buttons.load')}: {load.started_at ? dayjs(load.started_at).locale(i18n.language).format('DD.MM.YYYY HH:mm') : '-'}
+                                                    {'  '}| {t('buttons.unload')}: {load.completed_at ? dayjs(load.completed_at).locale(i18n.language).format('DD.MM.YYYY HH:mm') : '-'}
                                                 </Typography>
-                                                <IconButton
-                                                    size="medium"
+                                                <Box
                                                     sx={{
-                                                        p: 0.35,
-                                                        visibility: load.driver_instructions ? 'visible' : 'hidden'
+                                                        mt: 0.5,
+                                                        px: 0.75,
+                                                        py: 0.5,
+                                                        borderRadius: 1,
+                                                        border: '1px solid',
+                                                        borderColor: 'divider',
+                                                        backgroundColor: 'rgba(25,118,210,0.06)',
+                                                        display: 'grid',
+                                                        gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr' },
+                                                        gap: 0.5
                                                     }}
-                                                    onClick={(e) =>
-                                                        load.driver_instructions
-                                                            ? handleOpenInstructions(e, {
-                                                                instructions: load.driver_instructions,
-                                                                labelKey: 'labels.titleInstructions'
-                                                            })
-                                                            : undefined
-                                                    }
-                                                    aria-label={t('labels.titleInstructions')}
-                                                    disabled={!load.driver_instructions}
                                                 >
-                                                    <InfoOutlinedIcon sx={{ fontSize: 21 }} />
-                                                </IconButton>
-                                            </Stack>
-                                            <Typography variant="caption" color="text.secondary" display="block">
-                                                {t('labels.scheduledDate')}:{' '}
-                                                {dayjs(load.scheduled_date).locale(i18n.language).format('ddd DD.MM.YYYY')}
-                                                {'  '}| {t('buttons.load')}: {load.started_at ? dayjs(load.started_at).locale(i18n.language).format('DD.MM.YYYY HH:mm') : '-'}
-                                                {'  '}| {t('buttons.unload')}: {load.completed_at ? dayjs(load.completed_at).locale(i18n.language).format('DD.MM.YYYY HH:mm') : '-'}
-                                            </Typography>
-                                            <Box
-                                                sx={{
-                                                    mt: 0.5,
-                                                    px: 0.75,
-                                                    py: 0.5,
-                                                    borderRadius: 1,
-                                                    border: '1px solid',
-                                                    borderColor: 'divider',
-                                                    backgroundColor: 'rgba(25,118,210,0.06)',
-                                                    display: 'grid',
-                                                    gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr' },
-                                                    gap: 0.5
-                                                }}
-                                            >
-                                                <Stack spacing={0.1}>
-                                                    <Stack direction="row" spacing={0.5} alignItems="center">
-                                                        <LoginIcon fontSize="inherit" sx={{ color: 'primary.main' }} />
-                                                        <Typography variant="caption" sx={{ fontWeight: 700 }}>
-                                                            {t('labels.loadingPoint')}:
+                                                    <Stack spacing={0.1}>
+                                                        <Stack direction="row" spacing={0.5} alignItems="center">
+                                                            <LoginIcon fontSize="inherit" sx={{ color: 'primary.main' }} />
+                                                            <Typography variant="caption" sx={{ fontWeight: 700 }}>
+                                                                {t('labels.loadingPoint')}:
+                                                            </Typography>
+                                                            <Typography variant="caption">{load.loading_point_name || '-'}</Typography>
+                                                        </Stack>
+                                                        <Typography variant="caption" color="text.secondary" sx={{ pl: 2.5 }}>
+                                                            {formatCoords(load.loading_point_lat, load.loading_point_lng)}
                                                         </Typography>
-                                                        <Typography variant="caption">{load.loading_point_name || '-'}</Typography>
                                                     </Stack>
-                                                    <Typography variant="caption" color="text.secondary" sx={{ pl: 2.5 }}>
-                                                        {formatCoords(load.loading_point_lat, load.loading_point_lng)}
-                                                    </Typography>
-                                                </Stack>
-                                                <Stack spacing={0.1}>
-                                                    <Stack direction="row" spacing={0.5} alignItems="center">
-                                                        <LogoutIcon fontSize="inherit" sx={{ color: 'warning.main' }} />
-                                                        <Typography variant="caption" sx={{ fontWeight: 700 }}>
-                                                            {t('labels.unloadingPoint')}:
+                                                    <Stack spacing={0.1}>
+                                                        <Stack direction="row" spacing={0.5} alignItems="center">
+                                                            <LogoutIcon fontSize="inherit" sx={{ color: 'warning.main' }} />
+                                                            <Typography variant="caption" sx={{ fontWeight: 700 }}>
+                                                                {t('labels.unloadingPoint')}:
+                                                            </Typography>
+                                                            <Typography variant="caption">{load.unloading_point_name || '-'}</Typography>
+                                                        </Stack>
+                                                        <Typography variant="caption" color="text.secondary" sx={{ pl: 2.5 }}>
+                                                            {formatCoords(load.unloading_point_lat, load.unloading_point_lng)}
                                                         </Typography>
-                                                        <Typography variant="caption">{load.unloading_point_name || '-'}</Typography>
                                                     </Stack>
-                                                    <Typography variant="caption" color="text.secondary" sx={{ pl: 2.5 }}>
-                                                        {formatCoords(load.unloading_point_lat, load.unloading_point_lng)}
-                                                    </Typography>
-                                                </Stack>
+                                                </Box>
                                             </Box>
-                                        </Box>
-                                        <Chip
-                                            size="small"
-                                            label={t(`statuses.${load.status}`)}
-                                            color={getStatusColor(load.status)}
-                                            sx={{ width: 110, justifyContent: 'center' }}
-                                        />
-                                    </Stack>
+                                            <Chip
+                                                size="small"
+                                                label={t(`statuses.${load.status}`)}
+                                                color={getStatusColor(load.status)}
+                                                sx={{ width: 110, justifyContent: 'center' }}
+                                            />
+                                        </Stack>
 
-                                    <Box
-                                        sx={{
-                                            display: 'flex',
-                                            gap: 0.75,
-                                            alignItems: 'center',
-                                            flexWrap: 'nowrap',
-                                            '& .MuiTextField-root .MuiInputBase-root': {
-                                                height: 40
-                                            },
-                                            '& .MuiButton-root': {
-                                                height: 40,
-                                                minHeight: 40
-                                            }
-                                        }}
-                                    >
-                                        <Button
-                                            variant="outlined"
-                                            size="small"
-                                            startIcon={<LocalShippingIcon />}
-                                            onClick={() => handleLoad(load.load_id)}
-                                            disabled={isSent || load.status === 'LOADED' || load.status === 'UNLOADED'}
-                                        >
-                                            {t('buttons.load')}
-                                        </Button>
-                                        <IconButton
-                                            size="small"
-                                            sx={{
-                                                p: 0.35,
-                                                visibility: load.load_notes ? 'visible' : 'hidden'
-                                            }}
-                                            onClick={(e) =>
-                                                load.load_notes
-                                                    ? handleOpenInstructions(e, {
-                                                        instructions: load.load_notes,
-                                                        labelKey: 'labels.loadInstructions'
-                                                    })
-                                                    : undefined
-                                            }
-                                            aria-label={t('labels.loadInstructions')}
-                                            disabled={!load.load_notes}
-                                        >
-                                            <InfoOutlinedIcon sx={{ fontSize: 20 }} />
-                                        </IconButton>
                                         <Box
                                             sx={{
                                                 display: 'flex',
                                                 gap: 0.75,
                                                 alignItems: 'center',
-                                                flexWrap: 'wrap',
-                                                flexGrow: 1,
-                                                ml: 2
+                                                flexWrap: 'nowrap',
+                                                '& .MuiTextField-root .MuiInputBase-root': {
+                                                    height: 40
+                                                },
+                                                '& .MuiButton-root': {
+                                                    height: 40,
+                                                    minHeight: 40
+                                                }
                                             }}
                                         >
-                                            {load.req_ton && (
-                                                <TextField
-                                                    sx={highlightSx('actual_ton')}
-                                                    label={t('labels.actualTon')}
-                                                    type="number"
-                                                    size="small"
-                                                    value={load.actual_ton ?? ''}
-                                                    onChange={(e) => handleNumberChange(load.load_id, 'actual_ton', e.target.value)}
-                                                    onBlur={() => chipService.setLoad({ loadId: load.load_id, actual_ton: load.actual_ton }).catch((err) => console.error('Failed to save actual_ton', err))}
-                                                    disabled={isSent}
-                                                    slotProps={{ htmlInput: { style: { width: 72 } } }}
-                                                />
-                                            )}
-                                            {load.req_m3 && (
-                                                <TextField
-                                                    sx={highlightSx('actual_m3')}
-                                                    label={t('labels.actualM3')}
-                                                    type="number"
-                                                    size="small"
-                                                    value={load.actual_m3 ?? ''}
-                                                    onChange={(e) => handleNumberChange(load.load_id, 'actual_m3', e.target.value)}
-                                                    onBlur={() => chipService.setLoad({ loadId: load.load_id, actual_m3: load.actual_m3 }).catch((err) => console.error('Failed to save actual_m3', err))}
-                                                    disabled={isSent}
-                                                    slotProps={{ htmlInput: { style: { width: 72 } } }}
-                                                />
-                                            )}
-                                            {load.req_pcs && (
-                                                <TextField
-                                                    sx={highlightSx('actual_pcs')}
-                                                    label={t('labels.actualPcs')}
-                                                    type="number"
-                                                    size="small"
-                                                    value={load.actual_pcs ?? ''}
-                                                    onChange={(e) => handleNumberChange(load.load_id, 'actual_pcs', e.target.value)}
-                                                    onBlur={() => chipService.setLoad({ loadId: load.load_id, actual_pcs: load.actual_pcs }).catch((err) => console.error('Failed to save actual_pcs', err))}
-                                                    disabled={isSent}
-                                                    slotProps={{ htmlInput: { style: { width: 72 } } }}
-                                                />
-                                            )}
-                                            {load.req_hr && (
-                                                <TextField
-                                                    sx={highlightSx('actual_hr')}
-                                                    label={t('labels.actualHr')}
-                                                    type="number"
-                                                    size="small"
-                                                    value={load.actual_hr ?? ''}
-                                                    onChange={(e) => handleNumberChange(load.load_id, 'actual_hr', e.target.value)}
-                                                    onBlur={() => chipService.setLoad({ loadId: load.load_id, actual_hr: load.actual_hr }).catch((err) => console.error('Failed to save actual_hr', err))}
-                                                    disabled={isSent}
-                                                    slotProps={{ htmlInput: { style: { width: 72 } } }}
-                                                />
-                                            )}
-                                            {load.req_km && (
-                                                <TextField
-                                                    sx={highlightSx('actual_km')}
-                                                    label={t('labels.actualKm')}
-                                                    type="number"
-                                                    size="small"
-                                                    value={load.actual_km ?? ''}
-                                                    onChange={(e) => handleNumberChange(load.load_id, 'actual_km', e.target.value)}
-                                                    onBlur={() => chipService.setLoad({ loadId: load.load_id, actual_km: load.actual_km }).catch((err) => console.error('Failed to save actual_km', err))}
-                                                    disabled={isSent}
-                                                    slotProps={{ htmlInput: { style: { width: 72 } } }}
-                                                />
-                                            )}
-                                            {load.req_waiting && (
-                                                <TextField
-                                                    sx={highlightSx('actual_waiting')}
-                                                    label={t('labels.actualWaiting')}
-                                                    type="number"
-                                                    size="small"
-                                                    value={load.actual_waiting ?? ''}
-                                                    onChange={(e) => handleNumberChange(load.load_id, 'actual_waiting', e.target.value)}
-                                                    onBlur={() => chipService.setLoad({ loadId: load.load_id, actual_waiting: load.actual_waiting }).catch((err) => console.error('Failed to save actual_waiting', err))}
-                                                    disabled={isSent}
-                                                    slotProps={{ htmlInput: { style: { width: 72 } } }}
-                                                />
-                                            )}
-
-                                            {load.req_details && (
-                                                <TextField
-                                                    sx={{ minWidth: { xs: 160, md: 220 }, ...highlightSx('actual_details') }}
-                                                    label={t('labels.details')}
-                                                    size="small"
-                                                    value={load.actual_details}
-                                                    onChange={(e) => handleDetailsChange(load.load_id, e.target.value)}
-                                                    onBlur={() => chipService.setLoad({ loadId: load.load_id, actual_details: load.actual_details }).catch((err) => console.error('Failed to save details', err))}
-                                                    disabled={isSent}
-                                                    slotProps={{
-                                                        input: load.req_details_info
-                                                            ? {
-                                                                endAdornment: (
-                                                                    <InputAdornment position="end">
-                                                                        <Tooltip
-                                                                            title={<Typography variant="body2">{load.req_details_info}</Typography>}
-                                                                            arrow
-                                                                            placement="top"
-                                                                        >
-                                                                            <IconButton
-                                                                                size="small"
-                                                                                sx={{ cursor: 'pointer' }}
-                                                                                aria-label={t('labels.detailsInfo')}
-                                                                            >
-                                                                                <InfoOutlinedIcon fontSize="small" color="primary" />
-                                                                            </IconButton>
-                                                                        </Tooltip>
-                                                                    </InputAdornment>
-                                                                )
-                                                            }
-                                                            : undefined
-                                                    }}
-                                                />
-                                            )}
-                                        </Box>
-
-                                        <Box sx={{ display: 'flex', gap: 0.75, alignItems: 'center', ml: 'auto' }}>
                                             <Button
                                                 variant="outlined"
                                                 size="small"
-                                                color="secondary"
-                                                startIcon={<MoveToInboxIcon />}
-                                                onClick={() => handleUnload(load.load_id)}
-                                                disabled={isSent || load.status !== 'LOADED'}
+                                                startIcon={<LocalShippingIcon />}
+                                                onClick={() => handleLoad(load.load_id)}
+                                                disabled={isSent || load.status === 'LOADED' || load.status === 'UNLOADED'}
                                             >
-                                                {t('buttons.unload')}
+                                                {t('buttons.load')}
                                             </Button>
-                                            <Tooltip
-                                                arrow
-                                                placement="top"
-                                                title={
-                                                    canSend(load)
-                                                        ? ''
-                                                        : t('messages.sendRequiresRequiredInfo', {
-                                                            defaultValue: 'Fill all required information and unload first.'
+                                            <IconButton
+                                                size="small"
+                                                sx={{
+                                                    p: 0.35,
+                                                    visibility: load.load_notes ? 'visible' : 'hidden'
+                                                }}
+                                                onClick={(e) =>
+                                                    load.load_notes
+                                                        ? handleOpenInstructions(e, {
+                                                            instructions: load.load_notes,
+                                                            labelKey: 'labels.loadInstructions'
                                                         })
+                                                        : undefined
                                                 }
+                                                aria-label={t('labels.loadInstructions')}
+                                                disabled={!load.load_notes}
                                             >
-                                                <span>
-                                                    <Button
-                                                        variant="contained"
-                                                        color="warning"
+                                                <InfoOutlinedIcon sx={{ fontSize: 20 }} />
+                                            </IconButton>
+                                            <Box
+                                                sx={{
+                                                    display: 'flex',
+                                                    gap: 0.75,
+                                                    alignItems: 'center',
+                                                    flexWrap: 'wrap',
+                                                    flexGrow: 1,
+                                                    ml: 2
+                                                }}
+                                            >
+                                                {load.req_ton && (
+                                                    <TextField
+                                                        sx={highlightSx('actual_ton')}
+                                                        label={t('labels.actualTon')}
+                                                        type="number"
                                                         size="small"
-                                                        startIcon={<SendIcon />}
-                                                        onClick={() => handleSend(load.load_id)}
-                                                        disabled={!canSend(load)}
-                                                    >
-                                                        {t('buttons.send')}
-                                                    </Button>
-                                                </span>
-                                            </Tooltip>
+                                                        value={load.actual_ton ?? ''}
+                                                        onChange={(e) => handleNumberChange(load.load_id, 'actual_ton', e.target.value)}
+                                                        onBlur={() => chipService.setLoad({ loadId: load.load_id, actual_ton: load.actual_ton }).catch((err) => console.error('Failed to save actual_ton', err))}
+                                                        disabled={isSent}
+                                                        slotProps={{ htmlInput: { style: { width: 72 } } }}
+                                                    />
+                                                )}
+                                                {load.req_m3 && (
+                                                    <TextField
+                                                        sx={highlightSx('actual_m3')}
+                                                        label={t('labels.actualM3')}
+                                                        type="number"
+                                                        size="small"
+                                                        value={load.actual_m3 ?? ''}
+                                                        onChange={(e) => handleNumberChange(load.load_id, 'actual_m3', e.target.value)}
+                                                        onBlur={() => chipService.setLoad({ loadId: load.load_id, actual_m3: load.actual_m3 }).catch((err) => console.error('Failed to save actual_m3', err))}
+                                                        disabled={isSent}
+                                                        slotProps={{ htmlInput: { style: { width: 72 } } }}
+                                                    />
+                                                )}
+                                                {load.req_pcs && (
+                                                    <TextField
+                                                        sx={highlightSx('actual_pcs')}
+                                                        label={t('labels.actualPcs')}
+                                                        type="number"
+                                                        size="small"
+                                                        value={load.actual_pcs ?? ''}
+                                                        onChange={(e) => handleNumberChange(load.load_id, 'actual_pcs', e.target.value)}
+                                                        onBlur={() => chipService.setLoad({ loadId: load.load_id, actual_pcs: load.actual_pcs }).catch((err) => console.error('Failed to save actual_pcs', err))}
+                                                        disabled={isSent}
+                                                        slotProps={{ htmlInput: { style: { width: 72 } } }}
+                                                    />
+                                                )}
+                                                {load.req_hr && (
+                                                    <TextField
+                                                        sx={highlightSx('actual_hr')}
+                                                        label={t('labels.actualHr')}
+                                                        type="number"
+                                                        size="small"
+                                                        value={load.actual_hr ?? ''}
+                                                        onChange={(e) => handleNumberChange(load.load_id, 'actual_hr', e.target.value)}
+                                                        onBlur={() => chipService.setLoad({ loadId: load.load_id, actual_hr: load.actual_hr }).catch((err) => console.error('Failed to save actual_hr', err))}
+                                                        disabled={isSent}
+                                                        slotProps={{ htmlInput: { style: { width: 72 } } }}
+                                                    />
+                                                )}
+                                                {load.req_km && (
+                                                    <TextField
+                                                        sx={highlightSx('actual_km')}
+                                                        label={t('labels.actualKm')}
+                                                        type="number"
+                                                        size="small"
+                                                        value={load.actual_km ?? ''}
+                                                        onChange={(e) => handleNumberChange(load.load_id, 'actual_km', e.target.value)}
+                                                        onBlur={() => chipService.setLoad({ loadId: load.load_id, actual_km: load.actual_km }).catch((err) => console.error('Failed to save actual_km', err))}
+                                                        disabled={isSent}
+                                                        slotProps={{ htmlInput: { style: { width: 72 } } }}
+                                                    />
+                                                )}
+                                                {load.req_waiting && (
+                                                    <TextField
+                                                        sx={highlightSx('actual_waiting')}
+                                                        label={t('labels.actualWaiting')}
+                                                        type="number"
+                                                        size="small"
+                                                        value={load.actual_waiting ?? ''}
+                                                        onChange={(e) => handleNumberChange(load.load_id, 'actual_waiting', e.target.value)}
+                                                        onBlur={() => chipService.setLoad({ loadId: load.load_id, actual_waiting: load.actual_waiting }).catch((err) => console.error('Failed to save actual_waiting', err))}
+                                                        disabled={isSent}
+                                                        slotProps={{ htmlInput: { style: { width: 72 } } }}
+                                                    />
+                                                )}
+
+                                                {load.req_details && (
+                                                    <TextField
+                                                        sx={{ minWidth: { xs: 160, md: 220 }, ...highlightSx('actual_details') }}
+                                                        label={t('labels.details')}
+                                                        size="small"
+                                                        value={load.actual_details}
+                                                        onChange={(e) => handleDetailsChange(load.load_id, e.target.value)}
+                                                        onBlur={() => chipService.setLoad({ loadId: load.load_id, actual_details: load.actual_details }).catch((err) => console.error('Failed to save details', err))}
+                                                        disabled={isSent}
+                                                        slotProps={{
+                                                            input: load.req_details_info
+                                                                ? {
+                                                                    endAdornment: (
+                                                                        <InputAdornment position="end">
+                                                                            <Tooltip
+                                                                                title={<Typography variant="body2">{load.req_details_info}</Typography>}
+                                                                                arrow
+                                                                                placement="top"
+                                                                            >
+                                                                                <IconButton
+                                                                                    size="small"
+                                                                                    sx={{ cursor: 'pointer' }}
+                                                                                    aria-label={t('labels.detailsInfo')}
+                                                                                >
+                                                                                    <InfoOutlinedIcon fontSize="small" color="primary" />
+                                                                                </IconButton>
+                                                                            </Tooltip>
+                                                                        </InputAdornment>
+                                                                    )
+                                                                }
+                                                                : undefined
+                                                        }}
+                                                    />
+                                                )}
+                                            </Box>
+
+                                            <Box sx={{ display: 'flex', gap: 0.75, alignItems: 'center', ml: 'auto' }}>
+                                                <Button
+                                                    variant="outlined"
+                                                    size="small"
+                                                    color="secondary"
+                                                    startIcon={<MoveToInboxIcon />}
+                                                    onClick={() => handleUnload(load.load_id)}
+                                                    disabled={isSent || load.status !== 'LOADED'}
+                                                >
+                                                    {t('buttons.unload')}
+                                                </Button>
+                                                <Tooltip
+                                                    arrow
+                                                    placement="top"
+                                                    title={
+                                                        canSend(load)
+                                                            ? ''
+                                                            : t('messages.sendRequiresRequiredInfo', {
+                                                                defaultValue: 'Fill all required information and unload first.'
+                                                            })
+                                                    }
+                                                >
+                                                    <span>
+                                                        <Button
+                                                            variant="contained"
+                                                            color="warning"
+                                                            size="small"
+                                                            startIcon={<SendIcon />}
+                                                            onClick={() => handleSend(load.load_id)}
+                                                            disabled={!canSend(load)}
+                                                        >
+                                                            {t('buttons.send')}
+                                                        </Button>
+                                                    </span>
+                                                </Tooltip>
+                                            </Box>
                                         </Box>
-                                    </Box>
-                                </CardContent>
-                            </Card>
-                        );
-                    })}
+                                    </CardContent>
+                                </Card>
+                            );
+                        })}
                 </Stack>
+
+                {/* --- UPDATE 2: Footer Pagination Component (පහළින්ම එක් කරන ලදී) --- */}
+                {!isLoading && currentWeekLoads.length > 0 && (
+                    <Paper
+                        variant="outlined"
+                        sx={{
+                            mt: 2,
+                            borderRadius: '8px',
+                            bgcolor: (theme) => theme.palette.mode === 'dark' ? alpha('#fff', 0.02) : '#fdfdfd'
+                        }}
+                    >
+                        <TablePagination
+                            component="div"
+                            count={currentWeekLoads.length} // මුළු දත්ත ගණන
+                            page={page}
+                            onPageChange={(_, newPage) => setPage(newPage)}
+                            rowsPerPage={rowsPerPage}
+                            onRowsPerPageChange={(e) => {
+                                setRowsPerPage(parseInt(e.target.value, 10));
+                                setPage(0);
+                            }}
+                            rowsPerPageOptions={[5, 10, 25]} // තෝරාගත හැකි ප්‍රමාණයන්
+                            labelRowsPerPage={t('chip-management:pagination.rowsPerPage', { defaultValue: 'Rows:' })}
+                            sx={{ borderTop: 'none' }}
+                        />
+                    </Paper>
+                )}
             </Box>
             <Popover
                 open={Boolean(instructionAnchorEl)}

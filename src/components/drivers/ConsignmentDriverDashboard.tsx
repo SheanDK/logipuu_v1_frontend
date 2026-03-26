@@ -48,7 +48,6 @@ export default function ConsignmentDriverDashboard({ onBackAction, onNavigateToF
         fetchConsignments();
     }, [fetchConsignments]);
 
-    // --- FIX: Removed 'flex' and added 'width' to compact columns to the left ---
     const columns = useMemo(
         (): GridColDef[] => [
             {

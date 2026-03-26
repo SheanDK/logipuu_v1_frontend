@@ -221,7 +221,12 @@
         "deleteDialog": {
             "title": "Delete load",
             "message": "Are you sure you want to delete this load?"
-        }
+        },
+        "planned": "Planned",
+        "dispatched": "Dispatched",
+        "loaded": "Loaded",
+        "unloaded": "Unloaded",
+        "doneSent": "Done (Sent)"
     },
     "orderModal": {
         "title": "Chip Order",

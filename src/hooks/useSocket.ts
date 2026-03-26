@@ -21,16 +21,20 @@ interface UseSocketReturn {
     lastLocationUpdate: LocationUpdatePayload | null;
 }
 
-const useSocket = (): UseSocketReturn => {
-    // Get authentication state to use the token for connection (optional but good practice)
+const useSocket = (vehicleId?: string | number | null): UseSocketReturn => {
     const { isAuthenticated, token } = useAuth();
-    
+
     // useRef to hold the socket instance to prevent re-creation on every render
     const socketRef = useRef<Socket | null>(null);
-    
+
     // useState to manage connection status and incoming data
     const [isConnected, setIsConnected] = useState(false);
     const [lastLocationUpdate, setLastLocationUpdate] = useState<LocationUpdatePayload | null>(null);
+
+    // Expose socket via STATE (not just ref) so consumers re-render and re-subscribe to events
+    // when the socket first connects. Without this, useEffect blocks in consumers that depend
+    // on `socket` never fire — because refs don't trigger re-renders.
+    const [socketState, setSocketState] = useState<Socket | null>(null);
 
     useEffect(() => {
         // Only attempt to connect if the user is authenticated
@@ -40,16 +44,14 @@ const useSocket = (): UseSocketReturn => {
                 return;
             }
 
-            // Get the API URL from environment variables
             const socketUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
-            
-            // Create a new socket instance
+
             const socketInstance = io(socketUrl, {
-                // Optional: You can pass auth tokens for secure connections
                 auth: {
                     token: token,
+                    vehicleId: vehicleId
                 },
-                transports: ['websocket', 'polling'], // Allow polling as fallback
+                transports: ['websocket', 'polling'],
                 reconnection: true,
                 reconnectionAttempts: 10,
                 reconnectionDelay: 1000
@@ -59,40 +61,43 @@ const useSocket = (): UseSocketReturn => {
             socketInstance.on('connect', () => {
                 console.log('✅ Socket connected:', socketInstance.id);
                 setIsConnected(true);
+                // Crucial: push socket into state so consumers re-render with a live reference
+                setSocketState(socketInstance);
             });
 
             socketInstance.on('disconnect', () => {
                 console.log('❌ Socket disconnected');
                 setIsConnected(false);
+                setSocketState(null);
             });
-            
-            // This is the custom event we created in the backend
+
             socketInstance.on('locationUpdate', (data: LocationUpdatePayload) => {
                 console.log('🛰️ Received location update:', data);
                 setLastLocationUpdate(data);
             });
 
-            // Store the instance in the ref
             socketRef.current = socketInstance;
 
-            // Cleanup function: This will be called when the component unmounts
             return () => {
                 if (socketRef.current) {
                     console.log('🧹 Cleaning up socket connection...');
                     socketRef.current.disconnect();
                     socketRef.current = null;
+                    setSocketState(null);
                 }
             };
         } else {
             // If the user is not authenticated, disconnect any existing socket
             if (socketRef.current?.connected) {
                 socketRef.current.disconnect();
+                socketRef.current = null;
+                setSocketState(null);
             }
         }
-    }, [isAuthenticated, token]); // Rerun this effect if authentication state changes
+    }, [isAuthenticated, token, vehicleId]);
 
     return {
-        socket: socketRef.current,
+        socket: socketState,
         isConnected,
         lastLocationUpdate,
     };

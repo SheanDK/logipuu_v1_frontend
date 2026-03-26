@@ -2,9 +2,10 @@
 'use client';
 
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import { useSnackbar } from 'notistack';
 import {
     Box, Stack, Typography, Paper, IconButton, TextField, Tooltip, Autocomplete, Tabs, Tab, useTheme,
-    CircularProgress, alpha, Button, Divider, TableContainer, TablePagination
+    CircularProgress, alpha, Button, Divider, TablePagination
 } from '@mui/material';
 import ArrowBackIosNewIcon from '@mui/icons-material/ArrowBackIosNew';
 import ArrowForwardIosIcon from '@mui/icons-material/ArrowForwardIos';
@@ -34,53 +35,69 @@ import PlanningTooltip from '@/components/chip-order/PlanningTooltip';
 import useSocket from '@/hooks/useSocket';
 
 // --- Professional Status Styles ---
-const getStatusStyles = (status: string, isDarkMode: boolean) => {
+const getStatusStyles = (status: string, isDarkMode: boolean, transferStatus?: string) => {
+    let baseStyles: any = {};
     switch (status) {
         case 'NOT_SENT': // Planned
-            return {
+            baseStyles = {
                 bgcolor: isDarkMode ? alpha('#9e9e9e', 0.1) : '#f5f5f5',
                 borderLeft: '4px solid #9e9e9e',
                 color: isDarkMode ? '#bdbdbd' : '#616161'
             };
+            break;
         case 'DISPATCHED': // Sent to Driver (from Office)
-            return {
+            baseStyles = {
                 bgcolor: isDarkMode ? alpha('#fbc02d', 0.1) : '#fffdf2',
                 borderLeft: '4px solid #fbc02d',
                 color: isDarkMode ? '#fff176' : '#827717'
             };
+            break;
         case 'LOADED': // Warning-like color (Orange)
-            return {
+            baseStyles = {
                 bgcolor: isDarkMode ? alpha('#ed6c02', 0.1) : '#fff4e5',
                 borderLeft: '4px solid #ed6c02',
                 color: isDarkMode ? '#ffb74d' : '#e65100'
             };
+            break;
         case 'UNLOADED': // Info-like color (Blue)
-            return {
+            baseStyles = {
                 bgcolor: isDarkMode ? alpha('#0288d1', 0.1) : '#e5f6fd',
                 borderLeft: '4px solid #0288d1',
                 color: isDarkMode ? '#4fc3f7' : '#01579b'
             };
+            break;
         case 'SENT': // Sent to Office (from Driver) / Completed
         case 'COMPLETED':
         case 'DONE':
-            return {
+            baseStyles = {
                 bgcolor: isDarkMode ? alpha('#2e7d32', 0.1) : '#edf7ed',
                 borderLeft: '4px solid #2e7d32',
                 color: isDarkMode ? '#81c784' : '#1b5e20'
             };
+            break;
         default:
-            return {
+            baseStyles = {
                 bgcolor: isDarkMode ? alpha('#9e9e9e', 0.1) : '#f5f5f5',
                 borderLeft: '4px solid #9e9e9e',
                 color: isDarkMode ? '#bdbdbd' : '#616161'
             };
     }
+
+    if (transferStatus === 'PENDING') {
+        return {
+            ...baseStyles,
+            border: '2px dashed #ff9800',
+            animation: 'pulse 2s infinite'
+        };
+    }
+    return baseStyles;
 };
 
 const PlanningPage = () => {
     const { t } = useTranslation(['chip-management', 'common']);
     const theme = useTheme();
     const isDarkMode = theme.palette.mode === 'dark';
+    const { enqueueSnackbar } = useSnackbar();
 
     const [week, setWeek] = useState<number>(dayjs().isoWeek());
     const [year, setYear] = useState<number>(dayjs().year());
@@ -125,8 +142,8 @@ const PlanningPage = () => {
         };
     }, [resize]);
 
-    const fetchData = useCallback(async () => {
-        setLoading(true);
+    const fetchData = useCallback(async (isSilent: boolean = false) => {
+        if (!isSilent) setLoading(true);
         try {
             const [plan, tts, subs, cls, regs] = await Promise.all([
                 chipPlanningService.getWeeklyPlanning(week, year),
@@ -141,14 +158,17 @@ const PlanningPage = () => {
             setCustomers(cls);
             setAllRegisteredVehicles(regs);
         } catch (err) { console.error("Fetch error", err); }
-        finally { setLoading(false); }
+        finally {
+            if (!isSilent) setLoading(false);
+        }
     }, [week, year]);
 
     useEffect(() => { fetchData(); }, [fetchData]);
 
-    // Socket listener for real-time updates
+    // Socket listener - real-time updates
     useEffect(() => {
         if (!socket) {
+            fetchData(true);
             console.warn("🔌 Socket NOT available in PlanningPage");
             return;
         }
@@ -158,7 +178,7 @@ const PlanningPage = () => {
         // --- 1. Update / Create Handler ---
         socket.on('chipLoadUpdated', (data: any) => {
             console.log("📡 Live Update Received:", data);
-            
+
             const mappedLoad = {
                 ...data,
                 loadId: Number(data.load_id || data.loadId),
@@ -185,12 +205,9 @@ const PlanningPage = () => {
 
             setVehiclesData(prevData => {
                 const vehicleExists = prevData.some(v => Number(v.kalustoNro) === mappedLoad.vehicleNumber);
-                
+
                 if (!vehicleExists) {
                     console.log("🆕 Vehicle not in current plan. Fetching full update or appending...");
-                    // Option A: Append locally if we have the registration info elsewhere.
-                    // Option B: Re-fetch is safer for data consistency but less "instant".
-                    // Let's try appending first if the vehicle is in allRegisteredVehicles.
                     const regVehicle = allRegisteredVehicles.find(r => Number(r.kalustoNro) === mappedLoad.vehicleNumber);
                     if (regVehicle) {
                         return [...prevData, {
@@ -199,13 +216,12 @@ const PlanningPage = () => {
                             loads: [mappedLoad]
                         }];
                     }
-                    // If vehicle info unknown, just keep going or triggered fetch
                     return prevData;
                 }
 
                 return prevData.map(v => {
                     const currentKalustoNro = Number(v.kalustoNro);
-                    
+
                     if (currentKalustoNro === mappedLoad.vehicleNumber) {
                         const exists = v.loads.some((l: any) => Number(l.loadId) === mappedLoad.loadId);
                         return {
@@ -215,7 +231,7 @@ const PlanningPage = () => {
                                 : [...v.loads, mappedLoad].sort((a, b) => (Number(a.serialNo) || 0) - (Number(b.serialNo) || 0))
                         };
                     }
-                    
+
                     return {
                         ...v,
                         loads: v.loads.filter((l: any) => Number(l.loadId) !== mappedLoad.loadId)
@@ -298,8 +314,12 @@ const PlanningPage = () => {
             } else if (titleId) {
                 await chipPlanningService.assignTitle({ kalusto_nro: vehicle.kalustoNro, title_id: Number(titleId), order_id: orderId ? Number(orderId) : null, pvm: targetDate });
             }
-            fetchData();
-        } catch (err) { console.error("Drop error", err); }
+            fetchData(true);
+        } catch (err: any) {
+            console.error("Drop error", err);
+            const msg = err.response?.data?.error || err.message || "Operation failed";
+            enqueueSnackbar(msg, { variant: 'error' });
+        }
     };
 
     const handleDispatchRow = (kalustoNro: number) => {
@@ -311,7 +331,7 @@ const PlanningPage = () => {
         try {
             await chipPlanningService.dispatchRow(dispatchConfirm.kalustoNro, week, year);
             setDispatchConfirm({ open: false, kalustoNro: null });
-            fetchData();
+            fetchData(true);
         } catch (err) { console.error(err); }
     };
 
@@ -348,9 +368,9 @@ const PlanningPage = () => {
                             value={searchVehicle} onChange={(e) => { setSearchVehicle(e.target.value); setPage(0); }}
                             InputProps={{ startAdornment: <SearchIcon fontSize="small" sx={{ mr: 1, color: 'text.secondary' }} /> }}
                         />
-                        <Tooltip title={isConnected ? "Live Connection Active" : "Trying to connect..."}>
-                            <Box sx={{ 
-                                width: 10, height: 10, borderRadius: '50%', 
+                        <Tooltip title={isConnected ? t('chip-management:planning.liveConnectionActive') : t('chip-management:planning.tryingToConnect')}>
+                            <Box sx={{
+                                width: 10, height: 10, borderRadius: '50%',
                                 bgcolor: isConnected ? '#4caf50' : '#f44336',
                                 boxShadow: isConnected ? `0 0 8px #4caf50` : 'none',
                                 ml: 1, flexShrink: 0
@@ -396,11 +416,11 @@ const PlanningPage = () => {
                             border: "1px dashed",
                             borderColor: 'divider'
                         }}>
-                        <StatusLegend color="#9e9e9e" label="Planned" />
-                        <StatusLegend color="#fbc02d" label="Dispatched" />
-                        <StatusLegend color="#ed6c02" label="Loaded" />
-                        <StatusLegend color="#0288d1" label="Unloaded" />
-                        <StatusLegend color="#2e7d32" label="Done (Sent)" />
+                        <StatusLegend color="#9e9e9e" label={t('chip-management:planning.planned')} />
+                        <StatusLegend color="#fbc02d" label={t('chip-management:planning.dispatched')} />
+                        <StatusLegend color="#ed6c02" label={t('chip-management:planning.loaded')} />
+                        <StatusLegend color="#0288d1" label={t('chip-management:planning.unloaded')} />
+                        <StatusLegend color="#2e7d32" label={t('chip-management:planning.doneSent')} />
                     </Stack>
                     {/* Vehicle Grouping Button */}
                     <Stack
@@ -466,23 +486,49 @@ const PlanningPage = () => {
                                             >
                                                 {v.loads.map((load: any) => (
                                                     <Tooltip key={load.loadId} enterDelay={400} title={<PlanningTooltip load={load} vehicle={v.rekNro} />} slotProps={{ tooltip: { sx: { p: 0, bgcolor: 'transparent' } } }}>
-                                                        <Paper draggable onDragStart={(e) => onLoadDragStart(e, load)}
-                                                            onClick={() => { setSelectedLoad({ ...load, rekNro: v.rekNro }); setEditModalOpen(true); }}
+                                                        <Paper
+                                                            draggable={!['LOADED', 'UNLOADED', 'SENT'].includes(load.status)}
+                                                            onDragStart={(e) => onLoadDragStart(e, load)}
+                                                            onClick={(e) => {
+                                                                if (!['LOADED', 'UNLOADED', 'SENT'].includes(load.status)) {
+                                                                    setSelectedLoad({ ...load, rekNro: v.rekNro });
+                                                                    setEditModalOpen(true);
+                                                                } else {
+                                                                    console.log("🚫 Load is locked due to status:", load.status);
+                                                                }
+                                                            }}
                                                             sx={{
-                                                                ...getStatusStyles(load.status, isDarkMode), p: 0.8, minWidth: 105, borderRadius: '6px', cursor: 'grab', position: 'relative',
-                                                                overflow: 'visible', boxShadow: '0 2px 5px rgba(0,0,0,0.06)', '&:hover .del-mark': { opacity: 1 }
+                                                                ...getStatusStyles(load.status, isDarkMode, load.transferStatus || load.transfer_status),
+                                                                p: 0.8,
+                                                                minWidth: 105,
+                                                                borderRadius: '6px',
+                                                                cursor: ['LOADED', 'UNLOADED', 'SENT'].includes(load.status) ? 'not-allowed' : 'grab',
+                                                                position: 'relative',
+                                                                opacity: ['LOADED', 'UNLOADED', 'SENT'].includes(load.status) ? 0.85 : 1,
+                                                                overflow: 'visible',
+                                                                boxShadow: '0 2px 5px rgba(0,0,0,0.06)',
+                                                                '&:hover .del-mark': { opacity: 1 }
                                                             }}>
-                                                            <Typography sx={{ fontSize: '9px', fontWeight: '900', lineHeight: 1.1 }}>{load.abbreviation || 'CHIP'}</Typography>
+                                                            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                                                                <Typography sx={{ fontSize: '9px', fontWeight: '900', lineHeight: 1.1 }}>{(load.abbreviation || 'CHIP').toUpperCase()}</Typography>
+                                                                {(load.transferStatus === 'PENDING' || load.transfer_status === 'PENDING') && (
+                                                                    <Typography sx={{ fontSize: '7px', fontWeight: '900', color: '#ff9800', bgcolor: alpha('#ff9800', 0.1), px: 0.4, borderRadius: '2px', textTransform: 'uppercase' }}>
+                                                                        Pending
+                                                                    </Typography>
+                                                                )}
+                                                            </Box>
                                                             <Typography sx={{ fontSize: '8px', fontWeight: '700', opacity: 0.8 }}>
                                                                 {load.actualM3 > 0 ? `${load.actualM3}m³` : `${t('chip-management:planning.qty')}: ${load.targetQty || 0}`}
                                                             </Typography>
-                                                            <IconButton
-                                                                className="del-mark" size="small"
-                                                                onClick={(e) => { e.stopPropagation(); setDeleteConfirm({ open: true, loadId: load.loadId }); }}
-                                                                sx={{ position: 'absolute', top: -8, right: -8, opacity: 0, bgcolor: isDarkMode ? '#333' : '#fff', border: '1px solid', borderColor: 'divider', boxShadow: 2, p: 0.2, '&:hover': { bgcolor: '#ffebee' } }}
-                                                            >
-                                                                <CloseIcon sx={{ fontSize: 10, color: '#d32f2f' }} />
-                                                            </IconButton>
+                                                            {['NOT_SENT', 'DISPATCHED'].includes(load.status) && (
+                                                                <IconButton
+                                                                    className="del-mark" size="small"
+                                                                    onClick={(e) => { e.stopPropagation(); setDeleteConfirm({ open: true, loadId: load.loadId }); }}
+                                                                    sx={{ position: 'absolute', top: -8, right: -8, opacity: 0, bgcolor: isDarkMode ? '#333' : '#fff', border: '1px solid', borderColor: 'divider', boxShadow: 2, p: 0.2, '&:hover': { bgcolor: '#ffebee' } }}
+                                                                >
+                                                                    <CloseIcon sx={{ fontSize: 10, color: '#d32f2f' }} />
+                                                                </IconButton>
+                                                            )}
                                                         </Paper>
                                                     </Tooltip>
                                                 ))}
@@ -559,13 +605,39 @@ const PlanningPage = () => {
             </Paper>
 
             {/* Modals & Dialogs */}
-            <ModifyLoadModal open={editModalOpen} loadData={selectedLoad} onClose={() => setEditModalOpen(false)}
+            <ModifyLoadModal
+                open={editModalOpen}
+                loadData={selectedLoad}
+                onClose={() => {
+                    setEditModalOpen(false);
+                    fetchData(true);
+                }}
                 onSave={async (id: number, notes: string) => { await chipPlanningService.updateLoad(id, { driverNotes: notes }); setEditModalOpen(false); fetchData(); }}
                 onDelete={(id: number) => setDeleteConfirm({ open: true, loadId: id })} />
 
-            <DeleteConfirmationDialog open={deleteConfirm.open} onClose={() => setDeleteConfirm({ open: false, loadId: null })} onConfirm={async () => { if (deleteConfirm.loadId) { try { await chipPlanningService.deleteLoad(deleteConfirm.loadId); setDeleteConfirm({ open: false, loadId: null }); fetchData(); } catch (err) { } } }} title={t('chip-management:planning.deleteDialog.title')} message={t('chip-management:planning.deleteDialog.message')} />
+            <DeleteConfirmationDialog
+                open={deleteConfirm.open}
+                onClose={() => setDeleteConfirm({ open: false, loadId: null })}
+                onConfirm={async () => {
+                    if (deleteConfirm.loadId) {
+                        try {
+                            await chipPlanningService.deleteLoad(deleteConfirm.loadId);
+                            setDeleteConfirm({ open: false, loadId: null });
+                            fetchData(true);
+                        } catch (err) { }
+                    }
+                }}
+                title={t('chip-management:planning.deleteDialog.title')}
+                message={t('chip-management:planning.deleteDialog.message')} />
 
-            <DeleteConfirmationDialog open={dispatchConfirm.open} onClose={() => setDispatchConfirm({ open: false, kalustoNro: null })} onConfirm={handleActualDispatch} title={t('chip-management:planning.dispatchDialog.title')} message={t('chip-management:planning.dispatchDialog.message')} confirmButtonText={t('common:buttons.send')} confirmButtonColor="primary" />
+            <DeleteConfirmationDialog
+                open={dispatchConfirm.open}
+                onClose={() => setDispatchConfirm({ open: false, kalustoNro: null })}
+                onConfirm={handleActualDispatch}
+                title={t('chip-management:planning.dispatchDialog.title')}
+                message={t('chip-management:planning.dispatchDialog.message')}
+                confirmButtonText={t('common:buttons.send')}
+                confirmButtonColor="primary" />
 
             <ManageGroupsModal open={groupModalOpen} onClose={() => setGroupModalOpen(false)} vehicles={allRegisteredVehicles} onUpdate={fetchData} />
         </Box >

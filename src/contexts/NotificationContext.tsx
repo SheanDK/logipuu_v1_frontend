@@ -35,21 +35,21 @@ export const NotificationProvider = ({ children }: { children: ReactNode }) => {
                 open={open}
                 autoHideDuration={4000}
                 onClose={handleClose}
-                anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }} // මැද පහළට (Bottom Center)
+                anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
             >
                 <Alert
                     onClose={handleClose}
                     severity={severity}
                     variant="filled"
-                    icon={<CheckCircleOutlineIcon fontSize="inherit" />} // Screenshot එකේ ඇති icon එක
+                    icon={<CheckCircleOutlineIcon fontSize="inherit" />}
                     sx={{
                         width: '100%',
-                        bgcolor: severity === 'success' ? '#edf7ed' : undefined, // මෘදු කොළ පැහැය
+                        bgcolor: severity === 'success' ? '#edf7ed' : undefined,
                         color: severity === 'success' ? '#1e4620' : undefined,
                         border: '1px solid #c3e6cb',
                         borderRadius: '8px',
                         fontWeight: '500',
-                        '& .MuiAlert-icon': { color: '#4caf50' } // Icon එකේ පාට
+                        '& .MuiAlert-icon': { color: '#4caf50' }
                     }}
                 >
                     {message}

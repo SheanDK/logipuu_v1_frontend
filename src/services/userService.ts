@@ -90,3 +90,11 @@ export const changeMyPasswordApi = async (passwordData: ChangePasswordPayload): 
     const response = await apiClient.post<{ message: string }>(`${USER_API_ENDPOINT}/change-password`, passwordData);
     return response.data;
 };
+
+/**
+ * Updates the current_vehicle_id of the currently logged-in user.
+ */
+export const updateCurrentVehicleApi = async (vehicleId: number | null): Promise<{ message: string, currentVehicleId: number | null }> => {
+    const response = await apiClient.put<{ message: string, currentVehicleId: number | null }>(`${USER_API_ENDPOINT}/current-vehicle`, { vehicleId });
+    return response.data;
+};

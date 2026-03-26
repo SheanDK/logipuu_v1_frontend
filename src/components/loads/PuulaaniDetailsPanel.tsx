@@ -60,19 +60,12 @@ export default function PuulaaniDetailsPanel({
     // editableDetails  null return 
     const isLoadAlreadyAssigned = useMemo(() => {
         if (!editableDetails?.relatedLoads) return false;
-        return editableDetails.relatedLoads.some(load => 
+        return editableDetails.relatedLoads.some(load =>
             load.status === 'Assigned' && load.kuljId === user?.driverNumericId
         );
     }, [editableDetails?.relatedLoads, user?.driverNumericId]);
 
     const canCreateNewLoad = useMemo(() => {
-        // Rule A: Trip is ACTIVE (In Progress/Paused). ALLOW only if NO loads are ASSIGNED in this Puulaani.
-        //         The logic for adding a load to an active trip is complex, but for simplicity,
-        //         we block the new load button if *ANY* assigned load exists ANYWHERE.
-        
-        // Final Rule: Allow load creation only if:
-        //  1. No loads are assigned ANYWHERE (totalAssignedLoadsCount === 0), OR
-        //  2. A trip is already active (to add a leg).
 
         // Case 1: Active Trip Exists (In Progress/Paused)
         if (hasActiveTrip) {
@@ -84,9 +77,9 @@ export default function PuulaaniDetailsPanel({
         // Case 2: No Active Trip, but check for assigned loads
         if (totalAssignedLoadsCount > 0) {
             // Block if ONE or more loads are already assigned, forcing the user to START the existing one first.
-            return false; 
+            return false;
         }
-        
+
         // Case 3: Nothing is active or assigned. Allow creating the first load.
         return true;
 
@@ -122,11 +115,11 @@ export default function PuulaaniDetailsPanel({
     // --- Render logic ---
     const { timberEntries, relatedLoads } = editableDetails;
 
-    const isLoadAlreadyAssignedInThisPuulaani = relatedLoads.some(load => 
+    const isLoadAlreadyAssignedInThisPuulaani = relatedLoads.some(load =>
         load.status === 'Assigned' && load.kuljId === user?.driverNumericId
     );
 
-    
+
 
     const statusMap: Record<string, string> = {
         'Assigned': 'assigned',
@@ -140,7 +133,7 @@ export default function PuulaaniDetailsPanel({
         'N/A': 'na',
         '-': 'na'
     };
-    
+
     const glassSurface = alpha(theme.palette.background.paper, theme.palette.mode === 'dark' ? 0.92 : 0.98);
     const glassBorder = alpha(theme.palette.divider, theme.palette.mode === 'dark' ? 0.7 : 0.4);
     const glassShadow = theme.palette.mode === 'dark' ? '0px -8px 40px -12px rgba(0,0,0,0.7)' : '0px -8px 40px -12px rgba(15,23,42,0.3)';
@@ -223,10 +216,10 @@ export default function PuulaaniDetailsPanel({
                     <Box>
                         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1, px: 1 }}>
                             <Typography variant="subtitle1" fontWeight="bold">{t('loads.title')}</Typography>
-                            <Tooltip 
-                                title={isLoadAlreadyAssigned 
-                                    ? t('loads.tooltips.alreadyAssigned') 
-                                    : (!hasActiveTrip && !canCreateNewLoad) 
+                            <Tooltip
+                                title={isLoadAlreadyAssigned
+                                    ? t('loads.tooltips.alreadyAssigned')
+                                    : (!hasActiveTrip && !canCreateNewLoad)
                                         ? t('loads.tooltips.startExisting')
                                         : t('loads.tooltips.createNew')
                                 }>
@@ -263,14 +256,14 @@ export default function PuulaaniDetailsPanel({
                                         const isOfflineDraft = Boolean((load as any)?.isOfflineDraft);
                                         const isOwner = Number(user?.driverNumericId) === Number(load.kuljId);
                                         const actionsDisabled = isOffline || isOfflineDraft;
-                                        const canEditOrDelete = !actionsDisabled && isOwner && load.status !== 'Completed'; 
+                                        const canEditOrDelete = !actionsDisabled && isOwner && load.status !== 'Completed';
                                         const isActive = load.kuormaId === activeLoadId;
                                         const canStart = !actionsDisabled && isOwner && load.status === 'Assigned' && !hasActiveTrip;
 
                                         const statusKey = statusMap[load.status];
                                         const localizedStatus = statusKey ? t(`status.${statusKey}`) : load.status;
 
-                                        const driverNameToDisplay = 
+                                        const driverNameToDisplay =
                                             load.kuljettajanNimi && load.kuljettajanNimi !== 'N/A'
                                                 ? load.kuljettajanNimi
                                                 : isOwner
@@ -321,26 +314,26 @@ export default function PuulaaniDetailsPanel({
                                                                     <PlayCircleOutlineIcon />
                                                                 </IconButton>
                                                             )}
-                                                            {/* --- FIX 2: Apply the new condition to Edit/Delete buttons --- */}
-                                                        {canEditOrDelete && (
-                                                            <IconButton
-                                                                size="small"
-                                                                title={t('loads.actions.edit')}
-                                                                onClick={(e) => { e.stopPropagation(); onEditLoadAction(load.kuormaId); }}
-                                                            >
-                                                                <EditIcon fontSize="small" />
-                                                            </IconButton>
-                                                        )}
-                                                        {canEditOrDelete && (
-                                                            <IconButton
-                                                                size="small"
-                                                                color="error"
-                                                                title={t('loads.actions.delete')}
-                                                                onClick={(e) => { e.stopPropagation(); onDeleteLoadAction(load); }}
-                                                            >
-                                                                <DeleteIcon fontSize="small" />
-                                                            </IconButton>
-                                                        )}
+                                                            {/* Apply the new condition to Edit/Delete buttons */}
+                                                            {canEditOrDelete && (
+                                                                <IconButton
+                                                                    size="small"
+                                                                    title={t('loads.actions.edit')}
+                                                                    onClick={(e) => { e.stopPropagation(); onEditLoadAction(load.kuormaId); }}
+                                                                >
+                                                                    <EditIcon fontSize="small" />
+                                                                </IconButton>
+                                                            )}
+                                                            {canEditOrDelete && (
+                                                                <IconButton
+                                                                    size="small"
+                                                                    color="error"
+                                                                    title={t('loads.actions.delete')}
+                                                                    onClick={(e) => { e.stopPropagation(); onDeleteLoadAction(load); }}
+                                                                >
+                                                                    <DeleteIcon fontSize="small" />
+                                                                </IconButton>
+                                                            )}
                                                             {actionsDisabled && !isOfflineDraft && (
                                                                 <Chip label={t('loads.offlineDisabled')} size="small" color="default" />
                                                             )}

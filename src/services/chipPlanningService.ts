@@ -59,7 +59,7 @@ export const chipPlanningService = {
         year?: number;
         ts?: number;
     }) => {
-        const response = await apiClient.get(`/chip-planning/loads`, {
+        const response = await apiClient.get(`/chip-planning/driver-loads`, {
             params: params || undefined
         });
         return response.data;
@@ -81,6 +81,48 @@ export const chipPlanningService = {
     // 14. search loads
     searchLoads: async (params: any) => {
         const response = await apiClient.get(`/chip-planning/search`, { params });
+        return response.data;
+    },
+
+    // 15. approve load transfer
+    approveTransfer: async (loadId: number, approve: boolean, notificationId?: number | null) => {
+        const response = await apiClient.post(`/chip-planning/approve-transfer-request`, {
+            loadId,
+            approve,
+            notificationId
+        });
+        return response.data;
+    },
+
+    // 16. request load transfer
+    requestTransfer: async (loadId: number, newVehicleNumber: number) => {
+        const response = await apiClient.post(`/chip-planning/request-transfer`, {
+            loadId,
+            newVehicleNumber
+        });
+        return response.data;
+    },
+
+    // 17. get notifications
+    getNotifications: async (userId: number) => {
+        const response = await apiClient.get(`/chip-planning/notifications/${userId}`);
+        return response.data;
+    },
+
+    // 18. mark notification as read
+    markNotificationAsRead: async (notificationId: number) => {
+        const response = await apiClient.put(`/chip-planning/notifications/${notificationId}/read`);
+        return response.data;
+    },
+
+    // 19. mark all notifications as read
+    markAllNotificationsAsRead: async (userId: number) => {
+        const response = await apiClient.put(`/chip-planning/notifications/mark-all-read/${userId}`);
+        return response.data;
+    },
+    // 20. clear read notifications
+    clearReadNotifications: async (userId: number) => {
+        const response = await apiClient.delete(`/chip-planning/notifications/clear-read/${userId}`);
         return response.data;
     },
 };

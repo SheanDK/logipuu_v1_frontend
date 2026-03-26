@@ -229,7 +229,12 @@
         "deleteDialog": {
             "title": "Poista kuorma",
             "message": "Oletko varma, että haluat poistaa tämän kuorman?"
-        }
+        },
+        "planned": "Suunniteltu",
+        "dispatched": "Lähetetty",
+        "loaded": "Lastattu",
+        "unloaded": "Purettu",
+        "doneSent": "Valmis (lähetetty)"
     },
     "orderModal": {
         "title": "Tilauksen tiedot",

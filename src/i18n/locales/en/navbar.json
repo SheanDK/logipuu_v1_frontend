@@ -47,6 +47,13 @@
         "myDashboard": "My Dashboard",
         "completedTrips": "Completed Trips",
         "woodCategories": "Wood Categories",
-        "userManual": "User Manual"
+        "userManual": "User Manual",
+        "notifications": "Notifications",
+        "new": "New",
+        "noNewNotifications": "No new notifications",
+        "markAllAsRead": "MARK ALL AS READ",
+        "clearRead": "CLEAR READ",
+        "profileSettings": "Profile Settings",
+        "logout": "Logout"
     }
 }

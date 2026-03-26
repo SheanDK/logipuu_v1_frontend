@@ -10,7 +10,7 @@ import {
     ITripDetails,
     ICompleteLoadDto,
     IMapTrip,
-    IUser // Assuming IUser is needed for types
+    IUser
 } from '../types';
 
 const API_ENDPOINT = '/loads';
