@@ -37,7 +37,8 @@
     "m3": "m³",
     "km": "km",
     "pcs": "kpl",
-    "hours": "h"
+    "hours": "h",
+    "ton": "t"
   },
   "formats": {
     "date": "DD.MM.YYYY"

@@ -1,267 +1,177 @@
 // frontend/src/app/(main)/completed-trips/page.tsx
 'use client';
 
-import React, { useState, useEffect, useMemo, useCallback } from 'react';
-import { Box, Typography, Paper, Tabs, Tab, Chip, IconButton, Tooltip } from '@mui/material';
-import { DataGrid, GridColDef, GridToolbar, GridRowParams } from '@mui/x-data-grid';
-import { ILoadListItem } from '@/types';
-import { fetchMyCompletedLoads } from '@/services/loadService';
-import { getCompletedTripDetails } from '@/services/driverViewService';
+import React, { useState, useCallback, useMemo, useEffect } from 'react';
+import {
+    Box, Typography, Tabs, Tab, Stack, TextField, Autocomplete,
+    useTheme, alpha, Paper, InputAdornment, Button
+} from '@mui/material';
 import { useTranslation } from '@/i18n/useTranslation';
-import TableSkeletonLoader from '@/components/common/TableSkeletonLoader';
-import CustomNoRowsOverlay from '@/components/common/CustomNoRowsOverlay';
-import ErrorDisplay from '@/components/common/ErrorDisplay';
-import CompletedTripDetailsModal from '@/components/drivers/CompletedTripDetailsModal';
 import { useSnackbar } from 'notistack';
-import DescriptionIcon from '@mui/icons-material/Description';
 import dayjs from 'dayjs';
-import i18n from '@/i18n/i18n';
 
-interface TabPanelProps {
-    children?: React.ReactNode;
-    index: number;
-    value: number;
-}
+// Icons
+import ForestIcon from '@mui/icons-material/Forest';
+import AssignmentIcon from '@mui/icons-material/Assignment';
+import LocalShippingIcon from '@mui/icons-material/LocalShipping';
+import SearchIcon from '@mui/icons-material/Search';
+import RestartAltIcon from '@mui/icons-material/RestartAlt';
 
-function TabPanel(props: TabPanelProps) {
-    const { children, value, index, ...other } = props;
-    return (
-        <div
-            role="tabpanel"
-            hidden={value !== index}
-            id={`completed-trips-tabpanel-${index}`}
-            aria-labelledby={`completed-trips-tab-${index}`}
-            style={{ flexGrow: 1, width: '100%', overflow: 'hidden' }}
-            {...other}
-        >
-            {value === index && (
-                <Box sx={{ height: '100%', width: '100%' }}>
-                    {children}
-                </Box>
-            )}
-        </div>
-    );
-}
+// Services & Components
+import { getCompletedTripDetails } from '@/services/driverViewService';
+import { fetchMyCompletedLoads } from '@/services/loadService';
+import chipPlanningService from '@/services/chipPlanningService';
+import { useDriverSession } from '@/contexts/DriverSessionContext';
+
+import TimberHistoryTab from '@/components/drivers/history/TimberHistoryTab';
+import ConsignmentHistoryTab from '@/components/drivers/history/ConsignmentHistoryTab';
+import ChipHistoryTab from '@/components/drivers/history/ChipHistoryTab';
+import CompletedTripDetailsModal from '@/components/drivers/CompletedTripDetailsModal';
 
 export default function CompletedTripsPage() {
-    const [allTrips, setAllTrips] = useState<ILoadListItem[]>([]);
-    const [isLoading, setIsLoading] = useState(true);
-    const [error, setError] = useState<string | null>(null);
     const { t } = useTranslation(['completedTrips', 'common']);
-    const [currentTab, setCurrentTab] = useState(0);
+    const theme = useTheme();
+    const { enqueueSnackbar } = useSnackbar();
+    const { selectedVehicleId } = useDriverSession();
 
+    // --- MAIN STATES ---
+    const [transportType, setTransportType] = useState(0);
+    const [searchQuery, setSearchQuery] = useState('');
+    const [selectedCustomer, setSelectedCustomer] = useState<string | null>(null);
+    const [customerOptions, setCustomerOptions] = useState<string[]>([]); // 🚀 FIX: Customer list state
+    const [startDate, setStartDate] = useState<string>(dayjs().subtract(5, 'year').format('YYYY-MM-DD'));
+    const [endDate, setEndDate] = useState<string>(dayjs().add(1, 'day').format('YYYY-MM-DD'));
+
+    // Modal State
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [selectedTripDetails, setSelectedTripDetails] = useState<any | null>(null);
-    const { enqueueSnackbar } = useSnackbar();
 
-    const loadCompletedTrips = useCallback(async () => {
-        setIsLoading(true);
-        setError(null);
-        try {
-            const data = await fetchMyCompletedLoads();
-            setAllTrips(data);
-        } catch (err: any) {
-            setError(err.response?.data?.message || t('loadError', { ns: 'completedTrips' }));
-        } finally {
-            setIsLoading(false);
-        }
-    }, [t]);
 
     useEffect(() => {
-        loadCompletedTrips();
-    }, [loadCompletedTrips]);
+        const loadCustomers = async () => {
+            try {
 
-    const timberTrips = useMemo(() =>
-        allTrips.filter(trip => trip.tyyppi === 'Timber Load' || Number(trip.tyyppi) === 0),
-        [allTrips]);
+                const timberData = await fetchMyCompletedLoads();
+                const chipData = await chipPlanningService.searchLoads({
+                    status: 'completed',
+                    kalustoNro: selectedVehicleId ? Number(selectedVehicleId) : undefined
+                });
 
-    const consignmentTrips = useMemo(() =>
-        allTrips.filter(trip => trip.tyyppi === 'Consignment' || Number(trip.tyyppi) === 1),
-        [allTrips]);
+                const allNames = [
+                    ...timberData.map((r: any) => r.asiakkaanNimi),
+                    ...chipData.map((r: any) => r.titleName || r.title_name)
+                ];
 
-    const handleRowClick = useCallback(async (params: GridRowParams) => {
+                setCustomerOptions(Array.from(new Set(allNames.filter(Boolean))));
+            } catch (err) {
+                console.error("Failed to load customer list", err);
+            }
+        };
+        loadCustomers();
+    }, [selectedVehicleId]);
+
+    const activeFilters = useMemo(() => ({
+        searchQuery,
+        customer: selectedCustomer,
+        startDate,
+        endDate
+    }), [searchQuery, selectedCustomer, startDate, endDate]);
+
+    const handleReset = () => {
+        setSearchQuery('');
+        setSelectedCustomer(null);
+        setStartDate(dayjs().subtract(5, 'year').format('YYYY-MM-DD'));
+        setEndDate(dayjs().add(1, 'day').format('YYYY-MM-DD'));
+    };
+
+    const handleRowClick = useCallback(async (id: number, rowData?: any) => {
+        if (transportType === 2 && rowData) {
+            setSelectedTripDetails(rowData);
+            setIsModalOpen(true);
+            return;
+        }
         try {
-            const data = await getCompletedTripDetails(params.row.kuormaId);
+            const data = await getCompletedTripDetails(id);
             setSelectedTripDetails(data);
             setIsModalOpen(true);
         } catch (err) {
-            console.error(err);
-            enqueueSnackbar('Failed to load trip details.', { variant: 'error' });
+            enqueueSnackbar(t('completedTrips:failedToLoadTripDetails'), { variant: 'error' });
         }
-    }, [enqueueSnackbar]);
-
-    const handleCloseModal = () => {
-        setIsModalOpen(false);
-        setSelectedTripDetails(null);
-    };
-
-    // --- DYNAMIC COLUMNS DEFINITION ---
-    // FIX: Removed 'flex' properties and set specific 'width' to reduce spacing
-    const getColumns = (isConsignment: boolean): GridColDef[] => {
-        const commonColumns: GridColDef[] = [
-            {
-                field: 'pvm',
-                headerName: t('date', { ns: 'completedTrips' }),
-                width: 110, // Fixed width
-                type: 'date',
-                valueGetter: (value) => value ? new Date(value) : null,
-                renderCell: (params) => params.value ? dayjs(params.value).locale(i18n.language).format('L') : '-',
-            },
-            {
-                field: 'asiakkaanNimi',
-                headerName: t('customer', { ns: 'completedTrips' }),
-                width: 300 // Fixed width instead of flex
-            },
-        ];
-
-        if (isConsignment) {
-            return [
-                ...commonColumns,
-                // Consignment Specific Columns
-                {
-                    field: 'm3',
-                    headerName: t('m3', { ns: 'completedTrips' }),
-                    width: 120,
-                    align: 'right',
-                    headerAlign: 'right',
-                    valueFormatter: (value: any) => Number(value).toFixed(2)
-                },
-                {
-                    field: 'waybillCount',
-                    headerName: t('waybills', { ns: 'completedTrips' }),
-                    width: 100,
-                    align: 'center',
-                    headerAlign: 'center',
-                    renderCell: (params) => (
-                        <Chip
-                            icon={<DescriptionIcon style={{ fontSize: '1rem' }} />}
-                            label={params.value || '0'}
-                            size="small"
-                            variant="outlined"
-                        />
-                    )
-                },
-                {
-                    field: 'status',
-                    headerName: t('status', { ns: 'completedTrips' }),
-                    width: 130,
-                    align: 'center',
-                    headerAlign: 'center',
-                    renderCell: (params) => <Chip label={params.value} color="success" size="small" />
-                }
-            ];
-        } else {
-            // Timber Load Columns
-            return [
-                ...commonColumns,
-                {
-                    field: 'lahto',
-                    headerName: t('origin', { ns: 'completedTrips' }),
-                    width: 250 // Fixed width
-                },
-                {
-                    field: 'kohde',
-                    headerName: t('destination', { ns: 'completedTrips' }),
-                    width: 250 // Fixed width
-                },
-                {
-                    field: 'm3',
-                    headerName: t('m3Vol', { ns: 'completedTrips' }),
-                    width: 120,
-                    align: 'right',
-                    valueFormatter: (value: any) => Number(value).toFixed(2)
-                },
-            ];
-        }
-    };
-
-    const handleTabChange = (event: React.SyntheticEvent, newValue: number) => {
-        setCurrentTab(newValue);
-    };
-
-    if (error) { return <ErrorDisplay message={error} onRetry={loadCompletedTrips} />; }
+    }, [transportType, enqueueSnackbar]);
 
     return (
-        <Box sx={{ p: { xs: 1, sm: 3 }, height: 'calc(100vh - 64px)', display: 'flex', flexDirection: 'column' }}>
+        <Box sx={{ p: 3, height: 'calc(100vh - 64px)', display: 'flex', flexDirection: 'column', gap: 2, bgcolor: 'background.default' }}>
 
-            <Box sx={{ mb: 2, display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexShrink: 0 }}>
-                <Typography variant="h5" component="h1" sx={{ fontWeight: 'bold' }}>
-                    {t('title', { ns: 'completedTrips' })}
+            <Box sx={{ mb: 1 }}>
+                <Typography variant="h5" fontWeight="800" sx={{ color: 'text.primary', letterSpacing: '0.5px' }}>
+                    {t('completedTrips:historyTitle', { defaultValue: 'Trip History' })}
                 </Typography>
             </Box>
 
-            <Paper sx={{ flexGrow: 1, width: '100%', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
-                <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
-                    <Tabs
-                        value={currentTab}
-                        onChange={handleTabChange}
-                        aria-label={t('ariaTabs', { ns: 'completedTrips' })}
-                    >
-                        <Tab
-                            label={t('tabs.timberWithCount', { ns: 'completedTrips', count: timberTrips.length })}
-                            id="completed-trips-tab-0"
-                            sx={{ fontWeight: 'bold' }}
-                        />
-                        <Tab
-                            label={t('tabs.consignmentsWithCount', { ns: 'completedTrips', count: consignmentTrips.length })}
-                            id="completed-trips-tab-1"
-                            sx={{ fontWeight: 'bold' }}
-                        />
-                    </Tabs>
-                </Box>
+            {/* Filter Bar */}
+            <Paper elevation={0} sx={{ p: 2, borderRadius: '12px', border: '1px solid', borderColor: 'divider' }}>
+                <Stack direction={{ xs: 'column', md: 'row' }} spacing={2} alignItems="center">
+                    <TextField
+                        size="small"
+                        placeholder={t('completedTrips:searchVehicleInfo')}
+                        value={searchQuery}
+                        onChange={(e) => setSearchQuery(e.target.value)}
+                        sx={{ width: { xs: '100%', md: 250 } }}
+                        InputProps={{
+                            startAdornment: (
+                                <InputAdornment position="start">
+                                    <SearchIcon fontSize="small" sx={{ color: '#a38f6d' }} />
+                                </InputAdornment>
+                            ),
+                        }}
+                    />
 
-                {isLoading ? (
-                    <TableSkeletonLoader rows={10} />
-                ) : (
-                    <>
-                        <TabPanel value={currentTab} index={0}>
-                            <DataGrid
-                                rows={timberTrips}
-                                columns={getColumns(false)} // Timber Columns
-                                getRowId={(row) => row.kuormaId}
-                                initialState={{ sorting: { sortModel: [{ field: 'pvm', sort: 'desc' }] } }}
-                                disableRowSelectionOnClick
-                                onRowClick={handleRowClick}
-                                sx={{
-                                    '& .MuiDataGrid-columnHeaderTitle': { fontWeight: 'bold' },
-                                    '& .MuiDataGrid-row:hover': { cursor: 'pointer' },
-                                    border: 0
-                                }}
-                                slots={{
-                                    toolbar: GridToolbar,
-                                    noRowsOverlay: () => <CustomNoRowsOverlay message={t('noTimber', { ns: 'completedTrips' })} />
-                                }}
-                            />
-                        </TabPanel>
+                    <Autocomplete
+                        size="small"
+                        options={customerOptions}
+                        renderInput={(params) => <TextField {...params} label={t('completedTrips:customer')} />}
+                        value={selectedCustomer}
+                        onChange={(_, v) => setSelectedCustomer(v as string | null)}
+                        sx={{ width: { xs: '100%', md: 250 } }}
+                    />
 
-                        <TabPanel value={currentTab} index={1}>
-                            <DataGrid
-                                rows={consignmentTrips}
-                                columns={getColumns(true)} // Consignment Columns
-                                getRowId={(row) => row.kuormaId}
-                                initialState={{ sorting: { sortModel: [{ field: 'pvm', sort: 'desc' }] } }}
-                                disableRowSelectionOnClick
-                                onRowClick={handleRowClick}
-                                sx={{
-                                    '& .MuiDataGrid-columnHeaderTitle': { fontWeight: 'bold' },
-                                    '& .MuiDataGrid-row:hover': { cursor: 'pointer' },
-                                    border: 0
-                                }}
-                                slots={{
-                                    toolbar: GridToolbar,
-                                    noRowsOverlay: () => <CustomNoRowsOverlay message={t('noConsignments', { ns: 'completedTrips' })} />
-                                }}
-                            />
-                        </TabPanel>
-                    </>
-                )}
+                    <Stack direction="row" spacing={1} alignItems="center">
+                        <TextField
+                            label={t('completedTrips:from')} type="date" size="small"
+                            value={startDate} onChange={(e) => setStartDate(e.target.value)}
+                            InputLabelProps={{ shrink: true }}
+                        />
+                        <Typography variant="body2">{t('completedTrips:to')}</Typography>
+                        <TextField
+                            label={t('completedTrips:to')} type="date" size="small"
+                            value={endDate} onChange={(e) => setEndDate(e.target.value)}
+                            InputLabelProps={{ shrink: true }}
+                        />
+                    </Stack>
+
+                    <Box sx={{ flexGrow: 1 }} />
+
+                    <Button variant="outlined" startIcon={<RestartAltIcon />} onClick={handleReset} sx={{ textTransform: 'none' }}>
+                        {t('completedTrips:reset')}
+                    </Button>
+                </Stack>
             </Paper>
 
-            <CompletedTripDetailsModal
-                open={isModalOpen}
-                onCloseAction={handleCloseModal}
-                data={selectedTripDetails}
-            />
+            <Box sx={{ borderBottom: '1px solid', borderColor: 'divider' }}>
+                <Tabs value={transportType} onChange={(_, v) => setTransportType(v)}>
+                    <Tab icon={<ForestIcon sx={{ fontSize: 18 }} />} iconPosition="start" label={t('completedTrips:timberLoad')} />
+                    <Tab icon={<AssignmentIcon sx={{ fontSize: 18 }} />} iconPosition="start" label={t('completedTrips:consignment')} />
+                    <Tab icon={<LocalShippingIcon sx={{ fontSize: 18 }} />} iconPosition="start" label={t('completedTrips:chipTransport')} />
+                </Tabs>
+            </Box>
+
+            <Box sx={{ flex: 1, overflow: 'hidden', bgcolor: 'background.paper', borderRadius: '12px', border: '1px solid', borderColor: 'divider' }}>
+                {transportType === 0 && <TimberHistoryTab filters={activeFilters} onRowClick={handleRowClick} />}
+                {transportType === 1 && <ConsignmentHistoryTab filters={activeFilters} onRowClick={handleRowClick} />}
+                {transportType === 2 && <ChipHistoryTab filters={activeFilters} onRowClick={handleRowClick} />}
+            </Box>
+
+            <CompletedTripDetailsModal open={isModalOpen} onCloseAction={() => setIsModalOpen(false)} data={selectedTripDetails} />
         </Box>
     );
 }

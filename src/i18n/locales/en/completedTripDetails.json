@@ -10,7 +10,13 @@
     "destination": "Destination",
     "volume": "Volume (m³)",
     "distance": "Distance (km)",
-    "notes": "Notes"
+    "notes": "Notes",
+    "weight": "Weight",
+    "totalM3": "Total M³",
+    "pieces": "Pieces",
+    "hours": "Hours",
+    "waiting": "Waiting",
+    "mileage": "Mileage"
   },
   "na": "–"
 }

@@ -1,16 +1,22 @@
 {
-  "title": "Ajoyhteenveto",
-  "error": "Ajon tietoja ei voitu ladata.",
+  "title": "Valmiin ajon yhteenveto",
+  "error": "Ajon tietojen haku epäonnistui.",
   "labels": {
-    "date": "Päivämäärä",
+    "date": "Päivä",
     "type": "Tyyppi",
     "customer": "Asiakas",
-    "vehicle": "Ajoneuvo",
-    "origin": "Lähtöpaikka",
-    "destination": "Määränpää",
+    "vehicle": "Auto",
+    "origin": "Lähtö",
+    "destination": "Kohde",
     "volume": "Määrä (m³)",
-    "distance": "Matka (km)",
-    "notes": "Lisätiedot"
+    "distance": "Etäisyys (km)",
+    "notes": "Lisätiedot",
+    "weight": "Paino",
+    "totalM3": "m³ yht.",
+    "pieces": "Kpl",
+    "hours": "Tunnit",
+    "waiting": "Odotus",
+    "mileage": "Kilometrit"
   },
-  "na": "-"
+  "na": "–"
 }

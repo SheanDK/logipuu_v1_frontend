@@ -592,8 +592,8 @@ export default function ChipDriverDashboard({ onBackAction }: ChipDriverDashboar
                     </strong>
                 </Typography>
             </Paper>
-
-            <Box sx={{ overflowY: 'auto', pr: 0.5 }}>
+            {/* flex-grow: 1; overflow-y: auto; */}
+            <Box sx={{ flexGrow: 1, overflowY: 'auto', pr: 0.5 }}>
                 <Stack spacing={1.2}>
                     {isLoading ? (
                         <Paper sx={{ p: 2 }}>
@@ -929,34 +929,41 @@ export default function ChipDriverDashboard({ onBackAction }: ChipDriverDashboar
                             );
                         })}
                 </Stack>
-
-                {/* --- UPDATE 2: Footer Pagination Component (පහළින්ම එක් කරන ලදී) --- */}
-                {!isLoading && currentWeekLoads.length > 0 && (
-                    <Paper
-                        variant="outlined"
-                        sx={{
-                            mt: 2,
-                            borderRadius: '8px',
-                            bgcolor: (theme) => theme.palette.mode === 'dark' ? alpha('#fff', 0.02) : '#fdfdfd'
-                        }}
-                    >
-                        <TablePagination
-                            component="div"
-                            count={currentWeekLoads.length} // මුළු දත්ත ගණන
-                            page={page}
-                            onPageChange={(_, newPage) => setPage(newPage)}
-                            rowsPerPage={rowsPerPage}
-                            onRowsPerPageChange={(e) => {
-                                setRowsPerPage(parseInt(e.target.value, 10));
-                                setPage(0);
-                            }}
-                            rowsPerPageOptions={[5, 10, 25]} // තෝරාගත හැකි ප්‍රමාණයන්
-                            labelRowsPerPage={t('chip-management:pagination.rowsPerPage', { defaultValue: 'Rows:' })}
-                            sx={{ borderTop: 'none' }}
-                        />
-                    </Paper>
-                )}
             </Box>
+
+            {/* --- UPDATE 2: Footer Pagination Component (පහළින්ම එක් කරන ලදී) --- */}
+            {!isLoading && currentWeekLoads.length > 0 && (
+                <Paper
+                    elevation={3}
+                    variant="outlined"
+                    sx={{
+                        flexShrink: 0, // footer එක හැකිලීම වළක්වයි
+                        borderRadius: '12px',
+                        border: '1px solid',
+                        borderColor: 'divider',
+                        bgcolor: (theme) => theme.palette.mode === 'dark' ? alpha('#fff', 0.02) : '#fdfdfd',
+                        mt: 1
+                    }}
+                >
+                    <TablePagination
+                        component="div"
+                        count={currentWeekLoads.length}
+                        page={page}
+                        onPageChange={(_, newPage) => setPage(newPage)}
+                        rowsPerPage={rowsPerPage}
+                        onRowsPerPageChange={(e) => {
+                            setRowsPerPage(parseInt(e.target.value, 10));
+                            setPage(0);
+                        }}
+                        rowsPerPageOptions={[5, 10, 25]}
+                        labelRowsPerPage={t('chip-management:pagination.rowsPerPage', { defaultValue: 'Rows:' })}
+                        sx={{
+                            borderTop: 'none',
+                            '.MuiTablePagination-toolbar': { minHeight: '48px' }
+                        }}
+                    />
+                </Paper>
+            )}
             <Popover
                 open={Boolean(instructionAnchorEl)}
                 anchorEl={instructionAnchorEl}

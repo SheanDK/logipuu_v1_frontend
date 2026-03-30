@@ -37,7 +37,8 @@
     "m3": "m³",
     "km": "km",
     "pcs": "pcs",
-    "hours": "hrs"
+    "hours": "hrs",
+    "ton": "ton"
   },
   "formats": {
     "date": "MM/DD/YYYY"

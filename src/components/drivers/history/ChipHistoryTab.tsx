@@ -1,5 +1,6 @@
 // frontend/src/components/drivers/history/ChipHistoryTab.tsx
 'use client';
+
 import React, { useEffect, useState, useCallback } from 'react';
 import { DataGrid, GridColDef, GridToolbar, GridRowParams } from '@mui/x-data-grid';
 import { useTranslation } from '@/i18n/useTranslation';
@@ -7,6 +8,7 @@ import chipPlanningService from '@/services/chipPlanningService';
 import { useDriverSession } from '@/contexts/DriverSessionContext';
 import dayjs from 'dayjs';
 import { Chip, Box, useTheme, alpha, Stack, Tooltip } from '@mui/material';
+
 // --- Icons for REQ Column ---
 import ScaleIcon from '@mui/icons-material/Scale';
 import ViewInArIcon from '@mui/icons-material/ViewInAr';
@@ -15,31 +17,36 @@ import AccessTimeIcon from '@mui/icons-material/AccessTime';
 import HourglassEmptyIcon from '@mui/icons-material/HourglassEmpty';
 import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined';
 import RouteIcon from '@mui/icons-material/Route';
+
 import TableSkeletonLoader from '@/components/common/TableSkeletonLoader';
 import CustomNoRowsOverlay from '@/components/common/CustomNoRowsOverlay';
+
 interface ChipHistoryTabProps {
-    statusFilter?: string;
+    filters: { searchQuery: string; customer: string | null; startDate: string; endDate: string; };
     onRowClick?: (id: number, data?: any) => void;
 }
-const ChipHistoryTab = ({ onRowClick }: ChipHistoryTabProps) => {
+
+const ChipHistoryTab: React.FC<ChipHistoryTabProps> = ({ filters, onRowClick }) => {
     const { t } = useTranslation(['completedTrips', 'chipDriver']);
     const { selectedVehicleId } = useDriverSession();
     const [rows, setRows] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
     const theme = useTheme();
     const isDarkMode = theme.palette.mode === 'dark';
+
+
     const renderRequestedInfo = (row: any) => {
         const icons = [];
         const iconStyle = { fontSize: 16, color: '#a38f6d' };
 
 
-        if (row.req_pcs || row.reqPcs) icons.push(<Tooltip key="pcs" title="Pieces"><PinIcon sx={iconStyle} /></Tooltip>);
-        if (row.req_m3 || row.reqM3) icons.push(<Tooltip key="m3" title="Cubes (m³)"><ViewInArIcon sx={iconStyle} /></Tooltip>);
-        if (row.req_ton || row.reqTon) icons.push(<Tooltip key="ton" title="Tons"><ScaleIcon sx={iconStyle} /></Tooltip>);
-        if (row.req_hr || row.reqHr) icons.push(<Tooltip key="hr" title="Hours"><AccessTimeIcon sx={iconStyle} /></Tooltip>);
-        if (row.req_waiting || row.reqWaiting) icons.push(<Tooltip key="wait" title="Waiting"><HourglassEmptyIcon sx={iconStyle} /></Tooltip>);
-        if (row.req_km || row.reqKm) icons.push(<Tooltip key="km" title="Mileage (KM)"><RouteIcon sx={iconStyle} /></Tooltip>);
-        if (row.req_details || row.reqDetails) icons.push(<Tooltip key="info" title="Further Info"><InfoOutlinedIcon sx={iconStyle} /></Tooltip>);
+        if (row.req_pcs || row.reqPcs) icons.push(<Tooltip key="pcs" title={t('completedTrips:pieces')}><PinIcon sx={iconStyle} /></Tooltip>);
+        if (row.req_m3 || row.reqM3) icons.push(<Tooltip key="m3" title={t('completedTrips:cubes')}><ViewInArIcon sx={iconStyle} /></Tooltip>);
+        if (row.req_ton || row.reqTon) icons.push(<Tooltip key="ton" title={t('completedTrips:tons')}><ScaleIcon sx={iconStyle} /></Tooltip>);
+        if (row.req_hr || row.reqHr) icons.push(<Tooltip key="hr" title={t('completedTrips:hours')}><AccessTimeIcon sx={iconStyle} /></Tooltip>);
+        if (row.req_waiting || row.reqWaiting) icons.push(<Tooltip key="wait" title={t('completedTrips:waiting')}><HourglassEmptyIcon sx={iconStyle} /></Tooltip>);
+        if (row.req_km || row.reqKm) icons.push(<Tooltip key="km" title={t('completedTrips:mileage')}><RouteIcon sx={iconStyle} /></Tooltip>);
+        if (row.req_details || row.reqDetails) icons.push(<Tooltip key="info" title={t('completedTrips:furtherInfo')}><InfoOutlinedIcon sx={iconStyle} /></Tooltip>);
 
         return (
             <Stack direction="row" spacing={0.5} justifyContent="center" alignItems="center" sx={{ height: '100%' }}>
@@ -53,8 +60,10 @@ const ChipHistoryTab = ({ onRowClick }: ChipHistoryTabProps) => {
         setLoading(true);
         try {
             const data = await chipPlanningService.searchLoads({
-                status: 'sent',
-                kalustoNro: Number(selectedVehicleId)
+                status: 'completed',
+                kalustoNro: Number(selectedVehicleId),
+                startDate: filters.startDate,
+                endDate: filters.endDate
             });
 
             const mappedData = data.map((r: any) => ({
@@ -78,10 +87,20 @@ const ChipHistoryTab = ({ onRowClick }: ChipHistoryTabProps) => {
                 actualWaiting: Number(r.actual_waiting ?? r.actualWaiting ?? 0),
             }));
 
-            setRows(mappedData);
-        } catch (err) { console.error("Fetch failed:", err); }
+            const filtered = mappedData.filter((item: { customer: string; vehicle: string }) => {
+                const matchesSearch = !filters.searchQuery ||
+                    item.customer.toLowerCase().includes(filters.searchQuery.toLowerCase()) ||
+                    item.vehicle.toLowerCase().includes(filters.searchQuery.toLowerCase());
+
+                const matchesCustomer = !filters.customer || item.customer === filters.customer;
+
+                return matchesSearch && matchesCustomer;
+            });
+
+            setRows(filtered);
+        } catch (err) { console.error(err); }
         finally { setLoading(false); }
-    }, [selectedVehicleId]);
+    }, [selectedVehicleId, filters]);
 
     useEffect(() => { loadData(); }, [loadData]);
 
@@ -90,30 +109,30 @@ const ChipHistoryTab = ({ onRowClick }: ChipHistoryTabProps) => {
             field: 'displayDate',
             headerName: t('completedTrips:date').toUpperCase(),
             width: 105,
-            renderCell: (params) => dayjs(params.value).format('DD.MM.YYYY')
+            renderCell: (params) => dayjs(params.value).format(t('completedTrips:dateFormat'))
         },
         { field: 'customer', headerName: t('completedTrips:customer').toUpperCase(), width: 200 },
         {
             field: 'req',
-            headerName: 'REQ',
+            headerName: t('completedTrips:req').toUpperCase(),
             width: 130,
             align: 'center',
             headerAlign: 'center',
             renderCell: (params) => renderRequestedInfo(params.row)
         },
-        { field: 'actualM3', headerName: 'M³', width: 80, align: 'right', headerAlign: 'right', valueFormatter: (v) => Number(v).toFixed(2) },
-        { field: 'actualTon', headerName: 'TON', width: 80, align: 'right', headerAlign: 'right', valueFormatter: (v) => Number(v).toFixed(2) },
-        { field: 'actualPcs', headerName: 'PCS', width: 70, align: 'center', headerAlign: 'center' },
-        { field: 'actualHr', headerName: 'HR', width: 70, align: 'center', headerAlign: 'center' },
-        { field: 'actualKm', headerName: 'KM', width: 70, align: 'center', headerAlign: 'center' },
-        { field: 'actualWaiting', headerName: 'WAIT', width: 70, align: 'center', headerAlign: 'center' },
+        { field: 'actualM3', headerName: t('completedTrips:cubes').toUpperCase(), width: 80, align: 'right', headerAlign: 'right', valueFormatter: (v) => Number(v).toFixed(2) },
+        { field: 'actualTon', headerName: t('completedTrips:tons').toUpperCase(), width: 80, align: 'right', headerAlign: 'right', valueFormatter: (v) => Number(v).toFixed(2) },
+        { field: 'actualPcs', headerName: t('completedTrips:pieces').toUpperCase(), width: 70, align: 'center', headerAlign: 'center' },
+        { field: 'actualHr', headerName: t('completedTrips:hours').toUpperCase(), width: 70, align: 'center', headerAlign: 'center' },
+        { field: 'actualKm', headerName: t('completedTrips:mileage').toUpperCase(), width: 70, align: 'center', headerAlign: 'center' },
+        { field: 'actualWaiting', headerName: t('completedTrips:waiting').toUpperCase(), width: 70, align: 'center', headerAlign: 'center' },
         {
             field: 'status',
             headerName: t('completedTrips:status').toUpperCase(),
             width: 90,
             renderCell: (params) => (
                 <Chip
-                    label="DONE" size="small"
+                    label={t('completedTrips:done').toUpperCase()} size="small"
                     sx={{ bgcolor: alpha(theme.palette.success.main, 0.1), color: theme.palette.success.main, fontWeight: '900', fontSize: '10px', border: `1px solid ${theme.palette.success.main}` }}
                 />
             )
@@ -128,7 +147,7 @@ const ChipHistoryTab = ({ onRowClick }: ChipHistoryTabProps) => {
                 rows={rows}
                 columns={columns}
                 onRowClick={(params: GridRowParams) => onRowClick && onRowClick(params.row.id, params.row)}
-                slots={{ toolbar: GridToolbar, noRowsOverlay: () => <CustomNoRowsOverlay message="No completed chip loads found" /> }}
+                slots={{ toolbar: GridToolbar, noRowsOverlay: () => <CustomNoRowsOverlay message={t('completedTrips:noCompletedChipLoadsFound')} /> }}
                 density="compact"
                 hideFooterSelectedRowCount
                 sx={{
@@ -141,4 +160,5 @@ const ChipHistoryTab = ({ onRowClick }: ChipHistoryTabProps) => {
         </Box>
     );
 };
+
 export default ChipHistoryTab;
