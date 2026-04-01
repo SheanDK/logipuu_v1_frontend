@@ -32,6 +32,7 @@ export default function CompletedTripDetailsModal({ open, onCloseAction, data, i
     const isChip = data?.actualM3 !== undefined || data?.actual_m3 !== undefined;
     const isTimber = !isConsignment && !isChip;
 
+
     // --- 🧮 TOTALS FOR CONSIGNMENT ---
     const totalM3 = data?.rahtikirjat?.reduce((s: number, i: any) => s + (Number(i.m3) || 0), 0) || 0;
     const totalKpl = data?.rahtikirjat?.reduce((s: number, i: any) => s + (Number(i.kpl) || 0), 0) || 0;
@@ -98,7 +99,7 @@ export default function CompletedTripDetailsModal({ open, onCloseAction, data, i
                         {/* --- CONTENT SECTION --- */}
 
                         {isConsignment ? (
-                            /* 📦 CONSIGNMENT VIEW (SS1) */
+                            /* 📦 CONSIGNMENT VIEW*/
                             <Box>
                                 <Typography variant="subtitle2" gutterBottom fontWeight="bold">{t('completedTrips:waybills')} ({data?.rahtikirjat?.length || 0})</Typography>
                                 <TableContainer component={Paper} variant="outlined" sx={{ borderRadius: 1 }}>
@@ -135,7 +136,7 @@ export default function CompletedTripDetailsModal({ open, onCloseAction, data, i
                                 </TableContainer>
                             </Box>
                         ) : isTimber ? (
-                            /* 🌲 TIMBER VIEW (SS2) */
+                            /* 🌲 TIMBER VIEW */
                             <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 1fr', gap: 1, p: 2, border: '1px solid #e0e0e0', borderRadius: 2 }}>
                                 <Box>
                                     <Typography variant="caption" color="text.secondary">{t('completedTrips:origin')}</Typography>
@@ -155,7 +156,7 @@ export default function CompletedTripDetailsModal({ open, onCloseAction, data, i
                                 </Box>
                             </Box>
                         ) : (
-                            /* 🪵 CHIP VIEW (SS3) */
+                            /* 🪵 CHIP VIEW */
                             <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 1.5 }}>
                                 <MetricCard label={t('completedTrips:totalM3')} value={`${fmtNum(data?.actualM3 || data?.actual_m3)} ${t('common:units.m3')}`} />
                                 <MetricCard label={t('completedTrips:weight')} value={`${fmtNum(data?.actualTon || data?.actual_ton)} ${t('common:units.ton').toUpperCase()}`} />
@@ -166,7 +167,7 @@ export default function CompletedTripDetailsModal({ open, onCloseAction, data, i
                             </Box>
                         )}
 
-                        {/* --- NOTES SECTION (SS2 Style) --- */}
+                        {/* --- NOTES SECTION --- */}
                         {(data?.lisatiedot || data?.actual_details || data?.actualDetails) && (
                             <Box sx={{
                                 bgcolor: isTimber ? '#fffde7' : alpha('#fbc02d', 0.05),

@@ -125,6 +125,17 @@ export const chipPlanningService = {
         const response = await apiClient.delete(`/chip-planning/notifications/clear-read/${userId}`);
         return response.data;
     },
+    // 21. soft delete load
+    softDeleteLoad: async (loadId: number) => {
+        const response = await apiClient.delete(`/chip-planning/delete-load/${loadId}`);
+        return response.data;
+    },
+    // 22. Bulk accept chip loads
+    bulkAccept: async (loadIds: (number | string)[]) => {
+        const response = await apiClient.post(`/chip-planning/bulk-accept`, { loadIds });
+        return response.data;
+    },
 };
+
 
 export default chipPlanningService;

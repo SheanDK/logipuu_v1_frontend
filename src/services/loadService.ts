@@ -135,6 +135,11 @@ export const fetchLoadsForInspection = async (): Promise<ILoadListItem[]> => {
 
 export const acceptLoadsForInvoicing = async (loadIds: (string | number)[], loadType?: string | number): Promise<{ count: number }> => {
     try {
+        if (String(loadType) === '2') {
+            console.log("[SERVICE] Bulk accepting Chip Loads:", loadIds);
+            const response = await apiClient.post<{ count: number }>('/chip-planning/bulk-accept', { loadIds });
+            return response.data;
+        }
         const response = await apiClient.post<{ count: number }>('/loads/accept-for-invoicing', { loadIds, loadType: Number(loadType) });
         return response.data;
     } catch (error) {
@@ -212,3 +217,5 @@ export const updateTripStatus = async (ajomaaraysNro: string, data: ILoadStatusU
         throw error;
     }
 };
+
+

@@ -36,6 +36,7 @@ import { useSnackbar } from 'notistack';
 import useSocket from '@/hooks/useSocket';
 import TransferRequestPopup from './TransferRequestPopup';
 import { useAuth } from '@/contexts/AuthContext';
+import apiClient from '@/services/apiClient';
 
 
 type ChipLoadStatus = 'NOT_SENT' | 'LOADED' | 'UNLOADED' | 'SENT';
@@ -193,6 +194,24 @@ export default function ChipDriverDashboard({ onBackAction }: ChipDriverDashboar
     useEffect(() => {
         setPage(0);
     }, [weekStart]);
+
+    useEffect(() => {
+        const triggerClaim = async () => {
+            if (selectedVehicleId && user?.driverNumericId) {
+                try {
+                    const response = await apiClient.post('/chip-planning/claim-loads', {
+                        vehicleNumber: Number(selectedVehicleId),
+                        userId: Number(user.driverNumericId)
+                    });
+                    console.log("Claim Response:", response.data);
+                    fetchLoads(true);
+                } catch (err) {
+                    console.error("Failed to claim loads", err);
+                }
+            }
+        };
+        triggerClaim();
+    }, [selectedVehicleId, user?.driverNumericId]);
 
     const fetchLoads = useCallback(async (isSilent: boolean = false) => {
         if (!selectedVehicleId) return;

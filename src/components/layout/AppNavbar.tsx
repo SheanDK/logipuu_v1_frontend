@@ -148,7 +148,7 @@ const UserActions = () => {
         };
 
         socket.on('newNotification', handleNewNotif);
-        
+
         window.addEventListener('refreshNotifications', handleSync);
 
         return () => {

@@ -15,6 +15,7 @@ const ChipTransportDetailsModal = ({ open, onClose, loadData }: any) => {
     const theme = useTheme();
     const isDarkMode = theme.palette.mode === 'dark';
 
+
     if (!loadData) return null;
 
     const getChipStatusColor = (status: string) => {
