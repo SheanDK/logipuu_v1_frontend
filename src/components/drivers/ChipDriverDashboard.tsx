@@ -36,7 +36,6 @@ import { useSnackbar } from 'notistack';
 import useSocket from '@/hooks/useSocket';
 import TransferRequestPopup from './TransferRequestPopup';
 import { useAuth } from '@/contexts/AuthContext';
-import apiClient from '@/services/apiClient';
 
 
 type ChipLoadStatus = 'NOT_SENT' | 'LOADED' | 'UNLOADED' | 'SENT';
@@ -195,24 +194,6 @@ export default function ChipDriverDashboard({ onBackAction }: ChipDriverDashboar
         setPage(0);
     }, [weekStart]);
 
-    useEffect(() => {
-        const triggerClaim = async () => {
-            if (selectedVehicleId && user?.driverNumericId) {
-                try {
-                    const response = await apiClient.post('/chip-planning/claim-loads', {
-                        vehicleNumber: Number(selectedVehicleId),
-                        userId: Number(user.driverNumericId)
-                    });
-                    console.log("Claim Response:", response.data);
-                    fetchLoads(true);
-                } catch (err) {
-                    console.error("Failed to claim loads", err);
-                }
-            }
-        };
-        triggerClaim();
-    }, [selectedVehicleId, user?.driverNumericId]);
-
     const fetchLoads = useCallback(async (isSilent: boolean = false) => {
         if (!selectedVehicleId) return;
         if (!isSilent) setIsLoading(true);
@@ -236,6 +217,20 @@ export default function ChipDriverDashboard({ onBackAction }: ChipDriverDashboar
         }
     }, [enqueueSnackbar, isoWeekInfo.week, isoWeekInfo.year, selectedVehicleId, t, weekEndDateStr, weekStartDateStr]);
 
+    const handleNewNotification = useCallback((notification: any) => {
+        const currentUserId = user?.driverNumericId;
+        const recipientId = notification.recipient_user_id || notification.recipientUserId || notification.user_id;
+
+        if (Number(recipientId) === Number(currentUserId)) {
+            if (notification.type === 'LOAD_DELETED' || notification.type === 'LOAD_ASSIGNED') {
+                setPendingRequest(notification);
+                setIsPopupOpen(true);
+                if (window.navigator.vibrate) window.navigator.vibrate(300);
+            }
+        }
+        fetchLoads(true);
+    }, [user, fetchLoads]);
+
     useEffect(() => {
         if (!socket) return;
         socket.on('chipLoadUpdated', handleUpdate);
@@ -247,29 +242,7 @@ export default function ChipDriverDashboard({ onBackAction }: ChipDriverDashboar
             socket.off('chipLoadDeleted', handleDeletion);
             socket.off('newNotification', handleNewNotification);
         };
-
-
-    }, [socket, fetchLoads]);
-
-    const handleNewNotification = (notification: any) => {
-        const currentUserId = user?.driverNumericId;
-        const recipientId = notification.recipient_user_id || notification.recipientUserId || notification.user_id;
-        console.log("🚀 Popup Triggered! Received:", notification);
-        console.log("🚀 Popup Triggered! Received:", currentUserId);
-        console.log("🚀 Popup Triggered! Received:", recipientId);
-
-        if (Number(recipientId) === Number(currentUserId)) {
-
-            if (notification.type === 'LOAD_DELETED' || notification.type === 'LOAD_ASSIGNED') {
-                setPendingRequest(notification);
-                setIsPopupOpen(true);
-
-                if (window.navigator.vibrate) window.navigator.vibrate(300);
-            }
-
-        }
-        fetchLoads(true);
-    };
+    }, [socket, fetchLoads, handleNewNotification]);
 
 
     const handleUpdate = (data: any) => {

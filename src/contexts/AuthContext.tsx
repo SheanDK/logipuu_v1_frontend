@@ -1,15 +1,11 @@
 // frontend/src/contexts/AuthContext.tsx
 'use client';
-
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { jwtDecode } from 'jwt-decode';
 import { useRouter } from 'next/navigation';
-
-import { AuthState, AuthContextType, LoginApiResponse, IUser } from '../types'; 
+import { AuthState, AuthContextType, LoginApiResponse, IUser } from '../types';
 import apiClient from '../services/apiClient';
-
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
-
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
     const [authState, setAuthState] = useState<AuthState>({
         isAuthenticated: false,
@@ -17,7 +13,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         token: null,
         isLoading: true, // Start with isLoading: true
     });
-    
     const router = useRouter();
 
     // This effect runs ONLY ONCE on initial app load
@@ -66,11 +61,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     const login = async (apiResponse: LoginApiResponse): Promise<void> => {
         const { token } = apiResponse;
         localStorage.setItem('authToken', token);
-        
+
         try {
             const decodedPayload = jwtDecode<IUser>(token);
             apiClient.defaults.headers.common['Authorization'] = `Bearer ${token}`;
-            
+
             // Reconstruct the user object from the DECODED TOKEN PAYLOAD.
             // This is more reliable than mixing with apiResponse.user.
             const userData: IUser = {
@@ -106,18 +101,17 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         delete apiClient.defaults.headers.common['Authorization'];
         setAuthState({ isAuthenticated: false, user: null, token: null, isLoading: false });
         // The redirect should be handled by the AuthWrapper in the layout
-        router.push('/login'); 
+        router.push('/login');
     };
-    
+
     // ... (updateUserContext can remain the same)
 
     return (
-        <AuthContext.Provider value={{ ...authState, login, logout, updateUserContext: () => {} }}>
+        <AuthContext.Provider value={{ ...authState, login, logout, updateUserContext: () => { } }}>
             {children}
         </AuthContext.Provider>
     );
 };
-
 export const useAuth = (): AuthContextType => {
     const context = useContext(AuthContext);
     if (context === undefined) {

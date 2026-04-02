@@ -1,10 +1,8 @@
 // frontend/src/hooks/useSocket.ts
 'use client';
-
 import { useEffect, useState, useRef } from 'react';
 import { io, Socket } from 'socket.io-client';
 import { useAuth } from '../contexts/AuthContext';
-
 // Define the structure for the location update payload we expect from the server
 interface LocationUpdatePayload {
     vehicleId: string | number;
@@ -13,17 +11,14 @@ interface LocationUpdatePayload {
     timestamp?: number;
     updatedBy?: string;
 }
-
 // Define the return type of our custom hook
 interface UseSocketReturn {
     socket: Socket | null;
     isConnected: boolean;
     lastLocationUpdate: LocationUpdatePayload | null;
 }
-
 const useSocket = (vehicleId?: string | number | null): UseSocketReturn => {
     const { isAuthenticated, token } = useAuth();
-
     // useRef to hold the socket instance to prevent re-creation on every render
     const socketRef = useRef<Socket | null>(null);
 
@@ -102,5 +97,4 @@ const useSocket = (vehicleId?: string | number | null): UseSocketReturn => {
         lastLocationUpdate,
     };
 };
-
 export default useSocket;

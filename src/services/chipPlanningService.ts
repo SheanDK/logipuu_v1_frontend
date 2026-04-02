@@ -127,7 +127,7 @@ export const chipPlanningService = {
     },
     // 21. soft delete load
     softDeleteLoad: async (loadId: number) => {
-        const response = await apiClient.delete(`/chip-planning/delete-load/${loadId}`);
+        const response = await apiClient.patch(`/chip-planning/archive-load/${loadId}`);
         return response.data;
     },
     // 22. Bulk accept chip loads

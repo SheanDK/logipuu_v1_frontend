@@ -17,7 +17,6 @@ const InfoRow = ({ label, requested, actual }: { label: string, requested: any, 
     <Box sx={{ display: 'flex', borderBottom: '1px solid #eee', py: 0.5 }}>
         <Typography variant="caption" sx={{ flex: 1, fontWeight: 'bold', color: '#666' }}>{label}</Typography>
         <Typography variant="caption" sx={{ width: 60, textAlign: 'center' }}>{requested || '-'}</Typography>
-        {/* 🚀 FIX: actual අගය safeNum හරහා ලබා දීම */}
         <Typography variant="caption" sx={{ width: 60, textAlign: 'center', fontWeight: 'bold', color: '#a38f6d' }}>
             {safeNum(actual)}
         </Typography>
