@@ -70,7 +70,7 @@ const TransferRequestPopup: React.FC<TransferRequestPopupProps> = ({ open, data,
                 </Box>
 
                 <Typography variant="h6" fontWeight="bold" gutterBottom color="text.primary">
-                    {isDeleted ? t('navbar:load_deleted', { defaultValue: 'Load Removed' }) : t('navbar:new_load_assigned', { defaultValue: 'New Assignment' })}
+                    {isDeleted ? t('notifications:LOAD_DELETED.title', { defaultValue: 'Load Removed' }) : t('notifications:LOAD_ASSIGNED.title', { defaultValue: 'New Assignment' })}
                 </Typography>
 
                 <Typography variant="body2" color="text.secondary" sx={{ mb: 4, lineHeight: 1.6 }}>

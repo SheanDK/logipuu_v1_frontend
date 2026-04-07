@@ -18,5 +18,13 @@
     "LOAD_COMPLETED": {
         "title": "LOAD COMPLETED",
         "message": "Vehicle {{vehicle}} has completed and sent Load ID: {{loadId}}. Ready for invoicing."
+    },
+    "LOAD_DELETED": {
+        "title": "LOAD REMOVED",
+        "message": "A load (ID: {{loadId}}) has been removed from your schedule."
+    },
+    "DRIVER_ACKNOWLEDGED": {
+        "title": "DRIVER ACKNOWLEDGED",
+        "message": "A driver acknowledged the update for Load #{{loadId}}."
     }
 }

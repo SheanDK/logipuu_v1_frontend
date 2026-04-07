@@ -1,7 +1,7 @@
 // frontend/src/components/layout/AppNavbar.tsx
 'use client';
 
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo, useEffect, useCallback } from 'react';
 import {
     AppBar, Toolbar, Typography, IconButton, Menu, MenuItem,
     Avatar, Box, Tooltip, Button, Divider, ListItemIcon, ListItemText, Chip, Paper,
@@ -46,7 +46,6 @@ import LanguageSwitcher from '@/components/i18n/LanguageSwitcher';
 import { withLng } from '@/utils/withLng';
 import { fallbackLng } from '@/i18n/settings';
 import { useTranslation } from '@/i18n/useTranslation';
-import { t } from 'i18next';
 
 // --- Top Navigation Menu Helper ---
 const TopNavMenu = ({ navLinks, pathname, currentLng }: { navLinks: NavItemConfig[]; pathname: string; currentLng: string; }) => {
@@ -94,10 +93,10 @@ const TopNavMenu = ({ navLinks, pathname, currentLng }: { navLinks: NavItemConfi
     );
 };
 
-// --- User Actions Helper (Notifications, Theme, Profile) ---
+// --- User Actions Helper ---
 const UserActions = () => {
     const { user, logout } = useAuth();
-    const { themeMode, toggleThemeMode } = useLayout();
+    const { themeMode, toggleThemeMode, navLayout, toggleNavLayout } = useLayout();
     const { selectedVehicleRegNo, selectedVehicleId, clearVehicle } = useDriverSession();
     const { isFullscreen, toggle: toggleFullscreen } = useFullscreen();
     const router = useRouter();
@@ -115,6 +114,23 @@ const UserActions = () => {
 
     const { socket } = useSocket(recipientUserId);
 
+    const handleNewNotif = useCallback((notif: any) => {
+        const notifId = notif.notificationId || notif.notification_id;
+        const type = notif.type;
+
+        console.log(`[NAVBAR] Incoming notif: ${type}`, notif);
+
+        if (!isDriver && type === 'REASSIGNMENT_REQUEST') return;
+
+        if (isDriver && type === 'DRIVER_ACKNOWLEDGED') return;
+
+        setNotifications(prev => {
+            const exists = prev.some(n => (n.notificationId || n.notification_id) === notifId);
+            if (exists) return prev;
+            return [notif, ...prev];
+        });
+    }, [isDriver]);
+
     useEffect(() => {
         if (recipientUserId === null || recipientUserId === undefined) return;
         chipPlanningService.getNotifications(Number(recipientUserId))
@@ -127,48 +143,45 @@ const UserActions = () => {
 
         const handleSync = () => {
             if (recipientUserId !== null) {
-                chipPlanningService.getNotifications(Number(recipientUserId))
-                    .then(res => setNotifications(res || []))
-                    .catch(err => console.error(err));
+                chipPlanningService.getNotifications(Number(recipientUserId)).then(res => setNotifications(res || []));
             }
         };
 
-        const handleNewNotif = (notif: any) => {
-            if (isDriver && notif.type === 'DRIVER_ACKNOWLEDGED') return; // රියදුරන්ට Office පණිවිඩ එපා
-            if (isDriver && notif.type === 'LOAD_COMPLETED') return; // රියදුරන්ට 'LOADE_COMPLETED' එපා
-            if (!isDriver && notif.type === 'REASSIGNMENT_REQUEST') return; // Office එකට Request පණිවිඩ එපා
-
-            console.log("🔔 New Real-time Notification Received in Navbar:", notif);
-            // Deduplicate if needed or just add
-            setNotifications(prev => {
-                const exists = prev.some(n => (n.notification_id || n.notificationId) === (notif.notification_id || notif.notificationId));
-                if (exists) return prev;
-                return [notif, ...prev];
-            });
-        };
-
         socket.on('newNotification', handleNewNotif);
+        socket.on('chipLoadUpdated', handleSync);
 
         window.addEventListener('refreshNotifications', handleSync);
-
         return () => {
             socket.off('newNotification', handleNewNotif);
+            socket.off('chipLoadUpdated', handleSync);
             window.removeEventListener('refreshNotifications', handleSync);
         };
-    }, [socket, recipientUserId]);
+    }, [socket, recipientUserId, handleNewNotif]);
+
+    const handleMarkAsRead = async (id: number) => {
+        try {
+            await chipPlanningService.markNotificationAsRead(id);
+            setNotifications(prev => prev.map(n => {
+                // දත්ත සමුදායේ ඇති ID එක සහ ලැබෙන ID එක සසඳයි
+                const currentNotifId = n.notification_id || n.notificationId;
+                if (Number(currentNotifId) === Number(id)) {
+                    return { ...n, is_read: true, isRead: true };
+                }
+                return n;
+            }));
+
+            console.log(`✅ Notification ${id} marked as read.`);
+        } catch (error) {
+            console.error("❌ Failed to mark as read:", error);
+        }
+    };
 
     const handleMarkAllAsRead = async () => {
         if (recipientUserId === null || recipientUserId === undefined) return;
         try {
             await chipPlanningService.markAllNotificationsAsRead(Number(recipientUserId));
-
-            setNotifications(prev => prev.map(n => {
-                if (n.type === 'REASSIGNMENT_REQUEST') return n;
-                return { ...n, is_read: true, isRead: true };
-            }));
-        } catch (error) {
-            console.error("Mark all read failed", error);
-        }
+            setNotifications(prev => prev.map(n => ({ ...n, is_read: true, isRead: true })));
+        } catch (error) { console.error(error); }
     };
 
     const handleClearRead = async () => {
@@ -176,44 +189,14 @@ const UserActions = () => {
         try {
             await chipPlanningService.clearReadNotifications(Number(recipientUserId));
             setNotifications(prev => prev.filter(n => !(n.isRead || n.is_read)));
-        } catch (error) {
-            console.error("Clear read failed", error);
-        }
-    };
-
-    const handleMarkAsRead = async (id: number) => {
-        try {
-            await chipPlanningService.markNotificationAsRead(id);
-            setNotifications(prev => prev.map(n => {
-                const currentId = n.notification_id || n.notificationId;
-                return currentId === id ? { ...n, is_read: true, isRead: true } : n;
-            }));
         } catch (error) { console.error(error); }
-    };
-
-    const handleTransferResponse = async (notif: any, approve: boolean) => {
-        const loadId = notif.related_id || notif.relatedId;
-        const notifId = notif.notification_id || notif.notificationId;
-        if (!loadId) return;
-        try {
-            await chipPlanningService.approveTransfer(Number(loadId), approve, notifId ? Number(notifId) : null);
-            setNotifications(prev => prev.map(n => ((n.notification_id || n.notificationId) === notifId ? { ...n, is_read: true, isRead: true } : n)));
-            if (pathname.includes('/driver/dashboard')) window.location.reload();
-        } catch (error) { console.error("Transfer failed:", error); }
     };
 
     const handleOpenUserMenu = (event: React.MouseEvent<HTMLElement>) => setAnchorElUser(event.currentTarget);
     const handleOpenNotifications = (event: React.MouseEvent<HTMLElement>) => setNotificationAnchorEl(event.currentTarget);
     const handleLogout = () => { clearVehicle(); logout(); setAnchorElUser(null); };
 
-    const visibleUnreadCount = notifications.filter(n => {
-        const isRead = n.isRead || n.is_read;
-        const type = n.type || '';
-        if (isRead) return false;
-        if (isDriver && type === 'DRIVER_ACKNOWLEDGED') return false;
-        if (!isDriver && type === 'REASSIGNMENT_REQUEST') return false;
-        return true;
-    }).length;
+    const unreadCount = notifications.filter(n => !(n.isRead || n.is_read)).length;
 
     return (
         <Box sx={{ display: 'flex', alignItems: 'center' }}>
@@ -241,7 +224,7 @@ const UserActions = () => {
 
             <Tooltip title={t('navbar:tooltips.notifications')}>
                 <IconButton sx={{ ml: 1 }} onClick={handleOpenNotifications} color="inherit">
-                    <Badge badgeContent={visibleUnreadCount} color="error">
+                    <Badge badgeContent={unreadCount} color="error">
                         <NotificationsIcon />
                     </Badge>
                 </IconButton>
@@ -256,118 +239,73 @@ const UserActions = () => {
             >
                 <Box sx={{ p: 2, display: 'flex', justifyContent: 'space-between', alignItems: 'center', bgcolor: alpha('#a38f6d', 0.05) }}>
                     <Typography variant="subtitle1" fontWeight="bold">{t('navbar.notifications')}</Typography>
-                    <Chip size="small" label={`${visibleUnreadCount} ${t('navbar.new')}`} color="primary" />
+                    <Chip size="small" label={`${unreadCount} ${t('navbar.new')}`} color="primary" />
                 </Box>
                 <Divider />
                 <List sx={{ p: 0, overflowY: 'auto', maxHeight: 320 }}>
                     {notifications.length === 0 ? (
                         <Box sx={{ p: 3, textAlign: 'center' }}>
-                            <Typography variant="body2" color="text.secondary">
-                                {t('navbar.noNewNotifications')}
-                            </Typography>
+                            <Typography variant="body2" color="text.secondary">{t('navbar.noNewNotifications')}</Typography>
                         </Box>
                     ) : (
-                        notifications
-                            .filter((notif) => {
-                                const type = notif.type || '';
-                                if (!isDriver && type === 'REASSIGNMENT_REQUEST') return false;
-                                if (isDriver && type === 'DRIVER_ACKNOWLEDGED') return false;
-                                return true;
-                            })
-                            .map((notif, idx) => {
-                                const isRead = notif.isRead || notif.is_read;
-                                const type = notif.type || '';
-                                const notifId = notif.notification_id || notif.notificationId;
+                        notifications.map((notif, idx) => {
+                            const isRead = notif.isRead || notif.is_read;
+                            const type = notif.type || '';
+                            const notifId = notif.notification_id || notif.notificationId;
 
-                                return (
-                                    <ListItemButton
-                                        key={notifId || idx}
-                                        onClick={() => {
-                                            setSelectedNotif(notif);
-                                            if (!isRead && notifId && type !== 'REASSIGNMENT_REQUEST') {
-                                                handleMarkAsRead(notifId);
-                                            }
-                                        }}
-                                        sx={{
-                                            py: 1.5,
-                                            display: 'flex',
-                                            flexDirection: 'column',
-                                            alignItems: 'flex-start',
-                                            bgcolor: isRead ? 'transparent' : alpha('#a38f6d', 0.05),
-                                            borderBottom: '1px solid',
-                                            borderColor: 'divider',
-                                        }}
-                                    >
-                                        <Box sx={{ display: 'flex', width: '100%', alignItems: 'center' }}>
-                                            <ListItemIcon sx={{ minWidth: 30 }}>
-                                                <CircleIcon
-                                                    sx={{
-                                                        fontSize: 10,
-                                                        color:
-                                                            type === 'REASSIGNMENT_REQUEST' ? 'warning.main' :
-                                                                type.includes('COMPLETED') ? 'success.main' :
-                                                                    type.includes('DELETED') ? 'error.main' :
-                                                                        'primary.main',
-                                                    }}
-                                                />
-                                            </ListItemIcon>
-                                            <ListItemText
-                                                primary={
-                                                    <Typography variant="body2" fontWeight={isRead ? 400 : 700}>
-                                                        {t(`navbar.notifications:${type}.title`, { defaultValue: type.replace(/_/g, ' ') })}
-                                                    </Typography>
-                                                }
-                                                secondary={
-                                                    <React.Fragment>
-                                                        <Typography variant="caption" color="text.secondary" display="block">
-                                                            {t(`navbar.notifications:${type}.message`, {
-                                                                defaultValue: notif.message,
-                                                                loadId: notif.related_id || notif.relatedId,
-                                                                vehicle: notif.vehicle_context_id || notif.vehicleContextId
-                                                            })}
-                                                        </Typography>
-                                                        {/* Time Ago Implementation */}
-                                                        <Typography variant="caption" color="primary" sx={{ mt: 0.5, display: 'block', fontSize: '0.65rem', opacity: 0.7 }}>
-                                                            {dayjs(notif.created_at || notif.createdAt).fromNow()}
-                                                        </Typography>
-                                                    </React.Fragment>
-                                                }
-                                            />
-                                        </Box>
-
-                                        {isDriver && type === 'REASSIGNMENT_REQUEST' && !isRead && (
-                                            <Stack direction="row" spacing={1} sx={{ mt: 1.5, ml: 4, width: '100%' }}>
-                                                <Button
-                                                    size="small"
-                                                    variant="contained"
-                                                    color="success"
-                                                    startIcon={<CheckIcon sx={{ fontSize: '0.8rem !important' }} />}
-                                                    onClick={(e) => {
-                                                        e.stopPropagation();
-                                                        handleTransferResponse(notif, true);
-                                                    }}
-                                                    sx={{ fontSize: '0.65rem', py: 0.2, px: 1, textTransform: 'none' }}
-                                                >
-                                                    {t('chip-management.modal.accept')}
-                                                </Button>
-                                                <Button
-                                                    size="small"
-                                                    variant="outlined"
-                                                    color="error"
-                                                    startIcon={<CloseIcon sx={{ fontSize: '0.8rem !important' }} />}
-                                                    onClick={(e) => {
-                                                        e.stopPropagation();
-                                                        handleTransferResponse(notif, false);
-                                                    }}
-                                                    sx={{ fontSize: '0.65rem', py: 0.2, px: 1, textTransform: 'none' }}
-                                                >
-                                                    {t('chip-management.modal.reject')}
-                                                </Button>
-                                            </Stack>
-                                        )}
-                                    </ListItemButton>
-                                );
-                            })
+                            return (
+                                <ListItemButton
+                                    key={notifId || `notif-${idx}`}
+                                    onClick={() => {
+                                        if (!isRead && notifId) {
+                                            handleMarkAsRead(Number(notifId));
+                                        }
+                                        setSelectedNotif(notif);
+                                    }}
+                                    sx={{
+                                        py: 1.5,
+                                        alignItems: 'flex-start',
+                                        bgcolor: isRead ? 'transparent' : alpha('#a38f6d', 0.05),
+                                        borderBottom: '1px solid',
+                                        borderColor: 'divider',
+                                    }}
+                                >
+                                    <ListItemIcon sx={{ minWidth: 35 }}>
+                                        <CircleIcon
+                                            sx={{
+                                                fontSize: 10,
+                                                color:
+                                                    type === 'REASSIGNMENT_REQUEST' ? 'warning.main' :
+                                                        type.includes('LOAD_COMPLETED') || type.includes('LOAD_SUCCESS') ? 'success.main' :
+                                                            type.includes('LOAD_DELETED') ? 'error.main' :
+                                                                'primary.main',
+                                            }}
+                                        />
+                                    </ListItemIcon>
+                                    <ListItemText
+                                        primary={
+                                            <Typography variant="body2" fontWeight={isRead ? 400 : 700}>
+                                                {t(`notifications:${type}.title`, { defaultValue: type.replace(/_/g, ' ') })}
+                                            </Typography>
+                                        }
+                                        secondary={
+                                            <React.Fragment>
+                                                <Typography variant="caption" color="text.secondary" display="block">
+                                                    {t(`notifications:${type}.message`, {
+                                                        defaultValue: notif.message,
+                                                        loadId: notif.related_id || notif.relatedId,
+                                                        vehicle: notif.vehicle_context_id || notif.vehicleContextId
+                                                    })}
+                                                </Typography>
+                                                <Typography variant="caption" color="primary" sx={{ mt: 0.5, display: 'block', fontSize: '0.65rem', opacity: 0.7 }}>
+                                                    {dayjs(notif.created_at || notif.createdAt).fromNow()}
+                                                </Typography>
+                                            </React.Fragment>
+                                        }
+                                    />
+                                </ListItemButton>
+                            );
+                        })
                     )}
                 </List>
                 <Divider />

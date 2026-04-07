@@ -18,5 +18,13 @@
     "LOAD_COMPLETED": {
         "title": "KUORMA VALMIS",
         "message": "Ajoneuvo {{vehicle}} on suorittanut ja lähettänyt kuorman ID: {{loadId}}. Valmis laskutukseen."
+    },
+    "LOAD_DELETED": {
+        "title": "KUORMA POISTETTU",
+        "message": "Kuorma (ID: {{loadId}}) on poistettu aikataulustasi."
+    },
+    "DRIVER_ACKNOWLEDGED": {
+        "title": "KULJETTAJA KUITANNUT",
+        "message": "Kuljettaja on kuitannut päivityksen kuormalle #{{loadId}}."
     }
 }

@@ -300,18 +300,18 @@ export default function ChipDriverDashboard({ onBackAction }: ChipDriverDashboar
 
     // 2. Action Handler
     const handlePopupAcknowledge = async () => {
-        const notifId = pendingRequest?.notification_id || pendingRequest?.notificationId;
+        const notifId = pendingRequest?.notificationId || pendingRequest?.notification_id;
 
         try {
             if (notifId) {
                 await chipService.markNotificationAsRead(Number(notifId));
+                // 🚀 Navbar එකට (Bell icon) දත්ත අලුත් කරන ලෙස සංඥාවක් දීම
                 window.dispatchEvent(new Event('refreshNotifications'));
             }
 
             setIsPopupOpen(false);
             setPendingRequest(null);
-
-            fetchLoads(true);
+            fetchLoads(true); // Silent refresh
 
         } catch (error) {
             console.error("Acknowledge failed:", error);

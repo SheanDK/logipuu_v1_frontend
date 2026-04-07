@@ -71,6 +71,10 @@ const useSocket = (vehicleId?: string | number | null): UseSocketReturn => {
                 setLastLocationUpdate(data);
             });
 
+            socketInstance.on('newNotification', (data: any) => {
+                console.log('📡 [DEBUG-FRONTEND] Real-time notification received via socket:', data);
+            });
+
             socketRef.current = socketInstance;
 
             return () => {
