@@ -9,20 +9,34 @@ import {
 import { IVehicleBasicInfo } from '@/types';
 import { useTranslation } from 'react-i18next';
 
+import { CircularProgress } from '@mui/material';
+import { useSnackbar } from 'notistack';
+
 interface SelectVehicleModalProps {
     open: boolean;
     vehicles: IVehicleBasicInfo[];
-    onVehicleSelectAction: (vehicleId: string, regNo: string) => void;
+    onVehicleSelectAction: (vehicleId: string, regNo: string) => Promise<void>;
 }
 
 export default function SelectVehicleModal({ open, vehicles, onVehicleSelectAction }: SelectVehicleModalProps) {
     const [selectedId, setSelectedId] = useState<string>('');
+    const [isSubmitting, setIsSubmitting] = useState(false);
+    const { enqueueSnackbar } = useSnackbar();
     const { t } = useTranslation('selectVehicleModal');
 
-    const handleConfirm = () => {
-        const selectedVehicle = vehicles.find(v => v.id === selectedId);
+    const handleConfirm = async () => {
+        const selectedIdToUse = selectedId;
+        const selectedVehicle = vehicles.find(v => v.id === selectedIdToUse);
         if (selectedVehicle) {
-            onVehicleSelectAction(selectedVehicle.id, selectedVehicle.registrationNo);
+            setIsSubmitting(true);
+            try {
+                await onVehicleSelectAction(selectedVehicle.id, selectedVehicle.registrationNo);
+            } catch (error: any) {
+                const errorMsg = error.response?.data?.message || error.message || "Failed to select vehicle.";
+                enqueueSnackbar(errorMsg, { variant: 'error' });
+            } finally {
+                setIsSubmitting(false);
+            }
         }
     };
 
@@ -48,6 +62,7 @@ export default function SelectVehicleModal({ open, vehicles, onVehicleSelectActi
                             label={t('vehicleLabel')}
                             onChange={(e) => setSelectedId(e.target.value as string)}
                             inputProps={{ 'aria-label': t('vehicleAria') }}
+                            disabled={isSubmitting}
                         >
                             {vehicles.map((v) => (
                                 <MenuItem key={v.id} value={v.id}>
@@ -60,9 +75,10 @@ export default function SelectVehicleModal({ open, vehicles, onVehicleSelectActi
                         variant="contained"
                         size="large"
                         onClick={handleConfirm}
-                        disabled={!selectedId}
+                        disabled={!selectedId || isSubmitting}
+                        startIcon={isSubmitting ? <CircularProgress size={20} color="inherit" /> : null}
                     >
-                        {t('confirmAndStart')}
+                        {isSubmitting ? t('pleaseWait', { defaultValue: 'Please wait...' }) : t('confirmAndStart')}
                     </Button>
                 </Stack>
             </DialogContent>

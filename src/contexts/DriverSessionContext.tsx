@@ -2,6 +2,7 @@
 'use client';
 
 import React, { createContext, useContext, useState, ReactNode, useMemo, useEffect } from 'react';
+import { useSnackbar } from 'notistack';
 import { useAuth } from './AuthContext';
 import * as userService from '../services/userService';
 
@@ -13,7 +14,7 @@ const ACTIVE_TRIP_ID_KEY = 'driver_active_trip_id';
 interface DriverSessionState {
     selectedVehicleId: string | null;
     selectedVehicleRegNo: string | null;
-    selectVehicle: (vehicleId: string, regNo: string) => void;
+    selectVehicle: (vehicleId: string, regNo: string) => Promise<void>;
     clearVehicle: () => void;
     isVehicleSelectionRequired: boolean;
     isInitialized: boolean;
@@ -26,6 +27,7 @@ const DriverSessionContext = createContext<DriverSessionState | undefined>(undef
 
 export const DriverSessionProvider = ({ children }: { children: ReactNode }) => {
     const { user } = useAuth();
+    const { enqueueSnackbar } = useSnackbar();
 
 
     const [selectedVehicleId, setSelectedVehicleId] = useState<string | null>(null);
@@ -45,7 +47,14 @@ export const DriverSessionProvider = ({ children }: { children: ReactNode }) => 
                 // Sync with backend on initialization to ensure DB is up to date
                 if (localStorage.getItem('authToken')) {
                     userService.updateCurrentVehicleApi(Number(storedVehicleId))
-                        .catch(err => console.error("Initial backend vehicle sync failed:", err));
+                        .catch(err => {
+                            console.error("Initial backend vehicle sync failed:", err);
+                            const errorMsg = err.response?.data?.message || err.message;
+                            if (errorMsg && errorMsg.includes('already in use')) {
+                                enqueueSnackbar(errorMsg, { variant: 'error' });
+                                clearVehicle();
+                            }
+                        });
                 }
             }
         } catch (error) {
@@ -65,15 +74,22 @@ export const DriverSessionProvider = ({ children }: { children: ReactNode }) => 
         return result;
     }, [isDriver, selectedVehicleId, isInitialized]);
 
-    const selectVehicle = (vehicleId: string, regNo: string) => {
-        localStorage.setItem(VEHICLE_ID_STORAGE_KEY, vehicleId);
-        localStorage.setItem(VEHICLE_REGNO_STORAGE_KEY, regNo);
-        setSelectedVehicleId(vehicleId);
-        setSelectedVehicleRegNo(regNo);
-        // Only update backend if we have a token
-        if (typeof window !== 'undefined' && localStorage.getItem('authToken')) {
-            userService.updateCurrentVehicleApi(Number(vehicleId))
-                .catch(err => console.error("Failed to update current vehicle in backend:", err));
+    const selectVehicle = async (vehicleId: string, regNo: string) => {
+        // 🚀 පළමුව Backend එකේ වාහනය ලබාගත හැකිදැයි පරීක්ෂා කරයි
+        try {
+            if (typeof window !== 'undefined' && localStorage.getItem('authToken')) {
+                await userService.updateCurrentVehicleApi(Number(vehicleId));
+            }
+            
+            // සාර්ථක නම් පමණක් Local storage සහ State යාවත්කාලීන කරයි
+            localStorage.setItem(VEHICLE_ID_STORAGE_KEY, vehicleId);
+            localStorage.setItem(VEHICLE_REGNO_STORAGE_KEY, regNo);
+            setSelectedVehicleId(vehicleId);
+            setSelectedVehicleRegNo(regNo);
+            
+        } catch (error) {
+            console.error("Failed to select vehicle in backend:", error);
+            throw error; // Component එකට error එක ලබා දෙයි
         }
     };
 
