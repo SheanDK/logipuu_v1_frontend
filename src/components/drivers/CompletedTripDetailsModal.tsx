@@ -32,6 +32,8 @@ export default function CompletedTripDetailsModal({ open, onCloseAction, data, i
     const isChip = data?.actualM3 !== undefined || data?.actual_m3 !== undefined;
     const isTimber = !isConsignment && !isChip;
 
+    const vehicle = data?.rekNro || data?.vehicleRegNo || data?.vehicle_reg || data?.vehicle_number || '-';
+
 
     // --- 🧮 TOTALS FOR CONSIGNMENT ---
     const totalM3 = data?.rahtikirjat?.reduce((s: number, i: any) => s + (Number(i.m3) || 0), 0) || 0;
@@ -79,11 +81,14 @@ export default function CompletedTripDetailsModal({ open, onCloseAction, data, i
                                 </Typography>
                             </Box>
                             <Box>
-                                <Typography variant="caption" color="text.secondary" fontWeight="bold">{isTimber ? t('completedTrips:type') : isConsignment ? t('completedTrips:vehicleNo') : t('completedTrips:vehicle')}</Typography>
+                                <Typography
+                                    variant="caption"
+                                    color="text.secondary"
+                                    fontWeight="bold">{isTimber ? t('completedTrips:type') : isConsignment ? t('completedTrips:vehicleNo') : t('completedTrips:vehicle')}</Typography>
                                 {isTimber ? (
                                     <Box mt={0.5}><Chip label={t('completedTrips:timberLoad')} size="small" variant="outlined" sx={{ height: 20, fontSize: '10px' }} /></Box>
                                 ) : (
-                                    <Typography variant="body2" fontWeight="500">{data?.rekNro || data?.vehicle_reg || data?.vehicle_number || '-'}</Typography>
+                                    <Typography variant="body2" fontWeight="500">{data?.rekNro || data?.vehicle_reg || data?.vehicle_number || vehicle}</Typography>
                                 )}
                             </Box>
                             <Box>
@@ -160,6 +165,7 @@ export default function CompletedTripDetailsModal({ open, onCloseAction, data, i
                             <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 1.5 }}>
                                 <MetricCard label={t('completedTrips:totalM3')} value={`${fmtNum(data?.actualM3 || data?.actual_m3)} ${t('common:units.m3')}`} />
                                 <MetricCard label={t('completedTrips:weight')} value={`${fmtNum(data?.actualTon || data?.actual_ton)} ${t('common:units.ton').toUpperCase()}`} />
+
                                 <MetricCard label={t('completedTrips:pieces')} value={fmtInt(data?.actualPcs || data?.actual_pcs)} />
                                 <MetricCard label={t('completedTrips:hours')} value={`${fmtNum(data?.actualHr || data?.actual_hr)} ${t('common:units.hours')}`} />
                                 <MetricCard label={t('completedTrips:distance')} value={`${fmtNum(data?.actualKm || data?.actual_km)} ${t('common:units.km')}`} />

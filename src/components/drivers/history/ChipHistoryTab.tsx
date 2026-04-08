@@ -71,6 +71,7 @@ const ChipHistoryTab: React.FC<ChipHistoryTabProps> = ({ filters, onRowClick }) 
                 id: r.load_id || r.loadId,
                 displayDate: r.scheduled_date || r.scheduledDate,
                 customer: r.titleName || r.title_name || '-',
+                vehicle: r.vehicleRegNo || r.rekNro || '-',
                 reqPcs: r.req_pcs ?? r.reqPcs,
                 reqM3: r.req_m3 ?? r.reqM3,
                 reqTon: r.req_ton ?? r.reqTon,
