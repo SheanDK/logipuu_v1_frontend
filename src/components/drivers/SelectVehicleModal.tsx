@@ -64,11 +64,22 @@ export default function SelectVehicleModal({ open, vehicles, onVehicleSelectActi
                             inputProps={{ 'aria-label': t('vehicleAria') }}
                             disabled={isSubmitting}
                         >
-                            {vehicles.map((v) => (
-                                <MenuItem key={v.id} value={v.id}>
-                                    {v.registrationNo}
-                                </MenuItem>
-                            ))}
+                            {vehicles.map((v) => {
+                                const isInUse = !!(v.currentDriverTunnus && v.currentDriverTunnus !== "" && v.currentDriverTunnus !== null);
+                                
+                                return (
+                                    <MenuItem key={v.id} value={v.id} disabled={isInUse}>
+                                        <Box sx={{ display: 'flex', justifyContent: 'space-between', width: '100%', alignItems: 'center' }}>
+                                            <Typography>{v.registrationNo}</Typography>
+                                            {isInUse && (
+                                                <Typography variant="caption" sx={{ color: 'error.main', fontStyle: 'italic', ml: 2 }}>
+                                                    {t('alreadyInUse', { defaultValue: 'In use by: ' })}{v.currentDriverName}
+                                                </Typography>
+                                            )}
+                                        </Box>
+                                    </MenuItem>
+                                );
+                            })}
                         </Select>
                     </FormControl>
                     <Button

@@ -31,7 +31,9 @@ export default function DriverDashboardPage() {
                     id: String(v.kalustoNro),
                     registrationNo: v.rekNro,
                     name: v.rekNro,
-                    vehicleNo: String(v.kalustoNro)
+                    vehicleNo: String(v.kalustoNro),
+                    currentDriverTunnus: v.current_driver_tunnus,
+                    currentDriverName: v.current_driver_name
                 }));
                 setVehicles(mappedVehicles);
             })

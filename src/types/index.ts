@@ -103,6 +103,8 @@ export interface UserProfileResponseDto {
     fullName: string;
     roles: string[];
     driverEmail: string | null;
+    currentVehicleId?: number | null;
+    currentVehicleRegNo?: string | null;
 }
 
 export interface IPermission {
@@ -257,6 +259,8 @@ export interface IVehicleBackendResponse {
     katsastusAik: string;
     aktiivinen: boolean;
     planning_group?: string | null;
+    current_driver_tunnus?: string | null;
+    current_driver_name?: string | null;
 }
 
 export interface IVehicle {
@@ -293,6 +297,8 @@ export interface IVehicleBasicInfo {
     name: string;
     vehicleNo: string;
     registrationNo: string;
+    currentDriverTunnus?: string | null;
+    currentDriverName?: string | null;
 }
 
 // =============================================================================
