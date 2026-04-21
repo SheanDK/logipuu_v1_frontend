@@ -75,7 +75,7 @@ const buildSchema = (t: (k: string) => string) =>
       .matches(/^[^@\s]+@[^@\s]+\.[^@\s]{2,}$/, t('errors.emailInvalid'))
       .default(''),
 
-    hasAlerts: yup.boolean().required().default(true),
+    hasAlerts: yup.boolean().default(true),
   });
 
 interface DriverFormModalProps {
@@ -218,7 +218,12 @@ const DriverFormModal: React.FC<DriverFormModalProps> = ({
               control={control}
               render={({ field }) => (
                 <FormControlLabel
-                  control={<Checkbox {...field} checked={field.value} />}
+                  control={
+                    <Checkbox
+                      checked={!!field.value}
+                      onChange={(e) => field.onChange(e.target.checked)}
+                    />
+                  }
                   label={t('fields.isActive')}
                 />
               )}
@@ -235,7 +240,7 @@ const DriverFormModal: React.FC<DriverFormModalProps> = ({
           form="driver-form"
           color="primary"
           variant="contained"
-          disabled={isSaving || !isDirty || !isValid}
+          disabled={isSaving || !isDirty}
         >
           {isSaving ? <CircularProgress size={24} color="inherit" /> : submitLabel}
         </Button>

@@ -220,6 +220,7 @@ export interface IDriver {
     phoneNo: string;
     email: string;
     hasAlerts: boolean;
+    isOnline: boolean;
 }
 
 export interface IDriverGridRow extends IDriver {
@@ -310,7 +311,6 @@ export enum LoadTypeEnum {
     RAHTIKIRJA = 1,
 }
 
-// Basic structure of a 'kuorma' row in the database
 export interface ILoad {
     kuormaId: number;
     tyyppi: LoadTypeEnum;
@@ -334,7 +334,6 @@ export interface ILoad {
     status: string;
 }
 
-// DTO for creating a single load or a leg of a bulk load
 export interface ICreateLoadDto {
     tyyppi: LoadTypeEnum;
     asiakasId: number;

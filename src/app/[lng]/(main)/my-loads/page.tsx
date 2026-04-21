@@ -27,14 +27,19 @@ export default function DriverDashboardPage() {
         setIsLoadingVehicles(true);
         fetchAllVehicles()
             .then((data: IVehicleBackendResponse[]) => {
-                const mappedVehicles = data.map(v => ({
-                    id: String(v.kalustoNro),
-                    registrationNo: v.rekNro,
-                    name: v.rekNro,
-                    vehicleNo: String(v.kalustoNro),
-                    currentDriverTunnus: v.current_driver_tunnus,
-                    currentDriverName: v.current_driver_name
-                }));
+                const mappedVehicles = data.map(v => {
+                    const vId = v.kalustoNro || (v as any).kalusto_nro;
+                    const vReg = v.rekNro || (v as any).rek_nro;
+
+                    return {
+                        id: String(vId || ''),
+                        registrationNo: vReg || '',
+                        name: vReg || '',
+                        vehicleNo: String(vId || ''),
+                        currentDriverTunnus: v.current_driver_tunnus || (v as any).currentDriverTunnus,
+                        currentDriverName: v.current_driver_name || (v as any).currentDriverName
+                    };
+                });
                 setVehicles(mappedVehicles);
             })
             .catch(err => console.error("Failed to fetch vehicles:", err))
