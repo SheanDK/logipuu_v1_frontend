@@ -91,7 +91,7 @@ export default function VehiclesPage() {
                 id: String(v.kalustoNro),
                 vehicleNo: String(v.kalustoNro),
                 registrationNo: v.rekNro,
-                nextInspectionDate: v.katsastusAik,
+                nextInspectionDate: v.katsastus_aik || v.katsastusAik || v.nextInspectionDate,
                 isActive: v.aktiivinen,
                 planning_group: v.planningGroup || v.planning_group || 'General'
             }));
@@ -273,7 +273,7 @@ export default function VehiclesPage() {
                                     {!hiddenColumns.includes('inspection') && (
                                         <Box sx={{ width: '25%', px: 1 }}>
                                             <Typography variant="body2" sx={{ fontSize: '13px' }}>
-                                                {v.katsastusAik ? dayjs(v.katsastusAik).format('DD.MM.YYYY') : '-'}
+                                                {v.nextInspectionDate ? dayjs(v.nextInspectionDate).format('DD.MM.YYYY') : '-'}
                                             </Typography>
                                         </Box>
                                     )}
@@ -349,7 +349,13 @@ export default function VehiclesPage() {
             {/* Modals */}
             <ManageGroupsModal open={groupModalOpen} onClose={() => setGroupModalOpen(false)} vehicles={vehicles} onUpdate={loadVehicles} />
             {isModalOpen && <VehicleFormModal open={isModalOpen} onClose={() => setIsModalOpen(false)} onSave={handleSave} initialData={editingVehicle} isSaving={isSaving} />}
-            <ConfirmationDialog open={!!deleteTarget} onClose={() => setDeleteTarget(null)} onConfirm={handleDeleteConfirm} title={t('confirmDelete.title')} message={t('confirmDelete.message', { registrationNo: deleteTarget?.registrationNo })} />
+            <ConfirmationDialog
+                open={!!deleteTarget}
+                onClose={() => setDeleteTarget(null)}
+                onConfirm={handleDeleteConfirm}
+                title={t('confirmDelete.title')}
+                message={t('confirmDelete.message', { registrationNo: deleteTarget?.registrationNo })}
+            />
         </Paper>
     );
 }

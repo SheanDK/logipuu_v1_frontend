@@ -74,9 +74,6 @@ export default function DriversPage() {
     const { user } = useAuth();
     const { enqueueSnackbar } = useSnackbar();
     const { t } = useTranslation(['drivers', 'common']);
-
-    // 🚀 🚀 🚀 FIX: Destructure socket from useSocket hook 🚀 🚀 🚀
-    // කාර්යාලය සඳහා 0 (Dispatcher room) භාවිතා කරයි
     const { socket } = useSocket(0);
 
     const [drivers, setDrivers] = useState<IDriverGridRow[]>([]);
