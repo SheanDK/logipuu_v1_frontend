@@ -212,6 +212,7 @@ export interface IBackendDriver {
     puhelinNro: string;
     email: string;
     halytys: boolean;
+    isOnline: boolean;
 }
 
 export interface IDriver {

@@ -119,22 +119,27 @@ export default function DriversPage() {
         if (user) loadDrivers();
     }, [user, loadDrivers]);
 
-    /**
-     * 🚀 Real-time status sync listener
-     */
     useEffect(() => {
         if (!socket) return;
 
-        const handleStatusChange = (data: any) => {
-            console.log("📡 Driver connectivity updated via Socket:", data);
-            loadDrivers(); // Silent refresh when any driver status changes
+        const handleStatusUpdate = (data: { userId: number; status: string }) => {
+            console.log("📡 Connectivity Update Received:", data);
+
+            // 🚀 🚀 🚀 මැනුවල් රිප්‍රෙෂ් එකක් නැතිව අයිකනය කොළ/රතු කරයි 🚀 🚀 🚀
+            setDrivers(prevDrivers => prevDrivers.map(driver => {
+                // Number ලෙස සැසඳීම අනිවාර්යයි
+                if (Number(driver.driverId) === Number(data.userId)) {
+                    return { ...driver, isOnline: data.status === 'online' };
+                }
+                return driver;
+            }));
         };
 
-        socket.on('driverStatusChanged', handleStatusChange);
+        socket.on('driverStatusChanged', handleStatusUpdate);
         socket.on('chipLoadUpdated', () => loadDrivers());
 
         return () => {
-            socket.off('driverStatusChanged', handleStatusChange);
+            socket.off('driverStatusChanged', handleStatusUpdate);
             socket.off('chipLoadUpdated');
         };
     }, [socket, loadDrivers]);
@@ -200,9 +205,11 @@ export default function DriversPage() {
                             size="small"
                             onClick={() => handleViewSessions(params.row)}
                             sx={{
+                                // 🚀 තිත් සලකුණ ඉවත් කළා - අයිකනයේ වර්ණය පමණක් වෙනස් වේ
                                 color: isActive ? '#4caf50' : '#f44336',
-                                bgcolor: isActive ? alpha('#4caf50', 0.1) : alpha('#f44336', 0.1),
-                                '&:hover': { bgcolor: isActive ? alpha('#4caf50', 0.2) : alpha('#f44336', 0.2) },
+                                bgcolor: isActive ? alpha('#4caf50', 0.1) : alpha('#f44336', 0.05),
+                                '&:hover': { bgcolor: isActive ? alpha('#4caf50', 0.2) : alpha('#f44336', 0.1) },
+                                // Online නම් පමණක් බැබළේ (Blinking)
                                 animation: isActive ? "blinker 1.5s linear infinite" : "none",
                                 ...animations
                             }}
