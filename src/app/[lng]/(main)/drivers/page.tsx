@@ -125,9 +125,7 @@ export default function DriversPage() {
         const handleStatusUpdate = (data: { userId: number; status: string }) => {
             console.log("📡 Connectivity Update Received:", data);
 
-            // 🚀 🚀 🚀 මැනුවල් රිප්‍රෙෂ් එකක් නැතිව අයිකනය කොළ/රතු කරයි 🚀 🚀 🚀
             setDrivers(prevDrivers => prevDrivers.map(driver => {
-                // Number ලෙස සැසඳීම අනිවාර්යයි
                 if (Number(driver.driverId) === Number(data.userId)) {
                     return { ...driver, isOnline: data.status === 'online' };
                 }
@@ -205,11 +203,9 @@ export default function DriversPage() {
                             size="small"
                             onClick={() => handleViewSessions(params.row)}
                             sx={{
-                                // 🚀 තිත් සලකුණ ඉවත් කළා - අයිකනයේ වර්ණය පමණක් වෙනස් වේ
                                 color: isActive ? '#4caf50' : '#f44336',
                                 bgcolor: isActive ? alpha('#4caf50', 0.1) : alpha('#f44336', 0.05),
                                 '&:hover': { bgcolor: isActive ? alpha('#4caf50', 0.2) : alpha('#f44336', 0.1) },
-                                // Online නම් පමණක් බැබළේ (Blinking)
                                 animation: isActive ? "blinker 1.5s linear infinite" : "none",
                                 ...animations
                             }}
