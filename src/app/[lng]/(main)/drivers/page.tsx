@@ -98,6 +98,7 @@ export default function DriversPage() {
         setIsLoading(true);
         try {
             const rawData: any[] = await fetchAllDrivers();
+            console.log("📡 [FRONTEND-DEBUG] Raw Drivers Data from API:", rawData);// delete me later
             const transformedDrivers: IDriverGridRow[] = rawData.map((d) => ({
                 id: d.kuljId,
                 driverId: d.kuljId,
@@ -123,8 +124,7 @@ export default function DriversPage() {
         if (!socket) return;
 
         const handleStatusUpdate = (data: { userId: number; status: string }) => {
-            console.log("📡 Connectivity Update Received:", data);
-
+            console.log("📡 Connectivity Status Signal Received:", data);
             setDrivers(prevDrivers => prevDrivers.map(driver => {
                 if (Number(driver.driverId) === Number(data.userId)) {
                     return { ...driver, isOnline: data.status === 'online' };
