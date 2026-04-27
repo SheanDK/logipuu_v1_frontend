@@ -7,5 +7,9 @@
   "signingIn": "Signing In...",
   "errorGeneric": "Login failed. Please try again.",
   "forgotPassword": "Forgot password?",
-  "copyright": "Copyright © WoodMaster LogiApp by Bitwell - {{year}}."
+  "copyright": "Copyright © WoodMaster LogiApp by Bitwell - {{year}}.",
+  "session-terminated": "Session Terminated",
+  "session-terminated-reason": "Your session has been terminated by the office management. Please log in again to continue.",
+  "understood-log-out": "Understood, Log Out",
+  "error-message": "Failed to identify the token."
 }

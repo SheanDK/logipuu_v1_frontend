@@ -15,6 +15,8 @@ export interface AuthState {
     user: IUser | null;
     token: string | null;
     isLoading: boolean;
+    showForceLogoutModal?: boolean;
+    forceLogoutReason?: string;
 }
 
 /**
@@ -24,6 +26,7 @@ export interface AuthContextType extends AuthState {
     login: (apiResponse: LoginApiResponse) => Promise<void>;
     logout: () => void;
     updateUserContext: (updatedProfile: UserProfileResponseDto) => void;
+    setForceLogout: (reason: string) => void;
 }
 
 /**

@@ -10,7 +10,8 @@
     "phoneNo": "Puhelin",
     "email": "Sähköposti",
     "status": "Tila",
-    "actions": "Toiminnot"
+    "actions": "Toiminnot",
+    "connectivity": "Yhteyden tila"
   },
   "status": {
     "active": "Aktiivinen",
@@ -30,5 +31,21 @@
   "confirmDelete": {
     "title": "Poista kuljettaja",
     "message": "Haluatko varmasti poistaa kuljettajan \"{{name}}\"? Toimintoa ei voi perua."
+  },
+  "common": {
+    "monitor_live_connectivity_and_manage_driver_fleet": "Seuraa live-yhteyttä ja hallinnoi kuljettajien kalustoa",
+    "live_session_manager": "Live-istuntojen hallinta",
+    "driver": "Kuljettaja",
+    "active_connections": "Aktiiviset yhteydet",
+    "device_device": "Laite: {{device}}",
+    "vehicle_vehicle": "Ajoneuvo: {{vehicle}}",
+    "logout": "Kirjaudu ulos",
+    "no_active_devices": "Kuljettajalle ei löydy aktiivisia laitteita.",
+    "release": "Vapauta",
+    "manageActiveSessions": "Hallitse aktiivisia istuntoja",
+    "viewSessions": "Tarkastele istuntoja",
+    "releaseSuccess": "Laite vapautettu",
+    "releaseFailed": "Vapautus epäonnistui",
+    "noSessionsFound": "Kuljettajalle ei löydy istuntoja."
   }
 }

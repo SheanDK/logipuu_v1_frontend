@@ -5,15 +5,21 @@ import { jwtDecode } from 'jwt-decode';
 import { useRouter } from 'next/navigation';
 import { AuthState, AuthContextType, LoginApiResponse, IUser } from '../types';
 import apiClient from '../services/apiClient';
+import { Dialog, DialogTitle, DialogContent, DialogContentText, DialogActions, Button, Typography, Box } from '@mui/material';
+import WarningAmberIcon from '@mui/icons-material/WarningAmber';
+import { useTranslation } from '@/i18n/useTranslation';
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
     const [authState, setAuthState] = useState<AuthState>({
         isAuthenticated: false,
         user: null,
         token: null,
-        isLoading: true, // Start with isLoading: true
+        isLoading: true,
+        showForceLogoutModal: false,
+        forceLogoutReason: '',
     });
     const router = useRouter();
+    const { t } = useTranslation(['common', 'login']);
 
     // This effect runs ONLY ONCE on initial app load
     useEffect(() => {
@@ -99,16 +105,65 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     const logout = () => {
         localStorage.removeItem('authToken');
         delete apiClient.defaults.headers.common['Authorization'];
-        setAuthState({ isAuthenticated: false, user: null, token: null, isLoading: false });
+        setAuthState({ isAuthenticated: false, user: null, token: null, isLoading: false, showForceLogoutModal: false });
         // The redirect should be handled by the AuthWrapper in the layout
         router.push('/login');
+    };
+
+    const setForceLogout = (reason: string) => {
+        setAuthState(prev => ({
+            ...prev,
+            showForceLogoutModal: true,
+            forceLogoutReason: reason
+        }));
     };
 
     // ... (updateUserContext can remain the same)
 
     return (
-        <AuthContext.Provider value={{ ...authState, login, logout, updateUserContext: () => { } }}>
+        <AuthContext.Provider value={{ ...authState, login, logout, setForceLogout, updateUserContext: () => { } }}>
             {children}
+
+            {/* 🚨 Global Force Logout Modal 🚨 */}
+            <Dialog
+                open={!!authState.showForceLogoutModal}
+                onClose={() => { }} // රියදුරුට මෙය ඉබේ වැසිය නොහැක
+                PaperProps={{
+                    sx: { borderRadius: '16px', p: 1, maxWidth: '400px' }
+                }}
+            >
+                <DialogTitle sx={{ textAlign: 'center', pt: 3 }}>
+                    <Box sx={{
+                        width: 60, height: 60, borderRadius: '50%', bgcolor: '#fff4e5',
+                        display: 'flex', alignItems: 'center', justifyContent: 'center',
+                        mx: 'auto', mb: 2
+                    }}>
+                        <WarningAmberIcon sx={{ color: '#ffa726', fontSize: 35 }} />
+                    </Box>
+                    <Typography variant="h6" fontWeight={800} component="div">{t("login:session-terminated")}</Typography>
+                </DialogTitle>
+                <DialogContent>
+                    <DialogContentText sx={{ textAlign: 'center', color: 'text.primary', px: 2 }}>
+                        {t(authState.forceLogoutReason || "login:session-terminated-reason")}
+                    </DialogContentText>
+                </DialogContent>
+                <DialogActions sx={{ justifyContent: 'center', pb: 3, px: 3 }}>
+                    <Button
+                        fullWidth
+                        variant="contained"
+                        onClick={logout}
+                        sx={{
+                            bgcolor: '#a38f6d',
+                            fontWeight: 800,
+                            borderRadius: '10px',
+                            py: 1.2,
+                            '&:hover': { bgcolor: '#8c7a5d' }
+                        }}
+                    >
+                        {t("login:understood-log-out")}
+                    </Button>
+                </DialogActions>
+            </Dialog>
         </AuthContext.Provider>
     );
 };

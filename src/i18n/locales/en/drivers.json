@@ -10,7 +10,8 @@
     "phoneNo": "Phone",
     "email": "Email",
     "status": "Status",
-    "actions": "Actions"
+    "actions": "Actions",
+    "connectivity": "Connectivity"
   },
   "status": {
     "active": "Active",
@@ -30,5 +31,20 @@
   "confirmDelete": {
     "title": "Delete Driver",
     "message": "Are you sure you want to delete driver \"{{name}}\"? This action cannot be undone."
+  },
+  "common": {
+    "monitor_live_connectivity_and_manage_driver_fleet": "Monitor live connectivity and manage driver fleet",
+    "live_session_manager": "Live Session Manager",
+    "driver": "Driver",
+    "active_connections": "Active Connections",
+    "device_device": "Device: {{device}}",
+    "vehicle_vehicle": "Vehicle: {{vehicle}}",
+    "logout": "Log Out",
+    "no_active_devices": "No active devices found for this driver.",
+    "release": "Release",
+    "manageActiveSessions": "Manage Active Sessions (Online)",
+    "viewSessions": "View Sessions (Offline)",
+    "releaseSuccess": "Device disconnected",
+    "releaseFailed": "Release failed"
   }
 }

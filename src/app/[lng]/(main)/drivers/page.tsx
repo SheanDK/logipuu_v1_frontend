@@ -4,7 +4,7 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import {
     Box, Typography, Button, Paper, Tooltip, Chip, AlertColor, Stack, Dialog, DialogTitle, DialogContent, IconButton, alpha,
-    Avatar, Divider, CircularProgress, Table, TableBody, TableCell, TableHead, TableRow
+    Avatar, CircularProgress
 } from '@mui/material';
 import { DataGrid, GridColDef, GridActionsCellItem, GridToolbar, GridRenderCellParams } from '@mui/x-data-grid';
 import { useSnackbar } from 'notistack';
@@ -23,7 +23,6 @@ import SmartphoneIcon from '@mui/icons-material/Smartphone';
 import ComputerIcon from '@mui/icons-material/Computer';
 import CloseIcon from '@mui/icons-material/Close';
 import DirectionsCarIcon from '@mui/icons-material/DirectionsCar';
-import CircleIcon from '@mui/icons-material/FiberManualRecord';
 
 // --- Contexts & Services ---
 import { useAuth } from '../../../../contexts/AuthContext';
@@ -155,16 +154,16 @@ export default function DriversPage() {
     const handleForceRelease = async (sessionId: number) => {
         try {
             await apiClient.delete(`/sessions/${sessionId}`);
-            enqueueSnackbar("Device disconnected", { variant: 'success' });
+            enqueueSnackbar(t("feedback.releaseSuccess"), { variant: 'success' });
             setSessionModal(prev => ({ ...prev, sessions: prev.sessions.filter(s => (s.sessionId || s.session_id) !== sessionId) }));
             loadDrivers();
-        } catch (error) { enqueueSnackbar("Release failed", { variant: 'error' }); }
+        } catch (error) { enqueueSnackbar(t("feedback.releaseFailed"), { variant: 'error' }); }
     };
 
     const columns: GridColDef<IDriverGridRow>[] = useMemo(() => [
         {
             field: 'name',
-            headerName: t('columns.name'),
+            headerName: t("columns.name"),
             width: 230,
             renderCell: (params) => (
                 <Stack direction="row" spacing={1.5} alignItems="center">
@@ -173,16 +172,16 @@ export default function DriversPage() {
                 </Stack>
             )
         },
-        { field: 'phoneNo', headerName: t('columns.phoneNo'), width: 160 },
-        { field: 'email', headerName: t('columns.email'), width: 220 },
+        { field: 'phoneNo', headerName: t("columns.phoneNo"), width: 160 },
+        { field: 'email', headerName: t("columns.email"), width: 220 },
         {
             field: 'hasAlerts',
-            headerName: t('columns.status'),
+            headerName: t("columns.status"),
             width: 120,
             renderCell: (params) => (
                 <Chip
                     icon={params.value ? <CheckCircleIcon /> : <CancelIcon />}
-                    label={params.value ? "Active" : "Inactive"}
+                    label={params.value ? t("status.active") : t("status.inactive")}
                     color={params.value ? 'success' : 'default'}
                     size="small"
                     variant="outlined"
@@ -192,13 +191,13 @@ export default function DriversPage() {
         },
         {
             field: 'isOnline',
-            headerName: 'CONNECTIVITY',
+            headerName: t("columns.connectivity"),
             width: 130,
             align: 'center',
             renderCell: (params: GridRenderCellParams<IDriverGridRow>) => {
                 const isActive = params.row.isOnline;
                 return (
-                    <Tooltip title={isActive ? "Manage Active Sessions (Online)" : "View Sessions (Offline)"}>
+                    <Tooltip title={isActive ? t("common.manageActiveSessions") : t("common.viewSessions")}>
                         <IconButton
                             size="small"
                             onClick={() => handleViewSessions(params.row)}
@@ -219,12 +218,12 @@ export default function DriversPage() {
         {
             field: 'actions',
             type: 'actions',
-            headerName: t('columns.actions'),
+            headerName: t("columns.actions"),
             width: 100,
             getActions: ({ row }) => {
                 const actions = [];
-                if (canEdit) actions.push(<GridActionsCellItem key="edit" icon={<EditIcon />} label="Edit" onClick={() => { setEditingDriver(row); setIsModalOpen(true); }} />);
-                if (canDelete) actions.push(<GridActionsCellItem key="delete" icon={<DeleteIcon color="error" />} label="Delete" onClick={() => setDeleteTarget(row)} />);
+                if (canEdit) actions.push(<GridActionsCellItem key="edit" icon={<EditIcon />} label={t("common:edit")} onClick={() => { setEditingDriver(row); setIsModalOpen(true); }} />);
+                if (canDelete) actions.push(<GridActionsCellItem key="delete" icon={<DeleteIcon color="error" />} label={t("common:delete")} onClick={() => setDeleteTarget(row)} />);
                 return actions;
             },
         }
@@ -236,9 +235,9 @@ export default function DriversPage() {
             const targetId = driverId || editingDriver?.driverId;
             if (targetId) await updateDriver(targetId, data as IUpdateDriverDto);
             else await createDriver(data as ICreateDriverDto);
-            enqueueSnackbar(t('feedback.updateSuccess'), { variant: 'success' });
+            enqueueSnackbar(t("common.feedback_update_success"), { variant: 'success' });
             setIsModalOpen(false); loadDrivers();
-        } catch (error: any) { setModalError(error.response?.data?.message || t('feedback.saveFailed')); }
+        } catch (error: any) { setModalError(error.response?.data?.message || t("common.feedback_save_failed")); }
         finally { setIsSaving(false); }
     };
 
@@ -247,7 +246,7 @@ export default function DriversPage() {
             <Stack direction="row" justifyContent="space-between" alignItems="center" mb={3}>
                 <Box>
                     <Typography variant="h5" fontWeight={800}>{t('title')}</Typography>
-                    <Typography variant="caption" color="text.secondary">Monitor live connectivity and manage driver fleet</Typography>
+                    <Typography variant="caption" color="text.secondary">{t("common.monitor_live_connectivity_and_manage_driver_fleet")}</Typography>
                 </Box>
                 {canCreate && (
                     <Button variant="contained" sx={{ bgcolor: '#a38f6d', '&:hover': { bgcolor: '#8c7a5d' } }} startIcon={<AddIcon />} onClick={() => { setEditingDriver(null); setIsModalOpen(true); }}>
@@ -263,19 +262,19 @@ export default function DriversPage() {
             <Dialog open={sessionModal.open} onClose={() => setSessionModal({ ...sessionModal, open: false })} maxWidth="sm" fullWidth PaperProps={{ sx: { borderRadius: '20px' } }}>
                 <DialogTitle sx={{ bgcolor: '#a38f6d', color: 'white' }}>
                     <Stack direction="row" justifyContent="space-between" alignItems="center">
-                        <Typography variant="subtitle1" fontWeight={800}>Live Session Manager</Typography>
+                        <Typography variant="subtitle1" fontWeight={800}>{t("common.live_session_manager")}</Typography>
                         <IconButton onClick={() => setSessionModal({ ...sessionModal, open: false })} sx={{ color: 'white' }}><CloseIcon fontSize="small" /></IconButton>
                     </Stack>
-                    <Typography variant="caption" sx={{ opacity: 0.8 }}>Driver: {sessionModal.driverName}</Typography>
+                    <Typography variant="caption" sx={{ opacity: 0.8 }}>{t("common.driver")}: {sessionModal.driverName}</Typography>
                 </DialogTitle>
                 <DialogContent sx={{ p: 0, bgcolor: '#fcfcfc', minHeight: '200px' }}>
                     {sessionModal.isFetching ? (
                         <Box sx={{ display: 'flex', justifyContent: 'center', py: 8 }}><CircularProgress size={30} sx={{ color: '#a38f6d' }} /></Box>
                     ) : sessionModal.sessions.length === 0 ? (
-                        <Box sx={{ p: 6, textAlign: 'center' }}><Typography color="text.secondary">No active devices detected.</Typography></Box>
+                        <Box sx={{ p: 6, textAlign: 'center' }}><Typography color="text.secondary">{t("common.no_active_devices")}</Typography></Box>
                     ) : (
                         <Box sx={{ p: 2 }}>
-                            <Typography variant="overline" sx={{ px: 1, fontWeight: 800, color: 'text.secondary' }}>Active Connections ({sessionModal.sessions.length})</Typography>
+                            <Typography variant="overline" sx={{ px: 1, fontWeight: 800, color: 'text.secondary' }}>{t("common.active_connections")} ({sessionModal.sessions.length})</Typography>
                             <Stack spacing={1.5} sx={{ mt: 1 }}>
                                 {sessionModal.sessions.map((s) => {
                                     const device = formatDeviceInfo(s.deviceInfo || s.device_info);
@@ -301,7 +300,7 @@ export default function DriversPage() {
                                                     <Typography variant="caption" color="text.secondary">{device.label} • {dayjs(s.createdAt || s.created_at).fromNow()}</Typography>
                                                 </Box>
                                             </Stack>
-                                            <Button size="small" color="error" onClick={() => handleForceRelease(s.session_id || s.sessionId)} startIcon={<LogoutIcon sx={{ fontSize: 14 }} />} sx={{ fontWeight: 'bold', textTransform: 'none' }}>Release</Button>
+                                            <Button size="small" color="error" onClick={() => handleForceRelease(s.session_id || s.sessionId)} startIcon={<LogoutIcon sx={{ fontSize: 14 }} />} sx={{ fontWeight: 'bold', textTransform: 'none' }}>{t("common.release")}</Button>
                                         </Paper>
                                     );
                                 })}

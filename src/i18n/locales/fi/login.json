@@ -7,5 +7,9 @@
   "signingIn": "Kirjaudutaan...",
   "errorGeneric": "Kirjautuminen epäonnistui. Yritä uudelleen.",
   "forgotPassword": "Unohditko salasanasi?",
-  "copyright": "Tekijänoikeus © WoodMaster LogiApp by Bitwell{{year}}."
+  "copyright": "Tekijänoikeus © WoodMaster LogiApp by Bitwell{{year}}.",
+  "session-terminated": "Istunto päättynyt",
+  "session-terminated-reason": "Toimisto on lopettanut istuntosi. Sinut kirjataan ulos.",
+  "understood-log-out": "Selvä, kirjaudu ulos",
+  "error-message": "Tunnuksen tunnistaminen ei onnistunut."
 }

@@ -19,7 +19,7 @@ interface UseSocketReturn {
 }
 
 const useSocket = (vehicleId?: string | number | null): UseSocketReturn => {
-    const { isAuthenticated, token, logout } = useAuth(); // logout function එක ලබා ගනී
+    const { isAuthenticated, token, logout, setForceLogout } = useAuth(); // logout සහ setForceLogout ලබා ගනී
     const socketRef = useRef<Socket | null>(null);
     const [isConnected, setIsConnected] = useState(false);
     const [lastLocationUpdate, setLastLocationUpdate] = useState<LocationUpdatePayload | null>(null);
@@ -52,13 +52,17 @@ const useSocket = (vehicleId?: string | number | null): UseSocketReturn => {
             socketInstance.on('emergencyLogout', (data: { tokenIdentifier: string, reason: string }) => {
                 console.warn("🚨 EMERGENCY LOGOUT RECEIVED:", data);
 
-                const currentToken = token.startsWith('Bearer ') ? token.slice(7) : token;
-                const incomingToken = data.tokenIdentifier.startsWith('Bearer ') ? data.tokenIdentifier.slice(7) : data.tokenIdentifier;
+                const currentToken = (token.startsWith('Bearer ') ? token.slice(7) : token).trim();
+                const incomingToken = (data.tokenIdentifier.startsWith('Bearer ') ? data.tokenIdentifier.slice(7) : data.tokenIdentifier).trim();
 
-                // මෙම විශේෂිත උපාංගයේ token එකට පණිවිඩය අදාළ නම් පමණක් logout කරයි
+                console.log("DEBUG: currentToken (last 10):", currentToken.slice(-10));
+                console.log("DEBUG: incomingToken (last 10):", incomingToken.slice(-10));
+
                 if (currentToken === incomingToken) {
-                    alert(data.reason || "Your session has been terminated by the office.");
-                    logout(); // පද්ධතියෙන් ඉවත් කරයි
+                    console.log("✅ Token Matched! Showing Custom Force Logout Modal...");
+                    setForceLogout(data.reason || "Your session has been terminated by the office management.");
+                } else {
+                    console.warn("❌ Token Mismatch - This event is not for this session.");
                 }
             });
 
@@ -75,7 +79,7 @@ const useSocket = (vehicleId?: string | number | null): UseSocketReturn => {
                 }
             };
         }
-    }, [isAuthenticated, token, vehicleId, logout]);
+    }, [isAuthenticated, token, vehicleId, logout, setForceLogout]);
 
     return { socket: socketState, isConnected, lastLocationUpdate };
 };
