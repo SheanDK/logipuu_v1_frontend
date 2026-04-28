@@ -162,7 +162,6 @@ const UserActions = () => {
         try {
             await chipPlanningService.markNotificationAsRead(id);
             setNotifications(prev => prev.map(n => {
-                // දත්ත සමුදායේ ඇති ID එක සහ ලැබෙන ID එක සසඳයි
                 const currentNotifId = n.notification_id || n.notificationId;
                 if (Number(currentNotifId) === Number(id)) {
                     return { ...n, is_read: true, isRead: true };
