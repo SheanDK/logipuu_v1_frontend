@@ -1,11 +1,11 @@
 // frontend/src/services/timberStackService.ts
 import apiClient from './apiClient';
-import camelcaseKeys from 'camelcase-keys'; 
-import { 
-    IBackendPuulaani, 
-    ICreateTimberStackDto, 
-    IUpdateTimberStackDto, 
-    IUpdateTimberStackFullDto, 
+import camelcaseKeys from 'camelcase-keys';
+import {
+    IBackendPuulaani,
+    ICreateTimberStackDto,
+    IUpdateTimberStackDto,
+    IUpdateTimberStackFullDto,
     IPuulaaniFullDetails,
     IPuutavaraItem,
     IMapFilterState,

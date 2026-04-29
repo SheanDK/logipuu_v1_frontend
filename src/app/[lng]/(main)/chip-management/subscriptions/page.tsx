@@ -113,10 +113,6 @@ const ChipSubscriptionsPage = () => {
         setModalOpen(true);
     };
 
-    const handleActionComplete = (message: string, severity: any = 'success') => {
-        showNotification(message, severity);
-        fetchSubs();
-    };
 
     return (
         <Box sx={{ p: 1.5, bgcolor: isDarkMode ? 'background.default' : '#f4f7f9', minHeight: 'calc(100vh - 110px)', display: 'flex', flexDirection: 'column', gap: 1 }}>
@@ -154,7 +150,7 @@ const ChipSubscriptionsPage = () => {
                     size="small"
                     sx={{ textTransform: 'none', color: '#a38f6d', borderColor: alpha('#a38f6d', 0.3), borderRadius: '8px', fontWeight: '600', px: 2, height: '36px', '&:hover': { borderColor: '#a38f6d', bgcolor: alpha('#a38f6d', 0.05) } }}
                 >
-                    {t('common:manageColumns') || 'Column Management'}
+                    {t('manageColumns') || 'Column Management'}
                 </Button>
             </Paper>
 
@@ -196,7 +192,7 @@ const ChipSubscriptionsPage = () => {
                                     {!hiddenColumns.includes('validity') && <TableCell sx={{ fontSize: '12px' }}>{s.startDate} {s.endDate ? `- ${s.endDate}` : ''}{s.valid_until_notice && <Typography variant="caption" display="block" sx={{ color: '#a38f6d', fontWeight: 'bold', fontSize: '10px' }}>(Notice)</Typography>}</TableCell>}
                                     {!hiddenColumns.includes('qty') && <TableCell align="center"><Chip label={s.targetQty} size="small" sx={{ fontWeight: 'bold', bgcolor: '#e0f2f1', color: '#00695c', height: '20px', fontSize: '11px' }} /></TableCell>}
                                     {!hiddenColumns.includes('info') && <TableCell sx={{ maxWidth: 180 }}><Typography variant="caption" noWrap sx={{ display: 'block', color: 'text.secondary', fontSize: '11px' }}>{s.notes || '-'}</Typography></TableCell>}
-                                    {!hiddenColumns.includes('status') && <TableCell align="center"><Chip label={t('subscriptions.status.active')} color="success" variant="outlined" size="small" sx={{ fontSize: '10px', fontWeight: 'bold', height: '20px' }} /></TableCell>}
+                                    {!hiddenColumns.includes('status') && <TableCell align="center"><Chip label={t('subscriptions.table.active')} color="success" variant="outlined" size="small" sx={{ fontSize: '10px', fontWeight: 'bold', height: '20px' }} /></TableCell>}
                                 </TableRow>
                             ))}
                         </TableBody>
@@ -227,17 +223,17 @@ const ChipSubscriptionsPage = () => {
                 <Divider /><MenuItem onClick={handleMenuClose}><ListItemIcon><FilterListIcon fontSize="small" /></ListItemIcon><ListItemText primary={t('common:filter')} primaryTypographyProps={{ variant: 'body2' }} /></MenuItem>
             </Menu>
 
-            <ChipSubscriptionModal open={modalOpen} initialData={selectedSub} onClose={() => setModalOpen(false)} onSuccess={() => { fetchSubs(); showNotification(t('common:notifications.success'), 'success'); }} />
+            <ChipSubscriptionModal open={modalOpen} initialData={selectedSub} onClose={() => setModalOpen(false)} onSuccess={() => { fetchSubs(); showNotification(t('notifications.success'), 'success'); }} />
         </Box>
     );
 };
 
 // Manage Columns Dialog
 const ManageColumnsDialog = ({ open, onClose, columns, hiddenColumns, setHiddenColumns }: any) => {
-    const { t } = useTranslation(['common']);
+    const { t } = useTranslation(['chip-management', 'common']);
     return (
         <Dialog open={open} onClose={onClose} fullWidth maxWidth="xs" PaperProps={{ sx: { borderRadius: '16px' } }}>
-            <DialogTitle sx={{ fontWeight: 'bold', bgcolor: '#fdfaf5', borderBottom: '1px solid #eee' }}>{t('manageColumns')}</DialogTitle>
+            <DialogTitle sx={{ fontWeight: 'bold', bgcolor: '#fdfaf5', borderBottom: '1px solid #eee' }}>{t('chip-management:manageColumns') || 'Column Management'}</DialogTitle>
             <DialogContent><Stack spacing={0.5} sx={{ mt: 1 }}>{columns.map((col: any) => (<FormControlLabel key={col.id} control={<Checkbox size="small" checked={!hiddenColumns.includes(col.id)} onChange={() => setHiddenColumns((prev: string[]) => prev.includes(col.id) ? prev.filter(c => c !== col.id) : [...prev, col.id])} sx={{ color: '#a38f6d', '&.Mui-checked': { color: '#a38f6d' } }} />} label={<Typography variant="body2">{col.label}</Typography>} />))}</Stack></DialogContent>
             <DialogActions sx={{ p: 2, bgcolor: '#fdfaf5' }}><Button fullWidth variant="contained" onClick={onClose} sx={{ bgcolor: '#a38f6d', borderRadius: '10px', fontWeight: 'bold' }}>{t('done') || 'DONE'}</Button></DialogActions>
         </Dialog>

@@ -296,7 +296,9 @@
             "validityPeriod": "Voimassaoloaika",
             "targetQty": "Tavoitemäärä",
             "status": "Tila",
-            "furtherInfo": "Lisätietoja"
+            "furtherInfo": "Lisätietoja",
+            "active": "aktiivinen",
+            "inactive": "epäaktiivinen"
         },
         "status": {
             "active": "aktiivinen"
@@ -311,7 +313,8 @@
         "titleUpdateSuccess": "Nimike päivitetty onnistuneesti",
         "titleError": "Virhe tallennettaessa nimikettä",
         "areaCreateSuccess": "Uusi alue luotu onnistuneesti",
-        "areaCreateError": "Uuden alueen tallennus epäonnistui"
+        "areaCreateError": "Uuden alueen tallennus epäonnistui",
+        "success": "Onnistuneesti päivitetty"
     },
     "vehicleGrouping": {
         "title": "Ajoneuvoryhmittely",

@@ -288,7 +288,9 @@
             "validityPeriod": "Validity Period",
             "targetQty": "Target Qty",
             "status": "Status",
-            "furtherInfo": "Further Info"
+            "furtherInfo": "Further Info",
+            "active": "Active",
+            "inactive": "Inactive"
         }
     },
     "notifications": {
@@ -300,7 +302,8 @@
         "titleUpdateSuccess": "Title updated successfully",
         "titleError": "Error saving title",
         "areaCreateSuccess": "New area created successfully",
-        "areaCreateError": "Failed to save new area"
+        "areaCreateError": "Failed to save new area",
+        "success": "Successfully updated"
     },
     "vehicleGrouping": {
         "title": "Vehicle Grouping",
