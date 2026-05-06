@@ -77,3 +77,5 @@ export async function invoiceBillingRows(ids: (string | number)[]): Promise<Invo
     throw new Error(`Invoice failed (${status}): ${msg}`);
   }
 }
+
+export type { BillingRow };

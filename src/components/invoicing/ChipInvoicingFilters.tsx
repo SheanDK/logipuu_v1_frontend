@@ -1,7 +1,7 @@
 // frontend/src/components/invoicing/ChipInvoicingFilters.tsx
 'use client';
 import React from 'react';
-import { Box, Button, TextField, Checkbox, FormControlLabel, Stack, Paper } from '@mui/material';
+import { Box, Button, TextField, Checkbox, FormControlLabel, Stack, Paper, Typography } from '@mui/material';
 import { useForm, Controller } from 'react-hook-form';
 import SearchIcon from '@mui/icons-material/Search';
 
@@ -15,48 +15,85 @@ const ChipInvoicingFilters = ({ onSubmit, loading, initialValues }: any) => {
         }
     });
 
-    const handleFormSubmit = (data: any) => {
-        onSubmit({
-            dateFrom: data.dateFrom,
-            dateTo: data.dateTo,
-            unbilled: data.unbilled,
-            billed: data.billed
-        });
-    };
-
     return (
-        <Paper elevation={0} sx={{ p: 3, border: '1px solid #eee', borderRadius: 2 }}>
-            <Box component="form" onSubmit={handleSubmit(handleFormSubmit)}>
-                <Stack spacing={3}>
-                    <Stack direction={{ xs: 'column', md: 'row' }} spacing={2} alignItems="center">
-                        <Controller
-                            name="dateFrom"
-                            control={control}
-                            render={({ field }) => <TextField {...field} label="Date From" type="date" fullWidth size="small" InputLabelProps={{ shrink: true }} />}
-                        />
-                        <Controller
-                            name="dateTo"
-                            control={control}
-                            render={({ field }) => <TextField {...field} label="Date To" type="date" fullWidth size="small" InputLabelProps={{ shrink: true }} />}
-                        />
-                        <Button variant="contained" type="submit" startIcon={<SearchIcon />} sx={{ bgcolor: '#a38f6d', px: 4, height: 40 }}>Search</Button>
-                    </Stack>
+        <Paper
+            elevation={0}
+            sx={{
+                p: 3,
+                border: '1px solid #e0e0e0',
+                borderRadius: 2,
+                bgcolor: '#fafafa'
+            }}
+        >
+            <Box component="form" onSubmit={handleSubmit(onSubmit)}>
+                <Stack spacing={2}>
+                    <Typography variant="caption" fontWeight="bold" color="text.secondary" sx={{ mb: -1, ml: 0.5 }}>
+                        SEARCH FILTERS
+                    </Typography>
 
-                    <Stack direction="row" spacing={3}>
-                        <Controller
-                            name="unbilled"
-                            control={control}
-                            render={({ field }) => (
-                                <FormControlLabel control={<Checkbox {...field} checked={Boolean(field.value)} />} label="Show Unbilled" />
-                            )}
-                        />
-                        <Controller
-                            name="billed"
-                            control={control}
-                            render={({ field }) => (
-                                <FormControlLabel control={<Checkbox {...field} checked={Boolean(field.value)} />} label="Show Billed" />
-                            )}
-                        />
+                    <Stack
+                        direction={{ xs: 'column', md: 'row' }}
+                        spacing={3}
+                        alignItems="center"
+                    >
+                        {/* Date Selection */}
+                        <Stack direction="row" spacing={2} sx={{ flex: 1 }}>
+                            <Controller
+                                name="dateFrom"
+                                control={control}
+                                render={({ field }) => (
+                                    <TextField {...field} label="Date From" type="date" fullWidth size="small" InputLabelProps={{ shrink: true }} />
+                                )}
+                            />
+                            <Controller
+                                name="dateTo"
+                                control={control}
+                                render={({ field }) => (
+                                    <TextField {...field} label="Date To" type="date" fullWidth size="small" InputLabelProps={{ shrink: true }} />
+                                )}
+                            />
+                        </Stack>
+
+                        {/* Status Checkboxes */}
+                        <Stack direction="row" spacing={1} sx={{ minWidth: 280 }}>
+                            <Controller
+                                name="unbilled"
+                                control={control}
+                                render={({ field }) => (
+                                    <FormControlLabel
+                                        control={<Checkbox {...field} checked={Boolean(field.value)} sx={{ color: '#a38f6d', '&.Mui-checked': { color: '#a38f6d' } }} />}
+                                        label="Show Unbilled"
+                                    />
+                                )}
+                            />
+                            <Controller
+                                name="billed"
+                                control={control}
+                                render={({ field }) => (
+                                    <FormControlLabel
+                                        control={<Checkbox {...field} checked={Boolean(field.value)} sx={{ color: '#a38f6d', '&.Mui-checked': { color: '#a38f6d' } }} />}
+                                        label="Show Billed"
+                                    />
+                                )}
+                            />
+                        </Stack>
+
+                        {/* Search Button */}
+                        <Button
+                            variant="contained"
+                            type="submit"
+                            disabled={loading}
+                            startIcon={!loading && <SearchIcon />}
+                            sx={{
+                                bgcolor: '#a38f6d',
+                                px: 5,
+                                height: 40,
+                                fontWeight: 'bold',
+                                '&:hover': { bgcolor: '#8e7a5a' }
+                            }}
+                        >
+                            {loading ? 'SEARCHING...' : 'SEARCH'}
+                        </Button>
                     </Stack>
                 </Stack>
             </Box>

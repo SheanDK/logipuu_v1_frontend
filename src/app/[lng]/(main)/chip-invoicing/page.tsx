@@ -1,59 +1,79 @@
 // frontend/src/app/[lng]/(main)/chip-invoicing/page.tsx
 'use client';
-import React, { useCallback, useState, useMemo } from 'react';
-import { Box, Typography, Button, Stack, Backdrop, CircularProgress } from '@mui/material';
+import React, { useState, useEffect, useMemo } from 'react';
+import { Box, Typography, Button, Stack, Backdrop, CircularProgress, Divider, TablePagination, Paper } from '@mui/material';
 import chipInvoicingService from '@/services/chipInvoicingService';
 import ChipInvoicingFilters from '@/components/invoicing/ChipInvoicingFilters';
 import ChipInvoicingTable from '@/components/invoicing/ChipInvoicingTable';
 import ChipInvoicingDialog from '@/components/invoicing/ChipInvoicingDialog';
 
-interface QueryParams {
-    dateFrom?: string;
-    dateTo?: string;
-    customerName?: string;
-    vehicleName?: string;
-}
-
 export default function ChipInvoicingPage() {
-    const [rows, setRows] = useState([]);
+    // --- 🚀 States ---
+    const [rows, setRows] = useState<any[]>([]);
     const [loading, setLoading] = useState(false);
     const [selectionMap, setSelectionMap] = useState<Record<string, number[]>>({});
-    const [showFilters, setShowFilters] = useState(true);
-    const [lastQuery, setLastQuery] = useState<QueryParams | null>(null);
-    const [invalidIds, setInvalidIds] = useState<number[]>([]);
+    const [lastQuery, setLastQuery] = useState<any>(null);
+    const [errorTrigger, setErrorTrigger] = useState<number>(0); // Blink trigger
+
+    // Pagination States
+    const [page, setPage] = useState(0);
+    const [pageSize, setPageSize] = useState(25);
 
     // Dialog States
     const [editOpen, setEditOpen] = useState(false);
-    const [editRow, setEditRow] = useState(null);
+    const [editRow, setEditRow] = useState<any>(null);
 
-    // Live calculation of selected IDs on every render (resolves stale closures)
-    const allSelectedIds = useMemo(() => {
-        return Object.values(selectionMap)
-            .flat()
-            .map(id => Number(id))
-            .filter(id => !isNaN(id) && id > 0);
-    }, [selectionMap]);
+    // --- 🚀 Actions ---
 
-    const totalSelectedCount = allSelectedIds.length;
-
+    // 1. Search Function
     const handleSearch = async (params: any) => {
         setLoading(true);
         setLastQuery(params);
+        setPage(0); // Reset to first page on new search
+        sessionStorage.setItem('chip_filters', JSON.stringify(params));
         try {
             const data = await chipInvoicingService.search(params);
-            console.log("Frontend Data Received:", data);
-            if (data.length === 0) {
-                alert("No completed loads found for this range!");
-            }
             setRows(data);
-            setShowFilters(false);
         } catch (e) {
-            console.error(e);
+            console.error("Search error:", e);
         } finally {
             setLoading(false);
         }
     };
 
+    // 2. Confirm Invoicing (Mark as Billed)
+    const handleConfirmInvoice = async () => {
+        // 1. get all selected IDs
+        const allSelectedIds = Object.values(selectionMap).flat() as number[];
+        if (allSelectedIds.length === 0) return;
+
+        // 2. Validation: check for rows with no price data
+        const selectedRowsData = rows.filter(r => allSelectedIds.includes(r.loadId));
+        const hasInvalidRows = selectedRowsData.some(r => Number(r.total || 0) === 0);
+
+        if (hasInvalidRows) {
+            setErrorTrigger(prev => prev + 1);
+            return;
+        }
+
+        // 3. if price data is correct, confirm invoicing
+        if (!window.confirm(`Are you sure you want to invoice ${allSelectedIds.length} loads?`)) return;
+
+        setLoading(true);
+        try {
+            await chipInvoicingService.confirm(allSelectedIds);
+            setSelectionMap({});
+            await handleSearch(lastQuery);
+            alert("Success: Selected loads marked as Billed.");
+        } catch (e) {
+            console.error(e);
+            alert("An error occurred during invoicing.");
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    // 3. Edit Dialog Handlers
     const handleOpenEdit = (row: any) => {
         setEditRow(row);
         setEditOpen(true);
@@ -64,115 +84,126 @@ export default function ChipInvoicingPage() {
             setLoading(true);
             await chipInvoicingService.update(id, updatedData);
             setEditOpen(false);
-
-            // Refetch data using existing query parameters
-            if (lastQuery) {
-                const data = await chipInvoicingService.search(lastQuery);
-                setRows(data);
-            } else {
-                const savedFilters = JSON.parse(sessionStorage.getItem('chip_filters') || '{}');
-                const data = await chipInvoicingService.search(savedFilters);
-                setRows(data);
-            }
-        } catch (e: any) {
-            console.error("Save failed:", e.response?.data || e.message);
-            alert("Error saving data. Please check backend logs.");
+            // Refresh data
+            const data = await chipInvoicingService.search(lastQuery);
+            setRows(data);
+        } catch (e) {
+            console.error("Update error:", e);
         } finally {
             setLoading(false);
         }
     };
 
-    // Safe callback that avoids "ids.map is not a function" by wrapping inside array checks
-    const handleSelectionChange = useCallback((key: string, ids: any) => {
-        const cleanIds = Array.isArray(ids)
-            ? ids.map(id => Number(id)).filter(n => !isNaN(n))
-            : [];
-        setSelectionMap(prev => ({
-            ...prev,
-            [key]: cleanIds
-        }));
+    // --- 🚀 Pagination & Grouping Logic ---
+    const paginatedRows = useMemo(() => {
+        const start = page * pageSize;
+        return rows.slice(start, start + pageSize);
+    }, [rows, page, pageSize]);
+
+    // Initial load from session storage
+    useEffect(() => {
+        const saved = sessionStorage.getItem('chip_filters');
+        if (saved) {
+            handleSearch(JSON.parse(saved));
+        }
     }, []);
 
-    const handleConfirmInvoice = async () => {
-        console.log("Sending Selected IDs to Backend:", allSelectedIds);
-
-        if (allSelectedIds.length === 0) {
-            alert("Please select at least one load.");
-            return;
-        }
-
-        // Validate that all selected rows have prices added (total > 0)
-        const selectedRows = rows.filter((r: any) => allSelectedIds.includes(Number(r.loadId)));
-        const missingPriceIds = selectedRows
-            .filter((r: any) => Number(r.total || 0) <= 0)
-            .map((r: any) => r.loadId);
-
-        if (missingPriceIds.length > 0) {
-            setInvalidIds(missingPriceIds);
-            alert(`Cannot invoice! ${missingPriceIds.length} load(s) are missing prices. Missing serials highlighted in red.`);
-            return;
-        }
-
-        if (!window.confirm(`Mark ${totalSelectedCount} selected load(s) as Billed?`)) return;
-
-        setLoading(true);
-        try {
-            await chipInvoicingService.confirm(allSelectedIds);
-            alert("Loads successfully marked as Billed!");
-            setSelectionMap({}); // Reset selection map upon success
-            setInvalidIds([]);   // Clear any active validation highlights
-
-            // Refresh table with fresh data
-            if (lastQuery) {
-                const data = await chipInvoicingService.search(lastQuery);
-                setRows(data);
-            }
-        } catch (e) {
-            console.error(e);
-            alert("Failed to confirm. Please check backend log details.");
-        } finally {
-            setLoading(false);
-        }
-    };
-
     return (
-        <Box sx={{ p: 3 }}>
-            <Stack spacing={3}>
-                <Typography variant="h5" fontWeight="bold" sx={{ color: '#a38f6d' }}>
-                    Chip Transport Invoicing
-                </Typography>
+        <Box sx={{
+            p: { xs: 2, md: 4 },
+            height: 'calc(100vh - 64px)', // Adjust based on your header height
+            display: 'flex',
+            flexDirection: 'column'
+        }}>
+            <Stack spacing={3} sx={{ flex: 1, overflow: 'hidden' }}>
 
-                {showFilters ? (
-                    <ChipInvoicingFilters onSubmit={handleSearch} loading={loading} initialValues={lastQuery} />
-                ) : (
-                    <Stack spacing={2}>
-                        <Stack direction="row" spacing={2} justifyContent="space-between">
-                            <Button variant="outlined" onClick={() => setShowFilters(true)}>Back to Filters</Button>
-                            <Button
-                                variant="contained"
-                                color="success"
-                                onClick={handleConfirmInvoice}
-                                disabled={totalSelectedCount === 0 || loading}
-                                sx={{
-                                    bgcolor: totalSelectedCount > 0 ? '#2e7d32' : 'action.disabledBackground',
-                                    fontWeight: 'bold',
-                                    px: 4
-                                }}
-                            >
-                                CONFIRM & INVOICE SELECTED ({totalSelectedCount})
-                            </Button>
-                        </Stack>
+                {/* Header Section */}
+                <Stack direction="row" justifyContent="space-between" alignItems="center">
+                    <Typography variant="h5" fontWeight="bold" sx={{ color: '#a38f6d', letterSpacing: 1 }}>
+                        CHIP TRANSPORT INVOICING
+                    </Typography>
+
+                    {rows.length > 0 && (
+                        <Button
+                            variant="contained"
+                            color="success"
+                            size="large"
+                            onClick={handleConfirmInvoice}
+                            disabled={Object.values(selectionMap).flat().length === 0}
+                            sx={{ fontWeight: 'bold', px: 4 }}
+                        >
+                            CONFIRM & INVOICE ({Object.values(selectionMap).flat().length})
+                        </Button>
+                    )}
+                </Stack>
+
+                {/* Filters Section */}
+                <ChipInvoicingFilters onSubmit={handleSearch} loading={loading} initialValues={lastQuery} />
+
+                {/* Results Section (Scrollable) */}
+                <Box sx={{
+                    flex: 1,
+                    overflowY: 'auto',
+                    pr: 1,
+                    '&::-webkit-scrollbar': { width: '8px' },
+                    '&::-webkit-scrollbar-thumb': { bgcolor: '#e0e0e0', borderRadius: '10px' }
+                }}>
+                    {rows.length > 0 ? (
                         <ChipInvoicingTable
-                            rows={rows}
-                            invalidIds={invalidIds}
+                            rows={paginatedRows}
+                            selectionMap={selectionMap}
+                            errorTrigger={errorTrigger}
                             onEdit={handleOpenEdit}
-                            onSelectionChange={handleSelectionChange}
+                            onSelectionChange={(key: string, ids: number[] | null) => {
+                                const newMap = { ...selectionMap };
+                                if (ids) {
+                                    newMap[key] = ids;
+                                } else {
+                                    delete newMap[key];
+                                }
+                                setSelectionMap(newMap);
+                            }}
                         />
-                    </Stack>
+                    ) : !loading && (
+                        <Paper variant="outlined" sx={{ p: 10, textAlign: 'center', bgcolor: '#fafafa', border: '1px dashed #ccc' }}>
+                            <Typography color="text.secondary">
+                                No transport loads found. Adjust filters and click "Search".
+                            </Typography>
+                        </Paper>
+                    )}
+                </Box>
+
+                {/* Sticky Pagination Bar */}
+                {rows.length > 0 && (
+                    <Paper
+                        elevation={4}
+                        sx={{
+                            position: 'sticky',
+                            bottom: 0,
+                            zIndex: 10,
+                            borderRadius: '8px 8px 0 0',
+                            border: '1px solid #e0e0e0',
+                            bgcolor: '#fff',
+                            mt: 'auto'
+                        }}
+                    >
+                        <TablePagination
+                            component="div"
+                            count={rows.length}
+                            page={page}
+                            onPageChange={(_, newPage) => setPage(newPage)}
+                            rowsPerPage={pageSize}
+                            onRowsPerPageChange={(e) => {
+                                setPageSize(parseInt(e.target.value, 10));
+                                setPage(0);
+                            }}
+                            rowsPerPageOptions={[10, 25, 50, 100]}
+                        />
+                    </Paper>
                 )}
             </Stack>
 
-            {/* Edit Dialog */}
+            {/* Dialogs */}
             <ChipInvoicingDialog
                 open={editOpen}
                 row={editRow}
@@ -180,6 +211,7 @@ export default function ChipInvoicingPage() {
                 onSave={handleSaveEdit}
             />
 
+            {/* Global Loader */}
             <Backdrop open={loading} sx={{ zIndex: 9999, color: '#fff' }}>
                 <CircularProgress color="inherit" />
             </Backdrop>

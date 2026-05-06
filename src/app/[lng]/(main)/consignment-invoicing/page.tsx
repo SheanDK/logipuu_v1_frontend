@@ -1,6 +1,6 @@
 // src/app/[lng]/(main)/consignment-invoicing/page.tsx
 'use client';
-import React, { useCallback, useState, useEffect } from 'react'; 
+import React, { useCallback, useState, useEffect } from 'react';
 import { Paper, Typography, Alert, Divider, Box, CircularProgress, Button, Backdrop, AlertColor } from '@mui/material';
 import { useTranslation } from '@/i18n/useTranslation';
 import { searchConsignments, createConsignment, updateConsignment, deleteManyConsignments, invoiceConsignments, UpsertConsignmentDto } from '@/services/consignmentService';
@@ -11,25 +11,25 @@ import ConsignmentInvoicingDialog from '@/components/invoicing/ConsignmentBillin
 import { GridRowId } from '@mui/x-data-grid';
 import { useParams, useRouter } from 'next/navigation';
 import ConfirmationDialog from '@/components/common/ConfirmationDialog';
-import axios from 'axios'; 
+import axios from 'axios';
 
 type BillingRowWithState = BillingRow & { changed?: boolean };
 
 // Define an interface for the form data used in handleSaveEdit
 export interface EditForm {
-    pvm: string | null;
-    rahtikirjanNro: string | null;
-    ajoreitti: string | null;
-    lisatiedot: string | null;
-    maaraM3: number;
-    hintaM3: number;
-    km: number;
-    hintaKm: number;
-    jakoTunnit: number;
-    hintaJakoTunti: number;
-    kpl: number;
-    hintaKpl: number;
-    tievero: number;
+  pvm: string | null;
+  rahtikirjanNro: string | null;
+  ajoreitti: string | null;
+  lisatiedot: string | null;
+  maaraM3: number;
+  hintaM3: number;
+  km: number;
+  hintaKm: number;
+  jakoTunnit: number;
+  hintaJakoTunti: number;
+  kpl: number;
+  hintaKpl: number;
+  tievero: number;
 }
 
 export default function ConsignmentBillingPage() {
@@ -50,7 +50,7 @@ export default function ConsignmentBillingPage() {
   const [confirmTitle, setConfirmTitle] = useState('');
   const [confirmMsg, setConfirmMsg] = useState('');
   const [isConfirming, setIsConfirming] = useState(false);
-  
+
   // FIX: Initialize lastQuery properly
   const [lastQuery, setLastQuery] = useState<ConsigmentSearchParams | null>(null);
   const [reloading, setReloading] = useState(false);
@@ -65,60 +65,57 @@ export default function ConsignmentBillingPage() {
   };
 
   const handleFiltersSubmit = useCallback(async (queryParams: ConsigmentSearchParams) => {
-      setFeedback(null);
-      setLoading(true);
-      setLastQuery(queryParams); // Update state here
-      try {
-        const data = await searchConsignments({
-          dateFrom: queryParams.dateFrom,
-          dateTo: queryParams.dateTo,
-          customerId: queryParams.customerId ?? null,
-          vehicleId: queryParams.vehicleId ?? null,
-          unbilled: queryParams.unbilled,
-          billed: queryParams.billed,
-        });
-        if (!data.length) {
-          setRows([]);
-          setFeedback({ type: 'success', message: t('messages.noResults') });
-          setShowFilters(true);
-        } else {
-          setRows(data);
-          setSelection([]);
-          setTableKey((k) => k + 1);
-          setShowFilters(false);
-        }
-      } catch (e: unknown) {
-        const message = axios.isAxiosError(e) ? e.response?.data?.message : (e instanceof Error ? e.message : t('messages.searchFailed'));
-        setFeedback({ type: 'error', message: message || t('messages.searchFailed') });
+    setFeedback(null);
+    setLoading(true);
+    setLastQuery(queryParams);
+    try {
+      const data = await searchConsignments({
+        dateFrom: queryParams.dateFrom,
+        dateTo: queryParams.dateTo,
+        customerId: queryParams.customerId ?? null,
+        vehicleId: queryParams.vehicleId ?? null,
+        unbilled: queryParams.unbilled,
+        billed: queryParams.billed,
+      });
+      if (!data.length) {
+        setRows([]);
+        setFeedback({ type: 'success', message: t('messages.noResults') });
         setShowFilters(true);
-      } finally {
-        setLoading(false);
+      } else {
+        setRows(data);
+        setSelection([]);
+        setTableKey((k) => k + 1);
+        setShowFilters(false);
       }
-    }, [t]
+    } catch (e: unknown) {
+      const message = axios.isAxiosError(e) ? e.response?.data?.message : (e instanceof Error ? e.message : t('messages.searchFailed'));
+      setFeedback({ type: 'error', message: message || t('messages.searchFailed') });
+      setShowFilters(true);
+    } finally {
+      setLoading(false);
+    }
+  }, [t]
   );
 
-  // FIX: Restore filters from SessionStorage on initial mount
   useEffect(() => {
     if (typeof window !== 'undefined') {
-        const saved = sessionStorage.getItem('consignment_filters');
-        if (saved && !lastQuery) { // Only load if lastQuery is empty
-            try {
-                const parsed = JSON.parse(saved);
-                setLastQuery(parsed);
-                // Automatically fetch data with saved filters
-                handleFiltersSubmit(parsed); 
-            } catch (e) {
-                console.error("Failed to parse saved filters", e);
-            }
+      const saved = sessionStorage.getItem('consignment_filters');
+      if (saved && !lastQuery) {
+        try {
+          const parsed = JSON.parse(saved);
+          setLastQuery(parsed);
+          handleFiltersSubmit(parsed);
+        } catch (e) {
+          console.error("Failed to parse saved filters", e);
         }
+      }
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []); 
+  }, [lastQuery]);
 
-  // FIX: Save filters to SessionStorage whenever they change
+
   useEffect(() => {
     if (lastQuery) {
-        sessionStorage.setItem('consignment_filters', JSON.stringify(lastQuery));
+      sessionStorage.setItem('consignment_filters', JSON.stringify(lastQuery));
     }
   }, [lastQuery]);
 
@@ -133,7 +130,7 @@ export default function ConsignmentBillingPage() {
     }
   }, [lastQuery]);
 
-  /** Return to filters view and reset edit/selection states. */
+
   const handleBackToFilters = useCallback(() => {
     setShowFilters(true);
     setEditOpen(false);
@@ -141,12 +138,7 @@ export default function ConsignmentBillingPage() {
     setDialogDirty(false);
     setDiscardConfirmOpen(false);
     setSelection([]);
-    // Optional: Clear session storage if you want 'Back' to reset completely
-    // sessionStorage.removeItem('consignment_filters');
-    // setLastQuery(null);
   }, []);
-
-  /** Open/close edit dialog. */
   const handleOpenEdit = useCallback((row: BillingRow) => {
     setEditRow(row);
     setEditOpen(true);
@@ -164,15 +156,15 @@ export default function ConsignmentBillingPage() {
 
   const finalizeCloseEdit = useCallback(() => {
     if (editRow && !(typeof editRow.id === 'string' && editRow.id.startsWith('temp-'))) {
-        setRows((prev) => {
-            const idx = prev.findIndex((r) => r.id === editRow.id);
-            if (idx === -1) return prev;
-            const current = prev[idx];
-            if (!current.changed) return prev;
-            const copy = [...prev];
-            copy[idx] = { ...current, changed: false }; // This is now valid
-            return copy;
-        });
+      setRows((prev) => {
+        const idx = prev.findIndex((r) => r.id === editRow.id);
+        if (idx === -1) return prev;
+        const current = prev[idx];
+        if (!current.changed) return prev;
+        const copy = [...prev];
+        copy[idx] = { ...current, changed: false };
+        return copy;
+      });
     }
     setEditOpen(false);
     setEditRow(null);
@@ -196,15 +188,15 @@ export default function ConsignmentBillingPage() {
     setDiscardConfirmOpen(false);
   }, []);
 
-  /** Reflect dialog dirty-state on the corresponding row (drives "changed" chip). */
-   const handleDialogDirty = useCallback((
+
+  const handleDialogDirty = useCallback((
     { rowId, dirty }: { rowId: BillingRow['id']; dirty: boolean }
   ) => {
     setDialogDirty(dirty);
     setRows((prev) => {
       const idx = prev.findIndex((r) => r.id === rowId);
       if (idx === -1) return prev;
-      const current = prev[idx]; 
+      const current = prev[idx];
       if (current.changed === dirty) return prev;
       const copy = [...prev];
       copy[idx] = { ...current, changed: dirty };
@@ -212,59 +204,59 @@ export default function ConsignmentBillingPage() {
     });
   }, []);
 
-   const handleSaveEdit = useCallback(async ({ rowId, form, total }: { rowId: BillingRow['id'], form: EditForm, total: number }) => {
+  const handleSaveEdit = useCallback(async ({ rowId, form, total }: { rowId: BillingRow['id'], form: EditForm, total: number }) => {
     try {
-        const isTemp = typeof rowId === 'string' && rowId.startsWith('temp-');
-        
-        const dto: UpsertConsignmentDto = {
-            date: form.pvm || '', 
-            waybillNumber: form.rahtikirjanNro || '',
-            route: form.ajoreitti || '',
-            notes: form.lisatiedot || '',
-            
-            quantityM3: Number(form.maaraM3) || 0,
-            unitPriceM3: Number(form.hintaM3) || 0,
-            km: Number(form.km) || 0,
-            unitPriceKm: Number(form.hintaKm) || 0,
-            pieces: Number(form.kpl) || 0,
-            unitPricePiece: Number(form.hintaKpl) || 0,
-            hours: Number(form.jakoTunnit) || 0,
-            unitPriceHour: Number(form.hintaJakoTunti) || 0,
-            
-            roadTax: Number(form.tievero) || 0,
-            total: Number(total) || 0 
-        };
+      const isTemp = typeof rowId === 'string' && rowId.startsWith('temp-');
 
-        if (isTemp) {
-            const src = rows.find((r) => r.id === rowId) ?? editRow;
-            const kuormaId = num((src as BillingRow & { kuormaId?: number })?.kuormaId, NaN);
-            
-            if (!Number.isFinite(kuormaId)) { 
-                throw new Error('kuormaId not found for new row.'); 
-            }
-            
-            const created = await createConsignment({ ...dto, kuormaId });
-            setRows((prev) => prev.map(r => r.id === rowId ? { ...created, changed: false } as BillingRow : r));
-        } else {
-            const idForUpdate = Number(rowId); 
-            
-            if (!Number.isFinite(idForUpdate)) { 
-                throw new Error('Invalid ID format for update.'); 
-            }
-            
-            const updated = await updateConsignment(idForUpdate, dto);
-            setRows((prev) => prev.map((r) => (r.id === updated.id ? { ...updated, changed: false } as BillingRow : r)));
+      const dto: UpsertConsignmentDto = {
+        date: form.pvm || '',
+        waybillNumber: form.rahtikirjanNro || '',
+        route: form.ajoreitti || '',
+        notes: form.lisatiedot || '',
+
+        quantityM3: Number(form.maaraM3) || 0,
+        unitPriceM3: Number(form.hintaM3) || 0,
+        km: Number(form.km) || 0,
+        unitPriceKm: Number(form.hintaKm) || 0,
+        pieces: Number(form.kpl) || 0,
+        unitPricePiece: Number(form.hintaKpl) || 0,
+        hours: Number(form.jakoTunnit) || 0,
+        unitPriceHour: Number(form.hintaJakoTunti) || 0,
+
+        roadTax: Number(form.tievero) || 0,
+        total: Number(total) || 0
+      };
+
+      if (isTemp) {
+        const src = rows.find((r) => r.id === rowId) ?? editRow;
+        const kuormaId = num((src as BillingRow & { kuormaId?: number })?.kuormaId, NaN);
+
+        if (!Number.isFinite(kuormaId)) {
+          throw new Error('kuormaId not found for new row.');
         }
 
-        finalizeCloseEdit();
-        setFeedback({ type: 'success', message: t('messages.saveOk') });
+        const created = await createConsignment({ ...dto, kuormaId });
+        setRows((prev) => prev.map(r => r.id === rowId ? { ...created, changed: false } as BillingRow : r));
+      } else {
+        const idForUpdate = Number(rowId);
+
+        if (!Number.isFinite(idForUpdate)) {
+          throw new Error('Invalid ID format for update.');
+        }
+
+        const updated = await updateConsignment(idForUpdate, dto);
+        setRows((prev) => prev.map((r) => (r.id === updated.id ? { ...updated, changed: false } as BillingRow : r)));
+      }
+
+      finalizeCloseEdit();
+      setFeedback({ type: 'success', message: t('messages.saveOk') });
 
     } catch (err: unknown) {
-        const message = axios.isAxiosError(err) && err.response 
-            ? (err.response.data as { message: string }).message 
-            : (err instanceof Error ? err.message : t('messages.updateFailed'));
-        
-        setFeedback({ type: 'error', message: message || t('messages.updateFailed') });
+      const message = axios.isAxiosError(err) && err.response
+        ? (err.response.data as { message: string }).message
+        : (err instanceof Error ? err.message : t('messages.updateFailed'));
+
+      setFeedback({ type: 'error', message: message || t('messages.updateFailed') });
     }
   }, [rows, editRow, t, finalizeCloseEdit]);
 
@@ -283,8 +275,8 @@ export default function ConsignmentBillingPage() {
       setReloading(true);
       try {
         const res: { billedDate?: string; updatedKuormaIds: number[]; updated?: number; alreadyBilled?: number; notFound?: number; } = await invoiceConsignments(kuormaIds);
-      const billedISO = res.billedDate || new Date().toISOString().slice(0, 10);
-      const updatedSet = new Set(res.updatedKuormaIds);
+        const billedISO = res.billedDate || new Date().toISOString().slice(0, 10);
+        const updatedSet = new Set(res.updatedKuormaIds);
         setRows((prev) => prev.map((r: BillingRow & { kuormaId?: number }) => updatedSet.has(Number(r.kuormaId)) ? { ...r, billed: true, billedDate: billedISO, changed: false } : r));
 
         const parts: string[] = [];
@@ -294,14 +286,14 @@ export default function ConsignmentBillingPage() {
         setFeedback({ type: 'success', message: parts.join('. ') || t('common:messages.ok') });
 
         setSelection([]);
-    } catch (e: unknown) { 
+      } catch (e: unknown) {
         const message = axios.isAxiosError(e) && e.response ? (e.response.data as { message: string }).message : (e instanceof Error ? e.message : String(e));
         setFeedback({ type: 'error', message: message || t('messages.invoiceFailed') });
-    } finally {
+      } finally {
         setReloading(false);
-    }
-  }, [selection, rows, t]);
-  
+      }
+    }, [selection, rows, t]);
+
   const handleOpenReport = useCallback(() => {
     const selSet = new Set(selection as (string | number)[]);
     const used = selection.length > 0 ? rows.filter((r) => selSet.has(r.id)) : rows;
@@ -313,20 +305,20 @@ export default function ConsignmentBillingPage() {
     localStorage.setItem('consigmentBillingReportData', JSON.stringify(used));
     const url = `/${params.lng}/consignment-invoicing/report`;
     window.open(url, '_blank');
-    
+
   }, [rows, selection, t, params.lng]);
 
   const handleRequestDelete = useCallback((_dayKey: string, ids: GridRowId[]) => {
-      const n = ids.length;
-      setConfirmIds(ids);
-      setConfirmTitle(t('consigmentBillingPage:confirm.deleteTitle', { defaultValue: 'Poista rivit' }));
-      setConfirmMsg(
-        n === 1
-          ? t('consigmentBillingPage:confirm.deleteOne', { defaultValue: 'Haluatko varmasti poistaa valitun rivin?' })
-          : t('consigmentBillingPage:confirm.deleteMany', { count: n, defaultValue: `Haluatko varmasti poistaa ${n} riviä?` })
-      );
-      setConfirmOpen(true);
-    },
+    const n = ids.length;
+    setConfirmIds(ids);
+    setConfirmTitle(t('consigmentBillingPage:confirm.deleteTitle', { defaultValue: 'Poista rivit' }));
+    setConfirmMsg(
+      n === 1
+        ? t('consigmentBillingPage:confirm.deleteOne', { defaultValue: 'Haluatko varmasti poistaa valitun rivin?' })
+        : t('consigmentBillingPage:confirm.deleteMany', { count: n, defaultValue: `Haluatko varmasti poistaa ${n} riviä?` })
+    );
+    setConfirmOpen(true);
+  },
     [t]
   );
 
@@ -359,13 +351,13 @@ export default function ConsignmentBillingPage() {
         }
 
         setFeedback({ type: 'success', message: parts.join('. ') || t('common:messages.ok') });
-        
+
       } catch (e: unknown) {
-        let errorMessage = t('common:messages.error'); 
+        let errorMessage = t('common:messages.error');
         if (axios.isAxiosError(e) && e.response) {
-            errorMessage = (e.response.data as { message: string }).message || errorMessage;
+          errorMessage = (e.response.data as { message: string }).message || errorMessage;
         } else if (e instanceof Error) {
-            errorMessage = e.message;
+          errorMessage = e.message;
         }
         setFeedback({ type: 'error', message: errorMessage });
       } finally {
@@ -387,7 +379,7 @@ export default function ConsignmentBillingPage() {
   return (
     <Paper sx={{ p: { xs: 2, md: 3 }, width: '100%' }}>
       <Typography variant="h5" sx={{ mb: 2 }}>
-        {t('consigmentBillingPage:title')} 
+        {t('consigmentBillingPage:title')}
       </Typography>
 
       {feedback && (

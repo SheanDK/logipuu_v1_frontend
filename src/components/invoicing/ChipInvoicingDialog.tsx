@@ -18,6 +18,7 @@ const ChipInvoicingDialog = ({ open, row, onClose, onSave }: any) => {
 
     useEffect(() => {
         if (row && open) {
+            console.log("Loading Row Data into Dialog:", row);
             setForm({
                 actualM3: Number(row.actualM3 || 0),
                 priceM3: Number(row.unitPriceM3 || 0),
@@ -33,7 +34,6 @@ const ChipInvoicingDialog = ({ open, row, onClose, onSave }: any) => {
         }
     }, [row, open]);
 
-    // Live calculation of totals
     const calculations = useMemo(() => {
         const m3Total = form.actualM3 * form.priceM3;
         const tonTotal = form.actualTon * form.priceTon;
@@ -49,7 +49,6 @@ const ChipInvoicingDialog = ({ open, row, onClose, onSave }: any) => {
         onSave(row.loadId, { ...form, total: calculations.grandTotal });
     };
 
-    // Helper to render a consistent row for each metric
     const MetricRow = ({ label, qtyKey, priceKey, subtotal }: any) => (
         <Stack direction="row" spacing={2} alignItems="center">
             <Typography sx={{ width: 120, fontWeight: 500 }}>{label}</Typography>
