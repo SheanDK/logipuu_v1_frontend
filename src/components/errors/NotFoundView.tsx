@@ -39,7 +39,7 @@ export default function NotFoundView() {
         textAlign: 'center', backgroundColor: alpha(theme.palette.background.paper, 0.88),
         backdropFilter: 'blur(10px)', borderRadius: r
       }}>
-        <Image src="/images/hkk-logo.png" alt={t('brandAlt')} width={160} height={54} />
+        <Image src="/images/Bitwell-logo.png" alt={t('brandAlt')} width={160} height={54} />
         <Typography variant="h1" sx={{ fontWeight: 800, letterSpacing: -1, lineHeight: 1 }}>404</Typography>
         <Typography variant="h5">{t('title')}</Typography>
         <Typography variant="body2" sx={{ opacity: 0.8, maxWidth: 640 }}>{t('description')}</Typography>

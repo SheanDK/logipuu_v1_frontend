@@ -1,29 +1,66 @@
 // frontend/src/components/invoicing/ChipInvoicingFilters.tsx
-
 'use client';
-import React, { useState } from 'react';
-import { Box, TextField, Button, Stack, MenuItem } from '@mui/material';
+import React from 'react';
+import { Box, Button, TextField, Checkbox, FormControlLabel, Stack, Paper } from '@mui/material';
+import { useForm, Controller } from 'react-hook-form';
 import SearchIcon from '@mui/icons-material/Search';
 
-const ChipInvoicingFilters = ({ onSubmit, loading }: any) => {
-    const [filters, setFilters] = useState({
-        dateFrom: new Date().toISOString().split('T')[0],
-        dateTo: new Date().toISOString().split('T')[0],
-        billed: false
+const ChipInvoicingFilters = ({ onSubmit, loading, initialValues }: any) => {
+    const { control, handleSubmit } = useForm({
+        defaultValues: {
+            dateFrom: initialValues?.dateFrom ?? new Date().toISOString().split('T')[0],
+            dateTo: initialValues?.dateTo ?? new Date().toISOString().split('T')[0],
+            unbilled: initialValues?.unbilled ?? true,
+            billed: initialValues?.billed ?? false,
+        }
     });
 
+    const handleFormSubmit = (data: any) => {
+        onSubmit({
+            dateFrom: data.dateFrom,
+            dateTo: data.dateTo,
+            unbilled: data.unbilled,
+            billed: data.billed
+        });
+    };
+
     return (
-        <Stack direction="row" spacing={2} alignItems="center">
-            <TextField label="From" type="date" size="small" InputLabelProps={{ shrink: true }} value={filters.dateFrom} onChange={(e) => setFilters({ ...filters, dateFrom: e.target.value })} />
-            <TextField label="To" type="date" size="small" InputLabelProps={{ shrink: true }} value={filters.dateTo} onChange={(e) => setFilters({ ...filters, dateTo: e.target.value })} />
-            <TextField select label="Status" size="small" sx={{ width: 150 }} value={filters.billed} onChange={(e) => setFilters({ ...filters, billed: e.target.value === 'true' })}>
-                <MenuItem value="false">Unbilled</MenuItem>
-                <MenuItem value="true">Billed</MenuItem>
-            </TextField>
-            <Button variant="contained" startIcon={loading ? null : <SearchIcon />} onClick={() => onSubmit(filters)} disabled={loading} sx={{ bgcolor: '#a38f6d' }}>
-                {loading ? 'Searching...' : 'Search'}
-            </Button>
-        </Stack>
+        <Paper elevation={0} sx={{ p: 3, border: '1px solid #eee', borderRadius: 2 }}>
+            <Box component="form" onSubmit={handleSubmit(handleFormSubmit)}>
+                <Stack spacing={3}>
+                    <Stack direction={{ xs: 'column', md: 'row' }} spacing={2} alignItems="center">
+                        <Controller
+                            name="dateFrom"
+                            control={control}
+                            render={({ field }) => <TextField {...field} label="Date From" type="date" fullWidth size="small" InputLabelProps={{ shrink: true }} />}
+                        />
+                        <Controller
+                            name="dateTo"
+                            control={control}
+                            render={({ field }) => <TextField {...field} label="Date To" type="date" fullWidth size="small" InputLabelProps={{ shrink: true }} />}
+                        />
+                        <Button variant="contained" type="submit" startIcon={<SearchIcon />} sx={{ bgcolor: '#a38f6d', px: 4, height: 40 }}>Search</Button>
+                    </Stack>
+
+                    <Stack direction="row" spacing={3}>
+                        <Controller
+                            name="unbilled"
+                            control={control}
+                            render={({ field }) => (
+                                <FormControlLabel control={<Checkbox {...field} checked={Boolean(field.value)} />} label="Show Unbilled" />
+                            )}
+                        />
+                        <Controller
+                            name="billed"
+                            control={control}
+                            render={({ field }) => (
+                                <FormControlLabel control={<Checkbox {...field} checked={Boolean(field.value)} />} label="Show Billed" />
+                            )}
+                        />
+                    </Stack>
+                </Stack>
+            </Box>
+        </Paper>
     );
 };
 

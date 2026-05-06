@@ -1101,3 +1101,77 @@ export interface DayLabel {
     key: string;
     name: string;
 }
+
+//chip invoicing types
+export type BillingRow = {
+    id: string | number;
+    kuormaId?: number;
+    date: string | null;
+    customer: string | null;
+    vehicle: string | null;
+    woodType: string | null;
+    quantityM3: number;
+    unitPrice: number;
+    sum: number;
+    billed: boolean;
+
+
+    puulaaniName?: string | null;
+    waybillNumber?: string | null;
+    vastaanottoNro?: string | null;
+    driverName?: string | null;
+    route?: string | null;
+    notes?: string | null;
+    billedDate?: string | null;
+
+    km?: number | null;
+    unitPriceKm?: number | null;
+    hours?: number | null;
+    unitPriceHour?: number | null;
+    pieces?: number | null;
+    unitPricePiece?: number | null;
+};
+
+
+export type InvoicingSearchParams = {
+    dateFrom: string;
+    dateTo: string;
+    customerId?: string | number | null;
+    vehicleId?: string | number | null;
+
+
+    woodTypeIds?: Array<string | number>;
+
+
+    status?: Array<'unbilled' | 'billed'>;
+    unbilled?: boolean;
+    billed?: boolean;
+};
+
+export type UpdateInvoicingDto = {
+    waybillNumber?: string;
+    vastaanottoNro?: string;
+    route?: string;
+    notes?: string;
+
+
+    quantityM3?: number;
+    unitPriceM3?: number;
+    km?: number;
+    unitPriceKm?: number;
+    hours?: number;
+    unitPriceHour?: number;
+    pieces?: number;
+    unitPricePiece?: number;
+
+    total?: number;
+    billedDate?: string | null;
+};
+
+export type InvoiceManyResult = {
+    total: number;
+    updated: number;
+    alreadyBilled: number;
+    notFound: number;
+    updatedIds: Array<number>;
+};

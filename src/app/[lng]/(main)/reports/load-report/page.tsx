@@ -73,7 +73,7 @@ export default function LoadReportPage() {
         }).format(new Date());
 
         const img = new window.Image();
-        img.src = '/images/hkk-logo.png';
+        img.src = '/images/Bitwell-logo.png';
         img.onload = () => {
             doc.addImage(img, 'PNG', 14, 10, 50, 15);
             doc.setFontSize(20);
@@ -277,7 +277,7 @@ export default function LoadReportPage() {
                 <Container maxWidth="lg">
                     <Paper elevation={3} sx={{ p: { xs: 2, md: 4 } }}>
                         <Box sx={{ mb: 2 }}>
-                            <Image src="/images/hkk-logo.png" alt="Company Logo" width={200} height={40} priority />
+                            <Image src="/images/Bitwell-logo.png" alt="Company Logo" width={200} height={40} priority />
                         </Box>
                         <Stack direction="row" justifyContent="space-between" alignItems="flex-start" mb={2}>
                             <Box>

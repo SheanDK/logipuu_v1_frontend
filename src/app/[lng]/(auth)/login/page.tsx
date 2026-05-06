@@ -55,7 +55,7 @@ export default function LoginPage() {
             const apiResponse = await loginUserApi(credentials);
             console.log("--- User data from API ---", apiResponse.user);
 
-            await login(apiResponse); 
+            await login(apiResponse);
 
             const userRoles = apiResponse.user.roles || [];
             const isDriver = userRoles.some((role: string) => role.toLowerCase() === 'kuljettaja');
@@ -69,7 +69,7 @@ export default function LoginPage() {
                 router.push(`/${currentLng}/dashboard`);
             }
 
-         } catch (err: unknown) {
+        } catch (err: unknown) {
             console.error("Login failed:", err);
             let message: string;
             if (axios.isAxiosError(err) && err.response) {
@@ -97,7 +97,7 @@ export default function LoginPage() {
             <Box sx={{ position: 'fixed', top: 16, right: 16, display: 'flex', alignItems: 'center', gap: 1 }}>
                 <LanguageSwitcher />
                 <Tooltip title="Server Settings">
-                    <IconButton 
+                    <IconButton
                         onClick={() => setIsSettingsOpen(true)}
                         sx={{ color: 'white', backgroundColor: 'rgba(0,0,0,0.2)', '&:hover': { backgroundColor: 'rgba(0,0,0,0.4)' } }}
                     >
@@ -116,7 +116,7 @@ export default function LoginPage() {
             >
                 <Box sx={{ mb: 2, width: 160 }}>
                     <Image
-                        src="/images/hkk-logo.png" alt="Hkk Logo"
+                        src="/images/Bitwell-logo.png" alt="Bitwell"
                         width={160} height={54} priority
                         style={{ maxWidth: '100%', height: 'auto' }}
                     />
@@ -158,8 +158,8 @@ export default function LoginPage() {
                 {t('copyright', { year: new Date().getFullYear() })}
             </Typography>
             {isSettingsOpen && (
-                <SettingsModal 
-                    open={isSettingsOpen} 
+                <SettingsModal
+                    open={isSettingsOpen}
                     onCloseAction={() => setIsSettingsOpen(false)}
                 />
             )}

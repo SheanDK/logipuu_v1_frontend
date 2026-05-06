@@ -83,7 +83,7 @@ const WoodBillingReport: React.FC<Props> = ({ rows }) => {
         const doc = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4' });
         const pageWidth = doc.internal.pageSize.getWidth();
         const img = new window.Image();
-        img.src = '/images/hkk-logo.png';
+        img.src = '/images/Bitwell-logo.png';
 
         img.onload = () => { doc.addImage(img, 'PNG', 14, 10, 50, 12); generatePdfContent(doc); };
         img.onerror = () => generatePdfContent(doc);
@@ -231,7 +231,7 @@ const WoodBillingReport: React.FC<Props> = ({ rows }) => {
                         {/* Header */}
                         <Box sx={{ mb: 3 }}>
                             <Stack direction="row" justifyContent="space-between" alignItems="center">
-                                <Box sx={{ width: '200px' }}> <Image src="/images/hkk-logo.png" alt="Company Logo" width={200} height={50} priority style={{ objectFit: 'contain' }} /> </Box>
+                                <Box sx={{ width: '200px' }}> <Image src="/images/Bitwell-logo.png" alt="Company Logo" width={200} height={50} priority style={{ objectFit: 'contain' }} /> </Box>
                                 <Box sx={{ textAlign: 'right' }}>
                                     <Typography variant="h5" component="h1" fontWeight="bold" color="text.primary">{t('woodBillingReport:header.title')}</Typography>
                                     <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>{t('woodBillingReport:header.period', { start: startDate, end: endDate })}</Typography>

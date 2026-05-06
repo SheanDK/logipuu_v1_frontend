@@ -1,84 +1,8 @@
-// FRONTEND SERVICE: invoicingService.ts
+//frontend/src/services/invoicingService.ts
 import apiClient from './apiClient';
-
-/** Shape displayed by the DataGrid */
-export type BillingRow = {
-  id: string | number;
-  kuormaId?: number;
-  date: string | null;          // ISO date string (YYYY-MM-DD)
-  customer: string | null;
-  vehicle: string | null;
-  woodType: string | null;
-  quantityM3: number;
-  unitPrice: number;
-  sum: number;
-  billed: boolean;
-
-  // extras for updating modal
-  puulaaniName?: string | null;
-  waybillNumber?: string | null;
-  vastaanottoNro?: string | null;
-  driverName?: string | null;
-  route?: string | null;
-  notes?: string | null;
-  billedDate?: string | null;
-
-  km?: number | null;
-  unitPriceKm?: number | null;
-  hours?: number | null;
-  unitPriceHour?: number | null;
-  pieces?: number | null;
-  unitPricePiece?: number | null;
-};
-
-/** Query params accepted from the UI */
-export type InvoicingSearchParams = {
-  dateFrom: string;                 // 'YYYY-MM-DD'
-  dateTo: string;                   // 'YYYY-MM-DD'
-  customerId?: string | number | null;
-  vehicleId?: string | number | null;
-
-  // MUST be IDs (numbers or numeric strings), not names
-  woodTypeIds?: Array<string | number>;
-
-  // Either supply `status` list or the two booleans
-  status?: Array<'unbilled' | 'billed'>;
-  unbilled?: boolean;
-  billed?: boolean;
-};
-
-// src/services/invoicingService.ts
-export type UpdateInvoicingDto = {
-  waybillNumber?: string;
-  vastaanottoNro?: string;
-  route?: string;
-  notes?: string;
-
-  // price lines; send only when changed
-  quantityM3?: number;
-  unitPriceM3?: number;
-  km?: number;
-  unitPriceKm?: number;
-  hours?: number;
-  unitPriceHour?: number;
-  pieces?: number;
-  unitPricePiece?: number;
-
-  total?: number;
-  billedDate?: string | null;
-};
-
-export type InvoiceManyResult = {
-  total: number;
-  updated: number;
-  alreadyBilled: number;
-  notFound: number;
-  updatedIds: Array<number>; // kuorma_id that were actually updated now
-};
+import { InvoicingSearchParams, BillingRow, UpdateInvoicingDto, InvoiceManyResult } from '../types';
 
 export const API_ENDPOINT = '/invoicing';
-
-/** Normalize a mixed list (string | number) into number[] */
 const toNumberList = (values?: Array<string | number>) =>
   (values ?? [])
     .map(v => (typeof v === 'string' ? v.trim() : v))
@@ -86,9 +10,9 @@ const toNumberList = (values?: Array<string | number>) =>
     .map(v => Number(v))
     .filter(n => !Number.isNaN(n));
 
-/** Call GET /api/invoicing/search with normalized query params */
+
 export async function searchInvoicing(params: InvoicingSearchParams): Promise<BillingRow[]> {
-  // Resolve billed/unbilled from either source
+
   const fromStatus = Array.isArray(params.status)
     ? { unbilled: params.status.includes('unbilled'), billed: params.status.includes('billed') }
     : null;
@@ -103,22 +27,17 @@ export async function searchInvoicing(params: InvoicingSearchParams): Promise<Bi
     dateTo: params.dateTo,
     customerId: params.customerId ?? undefined,
     vehicleId: params.vehicleId ?? undefined,
-    woodTypeIds: woodTypeIdList.join(','), // e.g., "12,34,56"
+    woodTypeIds: woodTypeIdList.join(','),
     unbilled: unbilled ? '1' : '0',
     billed: billed ? '1' : '0',
   };
 
-  //console.log('[FE invoicingService] GET /invoicing/search', query);
-  //console.log('[invoicingService] GET', `${API_ENDPOINT}/search`, query);
-
   const { data } = await apiClient.get(`${API_ENDPOINT}/search`, { params: query });
-
-  // console.log('[invoicingService] received', Array.isArray(data) ? `${data.length} rows` : typeof data);
 
   return Array.isArray(data) ? data : [];
 }
 
-/** Update an existing row; returns the refreshed BillingRow shape */
+
 export async function updateBillingRow(
   id: number | string,
   dto: UpdateInvoicingDto
@@ -141,7 +60,7 @@ export async function updateBillingRow(
   }
 }
 
-/** Batch-invoice selected rows */
+
 export async function invoiceBillingRows(ids: (string | number)[]): Promise<InvoiceManyResult> {
   const url = `${API_ENDPOINT}/invoice`;
   try {

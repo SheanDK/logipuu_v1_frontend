@@ -353,7 +353,7 @@ export default function AppNavbar() {
                     <IconButton color="inherit" edge="start" onClick={toggleMobileDrawer} sx={{ mr: 2, display: { md: 'none' } }}><MenuIcon /></IconButton>
                 )}
                 <Link href={homeLink} style={{ display: 'flex', alignItems: 'center', textDecoration: 'none' }}>
-                    <Image src="/images/hkk-logo.png" alt="Logo" width={140} height={38} priority style={{ marginRight: '16px' }} />
+                    <Image src="/images/Bitwell-logo.png" alt="Logo" width={140} height={38} priority style={{ marginRight: '16px' }} />
                 </Link>
                 <Box sx={{ flexGrow: 1 }} />
                 {navLayout === 'top' && <TopNavMenu navLinks={navItems.filter(i => i.isTopNav)} pathname={pathname} currentLng={currentLng} />}

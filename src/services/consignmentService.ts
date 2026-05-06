@@ -1,6 +1,6 @@
 // frontend/src/services/consignmentService.ts
 import apiClient from './apiClient';
-import type { BillingRow } from './invoicingService'; 
+import type { BillingRow } from '../types';
 
 export type ConsignmentSearchParams = {
   dateFrom: string;
@@ -24,8 +24,8 @@ export type ConsignmentRow = BillingRow & {
 };
 
 export type UpsertConsignmentDto = {
-  kuormaId?: number;           
-  date: string;                
+  kuormaId?: number;
+  date: string;
   waybillNumber?: string;
   route?: string;
   notes?: string;
@@ -48,7 +48,7 @@ export type InvoiceConsignmentsResponse = {
   alreadyIds: number[];
   notFound: number;
   notFoundIds: number[];
-  billedDate?: string; 
+  billedDate?: string;
 };
 
 export const CONSIGNMENT_API = '/consignments';
@@ -58,7 +58,7 @@ const mapToConsignmentRow = (r: any): ConsignmentRow => {
   return {
     id: r.rahtiId || r.rahti_id || `temp-${Math.random()}`,
     kuormaId: Number(r.kuormaId || r.kuorma_id),
-    date: r.pvm ? String(r.pvm).split('T')[0] : '', 
+    date: r.pvm ? String(r.pvm).split('T')[0] : '',
     customer: r.asiakas || '',
     vehicle: r.autoNro || r.auto_nro || '',
     driverName: r.knimi || '',
@@ -71,16 +71,16 @@ const mapToConsignmentRow = (r: any): ConsignmentRow => {
     quantityM3: Number(r.m3 || 0),
     km: Number(r.km || 0),
     pieces: Number(r.kpl || 0),
-    hours: Number(r.jako || 0), 
+    hours: Number(r.jako || 0),
 
     // Unit Prices (Check both backend names: m3_hinta and m3Hinta)
     unitPriceM3: Number(r.m3_hinta || r.m3Hinta || 0),
     unitPriceKm: Number(r.km_hinta || r.kmHinta || 0),
     unitPricePiece: Number(r.kpl_hinta || r.kplHinta || 0),
     unitPriceHour: Number(r.jako_hinta || r.jakoHinta || 0),
-    
+
     // Default unit price fallback (usually M3 price)
-    unitPrice: Number(r.m3_hinta || r.m3Hinta || 0), 
+    unitPrice: Number(r.m3_hinta || r.m3Hinta || 0),
 
     roadTax: Number(r.tievero || 0),
     total: Number(r.kokohinta || r.koko_hinta || 0),
@@ -114,7 +114,7 @@ export async function getConsignmentById(id: number | string): Promise<Consignme
 export async function createConsignment(dto: UpsertConsignmentDto): Promise<ConsignmentRow> {
   const payload = {
     ...dto,
-    koko_hinta: dto.total, 
+    koko_hinta: dto.total,
     // Map DTO back to snake_case for backend insert if needed, 
     // but Controller/Service usually handles camelCase -> snake_case
     // We send camelCase as per DTO definition, assuming backend handles it.
