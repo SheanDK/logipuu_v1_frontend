@@ -124,20 +124,30 @@ const ChipTransportTable = ({
                 kalustoNro: effectiveKalustoNro
             });
 
-            const mappedData = data.map((l: any) => ({
-                ...l,
-                id: l.load_id || l.loadId,
-                rekNro: l.vehicleRegNo || l.rekNro,
-                pvm: l.scheduled_date || l.scheduledDate,
-                driverName: l.driverName || l.driver_name || 'N/A',
-                actualM3: Number(l.actual_m3 ?? l.actualM3 ?? 0),
-                actualTon: Number(l.actual_ton ?? l.actualTon ?? 0),
-                actualPcs: Number(l.actual_pcs ?? l.actualPcs ?? 0),
-                actualHr: Number(l.actual_hr ?? l.actualHr ?? 0),
-                actualKm: Number(l.actual_km ?? l.actualKm ?? 0),
-                actualWaiting: Number(l.actual_waiting ?? l.actualWaiting ?? 0),
-                actualDetails: l.actual_details || l.actualDetails || l.load_notes || l.loadNotes || ''
-            }));
+            const mappedData = data.map((l: any) => {
+
+                console.log('RAW:', {
+                    driverName: l.driverName,
+                    driver_name: l.driver_name,
+                    vehicleRegNo: l.vehicleRegNo,
+                    rek_nro: l.rek_nro,
+                    rekNro: l.rekNro,
+                });
+                return {
+                    ...l,
+                    id: l.load_id || l.loadId,
+                    rekNro: l.vehicleRegNo || l.rekNro,
+                    pvm: l.scheduled_date || l.scheduledDate,
+                    driverName: l.driverName || l.driver_name || 'Unassigned',
+                    actualM3: Number(l.actual_m3 ?? l.actualM3 ?? 0),
+                    actualTon: Number(l.actual_ton ?? l.actualTon ?? 0),
+                    actualPcs: Number(l.actual_pcs ?? l.actualPcs ?? 0),
+                    actualHr: Number(l.actual_hr ?? l.actualHr ?? 0),
+                    actualKm: Number(l.actual_km ?? l.actualKm ?? 0),
+                    actualWaiting: Number(l.actual_waiting ?? l.actualWaiting ?? 0),
+                    actualDetails: l.actual_details || l.actualDetails || l.load_notes || l.loadNotes || ''
+                };
+            });
 
             setRows(mappedData);
             onRowsUpdateAction(mappedData);

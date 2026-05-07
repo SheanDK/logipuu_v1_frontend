@@ -65,7 +65,7 @@ export default function DrivenInspectionPage() {
                 const [clients, vehicles, drivers] = await Promise.all([fetchAllClients(), fetchAllVehicles(), fetchAllDrivers()]);
                 setClientList(clients.map((c: IBackendClient) => ({ id: String(c.asiakkaanId), name: c.asiakkaanNimi, clientId: String(c.asiakkaanId), clientName: c.asiakkaanNimi, targetColor: c.kohteenVari })));
                 setVehicleList(vehicles.map((v: IVehicleBackendResponse) => ({ id: String(v.kalustoNro), name: v.rekNro, vehicleNo: String(v.kalustoNro), registrationNo: v.rekNro })));
-                setDriverList(drivers.map((d: IBackendDriver) => ({ driverId: d.kuljId, name: d.nimi, phoneNo: d.puhelinNro, email: d.email, hasAlerts: d.halytys })));
+                setDriverList(drivers.map((d: IBackendDriver) => ({ driverId: d.kuljId, name: d.nimi, phoneNo: d.puhelinNro, email: d.email, hasAlerts: d.halytys, isOnline: d.isOnline })));
             } catch (error) {
                 console.error("Failed to load filter options:", error);
                 setSnackbar({ open: true, message: t('errors.loadFilterOptions'), severity: 'warning' });
