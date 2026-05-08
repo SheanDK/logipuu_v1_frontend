@@ -21,11 +21,22 @@ export default function ChipInvoicingPage() {
     const [editOpen, setEditOpen] = useState(false);
     const [editRow, setEditRow] = useState<any>(null);
 
+    useEffect(() => {
+
+        setRows([]);
+        setSelectionMap({});
+        sessionStorage.removeItem('chip_filters');
+        setLastQuery(null);
+
+    }, []);
+
     const handleSearch = async (params: any) => {
         setLoading(true);
         setLastQuery(params);
         setPage(0);
-        sessionStorage.setItem('chip_filters', JSON.stringify(params));
+        setRows([]);
+        setSelectionMap({});
+
         try {
             const data = await chipInvoicingService.search(params);
             setRows(data);
@@ -35,7 +46,6 @@ export default function ChipInvoicingPage() {
             setLoading(false);
         }
     };
-
     const handleConfirmInvoice = async () => {
         const allSelectedIds = Object.values(selectionMap).flat() as number[];
         if (allSelectedIds.length === 0) return;
@@ -95,7 +105,8 @@ export default function ChipInvoicingPage() {
         }
 
         const selectedData = rows.filter(r => allSelectedIds.includes(r.loadId));
-        localStorage.setItem('chipInvoicingReportData', JSON.stringify(selectedData));
+
+        sessionStorage.setItem('chipInvoicingReportData', JSON.stringify(selectedData));
 
         const url = window.location.pathname + '/report';
         window.open(url, '_blank');

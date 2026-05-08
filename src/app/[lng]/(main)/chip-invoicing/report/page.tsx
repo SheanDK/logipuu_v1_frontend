@@ -4,27 +4,33 @@
 import React, { useEffect, useState } from 'react';
 import { Alert, Box, CircularProgress } from '@mui/material';
 import ChipInvoicingReport from '@/components/invoicing/ChipInvoicingReport';
-import { useTranslation } from '@/i18n/useTranslation';
 
 export default function ChipInvoicingReportPage() {
-    const { t } = useTranslation(['chipInvoicingReport']);
     const [data, setData] = useState<any[] | null>(null);
     const [err, setErr] = useState<string | null>(null);
 
     useEffect(() => {
         try {
-            const s = localStorage.getItem('chipInvoicingReportData');
+            const s = sessionStorage.getItem('chipInvoicingReportData');
+
             if (!s) {
-                setErr("No report data found. Please select loads first.");
+                setErr("No report data found. Please close this window and try again.");
                 return;
             }
-            setData(JSON.parse(s));
-        } catch {
+
+            const parsedData = JSON.parse(s);
+            setData(parsedData);
+
+        } catch (e) {
             setErr("Failed to parse report data.");
         }
     }, []);
 
-    if (err) return <Alert severity="error" sx={{ m: 2 }}>{err}</Alert>;
+    if (err) return (
+        <Box sx={{ p: 4 }}>
+            <Alert severity="error">{err}</Alert>
+        </Box>
+    );
 
     if (!data) return (
         <Box sx={{ display: 'flex', justifyContent: 'center', p: 10 }}>
