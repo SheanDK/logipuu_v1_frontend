@@ -13,23 +13,18 @@ export default function ChipInvoicingPage() {
     const [loading, setLoading] = useState(false);
     const [selectionMap, setSelectionMap] = useState<Record<string, number[]>>({});
     const [lastQuery, setLastQuery] = useState<any>(null);
-    const [errorTrigger, setErrorTrigger] = useState<number>(0); // Blink trigger
+    const [errorTrigger, setErrorTrigger] = useState<number>(0);
 
-    // Pagination States
     const [page, setPage] = useState(0);
     const [pageSize, setPageSize] = useState(25);
 
-    // Dialog States
     const [editOpen, setEditOpen] = useState(false);
     const [editRow, setEditRow] = useState<any>(null);
 
-    // --- 🚀 Actions ---
-
-    // 1. Search Function
     const handleSearch = async (params: any) => {
         setLoading(true);
         setLastQuery(params);
-        setPage(0); // Reset to first page on new search
+        setPage(0);
         sessionStorage.setItem('chip_filters', JSON.stringify(params));
         try {
             const data = await chipInvoicingService.search(params);
@@ -41,13 +36,10 @@ export default function ChipInvoicingPage() {
         }
     };
 
-    // 2. Confirm Invoicing (Mark as Billed)
     const handleConfirmInvoice = async () => {
-        // 1. get all selected IDs
         const allSelectedIds = Object.values(selectionMap).flat() as number[];
         if (allSelectedIds.length === 0) return;
 
-        // 2. Validation: check for rows with no price data
         const selectedRowsData = rows.filter(r => allSelectedIds.includes(r.loadId));
         const hasInvalidRows = selectedRowsData.some(r => Number(r.total || 0) === 0);
 
@@ -56,7 +48,6 @@ export default function ChipInvoicingPage() {
             return;
         }
 
-        // 3. if price data is correct, confirm invoicing
         if (!window.confirm(`Are you sure you want to invoice ${allSelectedIds.length} loads?`)) return;
 
         setLoading(true);
@@ -94,13 +85,26 @@ export default function ChipInvoicingPage() {
         }
     };
 
-    // --- 🚀 Pagination & Grouping Logic ---
+    // 4. Report Dialog Handlers
+    const handleOpenReport = () => {
+        const allSelectedIds = Object.values(selectionMap).flat() as number[];
+
+        if (allSelectedIds.length === 0) {
+            alert("Please select at least one group to generate a report.");
+            return;
+        }
+
+        const selectedData = rows.filter(r => allSelectedIds.includes(r.loadId));
+        localStorage.setItem('chipInvoicingReportData', JSON.stringify(selectedData));
+
+        const url = window.location.pathname + '/report';
+        window.open(url, '_blank');
+    };
     const paginatedRows = useMemo(() => {
         const start = page * pageSize;
         return rows.slice(start, start + pageSize);
     }, [rows, page, pageSize]);
 
-    // Initial load from session storage
     useEffect(() => {
         const saved = sessionStorage.getItem('chip_filters');
         if (saved) {
@@ -111,7 +115,7 @@ export default function ChipInvoicingPage() {
     return (
         <Box sx={{
             p: { xs: 2, md: 4 },
-            height: 'calc(100vh - 64px)', // Adjust based on your header height
+            height: 'calc(100vh - 64px)',
             display: 'flex',
             flexDirection: 'column'
         }}>
@@ -124,16 +128,32 @@ export default function ChipInvoicingPage() {
                     </Typography>
 
                     {rows.length > 0 && (
-                        <Button
-                            variant="contained"
-                            color="success"
-                            size="large"
-                            onClick={handleConfirmInvoice}
-                            disabled={Object.values(selectionMap).flat().length === 0}
-                            sx={{ fontWeight: 'bold', px: 4 }}
-                        >
-                            CONFIRM & INVOICE ({Object.values(selectionMap).flat().length})
-                        </Button>
+                        <>
+                            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 1, flexWrap: 'wrap', mb: 1 }}>
+                                <Box sx={{ display: 'flex', gap: 1 }}>
+                                    <Button
+                                        variant="contained"
+                                        color="success"
+                                        size="large"
+                                        onClick={handleConfirmInvoice}
+                                        disabled={Object.values(selectionMap).flat().length === 0}
+                                        sx={{ fontWeight: 'bold', px: 4 }}
+                                    >
+                                        CONFIRM & INVOICE ({Object.values(selectionMap).flat().length})
+                                    </Button>
+                                    <Button
+                                        variant="contained"
+                                        color="secondary"
+                                        size="large"
+                                        onClick={handleOpenReport}
+                                        disabled={Object.values(selectionMap).flat().length === 0}
+                                        sx={{ fontWeight: 'bold', color: '#fff', px: 4, ml: 1, bgcolor: '#b38c5aea' }}
+                                    >
+                                        REPORT
+                                    </Button>
+                                </Box>
+                            </Box>
+                        </>
                     )}
                 </Stack>
 

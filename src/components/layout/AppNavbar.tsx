@@ -27,8 +27,6 @@ import DirectionsCarIcon from '@mui/icons-material/DirectionsCar';
 import AccountCircleIcon from '@mui/icons-material/AccountCircle';
 import NotificationsIcon from '@mui/icons-material/Notifications';
 import CircleIcon from '@mui/icons-material/FiberManualRecord';
-import CheckIcon from '@mui/icons-material/Check';
-import CloseIcon from '@mui/icons-material/Close';
 import FullscreenIcon from '@mui/icons-material/Fullscreen';
 import FullscreenExitIcon from '@mui/icons-material/FullscreenExit';
 
