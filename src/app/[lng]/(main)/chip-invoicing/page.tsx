@@ -196,10 +196,8 @@ export default function ChipInvoicingPage() {
                             }}
                         />
                     ) : !loading && (
-                        <Paper variant="outlined" sx={{ p: 10, textAlign: 'center', bgcolor: '#fafafa', border: '1px dashed #ccc' }}>
-                            <Typography color="text.secondary">
-                                No transport loads found. Adjust filters and click "Search".
-                            </Typography>
+                        <Paper variant="outlined" sx={{ p: 8, textAlign: 'center', border: '1px dashed #ccc', bgcolor: 'background.paper' }}>
+                            <Typography color="text.secondary">No records found. Please adjust filters and search.</Typography>
                         </Paper>
                     )}
                 </Box>

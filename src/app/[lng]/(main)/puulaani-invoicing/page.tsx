@@ -190,17 +190,21 @@ export default function WoodBillingPage() {
 
     // Persist for the report page and navigate there
     localStorage.setItem('woodBillingReportData', JSON.stringify(used));
-    
+
     // FIX: Open in new tab
     const url = `/${params.lng}/puulaani-invoicing/report`;
     window.open(url, '_blank');
-    
+
   }, [rows, selection, t, params.lng]);
 
   return (
     <Paper sx={{ p: { xs: 2, md: 3 }, width: '100%' }}>
-      <Typography variant="h5" sx={{ mb: 2 }}>
-        {t('woodBillingPage:title')}
+      <Typography
+        variant="h5"
+        fontWeight="bold"
+        sx={{ mb: 3, color: '#a38f6d', letterSpacing: 1 }}
+      >
+        {t('woodBillingPage:title').toUpperCase()}
       </Typography>
 
       {feedback && (

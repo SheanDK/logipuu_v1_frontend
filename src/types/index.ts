@@ -1104,6 +1104,7 @@ export interface DayLabel {
 
 //chip invoicing types
 export type BillingRow = {
+    total: number;
     id: string | number;
     kuormaId?: number;
     date: string | null;

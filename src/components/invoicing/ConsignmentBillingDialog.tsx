@@ -1,22 +1,15 @@
-//frontend/src/components/invoicing/ConsignmentBillingDialog.tsx
+// frontend/src/components/invoicing/ConsignmentInvoicingDialog.tsx
 'use client';
 
 import React, { useEffect, useMemo, useState } from 'react';
 import {
   Dialog, DialogTitle, DialogContent, DialogActions,
-  Box, TextField, Button, Typography, Divider
+  Box, TextField, Button, Typography, Divider, Stack, Paper, alpha, useTheme
 } from '@mui/material';
 import type { BillingRow } from '@/services/invoicingService';
 import { useTranslation } from '@/i18n/useTranslation';
+import dayjs from 'dayjs';
 
-/* -----------------------------------------------------------------------------
- * Helpers
- * ---------------------------------------------------------------------------*/
-
-/**
- * Convert a date-like input to ISO (YYYY-MM-DD). Returns empty string on failure.
- * Accepts an already-ISO string and passes it through unchanged.
- */
 const toISO = (d?: string | null): string => {
   if (!d) return '';
   const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(d);
@@ -29,35 +22,20 @@ const toISO = (d?: string | null): string => {
   return `${y}-${mm}-${dd}`;
 };
 
-/* -----------------------------------------------------------------------------
- * Types
- * ---------------------------------------------------------------------------*/
-
-/**
- * Dialog edit form state (kept separate from the raw BillingRow).
- * Uses Finnish field names for backwards-compat, but all comments below are in English.
- */
 type EditForm = {
-  // header
-  pvm: string;                // date
-  rahtikirjanNro: string;     // waybill number
-  ajoreitti: string;          // route
-  lisatiedot: string;         // notes
-
-  // quantities
-  maaraM3: number;            // cubic meters
-  km: number;                 // kilometers
-  kpl: number;                // pieces
-  jakoTunnit: number;         // distribution hours
-
-  // unit prices
+  pvm: string;
+  rahtikirjanNro: string;
+  ajoreitti: string;
+  lisatiedot: string;
+  maaraM3: number;
+  km: number;
+  kpl: number;
+  jakoTunnit: number;
   hintaM3: number;
   hintaKm: number;
   hintaKpl: number;
   hintaJakoTunti: number;
-
-  // extras
-  tievero: number;            // road/toll tax
+  tievero: number;
 };
 
 type Props = {
@@ -68,57 +46,43 @@ type Props = {
   onDirtyChange?: (args: { rowId: BillingRow['id']; dirty: boolean }) => void;
 };
 
-/**
- * Consignment invoice line editor dialog.
- * - Initializes form state from the provided BillingRow
- * - Locks fields if the row is already billed
- * - Emits dirty-state changes upward
- * - Computes a live total from quantities, unit prices, and road tax
- */
 const ConsignmentInvoicingDialog: React.FC<Props> = ({ open, row, onClose, onSave, onDirtyChange }) => {
+
+  const theme = useTheme();
   const { t } = useTranslation(['consignmentBillingDialog', 'common']);
 
-  /** Initialize form from the current row (memoized by row.id). */
   const initial: EditForm = useMemo(() => ({
     pvm: toISO(row?.date ?? '') || '',
     rahtikirjanNro: row?.waybillNumber ?? '',
     ajoreitti: row?.route ?? '',
     lisatiedot: row?.notes ?? '',
-
     maaraM3: Number((row as any)?.quantityM3 ?? 0),
     km: Number((row as any)?.km ?? 0),
     kpl: Number((row as any)?.pieces ?? 0),
     jakoTunnit: Number((row as any)?.distributionHours ?? (row as any)?.hours ?? 0),
-
     hintaM3: Number((row as any)?.unitPriceM3 ?? row?.unitPrice ?? 0),
     hintaKm: Number((row as any)?.unitPriceKm ?? 0),
     hintaKpl: Number((row as any)?.unitPricePiece ?? 0),
     hintaJakoTunti: Number((row as any)?.unitPriceHour ?? (row as any)?.unitPriceDistributionHour ?? 0),
-
     tievero: Number((row as any)?.roadTax ?? (row as any)?.tievero ?? 0),
   }), [row?.id]);
 
-  /** Local form state; reset whenever `initial` changes. */
   const [form, setForm] = useState<EditForm>(initial);
   useEffect(() => setForm(initial), [initial]);
 
-  /** Lock the dialog inputs if the row has been billed. */
   const isBilled = Boolean(row?.billed || (row as any)?.billedDate);
 
-  /** Compare current form against initial values to determine dirty-state. */
   const isDirty = useMemo(() => {
     const norm = (v: any) => (typeof v === 'number' ? Number(v) : String(v ?? '').trim());
     return (Object.keys(initial) as (keyof EditForm)[])
       .some(k => norm(form[k]) !== norm(initial[k]));
   }, [form, initial]);
 
-  /** Notify parent about dirty-state changes (disabled if billed). */
   useEffect(() => {
     if (!row || !onDirtyChange) return;
     onDirtyChange({ rowId: row.id, dirty: !isBilled && isDirty });
   }, [row, isBilled, isDirty, onDirtyChange]);
 
-  /** Total = (sum of line item quantities × unit prices) + road/toll tax. */
   const total =
     form.maaraM3 * form.hintaM3 +
     form.km * form.hintaKm +
@@ -126,7 +90,6 @@ const ConsignmentInvoicingDialog: React.FC<Props> = ({ open, row, onClose, onSav
     form.jakoTunnit * form.hintaJakoTunti +
     form.tievero;
 
-  /** Update handler for any form field (auto-casts numeric fields). */
   const handleChange = (key: keyof EditForm) => (e: React.ChangeEvent<HTMLInputElement>) => {
     if (isBilled) return;
     const v = e.target.value;
@@ -138,171 +101,166 @@ const ConsignmentInvoicingDialog: React.FC<Props> = ({ open, row, onClose, onSav
     setForm(f => ({ ...f, [key]: numericKeys.includes(key) ? Number(v) : v }));
   };
 
-  /** Compose payload and notify parent on save. */
   const handleSaveClick = () => {
     if (!row) return;
     onSave({ rowId: row.id, form, total });
   };
 
+  // Helper for Metric Row
+  const MetricRow = ({ label, qtyKey, priceKey, subtotal }: any) => (
+    <Stack direction="row" spacing={2} alignItems="center">
+      <Typography sx={{ width: 140, fontWeight: 500, fontSize: '0.9rem' }}>{label}</Typography>
+      <TextField
+        label="Qty"
+        type="number"
+        size="small"
+        value={form[qtyKey as keyof EditForm]}
+        onChange={handleChange(qtyKey as keyof EditForm)}
+        disabled={isBilled}
+        sx={{ width: 120 }}
+      />
+      <TextField
+        label="Unit Price"
+        type="number"
+        size="small"
+        value={form[priceKey as keyof EditForm]}
+        onChange={handleChange(priceKey as keyof EditForm)}
+        disabled={isBilled}
+        sx={{ width: 120 }}
+      />
+      <Typography sx={{ flex: 1, textAlign: 'right', fontWeight: 'bold', color: 'text.primary' }}>
+        {subtotal.toFixed(2)} €
+      </Typography>
+    </Stack>
+  );
+
   return (
-    <Dialog open={open} onClose={onClose} maxWidth="lg" fullWidth>
-      <DialogTitle>{t('consignmentBillingDialog:title') || 'Edit consignment invoice'}</DialogTitle>
-      <DialogContent dividers>
+    <Dialog open={open} onClose={onClose} maxWidth="md" fullWidth>
+      <DialogTitle sx={{ bgcolor: alpha('#a38f6d', 0.02), borderBottom: '1px solid', borderColor: 'divider' }}>
+        <Stack direction="row" justifyContent="space-between" alignItems="center">
+          <Typography variant="h6" fontWeight="bold" sx={{ color: '#a38f6d' }}>
+            {t('consignmentBillingDialog:title') || 'Edit Consignment Invoice'}
+          </Typography>
+          <Typography variant="body2" color="text.secondary">
+            {form.pvm ? dayjs(form.pvm).format('DD.MM.YYYY') : ''}
+          </Typography>
+        </Stack>
+      </DialogTitle>
 
-        {/* Header section */}
-        <Box sx={{
-          display: 'grid',
-          gridTemplateColumns: { xs: '1fr', sm: 'repeat(2, 1fr)' },
-          gap: 2,
-        }}>
-          <TextField
-            label={t('consignmentBillingDialog:fields.date') || 'Date'}
-            type="date"
-            value={form.pvm}
-            onChange={handleChange('pvm')}
-            InputLabelProps={{ shrink: true }}
-            fullWidth
-            disabled
-          />
-          <TextField
-            label={t('consignmentBillingDialog:fields.waybillNumber') || 'Waybill number'}
-            value={form.rahtikirjanNro}
-            onChange={handleChange('rahtikirjanNro')}
-            fullWidth
-            disabled={isBilled}
-          />
-          <Box sx={{ gridColumn: { xs: 'auto', sm: '1 / -1' } }}>
-            <TextField
-              label={t('consignmentBillingDialog:fields.route') || 'Route'}
-              value={form.ajoreitti}
-              onChange={handleChange('ajoreitti')}
-              fullWidth
-              disabled={isBilled}
-            />
-          </Box>
-          <Box sx={{ gridColumn: '1 / -1' }}>
-            <TextField
-              label={t('consignmentBillingDialog:fields.notes') || 'Notes'}
-              value={form.lisatiedot}
-              onChange={handleChange('lisatiedot')}
-              fullWidth
-              multiline
-              minRows={2}
-              disabled={isBilled}
-            />
-          </Box>
-        </Box>
+      <DialogContent dividers sx={{ p: 3 }}>
+        <Stack spacing={3}>
+          {/* Header Info Section */}
+          <Paper
+            elevation={0}
+            sx={{
+              p: 2,
+              bgcolor: alpha(theme.palette.text.primary, 0.02),
+              border: '1px solid',
+              borderColor: 'divider'
+            }}>
+            <Stack spacing={2}>
+              <Stack direction="row" spacing={2}>
+                <TextField
+                  label="Waybill Number"
+                  size="small"
+                  value={form.rahtikirjanNro}
+                  onChange={handleChange('rahtikirjanNro')}
+                  disabled={isBilled}
+                  fullWidth
+                />
+                <TextField
+                  label="Date"
+                  type="date"
+                  size="small"
+                  value={form.pvm}
+                  disabled
+                  InputLabelProps={{ shrink: true }}
+                  fullWidth
+                />
+              </Stack>
+              <TextField
+                label="Route"
+                size="small"
+                value={form.ajoreitti}
+                onChange={handleChange('ajoreitti')}
+                disabled={isBilled}
+                fullWidth
+              />
+              <TextField
+                label="Notes"
+                size="small"
+                multiline
+                rows={2}
+                value={form.lisatiedot}
+                onChange={handleChange('lisatiedot')}
+                disabled={isBilled}
+                fullWidth
+              />
+            </Stack>
+          </Paper>
 
-        <Divider sx={{ my: 2 }} />
-
-        {/* Column headers (sm+) */}
-        <Typography variant="h6" sx={{ mb: 1 }}>
-          {t('consignmentBillingDialog:lines.title') || 'Lines'}
-        </Typography>
-
-        <Box sx={{
-          display: { xs: 'none', sm: 'grid' },
-          gridTemplateColumns: '1fr 1fr 1fr',
-          alignItems: 'end',
-          mb: 0.75,
-        }}>
-          <Box sx={{
-            gridColumn: '2 / -1',
-            display: 'grid',
-            gridTemplateColumns: '1fr 1fr',
-            gap: 1,
-            borderBottom: '1px solid',
-            borderColor: 'divider',
-            pb: 0.5,
-          }}>
-            <Typography variant="subtitle2" sx={{ color: 'text.secondary' }}>
-              {t('consignmentBillingDialog:lines.amount') || 'Amount'}
+          {/* Lines Section */}
+          <Stack spacing={2}>
+            <Typography variant="subtitle2" fontWeight="bold" color="text.secondary" sx={{ letterSpacing: 1 }}>
+              LINES & METRICS
             </Typography>
-            <Typography variant="subtitle2" sx={{ color: 'text.secondary' }}>
-              {t('consignmentBillingDialog:lines.unitPrice') || 'Unit price'}
-            </Typography>
-          </Box>
-        </Box>
 
-        {/* Lines */}
-        <Box sx={{ display: 'grid', gap: 1.5 }}>
-          {/* m³ */}
-          <Row3
-            label={t('consignmentBillingDialog:lines.cubicMeters') || 'm³'}
-            amount={form.maaraM3}
-            unitPrice={form.hintaM3}
-            onAmountChange={handleChange('maaraM3')}
-            onUnitPriceChange={handleChange('hintaM3')}
-            disabled={isBilled}
-          />
-          {/* Km */}
-          <Row3
-            label={t('consignmentBillingDialog:lines.km') || 'Km'}
-            amount={form.km}
-            unitPrice={form.hintaKm}
-            onAmountChange={handleChange('km')}
-            onUnitPriceChange={handleChange('hintaKm')}
-            disabled={isBilled}
-          />
-          {/* Pieces */}
-          <Row3
-            label={t('consignmentBillingDialog:lines.pieces') || 'Pieces'}
-            amount={form.kpl}
-            unitPrice={form.hintaKpl}
-            onAmountChange={handleChange('kpl')}
-            onUnitPriceChange={handleChange('hintaKpl')}
-            disabled={isBilled}
-          />
-          {/* Distribution hours */}
-          <Row3
-            label={t('consignmentBillingDialog:lines.distributionHours') || 'Distribution hours'}
-            amount={form.jakoTunnit}
-            unitPrice={form.hintaJakoTunti}
-            onAmountChange={handleChange('jakoTunnit')}
-            onUnitPriceChange={handleChange('hintaJakoTunti')}
-            disabled={isBilled}
-          />
+            <Stack direction="row" spacing={2} sx={{ px: 1, opacity: 0.7 }}>
+              <Typography variant="caption" sx={{ width: 140, fontWeight: 'bold' }}>METRIC</Typography>
+              <Typography variant="caption" sx={{ width: 120, fontWeight: 'bold' }}>QUANTITY</Typography>
+              <Typography variant="caption" sx={{ width: 120, fontWeight: 'bold' }}>UNIT PRICE</Typography>
+              <Typography variant="caption" sx={{ flex: 1, textAlign: 'right', fontWeight: 'bold' }}>SUBTOTAL</Typography>
+            </Stack>
 
-          {/* Road tax */}
-          <Box sx={{
-            display: 'grid',
-            gridTemplateColumns: { xs: '1fr', sm: '1fr 2fr' },
-            gap: 1,
-            alignItems: 'center',
-          }}>
-            <Typography>{t('consignmentBillingDialog:lines.roadTax') || 'Road tax'}</Typography>
-            <TextField
-              type="number"
-              value={form.tievero}
-              inputProps={{ step: '0.01' }}
-              onChange={handleChange('tievero')}
-              fullWidth
-              disabled={isBilled}
-            />
-          </Box>
+            <MetricRow label="Cubic Meters (m³)" qtyKey="maaraM3" priceKey="hintaM3" subtotal={form.maaraM3 * form.hintaM3} />
+            <MetricRow label="Kilometers (km)" qtyKey="km" priceKey="hintaKm" subtotal={form.km * form.hintaKm} />
+            <MetricRow label="Pieces (pcs)" qtyKey="kpl" priceKey="hintaKpl" subtotal={form.kpl * form.hintaKpl} />
+            <MetricRow label="Distribution Hours" qtyKey="jakoTunnit" priceKey="hintaJakoTunti" subtotal={form.jakoTunnit * form.hintaJakoTunti} />
 
-          {/* Total */}
-          <Box sx={{
-            display: 'grid',
-            gridTemplateColumns: { xs: '1fr', sm: '1fr 2fr' },
-            gap: 1,
-            alignItems: 'center',
-            mt: 1,
-          }}>
-            <Typography fontWeight={600}>
-              {t('consignmentBillingDialog:lines.total') || 'Total'}
-            </Typography>
-            <TextField value={total.toFixed(2)} InputProps={{ readOnly: true }} fullWidth />
-          </Box>
-        </Box>
+            <Divider />
+
+            {/* Road Tax Row */}
+            <Stack direction="row" spacing={2} alignItems="center">
+              <Typography sx={{ width: 140, fontWeight: 500, fontSize: '0.9rem' }}>Road Tax / Toll</Typography>
+              <Box sx={{ width: 120 }} />
+              <TextField
+                label="Tax Amount"
+                type="number"
+                size="small"
+                value={form.tievero}
+                onChange={handleChange('tievero')}
+                disabled={isBilled}
+                sx={{ width: 120 }}
+              />
+              <Typography sx={{ flex: 1, textAlign: 'right', fontWeight: 'bold' }}>
+                {form.tievero.toFixed(2)} €
+              </Typography>
+            </Stack>
+
+            {/* Grand Total Section */}
+            <Paper elevation={0} sx={{ p: 2, bgcolor: alpha('#a38f6d', 0.05), border: '1px dashed #a38f6d' }}>
+              <Stack direction="row" justifyContent="space-between" alignItems="center">
+                <Typography variant="h6" fontWeight="bold">Grand Total</Typography>
+                <Typography variant="h5" fontWeight="bold" sx={{ color: '#a38f6d' }}>
+                  {total.toFixed(2)} €
+                </Typography>
+              </Stack>
+            </Paper>
+          </Stack>
+        </Stack>
       </DialogContent>
 
-      <DialogActions>
-        <Button variant="outlined" onClick={onClose}>
+      <DialogActions sx={{ p: 2, bgcolor: alpha('#a38f6d', 0.02) }}>
+        <Button variant="outlined" onClick={onClose} color="inherit">
           {t('common:buttons.close') || 'Close'}
         </Button>
-        <Button variant="contained" onClick={handleSaveClick} disabled={isBilled || !isDirty}>
-          {t('common:buttons.update') || 'Save changes'}
+        <Button
+          variant="contained"
+          onClick={handleSaveClick}
+          disabled={isBilled || !isDirty}
+          sx={{ bgcolor: '#a38f6d', px: 4, '&:hover': { bgcolor: '#8e7a5a' } }}
+        >
+          {t('common:buttons.update') || 'Save Changes'}
         </Button>
       </DialogActions>
     </Dialog>
@@ -310,42 +268,3 @@ const ConsignmentInvoicingDialog: React.FC<Props> = ({ open, row, onClose, onSav
 };
 
 export default ConsignmentInvoicingDialog;
-
-/* -----------------------------------------------------------------------------
- * Small helper row: three-field block (Label | Amount | Unit price)
- * ---------------------------------------------------------------------------*/
-const Row3: React.FC<{
-  label: string;
-  amount: number;
-  unitPrice: number;
-  onAmountChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
-  onUnitPriceChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
-  disabled?: boolean;
-}> = ({ label, amount, unitPrice, onAmountChange, onUnitPriceChange, disabled }) => (
-  <Box
-    sx={{
-      display: 'grid',
-      gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr 1fr' },
-      gap: 1,
-      alignItems: 'center',
-    }}
-  >
-    <Typography>{label}</Typography>
-    <TextField
-      type="number"
-      value={amount}
-      inputProps={{ step: '0.01' }}
-      onChange={onAmountChange}
-      fullWidth
-      disabled={disabled}
-    />
-    <TextField
-      type="number"
-      value={unitPrice}
-      inputProps={{ step: '0.01' }}
-      onChange={onUnitPriceChange}
-      fullWidth
-      disabled={disabled}
-    />
-  </Box>
-);

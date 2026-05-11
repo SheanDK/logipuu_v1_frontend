@@ -1,11 +1,12 @@
 // frontend/src/components/invoicing/ChipInvoicingFilters.tsx
 'use client';
 import React from 'react';
-import { Box, Button, TextField, Checkbox, FormControlLabel, Stack, Paper, Typography } from '@mui/material';
+import { Box, Button, TextField, Checkbox, FormControlLabel, Stack, Paper, Typography, alpha, useTheme } from '@mui/material';
 import { useForm, Controller } from 'react-hook-form';
 import SearchIcon from '@mui/icons-material/Search';
 
 const ChipInvoicingFilters = ({ onSubmit, loading, initialValues }: any) => {
+    const theme = useTheme();
     const { control, handleSubmit } = useForm({
         defaultValues: {
             dateFrom: initialValues?.dateFrom ?? new Date().toISOString().split('T')[0],
@@ -19,10 +20,11 @@ const ChipInvoicingFilters = ({ onSubmit, loading, initialValues }: any) => {
         <Paper
             elevation={0}
             sx={{
-                p: 3,
-                border: '1px solid #e0e0e0',
+                p: 2,
+                border: '1px solid',
+                borderColor: 'divider',
                 borderRadius: 2,
-                bgcolor: '#fafafa'
+                bgcolor: alpha(theme.palette.background.paper, 0.5)
             }}
         >
             <Box component="form" onSubmit={handleSubmit(onSubmit)}>
@@ -62,7 +64,7 @@ const ChipInvoicingFilters = ({ onSubmit, loading, initialValues }: any) => {
                                 render={({ field }) => (
                                     <FormControlLabel
                                         control={<Checkbox {...field} checked={Boolean(field.value)} sx={{ color: '#a38f6d', '&.Mui-checked': { color: '#a38f6d' } }} />}
-                                        label="Show Unbilled"
+                                        label="Unbilled"
                                     />
                                 )}
                             />
@@ -72,7 +74,7 @@ const ChipInvoicingFilters = ({ onSubmit, loading, initialValues }: any) => {
                                 render={({ field }) => (
                                     <FormControlLabel
                                         control={<Checkbox {...field} checked={Boolean(field.value)} sx={{ color: '#a38f6d', '&.Mui-checked': { color: '#a38f6d' } }} />}
-                                        label="Show Billed"
+                                        label="Billed"
                                     />
                                 )}
                             />

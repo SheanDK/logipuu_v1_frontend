@@ -183,7 +183,8 @@ const ChipInvoicingTable = ({ rows, onEdit, onSelectionChange, selectionMap, err
                                         animation: `blink-red 0.8s ease-in-out 3`,
                                         '&:hover': { bgcolor: alpha(theme.palette.error.main, 0.08) },
                                     },
-                                    '& .MuiDataGrid-cell': { fontSize: '0.75rem' }
+                                    '& .MuiDataGrid-cell': { fontSize: '0.75rem' },
+                                    '& .MuiDataGrid-columnHeaderTitle': { fontWeight: 'bold', fontSize: '0.7rem' },
                                 }}
                             />
                         </Box>
