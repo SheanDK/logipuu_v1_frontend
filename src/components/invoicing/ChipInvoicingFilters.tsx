@@ -4,8 +4,10 @@ import React from 'react';
 import { Box, Button, TextField, Checkbox, FormControlLabel, Stack, Paper, Typography, alpha, useTheme } from '@mui/material';
 import { useForm, Controller } from 'react-hook-form';
 import SearchIcon from '@mui/icons-material/Search';
+import { useTranslation } from 'react-i18next';
 
 const ChipInvoicingFilters = ({ onSubmit, loading, initialValues }: any) => {
+    const { t } = useTranslation('chipInvoicing');
     const theme = useTheme();
     const { control, handleSubmit } = useForm({
         defaultValues: {
@@ -29,8 +31,8 @@ const ChipInvoicingFilters = ({ onSubmit, loading, initialValues }: any) => {
         >
             <Box component="form" onSubmit={handleSubmit(onSubmit)}>
                 <Stack spacing={2}>
-                    <Typography variant="caption" fontWeight="bold" color="text.secondary" sx={{ mb: -1, ml: 0.5 }}>
-                        SEARCH FILTERS
+                    <Typography variant="caption" textTransform="uppercase" fontWeight="bold" color="text.secondary" sx={{ mb: -1, ml: 0.5 }}>
+                        {t('searchFiltersTitle.title')}
                     </Typography>
 
                     <Stack
@@ -44,14 +46,14 @@ const ChipInvoicingFilters = ({ onSubmit, loading, initialValues }: any) => {
                                 name="dateFrom"
                                 control={control}
                                 render={({ field }) => (
-                                    <TextField {...field} label="Date From" type="date" fullWidth size="small" InputLabelProps={{ shrink: true }} />
+                                    <TextField {...field} label={t('searchFiltersTitle.dateFrom')} type="date" fullWidth size="small" InputLabelProps={{ shrink: true }} />
                                 )}
                             />
                             <Controller
                                 name="dateTo"
                                 control={control}
                                 render={({ field }) => (
-                                    <TextField {...field} label="Date To" type="date" fullWidth size="small" InputLabelProps={{ shrink: true }} />
+                                    <TextField {...field} label={t('searchFiltersTitle.dateTo')} type="date" fullWidth size="small" InputLabelProps={{ shrink: true }} />
                                 )}
                             />
                         </Stack>
@@ -64,7 +66,7 @@ const ChipInvoicingFilters = ({ onSubmit, loading, initialValues }: any) => {
                                 render={({ field }) => (
                                     <FormControlLabel
                                         control={<Checkbox {...field} checked={Boolean(field.value)} sx={{ color: '#a38f6d', '&.Mui-checked': { color: '#a38f6d' } }} />}
-                                        label="Unbilled"
+                                        label={t('searchFiltersTitle.unbilled')}
                                     />
                                 )}
                             />
@@ -74,7 +76,7 @@ const ChipInvoicingFilters = ({ onSubmit, loading, initialValues }: any) => {
                                 render={({ field }) => (
                                     <FormControlLabel
                                         control={<Checkbox {...field} checked={Boolean(field.value)} sx={{ color: '#a38f6d', '&.Mui-checked': { color: '#a38f6d' } }} />}
-                                        label="Billed"
+                                        label={t('searchFiltersTitle.billed')}
                                     />
                                 )}
                             />
@@ -94,7 +96,7 @@ const ChipInvoicingFilters = ({ onSubmit, loading, initialValues }: any) => {
                                 '&:hover': { bgcolor: '#8e7a5a' }
                             }}
                         >
-                            {loading ? 'SEARCHING...' : 'SEARCH'}
+                            {loading ? t('actions.searching') : t('actions.search')}
                         </Button>
                     </Stack>
                 </Stack>

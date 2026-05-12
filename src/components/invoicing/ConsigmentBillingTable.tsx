@@ -3,7 +3,7 @@
 
 import React, { useMemo, useState, useEffect } from "react";
 import {
-  Box, Paper, Typography, Stack, Tooltip, IconButton, Chip, Checkbox, alpha, useTheme, Button
+  Box, Paper, Typography, Stack, IconButton, Chip, Checkbox, alpha, useTheme, Button
 } from "@mui/material";
 import {
   DataGrid, GridColDef, GridColumnGroupingModel, GridRowId
@@ -11,9 +11,6 @@ import {
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
 import AddIcon from "@mui/icons-material/Add";
-import CheckCircleIcon from "@mui/icons-material/CheckCircle";
-import HourglassEmptyIcon from "@mui/icons-material/HourglassEmpty";
-import MoneyOffIcon from "@mui/icons-material/MoneyOff";
 import { useTranslation } from "@/i18n/useTranslation";
 import type { BillingRow } from "@/services/invoicingService";
 import dayjs from "dayjs";

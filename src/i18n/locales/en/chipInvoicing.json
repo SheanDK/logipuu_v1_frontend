@@ -1,31 +1,146 @@
 {
-    "title": "CHIP TRANSPORT BILLING REPORT",
-    "generatedOn": "Generated on",
-    "date": "Date",
-    "vehicle": "Vehicle",
-    "customer": "Customer",
-    "itemName": "Item Name",
-    "m3": "M3",
-    "tons": "Tons",
-    "totals": "TOTALS:",
-    "authorizedBy": "Authorized by WoodMaster LogiApp",
-    "plannerSignature": "Planner Signature: __________________",
-    "noDataFound": "No data found for the report.",
-    "errorReadingData": "Error reading data.",
-    "viewReport": "View Report",
-    "invoiceSelected": "Invoice Selected",
-    "back": "Back",
-    "filters": {
-        "title": "Filters",
+    "messages": {
+        "deleteOk": "Chip(s) deleted successfully."
+    },
+    "errors": {
+        "deleteFailed": "Failed to delete chip(s)."
+    },
+    "pageTitle": "Chip Transport Invoicing",
+    "headers": {
+        "searchAndSelect": "Search and select",
+        "selectedLoads": "Selected loads",
+        "actions": "Actions"
+    },
+    "actions": {
+        "search": "Search",
+        "clear": "Clear filters",
+        "invoice": "Invoice selected",
+        "delete": "Delete selected",
+        "edit": "Edit",
+        "report": "Generate report",
+        "invoiceAndPrint": "Invoice and print",
+        "createNewLoad": "Create new load",
+        "cancel": "Cancel",
+        "confirmDelete": "Confirm deletion"
+    },
+    "table": {
+        "headers": {
+            "select": "Select",
+            "id": "ID",
+            "date": "Date",
+            "customerId": "Customer ID",
+            "chipId": "Chip ID",
+            "loadNumber": "Load number",
+            "quantity": "Quantity (t)",
+            "price": "Price (€)",
+            "total": "Total (€)",
+            "amount": "Amount",
+            "actualM3": "Actual m3",
+            "actualTon": "Actual ton",
+            "actualPcs": "Actual pcs",
+            "actualHr": "Actual hr",
+            "unitPriceM3": "Unit price m3",
+            "unitPriceTon": "Unit price ton",
+            "unitPriceHr": "Unit price hr",
+            "loadingHours": "Loading hours",
+            "unloadingHours": "Unloading hours",
+            "titleName": "Title Name"
+        },
+        "selectPlaceholder": "Select loads to invoice",
+        "noRecordsFound": "No results",
+        "adjustFilters": "Adjust filters.",
+        "loading": "Loading..."
+    },
+    "dialogs": {
+        "editChipLoad": {
+            "title": "Edit Chip Load",
+            "headers": {
+                "loadInfo": "Load info",
+                "pricing": "Pricing"
+            },
+            "fields": {
+                "loadId": "Load ID",
+                "chipId": "Chip ID",
+                "customerId": "Customer ID",
+                "quantity": "Quantity (t)",
+                "price": "Price (€)",
+                "total": "Total (€)"
+            }
+        },
+        "confirmation": {
+            "title": "Confirmation",
+            "message": "Are you sure you want to proceed?"
+        },
+        "error": {
+            "title": "Error",
+            "message": "An error occurred.",
+            "invalidDataTitle": "Invalid data",
+            "invalidDataMessage": "Cannot invoice loads with zero total."
+        }
+    },
+    "placeholders": {
+        "chipId": "Enter Chip ID",
+        "dateFrom": "Date from",
+        "dateTo": "Date to",
+        "customerId": "Enter customer ID",
+        "loadNumber": "Enter load number",
+        "vehicle": "Vehicle"
+    },
+    "filterSections": {
+        "chipIds": "Chip IDs",
+        "dateRange": "Date range",
+        "customer": "Customer",
+        "loadNumbers": "Load numbers"
+    },
+    "tooltips": {
+        "searchAndSelect": "Search and select"
+    },
+    "searchFiltersTitle": {
+        "title": "Search Filters",
         "dateFrom": "Date From",
         "dateTo": "Date To",
-        "customer": "Customer",
-        "vehicle": "Vehicle",
+        "unbilled": "Unbilled",
         "billed": "Billed",
-        "all": "All",
-        "yes": "Yes",
-        "no": "No",
+        "search": "Search"
+    },
+    "status": {
+        "unbilled": "Unbilled",
+        "billed": "Billed",
+        "noPrice": "No price"
+    },
+    "buttons": {
         "search": "Search",
-        "clear": "Clear"
+        "clear": "Clear",
+        "invoice": "Invoice",
+        "delete": "Delete",
+        "edit": "Edit",
+        "report": "Report",
+        "invoiceAndPrint": "Invoice and print",
+        "createNewLoad": "Create new load",
+        "cancel": "Cancel",
+        "confirmDelete": "Confirm delete"
+    },
+    "report": {
+        "error": "No report data found. Please close this window and try again.",
+        "parseError": "Failed to parse report data.",
+        "title": "CHIP TRANSPORT INVOICING",
+        "titleName": "Chip Invoicing Report",
+        "generated": "Generated Date",
+        "customer": "Customer",
+        "grandTotal": "GRAND TOTAL",
+        "totalM3": "Total m³",
+        "totalTons": "Total tons",
+        "totalHours": "Total hours",
+        "totalValue": "Total (€)",
+        "tableHeaders": {
+            "id": "ID",
+            "date": "Date",
+            "customerId": "Customer ID",
+            "chipId": "Chip ID",
+            "loadNumber": "Load number",
+            "quantity": "Quantity (t)",
+            "price": "Price (€)",
+            "total": "Total (€)"
+        }
     }
 }

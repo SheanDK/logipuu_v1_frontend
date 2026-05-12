@@ -1,31 +1,145 @@
 {
-    "title": "CHIP TRANSPORT BILLING REPORT",
-    "generatedOn": "Generated on",
-    "date": "Date",
-    "vehicle": "Vehicle",
-    "customer": "Customer",
-    "itemName": "Item Name",
-    "m3": "M3",
-    "tons": "Tons",
-    "totals": "TOTALS:",
-    "authorizedBy": "Authorized by WoodMaster LogiApp",
-    "plannerSignature": "Planner Signature: __________________",
-    "noDataFound": "No data found for the report.",
-    "errorReadingData": "Error reading data.",
-    "viewReport": "View Report",
-    "invoiceSelected": "Invoice Selected",
-    "back": "Back",
-    "filters": {
-        "title": "Filters",
-        "dateFrom": "Date From",
-        "dateTo": "Date To",
-        "customer": "Customer",
-        "vehicle": "Vehicle",
-        "billed": "Billed",
-        "all": "All",
-        "yes": "Yes",
-        "no": "No",
-        "search": "Search",
-        "clear": "Clear"
+    "messages": {
+        "deleteOk": "Chip(s) poistettu onnistuneesti."
+    },
+    "errors": {
+        "deleteFailed": "Chip(s) poistaminen epäonnistui."
+    },
+    "pageTitle": "CHIP KULJETUSLAJITTELU",
+    "headers": {
+        "searchAndSelect": "Hae ja valitse",
+        "selectedLoads": "Valitut lastit",
+        "actions": "Toiminnot"
+    },
+    "actions": {
+        "search": "Hae",
+        "clear": "Tyhjennä suodattimet",
+        "invoice": "Laskuta valitut",
+        "delete": "Poista valitut",
+        "edit": "Muokkaa",
+        "report": "Luo raportti",
+        "invoiceAndPrint": "Laskuta ja tulosta",
+        "createNewLoad": "Luo uusi lasti",
+        "cancel": "Peruuta",
+        "confirmDelete": "Vahvista poisto"
+    },
+    "table": {
+        "headers": {
+            "select": "Valitse",
+            "id": "ID",
+            "date": "Päivämäärä",
+            "customerId": "Asiakas ID",
+            "chipId": "Chip ID",
+            "loadNumber": "K. numero",
+            "quantity": "Määrä (t)",
+            "price": "Hinta (€)",
+            "total": "Yhteensä (€)",
+            "amount": "Määrä",
+            "actualM3": "Todellinen m3",
+            "actualTon": "Todellinen ton",
+            "actualPcs": "Todellinen kpl",
+            "actualHr": "Todellinen h",
+            "unitPriceM3": "Yksikköhinta m3",
+            "unitPriceTon": "Yksikköhinta ton",
+            "unitPriceHr": "Yksikköhinta h",
+            "status": "Tilaus",
+            "action": "Toimenpide",
+            "titleName": "Tilaaja Nimi"
+        },
+        "selectPlaceholder": "Valitse laskutettavat rivit",
+        "noRecordsFound": "Ei tuloksia",
+        "adjustFilters": "Säädä suodattimia.",
+        "loading": "Ladataan..."
+    },
+    "dialogs": {
+        "editChipLoad": {
+            "title": "Muokkaa Chip Load",
+            "headers": {
+                "loadInfo": "Kuorma tiedot",
+                "pricing": "Hinnoittelu"
+            },
+            "fields": {
+                "loadId": "Kuorma ID",
+                "chipId": "Chip ID",
+                "customerId": "Asiakas ID",
+                "quantity": "Määrä (t)",
+                "price": "Hinta (€)",
+                "total": "Yhteensä (€)"
+            }
+        },
+        "confirmation": {
+            "title": "Vahvistus",
+            "message": "Oletko varma, että haluat jatkaa?"
+        },
+        "error": {
+            "title": "Virhe",
+            "message": "Virhe tapahtui.",
+            "invalidDataTitle": "Virheellinen data",
+            "invalidDataMessage": "Ei voida laskuttaa nollan kokonaissumman kuormia."
+        }
+    },
+    "placeholders": {
+        "chipId": "Syötä Chip ID",
+        "dateFrom": "Päivämäärä alkaen",
+        "dateTo": "Päivämäärä saakka",
+        "customerId": "Syötä asiakas",
+        "loadNumber": "Syötä kuorma numero",
+        "vehicle": "Syötä ajoneuvo"
+    },
+    "filterSections": {
+        "chipIds": "Chip ID:t",
+        "dateRange": "Päivämääräalue",
+        "customer": "Asiakas",
+        "loadNumbers": "Kuorma numerot"
+    },
+    "tooltips": {
+        "searchAndSelect": "Hae ja valitse"
+    },
+    "searchFiltersTitle": {
+        "title": "Hae chip",
+        "dateFrom": "Päivämäärä alkaen",
+        "dateTo": "Päivämäärä saakka",
+        "unbilled": "Laskuttamaton",
+        "billed": "Laskutettu",
+        "search": "Hae"
+    },
+    "status": {
+        "unbilled": "Laskuttamaton",
+        "billed": "Laskutettu",
+        "noPrice": "Ei hintaa"
+    },
+    "buttons": {
+        "search": "Hae",
+        "clear": "Tyhjennä",
+        "confirmAndInvoice": "Vahvista",
+        "delete": "Poista",
+        "edit": "Muokkaa",
+        "report": "Raportti",
+        "invoiceAndPrint": "Laskuta ja tulosta",
+        "cancel": "Peruuta",
+        "confirmDelete": "Vahvista poisto"
+    },
+    "report": {
+        "error": "Ei raporttidataa. Sulje tämä ikkuna ja yritä uudelleen.",
+        "parseError": "Raporttidatan jäsentäminen epäonnistui.",
+        "title": "CHIP KULJETUSLAJITTELURAPORTTI",
+        "titleName": "CHIP KULJETUSLAJITTELURAPORTTI",
+        "generated": "Luotu päivämäärä",
+        "customer": "Asiakas",
+        "grandTotal": "YHTEENSÄ",
+        "totalM3": "Yhteensä m³",
+        "totalTons": "Yhteensä ton",
+        "totalHours": "Yhteensä tunnit",
+        "totalValue": "Yhteensä (€)",
+        "tableHeaders": {
+            "id": "ID",
+            "date": "Päivämäärä",
+            "customer": "Asiakas",
+            "chipId": "Chip ID",
+            "loadNumber": "Kuorma numero",
+            "quantity": "Määrä (t)",
+            "price": "Hinta (€)",
+            "total": "Yhteensä (€)"
+        }
     }
 }

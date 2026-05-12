@@ -4,17 +4,19 @@
 import React, { useEffect, useState } from 'react';
 import { Alert, Box, CircularProgress } from '@mui/material';
 import ChipInvoicingReport from '@/components/invoicing/ChipInvoicingReport';
+import { useTranslation } from '@/i18n/useTranslation'; // ව්‍යාපෘතියේ සම්මත hook එක භාවිතා කිරීම
 
 export default function ChipInvoicingReportPage() {
     const [data, setData] = useState<any[] | null>(null);
     const [err, setErr] = useState<string | null>(null);
+    const { t } = useTranslation(['chipInvoicing']); // chipInvoicing namespace එක ලබා ගැනීම
 
     useEffect(() => {
         try {
             const s = sessionStorage.getItem('chipInvoicingReportData');
 
             if (!s) {
-                setErr("No report data found. Please close this window and try again.");
+                setErr(t('chipInvoicing:report.error')); // JSON: "Ei raporttidataa..."
                 return;
             }
 
@@ -22,9 +24,9 @@ export default function ChipInvoicingReportPage() {
             setData(parsedData);
 
         } catch (e) {
-            setErr("Failed to parse report data.");
+            setErr(t('chipInvoicing:report.parseError')); // JSON: "Raporttidatan jäsentäminen..."
         }
-    }, []);
+    }, [t]);
 
     if (err) return (
         <Box sx={{ p: 4 }}>

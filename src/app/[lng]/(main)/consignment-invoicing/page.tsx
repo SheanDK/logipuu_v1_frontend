@@ -1,14 +1,14 @@
 'use client';
 import React, { useCallback, useState, useEffect, useMemo } from 'react';
 import {
-  Paper, Typography, Alert, Divider, Box, CircularProgress,
+  Paper, Typography, Alert, Box, CircularProgress,
   Button, Backdrop, Stack, TablePagination, alpha, useTheme,
   Snackbar
 } from '@mui/material';
 import { useTranslation } from '@/i18n/useTranslation';
 import {
-  searchConsignments, createConsignment, updateConsignment,
-  deleteManyConsignments, invoiceConsignments, UpsertConsignmentDto
+  searchConsignments, updateConsignment,
+  deleteManyConsignments, invoiceConsignments,
 } from '@/services/consignmentService';
 import type { BillingRow } from '@/services/invoicingService';
 import ConsignmentBillingFilters, { type ConsigmentSearchParams } from '@/components/invoicing/ConsignmentBillingFilter';

@@ -2,17 +2,18 @@
 'use client';
 import React, { useMemo } from 'react';
 import {
-    Box, Paper, Typography, Button, Stack, IconButton,
+    Box, Paper, Typography, Stack, IconButton,
     Chip, Checkbox, useTheme, alpha
 } from '@mui/material';
 import { DataGrid, GridColDef } from '@mui/x-data-grid';
 import EditIcon from '@mui/icons-material/Edit';
-import AddIcon from '@mui/icons-material/Add';
 import DeleteIcon from '@mui/icons-material/Delete';
 import dayjs from 'dayjs';
+import { useTranslation } from 'react-i18next';
 
-const ChipInvoicingTable = ({ rows, onEdit, onSelectionChange, selectionMap, errorTrigger }: any) => {
+const ChipInvoicingTable = ({ rows, onEdit, onSelectionChange, selectionMap, errorTrigger, onDelete }: any) => {
     const theme = useTheme();
+    const { t } = useTranslation('chipInvoicing');
 
     const blinkKeyframes = `
         @keyframes blink-red {
@@ -46,13 +47,13 @@ const ChipInvoicingTable = ({ rows, onEdit, onSelectionChange, selectionMap, err
 
     const columns: GridColDef[] = [
         {
-            field: 'status', headerName: 'Status', width: 110,
+            field: 'status', headerName: t('table.headers.status'), width: 110,
             renderCell: (p: any) => {
                 const isBilled = p.row.billed;
                 const hasTotal = Number(p.row.total || 0) > 0;
                 return (
                     <Chip
-                        label={isBilled ? "Billed" : (hasTotal ? "Unbilled" : "No Price")}
+                        label={isBilled ? t('status.billed') : (hasTotal ? t('status.unbilled') : t('status.noPrice'))}
                         variant="outlined" size="small"
                         color={isBilled ? "success" : (hasTotal ? "info" : "error")}
                         sx={{ fontWeight: 'bold', fontSize: '0.65rem' }}
@@ -61,30 +62,46 @@ const ChipInvoicingTable = ({ rows, onEdit, onSelectionChange, selectionMap, err
             }
         },
         {
-            field: 'actions', headerName: 'Actions', width: 80, sortable: false,
+            field: 'actions',
+            headerName: t('table.headers.action'),
+            width: 80,
+            sortable: false,
             renderCell: (p: any) => (
                 <Stack direction="row" spacing={0.5}>
-                    <IconButton size="small" onClick={() => onEdit(p.row)}><EditIcon fontSize="small" /></IconButton>
-                    <IconButton size="small" color="error"><DeleteIcon fontSize="small" /></IconButton>
+                    <IconButton
+                        size="small"
+                        onClick={() => onEdit(p.row)}
+                        title={t('tooltips.edit')}
+                    >
+                        <EditIcon fontSize="small" />
+                    </IconButton>
+                    <IconButton
+                        size="small"
+                        color="error"
+                        onClick={() => onDelete(p.row.loadId)}
+                        title={t('tooltips.delete')}
+                    >
+                        <DeleteIcon fontSize="small" />
+                    </IconButton>
                 </Stack>
             )
         },
-        { field: 'date', headerName: 'Date', width: 90, valueFormatter: (params: any) => dayjs(params).format('DD.MM.YYYY') },
-        { field: 'loadId', headerName: 'Serial', width: 70 },
-        { field: 'titleName', headerName: 'Route / Item', flex: 1, minWidth: 150 },
+        { field: 'date', headerName: t('table.headers.date'), width: 90, valueFormatter: (params: any) => dayjs(params).format('DD.MM.YYYY') },
+        { field: 'loadId', headerName: t('table.headers.loadNumber'), width: 70 },
+        { field: 'titleName', headerName: t('table.headers.titleName'), flex: 1, minWidth: 150 },
 
         // Amount Columns
-        { field: 'actualM3', headerName: 'm³', width: AMNT_COL_WIDTH, type: 'number', align: 'right' },
-        { field: 'actualTon', headerName: 'Ton', width: AMNT_COL_WIDTH, type: 'number', align: 'right' },
-        { field: 'actualPcs', headerName: 'Pcs', width: AMNT_COL_WIDTH, type: 'number', align: 'right' },
-        { field: 'actualHr', headerName: 'Hours', width: AMNT_COL_WIDTH, type: 'number', align: 'right' },
+        { field: 'actualM3', headerName: t('table.headers.actualM3'), width: AMNT_COL_WIDTH, type: 'number', align: 'right' },
+        { field: 'actualTon', headerName: t('table.headers.actualTon'), width: AMNT_COL_WIDTH, type: 'number', align: 'right' },
+        { field: 'actualPcs', headerName: t('table.headers.actualPcs'), width: AMNT_COL_WIDTH, type: 'number', align: 'right' },
+        { field: 'actualHr', headerName: t('table.headers.actualHr'), width: AMNT_COL_WIDTH, type: 'number', align: 'right' },
 
         // Price Columns
-        { field: 'unitPriceM3', headerName: 'm³ price', width: PRCE_COL_WIDTH, type: 'number', align: 'right', renderCell: (p: any) => `${Number(p.value || 0).toFixed(2)} €` },
-        { field: 'unitPriceTon', headerName: 'Ton price', width: PRCE_COL_WIDTH, type: 'number', align: 'right', renderCell: (p: any) => `${Number(p.value || 0).toFixed(2)} €` },
-        { field: 'unitPriceHr', headerName: 'Hour price', width: PRCE_COL_WIDTH, type: 'number', align: 'right', renderCell: (p: any) => `${Number(p.value || 0).toFixed(2)} €` },
+        { field: 'unitPriceM3', headerName: t('table.headers.unitPriceM3'), width: PRCE_COL_WIDTH, type: 'number', align: 'right', renderCell: (p: any) => `${Number(p.value || 0).toFixed(2)} €` },
+        { field: 'unitPriceTon', headerName: t('table.headers.unitPriceTon'), width: PRCE_COL_WIDTH, type: 'number', align: 'right', renderCell: (p: any) => `${Number(p.value || 0).toFixed(2)} €` },
+        { field: 'unitPriceHr', headerName: t('table.headers.unitPriceHr'), width: PRCE_COL_WIDTH, type: 'number', align: 'right', renderCell: (p: any) => `${Number(p.value || 0).toFixed(2)} €` },
         {
-            field: 'total', headerName: 'Total', width: TOTAL_COL_WIDTH, align: 'right',
+            field: 'total', headerName: t('table.headers.total'), width: TOTAL_COL_WIDTH, align: 'right',
             renderCell: (p: any) => <strong style={{ color: '#a38f6d' }}>{Number(p.row.total || 0).toFixed(2)} €</strong>
         }
     ];
@@ -127,7 +144,7 @@ const ChipInvoicingTable = ({ rows, onEdit, onSelectionChange, selectionMap, err
                                         {dayjs(firstRow.date).format('DD.MM.YYYY')}
                                     </Typography>
                                     <Typography variant="caption" color="text.secondary" sx={{ fontSize: '0.7rem' }}>
-                                        Customer: <strong>{firstRow.customer}</strong> | Vehicle: <strong>{firstRow.vehicle}</strong>
+                                        {t('placeholders.customerId')}: <strong>{firstRow.customer}</strong> | {t('placeholders.vehicle')}: <strong>{firstRow.vehicle}</strong>
                                     </Typography>
                                 </Stack>
 
@@ -145,7 +162,7 @@ const ChipInvoicingTable = ({ rows, onEdit, onSelectionChange, selectionMap, err
                                         mx: 1
                                     }}
                                 >
-                                    AMOUNT
+                                    {t('table.headers.amount')}
                                 </Typography>
 
                                 <Typography
@@ -157,7 +174,7 @@ const ChipInvoicingTable = ({ rows, onEdit, onSelectionChange, selectionMap, err
                                         mr: 2
                                     }}
                                 >
-                                    PRICE
+                                    {t('table.headers.price')}
                                 </Typography>
                             </Stack>
                         </Stack>
