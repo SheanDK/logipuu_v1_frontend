@@ -359,7 +359,7 @@ export default function DashboardPage() {
                             {t('title')}
                         </Typography>
                         <Typography variant="body1" color="text.secondary" sx={{ fontWeight: 500 }}>
-                            {t('subtitle', { defaultValue: 'Overview of your logistics operations' })}
+                            {t('subTitle')}
                         </Typography>
                     </Box>
                 </Stack>

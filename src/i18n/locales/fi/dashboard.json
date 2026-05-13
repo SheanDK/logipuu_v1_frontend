@@ -1,5 +1,6 @@
 {
   "title": "Kojelauta",
+  "subTitle": "Yleiskatsaus kaikista aktiivisista kuljetuksista ja kuormista.",
   "error": "Kojelaudan tietojen lataus epäonnistui. Yritä myöhemmin uudelleen.",
   "noDataForRole": "Kojelaudan tietoja ei saatavilla roolillesi.",
   "noConfigForRole": "Ei kojelauta-asetuksia roolillesi.",

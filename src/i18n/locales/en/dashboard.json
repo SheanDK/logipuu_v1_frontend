@@ -1,5 +1,6 @@
 {
   "title": "Dashboard",
+  "subTitle": "Overview of all active shipments and loads.",
   "error": "Failed to load dashboard data. Please try again later.",
   "noDataForRole": "No dashboard data available for your user role.",
   "noConfigForRole": "No dashboard configuration for your role.",
@@ -31,7 +32,7 @@
     "noData": "No active trips at the moment.",
     "unknownDriver": "Unknown Driver"
   },
-   "status": {
+  "status": {
     "inProgress": "In Progress",
     "assigned": "Assigned",
     "readyForInvoicing": "Ready for Invoicing",
