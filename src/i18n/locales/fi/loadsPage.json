@@ -1,5 +1,6 @@
 {
   "title": "Kuormanhallinta / Tarkastus",
+  "subtitle": "Nosta kuormat laskutukseen",
   "tabs": {
     "timber": "Puukuorma",
     "consignment": "Rahtikirja"
@@ -82,7 +83,7 @@
   "labels": {
     "selectAll": "Valitse kaikki"
   },
-  "validation": { 
+  "validation": {
     "customerRequired": "Asiakas on pakollinen",
     "waybillNumberRequired": "Rahtikirjan numero on pakollinen",
     "routeRequired": "Reitti on pakollinen"

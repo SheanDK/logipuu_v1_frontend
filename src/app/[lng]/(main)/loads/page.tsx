@@ -89,7 +89,7 @@ export default function DrivenInspectionPage() {
             await deleteLoad(deleteConfirmation.kuormaId, user);
             setSnackbar({ open: true, message: t('snackbar.deleted', { id: deleteConfirmation.kuormaId }), severity: 'success' });
             setDeleteConfirmation(null);
-            setRefreshTrigger(prev => prev + 1); // Refresh tables after delete
+            setRefreshTrigger(prev => prev + 1);
         } catch (err: any) {
             setSnackbar({ open: true, message: err.response?.data?.message || t('errors.deleteFailed'), severity: 'error' });
         } finally {
@@ -135,8 +135,17 @@ export default function DrivenInspectionPage() {
         <Box sx={{ p: 3, width: '100%', height: 'calc(100vh - 64px)', display: 'flex', flexDirection: 'column' }}>
             <Paper variant="outlined" sx={{ p: 2, flexShrink: 0, borderColor: 'rgba(0, 0, 0, 0.12)' }}>
                 <Stack spacing={2}>
-                    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                        <Typography variant="h5" component="h1" sx={{ fontWeight: 'bold' }}>{t('title')}</Typography>
+                    {/* Header Row Updated to align Subtitle under Title */}
+                    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                        <Stack spacing={0}>
+                            <Typography variant="h5" component="h1" sx={{ fontWeight: 'bold' }}>
+                                {t('title')}
+                            </Typography>
+                            <Typography variant="caption" color="text.secondary">
+                                {t('subtitle')}
+                            </Typography>
+                        </Stack>
+
                         <Stack direction="row" spacing={1}>
                             {isInspectionView && (
                                 <Button variant="contained" color="success" startIcon={<CheckCircleIcon />} disabled={selectionModel.size === 0} onClick={() => setAcceptConfirmationOpen(true)}>

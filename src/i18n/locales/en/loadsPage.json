@@ -1,5 +1,6 @@
 {
-  "title": "Load Management / Inspection",
+  "": "Load Management / Inspection",
+  "subtitle": "View and manage all loads",
   "tabs": {
     "timber": "Timber Load",
     "consignment": "Consignment"
