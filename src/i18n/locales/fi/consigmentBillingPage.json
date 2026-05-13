@@ -10,7 +10,10 @@
     "updateFailed": "Rivin päivitys epäonnistui",
     "invoiceFailed": "Laskutus epäonnistui",
     "noRowsForReport": "Ei rivejä raportille",
-    "saveOk": "Tallennettu."
+    "saveOk": "Laskutus onnistui",
+    "deleteOk": "Poisto onnistui",
+    "deleteFailed": "Poisto epäonnistui",
+    "noRecordsFound": "Ei tallennettuja rivejä. Muokkaa suodattimia ja etsi uudelleen."
   },
   "feedback": {
     "invoiced": "{{count}} rivi laskutettu",

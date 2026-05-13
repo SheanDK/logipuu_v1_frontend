@@ -10,7 +10,10 @@
     "updateFailed": "Row update failed",
     "invoiceFailed": "Invoicing failed",
     "noRowsForReport": "No rows for the report",
-    "saveOk": "Saved."
+    "saveOk": "Invoice saved successfully",
+    "deleteOk": "Delete success",
+    "deleteFailed": "Delete failed",
+    "noRecordsFound": "No records found. Please adjust filters and search."
   },
   "feedback": {
     "invoiced": "Invoiced {{count}} row",

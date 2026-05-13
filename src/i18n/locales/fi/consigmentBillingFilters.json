@@ -6,7 +6,16 @@
     "vehicle": "Auto",
     "billingStatus": "Laskutustila"
   },
-  "labels": { "unbilled": "Laskuttamattomat", "billed": "Laskutetut" },
+  "labels": {
+    "unbilled": "Laskuttamattomat",
+    "billed": "Laskutetut",
+    "searchFilters": "Hae suodattimilla",
+    "dateFrom": "Päiväys",
+    "dateTo": "Päiväys",
+    "customer": "Asiakas",
+    "vehicle": "Auto",
+    "search": "Haku"
+  },
   "errors": {
     "dateFromRequired": "Alkupäivämäärä on pakollinen",
     "dateToRequired": "Loppupäivämäärä on pakollinen",

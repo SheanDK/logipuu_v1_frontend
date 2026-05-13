@@ -47,8 +47,8 @@
             "titleName": "Tilaaja Nimi"
         },
         "selectPlaceholder": "Valitse laskutettavat rivit",
-        "noRecordsFound": "Ei tuloksia",
-        "adjustFilters": "Säädä suodattimia.",
+        "noRecordsFound": "Ei tallennettuja rivejä.",
+        "adjustFilters": "Muokkaa suodattimia ja etsi uudelleen",
         "loading": "Ladataan..."
     },
     "dialogs": {
@@ -97,8 +97,8 @@
     },
     "searchFiltersTitle": {
         "title": "Hae chip",
-        "dateFrom": "Päivämäärä alkaen",
-        "dateTo": "Päivämäärä saakka",
+        "dateFrom": "Päiväys",
+        "dateTo": "Päiväys",
         "unbilled": "Laskuttamaton",
         "billed": "Laskutettu",
         "search": "Hae"

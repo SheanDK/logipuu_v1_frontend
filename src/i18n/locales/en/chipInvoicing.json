@@ -47,8 +47,8 @@
             "titleName": "Title Name"
         },
         "selectPlaceholder": "Select loads to invoice",
-        "noRecordsFound": "No results",
-        "adjustFilters": "Adjust filters.",
+        "noRecordsFound": "No records found.",
+        "adjustFilters": "Adjust filters and search again.",
         "loading": "Loading..."
     },
     "dialogs": {

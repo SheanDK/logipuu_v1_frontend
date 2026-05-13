@@ -103,10 +103,10 @@ export default function ConsignmentBillingPage() {
       const numericIds = confirmIds.map(id => Number(id));
       await deleteManyConsignments(numericIds);
       setRows(prev => prev.filter(r => !confirmIds.includes(r.id)));
-      setSnackbar({ open: true, message: "Deleted successfully", severity: 'success' });
+      setSnackbar({ open: true, message: t('messages.deleteOk'), severity: 'success' });
     } catch (e) {
       console.error(e);
-      setSnackbar({ open: true, message: "Delete failed", severity: 'error' });
+      setSnackbar({ open: true, message: t('messages.deleteFailed'), severity: 'error' });
     } finally {
       setReloading(false);
     }
@@ -149,9 +149,9 @@ export default function ConsignmentBillingPage() {
       ));
 
       setSelection([]);
-      setSnackbar({ open: true, message: "Invoicing successful!", severity: 'success' });
+      setSnackbar({ open: true, message: t('messages.saveOk'), severity: 'success' });
     } catch (e) {
-      setSnackbar({ open: true, message: "Invoicing failed", severity: 'error' });
+      setSnackbar({ open: true, message: t('messages.invoiceFailed'), severity: 'error' });
     } finally {
       setReloading(false);
     }
@@ -173,14 +173,14 @@ export default function ConsignmentBillingPage() {
           {rows.length > 0 && (
             <Stack direction="row" spacing={1}>
               <Button variant="contained" color="success" onClick={handleInvoiceSelected} disabled={selection.length === 0} sx={{ fontWeight: 'bold' }}>
-                INVOICE SELECTED ({selection.length})
+                {t('buttons.invoice').toUpperCase()} ({selection.length})
               </Button>
               <Button variant="contained" onClick={() => {
                 const used = rows.filter(r => new Set(selection).has(r.id));
                 localStorage.setItem('consigmentBillingReportData', JSON.stringify(used));
                 window.open(`/${params.lng}/consignment-invoicing/report`, '_blank');
               }} disabled={selection.length === 0} sx={{ bgcolor: '#b38c5aea', color: '#fff', fontWeight: 'bold' }}>
-                REPORT
+                {t('buttons.report').toUpperCase()}
               </Button>
             </Stack>
           )}
@@ -205,7 +205,7 @@ export default function ConsignmentBillingPage() {
             />
           ) : (
             <Paper variant="outlined" sx={{ p: 8, textAlign: 'center', border: '1px dashed #ccc', bgcolor: 'background.paper' }}>
-              <Typography color="text.secondary">No records found. Please adjust filters and search.</Typography>
+              <Typography color="text.secondary">{t('messages.noRecordsFound')}</Typography>
             </Paper>
           )}
         </Box>

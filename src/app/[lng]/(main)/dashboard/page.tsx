@@ -23,16 +23,19 @@ import FactCheckIcon from '@mui/icons-material/FactCheck';
 import EventAvailableIcon from '@mui/icons-material/EventAvailable';
 import WarningAmberIcon from '@mui/icons-material/WarningAmber';
 import Inventory2Icon from '@mui/icons-material/Inventory2';
+import DashboardIcon from '@mui/icons-material/Dashboard';
 
 // API Services and Types
 import * as dashboardService from '@/services/dashboardService';
 import { fetchAllClients } from '@/services/clientService';
 import { IAdminDashboardStats, IDispatchDashboardStats, IDriverDashboardStats, IVolumeByDay, IActiveTripListItem, IBackendClient } from '@/types';
+import dayjs from 'dayjs';
 
 // Role definitions
 const ADMIN_ROLES = ['Superuser', 'Admin', 'Office'];
 const DISPATCH_ROLES = ['Ajojärjestelijä'];
 const DRIVER_ROLE = 'Kuljettaja';
+
 
 /**
  * NEW: Compact version of StatCard for Customer Specific Insight
@@ -58,7 +61,7 @@ const CompactStatCard = ({ title, value, icon, color }: { title: string; value: 
             bgcolor: color,
             color: '#fff',
             flexShrink: 0,
-            '& .MuiSvgIcon-root': { fontSize: 22 } 
+            '& .MuiSvgIcon-root': { fontSize: 22 }
         }}>
             {icon}
         </Box>
@@ -66,11 +69,11 @@ const CompactStatCard = ({ title, value, icon, color }: { title: string; value: 
             <Typography variant="h6" sx={{ fontWeight: 'bold', lineHeight: 1.1, mb: 0.2 }}>
                 {value}
             </Typography>
-            <Typography 
-                variant="caption" 
-                color="text.secondary" 
+            <Typography
+                variant="caption"
+                color="text.secondary"
                 sx={{ fontWeight: '500', display: 'block' }}
-                noWrap 
+                noWrap
             >
                 {title}
             </Typography>
@@ -78,8 +81,23 @@ const CompactStatCard = ({ title, value, icon, color }: { title: string; value: 
     </Paper>
 );
 
+//Clock
+const Clock = () => {
+    const [time, setTime] = useState(new Date());
+
+    useEffect(() => {
+        const timer = setInterval(() => setTime(new Date()), 1000);
+        return () => clearInterval(timer);
+    }, []);
+
+    return (
+        <Typography variant="body2" sx={{ fontWeight: 'bold', fontFamily: 'monospace' }}>
+            {time.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
+        </Typography>
+    );
+};
 export default function DashboardPage() {
-    const { t } = useTranslation(['dashboard', 'common']); 
+    const { t } = useTranslation(['dashboard', 'common']);
     const { user, isLoading: isAuthLoading } = useAuth();
 
     const [dashboardData, setDashboardData] = useState<any>(null);
@@ -104,7 +122,7 @@ export default function DashboardPage() {
             try {
                 setIsLoading(true);
                 setError(null);
-                
+
                 const userRoles = user.roles;
 
                 if (userRoles.some(role => ADMIN_ROLES.includes(role))) {
@@ -133,7 +151,7 @@ export default function DashboardPage() {
                 }
 
             } catch (err) {
-                setError(t('error')); 
+                setError(t('error'));
                 console.error(err);
             } finally {
                 setIsLoading(false);
@@ -165,7 +183,7 @@ export default function DashboardPage() {
     if (isLoading || isAuthLoading) {
         return <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '80vh' }}><CircularProgress /></Box>;
     }
-    
+
     if (error) {
         return <Alert severity="error" sx={{ m: 3 }}>{error}</Alert>;
     }
@@ -196,7 +214,7 @@ export default function DashboardPage() {
                                 <Typography variant="subtitle1" sx={{ fontWeight: 'bold', color: 'text.secondary', textTransform: 'uppercase', letterSpacing: 1 }}>
                                     {t('customerInsight.title', 'Customer Specific Insight')}
                                 </Typography>
-                                
+
                                 <Autocomplete
                                     sx={{ width: { xs: '100%', sm: 300 } }}
                                     options={clients}
@@ -204,10 +222,10 @@ export default function DashboardPage() {
                                     value={selectedCustomer}
                                     onChange={(_, newValue) => setSelectedCustomer(newValue)}
                                     renderInput={(params) => (
-                                        <TextField 
-                                            {...params} 
-                                            label={t('customerInsight.selectLabel', 'Select Customer')} 
-                                            size="small" 
+                                        <TextField
+                                            {...params}
+                                            label={t('customerInsight.selectLabel', 'Select Customer')}
+                                            size="small"
                                         />
                                     )}
                                 />
@@ -219,37 +237,37 @@ export default function DashboardPage() {
                                 </Box>
                             ) : customerStats ? (
                                 <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: 'repeat(2, 1fr)', md: 'repeat(4, 1fr)' }, gap: 1.5 }}>
-                                    
+
                                     {/* Completed Today */}
-                                    <CompactStatCard 
-                                        title={t('customerInsight.completedToday', 'Completed Today')} 
-                                        value={customerStats.completedTodayCount || 0} 
-                                        icon={<FactCheckIcon />} 
-                                        color="#4caf50" 
+                                    <CompactStatCard
+                                        title={t('customerInsight.completedToday', 'Completed Today')}
+                                        value={customerStats.completedTodayCount || 0}
+                                        icon={<FactCheckIcon />}
+                                        color="#4caf50"
                                     />
 
                                     {/* Remaining Volume */}
-                                    <CompactStatCard 
-                                        title={t('customerInsight.remainingVolume', 'Remaining Vol')} 
-                                        value={`${Number(customerStats.remainingVolume || 0).toFixed(2)} m³`} 
-                                        icon={<ForestIcon />} 
-                                        color="#03a9f4" 
+                                    <CompactStatCard
+                                        title={t('customerInsight.remainingVolume', 'Remaining Vol')}
+                                        value={`${Number(customerStats.remainingVolume || 0).toFixed(2)} m³`}
+                                        icon={<ForestIcon />}
+                                        color="#03a9f4"
                                     />
 
                                     {/* Active Stacks */}
-                                    <CompactStatCard 
-                                        title={t('customerInsight.activeStacks', 'Active Stacks')} 
-                                        value={customerStats.activeStacksCount || 0} 
-                                        icon={<Inventory2Icon />} 
-                                        color="#9c27b0" 
+                                    <CompactStatCard
+                                        title={t('customerInsight.activeStacks', 'Active Stacks')}
+                                        value={customerStats.activeStacksCount || 0}
+                                        icon={<Inventory2Icon />}
+                                        color="#9c27b0"
                                     />
 
                                     {/* Pending Billing */}
-                                    <CompactStatCard 
-                                        title={t('customerInsight.pendingInvoices', 'Pending Billing')} 
-                                        value={customerStats.pendingInvoicesCount || 0} 
-                                        icon={<HourglassTopIcon />} 
-                                        color="#ff9800" 
+                                    <CompactStatCard
+                                        title={t('customerInsight.pendingInvoices', 'Pending Billing')}
+                                        value={customerStats.pendingInvoicesCount || 0}
+                                        icon={<HourglassTopIcon />}
+                                        color="#ff9800"
                                     />
 
                                 </Box>
@@ -291,7 +309,7 @@ export default function DashboardPage() {
                     <Stack direction={{ xs: 'column', lg: 'row' }} spacing={3} alignItems="stretch">
                         <Box sx={{ width: '100%', flexBasis: { lg: '70%' } }}><VolumeChart data={volumeData} height="100%" /></Box>
                         <Box sx={{ width: '100%', flexBasis: { lg: '30%' } }}>
-                             <Stack spacing={3} sx={{ height: '100%' }}>
+                            <Stack spacing={3} sx={{ height: '100%' }}>
                                 <TimberMapCard />
                                 <ActiveTripsList data={activeTrips} />
                             </Stack>
@@ -305,7 +323,7 @@ export default function DashboardPage() {
         if (user.roles.includes(DRIVER_ROLE)) {
             const data = dashboardData as IDriverDashboardStats;
             return (
-                 <Stack spacing={3}>
+                <Stack spacing={3}>
                     <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: 'repeat(2, 1fr)' }, gap: 3 }}>
                         <StatCard title={t('stats.assignedToday')} value={data.todayAssignedLoadsCount} icon={<FactCheckIcon />} color="#1976d2" />
                         <StatCard title={t('stats.completedToday')} value={data.todayCompletedLoadsCount} icon={<CheckCircleOutlineIcon />} color="#2e7d32" />
@@ -313,7 +331,7 @@ export default function DashboardPage() {
                         <StatCard title={t('stats.upcomingLoads')} value={data.upcomingLoadsCount} icon={<EventAvailableIcon />} color="#ed6c02" />
                     </Box>
                     <TimberMapCard />
-                 </Stack>
+                </Stack>
             );
         }
 
@@ -322,9 +340,40 @@ export default function DashboardPage() {
 
     return (
         <Box sx={{ flexGrow: 1, p: 3, backgroundColor: (theme) => theme.palette.mode === 'dark' ? theme.palette.grey[900] : theme.palette.grey[100] }}>
-            <Typography variant="h4" sx={{ mb: 4, fontWeight: 'bold' }}>
-                {t('title')}
-            </Typography>
+
+            {/* 🚀 Professional & Elegant Header Section */}
+            <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 4 }}>
+                <Stack direction="row" spacing={2} alignItems="center">
+                    <Box sx={{
+                        display: 'flex',
+                        p: 1.5,
+                        borderRadius: 3,
+                        bgcolor: '#a38f6d',
+                        color: 'white',
+                        boxShadow: '0 4px 12px rgba(163, 143, 109, 0.3)'
+                    }}>
+                        <DashboardIcon fontSize="large" />
+                    </Box>
+                    <Box>
+                        <Typography variant="h4" sx={{ fontWeight: 800, letterSpacing: -0.5, color: 'text.primary' }}>
+                            {t('title')}
+                        </Typography>
+                        <Typography variant="body1" color="text.secondary" sx={{ fontWeight: 500 }}>
+                            {t('subtitle', { defaultValue: 'Overview of your logistics operations' })}
+                        </Typography>
+                    </Box>
+                </Stack>
+
+                {/* Date/Info Tag */}
+                <Paper variant="outlined" sx={{ px: 3, py: 1, borderRadius: 3, bgcolor: 'background.paper', display: 'flex', alignItems: 'center', gap: 1 }}>
+                    <Typography variant="body2" color="text.secondary" fontWeight="bold">
+                        {dayjs().format('DD MMMM, YYYY')}
+                    </Typography>
+                    <Divider orientation="vertical" flexItem />
+                    <Clock />
+                </Paper>
+            </Stack>
+
             {renderContent()}
         </Box>
     );

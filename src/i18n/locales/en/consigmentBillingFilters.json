@@ -8,7 +8,13 @@
   },
   "labels": {
     "unbilled": "Unbilled",
-    "billed": "Billed"
+    "billed": "Billed",
+    "searchFilters": "Search Filters",
+    "dateFrom": "Date From",
+    "dateTo": "Date To",
+    "customer": "Customer",
+    "vehicle": "Vehicle",
+    "search": "Search"
   },
   "errors": {
     "dateFromRequired": "Start date is required",

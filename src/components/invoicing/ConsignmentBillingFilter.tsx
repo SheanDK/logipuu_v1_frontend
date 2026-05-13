@@ -72,8 +72,8 @@ const ConsignmentBillingFilters = ({ onSubmit, loading, initialValues }: any) =>
     >
       <Box component="form" onSubmit={handleSubmit(submit)}>
         <Stack spacing={2}>
-          <Typography variant="caption" fontWeight="bold" color="text.secondary" sx={{ mb: -1, ml: 0.5 }}>
-            SEARCH FILTERS
+          <Typography variant="caption" fontWeight="bold" color="text.secondary" textTransform="uppercase" sx={{ mb: -1, ml: 0.5 }}>
+            {t('labels.searchFilters')}
           </Typography>
           <Stack direction={{ xs: 'column', lg: 'row' }} spacing={2} alignItems="center">
 
@@ -82,14 +82,14 @@ const ConsignmentBillingFilters = ({ onSubmit, loading, initialValues }: any) =>
                 name="dateFrom"
                 control={control}
                 render={({ field }) => (
-                  <TextField {...field} label="From" type="date" size="small" InputLabelProps={{ shrink: true }} fullWidth />
+                  <TextField {...field} label={t('labels.dateFrom')} type="date" size="small" InputLabelProps={{ shrink: true }} fullWidth />
                 )}
               />
               <Controller
                 name="dateTo"
                 control={control}
                 render={({ field }) => (
-                  <TextField {...field} label="To" type="date" size="small" InputLabelProps={{ shrink: true }} fullWidth />
+                  <TextField {...field} label={t('labels.dateTo')} type="date" size="small" InputLabelProps={{ shrink: true }} fullWidth />
                 )}
               />
             </Stack>
@@ -107,7 +107,7 @@ const ConsignmentBillingFilters = ({ onSubmit, loading, initialValues }: any) =>
                     size="small"
                     getOptionLabel={(o) => o.name || ''}
                     onChange={(_, v) => field.onChange(v)}
-                    renderInput={(p) => <TextField {...p} label="Customer" />}
+                    renderInput={(p) => <TextField {...p} label={t('labels.customer')} />}
                   />
                 )}
               />
@@ -126,7 +126,7 @@ const ConsignmentBillingFilters = ({ onSubmit, loading, initialValues }: any) =>
                     size="small"
                     getOptionLabel={(o) => o.name || ''}
                     onChange={(_, v) => field.onChange(v)}
-                    renderInput={(p) => <TextField {...p} label="Vehicle" />}
+                    renderInput={(p) => <TextField {...p} label={t('labels.vehicle')} />}
                   />
                 )}
               />
@@ -141,7 +141,7 @@ const ConsignmentBillingFilters = ({ onSubmit, loading, initialValues }: any) =>
                   render={({ field }) => (
                     <FormControlLabel
                       control={<Checkbox {...field} checked={Boolean(field.value)} size="small" sx={{ color: '#a38f6d', '&.Mui-checked': { color: '#a38f6d' } }} />}
-                      label={<Typography variant="caption">Unbilled</Typography>}
+                      label={<Typography variant="caption">{t('labels.unbilled')}</Typography>}
                     />
                   )}
                 />
@@ -151,7 +151,7 @@ const ConsignmentBillingFilters = ({ onSubmit, loading, initialValues }: any) =>
                   render={({ field }) => (
                     <FormControlLabel
                       control={<Checkbox {...field} checked={Boolean(field.value)} size="small" sx={{ color: '#a38f6d', '&.Mui-checked': { color: '#a38f6d' } }} />}
-                      label={<Typography variant="caption">Billed</Typography>}
+                      label={<Typography variant="caption">{t('labels.billed')}</Typography>}
                     />
                   )}
                 />
@@ -170,7 +170,7 @@ const ConsignmentBillingFilters = ({ onSubmit, loading, initialValues }: any) =>
                   '&:hover': { bgcolor: '#8e7a5a' }
                 }}
               >
-                {loading ? <CircularProgress size={20} color="inherit" /> : 'SEARCH'}
+                {loading ? <CircularProgress size={20} color="inherit" /> : t('labels.search')}
               </Button>
             </Stack>
 
