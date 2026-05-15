@@ -28,8 +28,8 @@ const useSocket = (vehicleId?: string | number | null): UseSocketReturn => {
     useEffect(() => {
         if (isAuthenticated && token) {
             if (socketRef.current?.connected) return;
-
-            const socketUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
+            const socketUrl = process.env.NEXT_PUBLIC_API_BASE_URL || 'https://logipuu-v1-backend.onrender.com';
+            //const socketUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
             const socketInstance = io(socketUrl, {
                 auth: { token: token, vehicleId: vehicleId },
                 transports: ['websocket', 'polling'],

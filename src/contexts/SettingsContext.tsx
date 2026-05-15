@@ -2,8 +2,8 @@
 'use client';
 
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-
-const DEFAULT_API_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:5000';
+const DEFAULT_API_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'https://logipuu-v1-backend.onrender.com';
+//const DEFAULT_API_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:5000';
 const STORAGE_KEY = 'apiBaseUrl';
 
 interface SettingsContextType {
@@ -43,9 +43,9 @@ export const SettingsProvider = ({ children }: { children: ReactNode }) => {
             console.error("Could not save API base URL to localStorage.", error);
         }
     };
-    
+
     if (!isInitialized) {
-        return null; 
+        return null;
     }
 
     return (
