@@ -19,7 +19,7 @@ interface UseSocketReturn {
 }
 
 const useSocket = (vehicleId?: string | number | null): UseSocketReturn => {
-    const { isAuthenticated, token, logout, setForceLogout } = useAuth(); // logout සහ setForceLogout ලබා ගනී
+    const { isAuthenticated, token, logout, setForceLogout } = useAuth();
     const socketRef = useRef<Socket | null>(null);
     const [isConnected, setIsConnected] = useState(false);
     const [lastLocationUpdate, setLastLocationUpdate] = useState<LocationUpdatePayload | null>(null);
@@ -28,12 +28,18 @@ const useSocket = (vehicleId?: string | number | null): UseSocketReturn => {
     useEffect(() => {
         if (isAuthenticated && token) {
             if (socketRef.current?.connected) return;
-            const socketUrl = process.env.NEXT_PUBLIC_API_BASE_URL || 'https://logipuu-v1-backend.onrender.com';
-            //const socketUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
+
+            // 🚀 Fix - Local dev නම් localhost, production නම් env var
+            const socketUrl = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:5000';
+
+            console.log('🔌 Connecting socket to:', socketUrl); // Debug
+
             const socketInstance = io(socketUrl, {
                 auth: { token: token, vehicleId: vehicleId },
                 transports: ['websocket', 'polling'],
-                reconnection: true
+                reconnection: true,
+                reconnectionAttempts: 5,        // 🚀 infinite reconnect නෙවෙයි
+                reconnectionDelay: 2000,
             });
 
             socketInstance.on('connect', () => {
@@ -42,27 +48,23 @@ const useSocket = (vehicleId?: string | number | null): UseSocketReturn => {
                 setSocketState(socketInstance);
             });
 
-            socketInstance.on('disconnect', () => {
-                console.log('❌ Socket disconnected');
+            socketInstance.on('connect_error', (err) => {
+                // 🚀 Connect error log කරන්න - debug සඳහා
+                console.error('❌ Socket connect error:', err.message);
+            });
+
+            socketInstance.on('disconnect', (reason) => {
+                console.log('❌ Socket disconnected:', reason);
                 setIsConnected(false);
                 setSocketState(null);
             });
 
-            // 🚀 🚀 🚀 NEW: EMERGENCY LOGOUT LISTENER 🚀 🚀 🚀
             socketInstance.on('emergencyLogout', (data: { tokenIdentifier: string, reason: string }) => {
                 console.warn("🚨 EMERGENCY LOGOUT RECEIVED:", data);
-
                 const currentToken = (token.startsWith('Bearer ') ? token.slice(7) : token).trim();
                 const incomingToken = (data.tokenIdentifier.startsWith('Bearer ') ? data.tokenIdentifier.slice(7) : data.tokenIdentifier).trim();
-
-                console.log("DEBUG: currentToken (last 10):", currentToken.slice(-10));
-                console.log("DEBUG: incomingToken (last 10):", incomingToken.slice(-10));
-
                 if (currentToken === incomingToken) {
-                    console.log("✅ Token Matched! Showing Custom Force Logout Modal...");
-                    setForceLogout(data.reason || "Your session has been terminated by the office management.");
-                } else {
-                    console.warn("❌ Token Mismatch - This event is not for this session.");
+                    setForceLogout(data.reason || "Your session has been terminated.");
                 }
             });
 
@@ -71,6 +73,7 @@ const useSocket = (vehicleId?: string | number | null): UseSocketReturn => {
             });
 
             socketRef.current = socketInstance;
+
             return () => {
                 if (socketRef.current) {
                     socketRef.current.disconnect();

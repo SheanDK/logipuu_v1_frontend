@@ -7,8 +7,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "clean": "rimraf .next",
-    "prepare": "husky"
+    "clean": "rimraf .next"
   },
   "dependencies": {
     "@emotion/cache": "^11.14.0",
