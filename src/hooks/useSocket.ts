@@ -29,7 +29,6 @@ const useSocket = (vehicleId?: string | number | null): UseSocketReturn => {
         if (isAuthenticated && token) {
             if (socketRef.current?.connected) return;
 
-            // 🚀 Fix - Local dev නම් localhost, production නම් env var
             const socketUrl = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:5000';
 
             console.log('🔌 Connecting socket to:', socketUrl); // Debug
