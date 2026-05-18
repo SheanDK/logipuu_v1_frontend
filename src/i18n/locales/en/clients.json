@@ -1,5 +1,6 @@
 {
   "title": "Client Management",
+  "subtitle": "Manage your clients and their information.",
   "noPermission": "You do not have permission to view clients.",
   "buttons": {
     "add": "Add New Client"

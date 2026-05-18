@@ -5,8 +5,8 @@ import React, { useEffect, useMemo, useState, useCallback } from 'react';
 import {
   Box, Paper, Typography, Button, CircularProgress, Alert, AlertColor, Chip, Tooltip
 } from '@mui/material';
-import { 
-  DataGrid, GridColDef, GridActionsCellItem, GridToolbar, GridRenderCellParams 
+import {
+  DataGrid, GridColDef, GridActionsCellItem, GridToolbar, GridRenderCellParams
 } from '@mui/x-data-grid';
 import AddIcon from '@mui/icons-material/Add';
 import EditIcon from '@mui/icons-material/Edit';
@@ -66,7 +66,7 @@ export default function WoodCategoriesPage() {
     }
     setIsLoading(true);
     try {
-      const list = await fetchAllWoodTypes(); 
+      const list = await fetchAllWoodTypes();
       // Transform to ensure ID is string for DataGrid
       const formattedRows = list.map((w: any) => ({
         id: String(w.id),
@@ -119,8 +119,8 @@ export default function WoodCategoriesPage() {
       handleCloseModal();
       loadData();
     } catch (e: any) {
-        const msg = axios.isAxiosError(e) ? e.response?.data?.message : e.message;
-        setFeedback({ type: 'error', message: msg || t('woodCategories:feedback.saveError') });
+      const msg = axios.isAxiosError(e) ? e.response?.data?.message : e.message;
+      setFeedback({ type: 'error', message: msg || t('woodCategories:feedback.saveError') });
     } finally {
       setIsSaving(false);
     }
@@ -139,8 +139,8 @@ export default function WoodCategoriesPage() {
       setFeedback({ type: 'success', message: t('woodCategories:feedback.deleted', { name: deleteTarget.name }) });
       loadData();
     } catch (e: any) {
-        const msg = axios.isAxiosError(e) ? e.response?.data?.message : e.message;
-        setFeedback({ type: 'error', message: msg || t('woodCategories:feedback.deleteError') });
+      const msg = axios.isAxiosError(e) ? e.response?.data?.message : e.message;
+      setFeedback({ type: 'error', message: msg || t('woodCategories:feedback.deleteError') });
     } finally {
       setIsSaving(false);
       setDeleteTarget(null);
@@ -150,17 +150,17 @@ export default function WoodCategoriesPage() {
   // Columns Definition
   const columns: GridColDef<IWoodTypeRow>[] = useMemo(() => {
     const baseCols: GridColDef<IWoodTypeRow>[] = [
-      { 
-        field: 'name', 
-        headerName: t('woodCategories:columns.name'), 
+      {
+        field: 'name',
+        headerName: t('woodCategories:columns.name'),
         // FIX: Removed default flex behavior if it was implicit, set specific width
-        width: 300 
+        width: 300
       },
-      { 
-        field: 'description', 
-        headerName: t('woodCategories:columns.description'), 
+      {
+        field: 'description',
+        headerName: t('woodCategories:columns.description'),
         // FIX: Replaced 'flex: 1' with specific width to avoid stretching
-        width: 400 
+        width: 400
       },
       {
         field: 'active',
@@ -224,7 +224,10 @@ export default function WoodCategoriesPage() {
   return (
     <Paper sx={{ p: { xs: 2, md: 3 }, height: 'calc(100vh - 128px)', width: '100%' }}>
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
-        <Typography variant="h5" component="h1">{t('woodCategories:title')}</Typography>
+        <Box>
+          <Typography variant="h5" component="h1">{t('woodCategories:title')}</Typography>
+          <Typography variant="caption" color="text.secondary">{t('woodCategories:subtitle')}</Typography>
+        </Box>
         {canCreate && (
           <Button variant="contained" startIcon={<AddIcon />} onClick={handleOpenCreate}>
             {t('woodCategories:new')}
@@ -265,7 +268,7 @@ export default function WoodCategoriesPage() {
           open={isModalOpen}
           onCloseAction={handleCloseModal}
           // Adapt the modal to handle both create/update via this callback
-          onCreatedAction={handleSave} 
+          onCreatedAction={handleSave}
           // You might need to update NewWoodTypeModal to accept 'initialData' prop 
           // to pre-fill the form for editing.
           // @ts-ignore - Assuming you will update the component to accept this prop

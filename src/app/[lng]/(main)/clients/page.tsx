@@ -2,7 +2,7 @@
 'use client';
 
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
-import { Box, Typography, Button, Paper, CircularProgress, Alert, AlertColor } from '@mui/material';
+import { Box, Typography, Button, Paper, CircularProgress, Alert, AlertColor, Stack } from '@mui/material';
 import { DataGrid, GridColDef, GridRenderCellParams, GridActionsCellItem, GridToolbar, GridRowParams } from '@mui/x-data-grid';
 import AddIcon from '@mui/icons-material/Add';
 import EditIcon from '@mui/icons-material/Edit';
@@ -151,22 +151,22 @@ export default function ClientsPage() {
     };
 
     const columns: GridColDef<IClient>[] = useMemo(() => [
-        { 
-            field: 'clientName', 
-            headerName: t('columns.clientName'), 
+        {
+            field: 'clientName',
+            headerName: t('columns.clientName'),
             width: 300, // Fixed width
         },
-        { 
-            field: 'city', 
-            headerName: t('columns.city'), 
+        {
+            field: 'city',
+            headerName: t('columns.city'),
             width: 150, // Fixed width
-            valueGetter: (value) => value || '–' 
+            valueGetter: (value) => value || '–'
         },
-        { 
-            field: 'phoneNo', 
-            headerName: t('columns.phoneNo'), 
+        {
+            field: 'phoneNo',
+            headerName: t('columns.phoneNo'),
             width: 150, // Fixed width
-            valueGetter: (value) => value || '–' 
+            valueGetter: (value) => value || '–'
         },
         {
             field: 'type',
@@ -174,7 +174,7 @@ export default function ClientsPage() {
             width: 180, // Fixed width
             renderCell: (params: GridRenderCellParams<IClient, unknown>) => {
                 const key = typeToKey(params.value);
-                return t(`type.${key}`);  
+                return t(`type.${key}`);
             },
         },
         {
@@ -193,11 +193,11 @@ export default function ClientsPage() {
                 );
             },
         },
-        { 
-            field: 'isActive', 
-            headerName: t('columns.active'), 
+        {
+            field: 'isActive',
+            headerName: t('columns.active'),
             width: 100, // Fixed width
-            type: 'boolean' 
+            type: 'boolean'
         },
         {
             field: 'actions',
@@ -226,15 +226,19 @@ export default function ClientsPage() {
     }
 
     return (
-        <Paper sx={{ p: { xs: 2, md: 3 }, height: 'calc(100vh - 128px)', width: '100%' }}>
-            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
-                <Typography variant="h5" component="h1">{t('title')}</Typography>
+        <Paper sx={{ p: 3, height: 'calc(100vh - 128px)', width: '100%', borderRadius: '16px', border: '1px solid', borderColor: 'divider' }}>
+            <Stack direction="row" justifyContent="space-between" alignItems="center" mb={3}>
+                <Box>
+                    <Typography variant="h5" component="h1">{t('title')}</Typography>
+                    <Typography variant="caption" color="text.secondary">{t('subtitle')}</Typography>
+                </Box>
                 {canCreate && (
                     <Button variant="contained" startIcon={<AddIcon />} onClick={handleOpenCreateModal}>
                         {t('buttons.add')}
                     </Button>
                 )}
-            </Box>
+            </Stack>
+
             {feedback && <Alert severity={feedback.type} onClose={() => setFeedback(null)} sx={{ mb: 2 }}>{feedback.message}</Alert>}
             <Box sx={{ height: `calc(100% - ${feedback ? '112px' : '56px'})`, width: '100%' }}>
                 <DataGrid
@@ -249,7 +253,7 @@ export default function ClientsPage() {
                         '& .MuiDataGrid-columnHeaderTitle': {
                             fontWeight: 'bold',
                             textTransform: 'uppercase',
-                            fontSize: '0.75rem', 
+                            fontSize: '0.75rem',
                         },
                     }}
                 />

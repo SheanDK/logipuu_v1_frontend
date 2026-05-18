@@ -168,7 +168,10 @@ export default function VehiclesPage() {
 
             {/* Header Section */}
             <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
-                <Typography variant="h5" fontWeight="bold">{t('title')}</Typography>
+                <Box>
+                    <Typography variant="h5" fontWeight="bold">{t('title')}</Typography>
+                    <Typography variant="caption" color="text.secondary">{t('subtitle')}</Typography>
+                </Box>
                 <Stack direction="row" spacing={1.5}>
                     <Button
                         variant="outlined" startIcon={<FolderIcon />}

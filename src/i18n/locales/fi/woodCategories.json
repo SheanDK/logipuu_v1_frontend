@@ -1,5 +1,6 @@
 {
   "title": "Puutavaralajit",
+  "subtitle": "Hallitse puutavaralajeja ja niiden tietoja.",
   "new": "Uusi",
   "columns": {
     "name": "Puutavara Nimi",

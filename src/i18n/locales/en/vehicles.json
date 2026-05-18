@@ -1,5 +1,6 @@
 {
   "title": "Vehicle Management",
+  "subtitle": "Manage your vehicles and their information.",
   "noPermission": "You do not have permission to view this page.",
   "buttons": {
     "addVehicle": "Add New Vehicle"

@@ -1,5 +1,6 @@
 {
   "title": "Wood Categories",
+  "subtitle": "Manage your wood categories and their information.",
   "new": "New",
   "columns": {
     "name": "Wood Type Name",

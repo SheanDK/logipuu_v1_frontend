@@ -1,5 +1,6 @@
 {
   "title": "Kaluston hallinta",
+  "subtitle": "Hallitse ajoneuvojasi ja niiden tietoja.",
   "noPermission": "Sinulla ei ole oikeutta tarkastella tätä sivua.",
   "buttons": {
     "addVehicle": "Lisää ajoneuvo"

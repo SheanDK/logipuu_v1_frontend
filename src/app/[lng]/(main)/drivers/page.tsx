@@ -172,8 +172,16 @@ export default function DriversPage() {
                 </Stack>
             )
         },
-        { field: 'phoneNo', headerName: t("columns.phoneNo"), width: 160 },
-        { field: 'email', headerName: t("columns.email"), width: 220 },
+        {
+            field: 'phoneNo',
+            headerName: t("columns.phoneNo"),
+            width: 160
+        },
+        {
+            field: 'email',
+            headerName: t("columns.email"),
+            width: 220
+        },
         {
             field: 'hasAlerts',
             headerName: t("columns.status"),

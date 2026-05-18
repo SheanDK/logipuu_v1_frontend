@@ -1,5 +1,6 @@
 {
   "title": "Asiakkaiden hallinta",
+  "subtitle": "Hallitse asiakkaitasi ja heidän tietojaan.",
   "noPermission": "Sinulla ei ole oikeutta tarkastella asiakkaita.",
   "buttons": {
     "add": "Lisää uusi asiakas"
