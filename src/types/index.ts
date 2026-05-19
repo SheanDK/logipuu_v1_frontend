@@ -410,6 +410,8 @@ export interface ILoadListItem {
     kuormaId: number;
     puutavaraId?: number;
     puulaaniId?: number;
+    load_id?: number;
+    loadId?: number;
 
     // Date
     pvm: string; // The primary date field from the 'kuorma' table

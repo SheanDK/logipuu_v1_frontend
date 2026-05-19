@@ -309,18 +309,22 @@ export default function LoadReportPage() {
                                     </TableRow>
                                 </TableHead>
                                 <TableBody>
-                                    {reportData.map((row) => (
-                                        <TableRow key={row.kuormaId}>
-                                            <TableCell>{formatDate(row.pvm)}</TableCell>
-                                            <TableCell>{row.kuljettajanNimi}</TableCell>
-                                            <TableCell>{row.rekNro}</TableCell>
-                                            <TableCell>{row.asiakkaanNimi}</TableCell>
-                                            <TableCell>{row.puulaaniName || row.lahto}</TableCell>
-                                            <TableCell align="right">{row.m3?.toFixed(2) ?? '0.00'}</TableCell>
-                                            <TableCell align="right">{row.km?.toFixed(2) ?? '0.00'}</TableCell>
-                                            <TableCell>{row.lisatiedot}</TableCell>
-                                        </TableRow>
-                                    ))}
+                                    {reportData.map((row, index) => {
+                                        const anyRow = row as any;
+                                        const key = row.kuormaId ?? anyRow.load_id ?? anyRow.loadId ?? `row-${index}`;
+                                        return (
+                                            <TableRow key={key}>
+                                                <TableCell>{formatDate(row.pvm)}</TableCell>
+                                                <TableCell>{row.kuljettajanNimi}</TableCell>
+                                                <TableCell>{row.rekNro}</TableCell>
+                                                <TableCell>{row.asiakkaanNimi}</TableCell>
+                                                <TableCell>{row.puulaaniName || row.lahto}</TableCell>
+                                                <TableCell align="right">{row.m3?.toFixed(2) ?? '0.00'}</TableCell>
+                                                <TableCell align="right">{row.km?.toFixed(2) ?? '0.00'}</TableCell>
+                                                <TableCell>{row.lisatiedot}</TableCell>
+                                            </TableRow>
+                                        );
+                                    })}
                                 </TableBody>
                                 <TableFooter>
                                     <TableRow sx={{ backgroundColor: '#eeeeee' }}>
