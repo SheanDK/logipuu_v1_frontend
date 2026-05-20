@@ -1,4 +1,4 @@
-﻿﻿// frontend/src/components/drivers/TimberDashboard.tsx
+﻿// frontend/src/components/drivers/TimberDashboard.tsx
 'use client';
 
 import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
@@ -289,7 +289,14 @@ export default function TimberDashboard({ onBackAction }: TimberDashboardProps) 
                     }
                 },
                 (error) => {
-                    console.error('[GPS] Watch position error:', { code: error.code, message: error.message });
+                    console.error(`[GPS] Watch position error (Code ${error.code}): ${error.message}`);
+                    if (error.code === 1) {
+                        enqueueSnackbar('GPS permission denied. Please enable location services in your browser settings.', { variant: 'warning' });
+                    } else if (error.code === 2) {
+                        enqueueSnackbar('GPS position unavailable. Please check your device location services.', { variant: 'warning' });
+                    } else if (error.code === 3) {
+                        enqueueSnackbar('GPS tracking timed out.', { variant: 'info' });
+                    }
                 },
                 positionOptions
             );

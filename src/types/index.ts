@@ -732,6 +732,7 @@ export interface IRelatedLoad {
     kuormaId: number;
     kuljId: number;
     status: string;
+    ajomaaraysNro?: string | null;
     kuljettajanNimi: string;
     puutavaralaji: string | null;
     pvm: string;
