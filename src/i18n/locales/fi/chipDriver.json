@@ -14,7 +14,7 @@
     "scheduledDate": "Ajoitettu päivä",
     "serial": "Sarja",
     "titleId": "Tilausnimi",
-    "titleName": "Tuote",
+    "titleName": "tuotelaji",
     "orderId": "Tilaus",
     "loadingPoint": "Lähtöpaikka",
     "unloadingPoint": "Purkupaikka",
