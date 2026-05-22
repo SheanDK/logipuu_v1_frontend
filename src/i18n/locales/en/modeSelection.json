@@ -5,17 +5,17 @@
         "ariaList": "Available work modes",
         "timber": {
             "title": "Timber Loads",
-            "subtitle": "(Puulaani)",
+            "subtitle": "",
             "aria": "Select timber loads mode"
         },
         "consignment": {
             "title": "Consignments",
-            "subtitle": "(Rahtikirja)",
+            "subtitle": "",
             "aria": "Select consignments mode"
         },
         "chip": {
             "title": "Chip Loads",
-            "subtitle": "(Chip Transport)",
+            "subtitle": "",
             "aria": "Select chip loads mode"
         }
     }

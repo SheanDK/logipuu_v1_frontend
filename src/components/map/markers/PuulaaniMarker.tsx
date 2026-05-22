@@ -3,43 +3,13 @@
 
 import React, { useMemo, useRef, useEffect } from 'react';
 import { Marker, Popup } from 'react-leaflet';
-import { Box, Typography, Button, Divider, Stack } from '@mui/material';
+import { Box, Typography, Button, Divider, Stack, alpha } from '@mui/material';
 import EditIcon from '@mui/icons-material/Edit';
 import { getPuulaaniIcon } from '../../../utils/mapUtils';
 import { IMapTimberStack, IClientBasicInfo } from '../../../types';
 import { useLayout } from '../../../contexts/LayoutContext';
 import L from 'leaflet';
 import { useTranslation } from '@/i18n/useTranslation';
-
-const DetailRow = ({ label, value }: { label: string; value: string | number }) => (
-    <Box sx={{
-        display: 'flex',
-        alignItems: 'flex-start',
-        width: '100%'
-    }}>
-        <Typography
-            variant="body2"
-            color="text.secondary"
-            sx={{
-                flexShrink: 0,
-                width: '50px'
-            }}
-        >
-            {label}:
-        </Typography>
-        <Typography
-            variant="body2"
-            sx={{
-                fontWeight: 'bold',
-                textAlign: 'right',
-                wordBreak: 'break-word',
-                flexGrow: 1
-            }}
-        >
-            {value}
-        </Typography>
-    </Box>
-);
 
 interface PuulaaniMarkerProps {
     marker: IMapTimberStack;
@@ -51,22 +21,21 @@ interface PuulaaniMarkerProps {
     onDoubleClick: (marker: IMapTimberStack) => void;
 }
 
+const BROWN = '#a38f6d';
+const BROWN_DARK = '#8e7a5a';
+
 const PuulaaniMarker: React.FC<PuulaaniMarkerProps> = ({
     marker, customer, isDraggable, onEdit, onLocationChange, onDoubleClick
 }) => {
-
     const { puulaaniIcon, puulaaniIconSize } = useLayout();
     const icon = getPuulaaniIcon(marker.clientColor, puulaaniIcon, puulaaniIconSize);
     const markerRef = useRef<L.Marker>(null);
-    const { t } = useTranslation('puulaaniMarker');
+    const { t } = useTranslation(['timberDashboard']);
 
     useEffect(() => {
         if (markerRef.current) {
-            if (isDraggable) {
-                markerRef.current.dragging?.enable();
-            } else {
-                markerRef.current.dragging?.disable();
-            }
+            if (isDraggable) markerRef.current.dragging?.enable();
+            else markerRef.current.dragging?.disable();
         }
     }, [isDraggable]);
 
@@ -78,19 +47,10 @@ const PuulaaniMarker: React.FC<PuulaaniMarkerProps> = ({
                 onLocationChange(marker.id, { latitude: lat, longitude: lng });
             }
         },
-        dblclick() {
-            onDoubleClick(marker);
-        }
+        dblclick: () => onDoubleClick(marker)
     }), [marker, isDraggable, onLocationChange, onDoubleClick]);
 
-    // --- වැදගත්ම නිවැරදි කිරීම (CRITICAL FIX) ---
-    // ඛණ්ඩාංක null හෝ undefined ද කියා පරීක්ෂා කිරීම.
-    // එසේ නම්, පද්ධතිය crash නොවී Marker එක පෙන්වීම මඟ හරියි.
-    if (marker.latitude === null || marker.latitude === undefined ||
-        marker.longitude === null || marker.longitude === undefined) {
-        console.warn(`Skipping render for Marker ID ${marker.id} due to missing coordinates.`);
-        return null;
-    }
+    if (marker.latitude == null || marker.longitude == null) return null;
 
     return (
         <Marker
@@ -100,40 +60,116 @@ const PuulaaniMarker: React.FC<PuulaaniMarkerProps> = ({
             eventHandlers={eventHandlers}
             ref={markerRef}
         >
-            <Popup>
-                <Box sx={{ width: 220, p: 1 }}>
-                    <Typography variant="h6" component="div" sx={{
-                        fontWeight: 'bold',
-                        overflowWrap: 'break-word',
-                        mb: 1,
-                        px: 1
+            <Popup className="compact-popup" minWidth={230} maxWidth={230}>
+                <Box sx={{ width: 230, fontFamily: 'inherit' }}>
+
+                    {/* ── Header ── */}
+                    <Box sx={{
+                        py: 1.0,
+                        px: 1.0,
+                        bgcolor: BROWN,
+                        textAlign: 'center',
+                        borderRadius: '1px 1px 0 0',
                     }}>
-                        {marker.name}
-                    </Typography>
-
-                    <Divider />
-
-                    <Stack spacing={0.5} sx={{ my: 1, px: 1 }}>
-                        <DetailRow label="Client" value={customer.clientName} />
-                        <DetailRow label="Total" value={`${(marker.totalVolume || 0).toFixed(2)} m³`} />
-                        <DetailRow label="Rem." value={`${(marker.remainingVolume || 0).toFixed(2)} m³`} />
-                        <DetailRow label="Status" value={marker.isActive ? 'Active' : 'Inactive'} />
-                    </Stack>
-
-                    <Box sx={{ display: 'flex', justifyContent: 'center', mt: 1.5 }}>
-                        <Button
-                            variant="outlined"
-                            size="small"
-                            startIcon={<EditIcon />}
-                            onClick={() => onEdit(marker)}
+                        <Typography
+                            variant="subtitle2"
+                            fontWeight="bold"
+                            noWrap
+                            sx={{ color: '#fff', fontSize: '0.85rem', letterSpacing: 0.2 }}
                         >
-                            Details / Edit
+                            {t('common.titlepopup', { defaultValue: 'Timber Stack Details' })}
+                        </Typography>
+                    </Box>
+
+                    {/* ── Body rows ── */}
+                    <Box sx={{ bgcolor: '#fff', px: 2, pt: 0.5, pb: 0 }}>
+
+                        <PopupRow
+                            label={t('common.customer')}
+                            value={customer.clientName}
+                        />
+                        <Divider sx={{ borderColor: '#e0e0e0' }} />
+
+                        <PopupRow
+                            label={t('common.total')}
+                            value={`${(marker.totalVolume || 0).toFixed(2)} m³`}
+                        />
+                        <Divider sx={{ borderColor: '#e0e0e0' }} />
+
+                        <PopupRow
+                            label={t('common.rem')}
+                            value={`${(marker.remainingVolume || 0).toFixed(2)} m³`}
+                        />
+                        <Divider sx={{ borderColor: '#e0e0e0' }} />
+
+                        {/* Status row */}
+                        <Stack
+                            direction="row"
+                            justifyContent="space-between"
+                            alignItems="center"
+                            sx={{ py: 0.1 }}
+                        >
+                            <Typography sx={{ fontSize: '0.8rem', color: '#555' }}>
+                                {t('common.status')}
+                            </Typography>
+                            <Typography
+                                sx={{
+                                    fontSize: '0.8rem',
+                                    fontWeight: 700,
+                                    color: marker.isActive ? '#2e7d32' : '#c62828',
+                                }}
+                            >
+                                {marker.isActive ? t('common.active') : t('common.inactive')}
+                            </Typography>
+                        </Stack>
+
+                    </Box>
+
+                    {/* ── Edit button ── */}
+                    <Box sx={{ bgcolor: '#fff', px: 1.0, pb: 1, pt: 0.2 }}>
+                        <Button
+                            fullWidth
+                            variant="contained"
+                            size="small"
+                            startIcon={<EditIcon sx={{ fontSize: '0.85rem' }} />}
+                            onClick={() => onEdit(marker)}
+                            sx={{
+                                bgcolor: BROWN,
+                                color: '#fff',
+                                fontSize: '0.72rem',
+                                fontWeight: 700,
+                                letterSpacing: 0.8,
+                                py: 0.6,
+                                borderRadius: '3px',
+                                boxShadow: 'none',
+                                textTransform: 'uppercase',
+                                '&:hover': {
+                                    bgcolor: BROWN_DARK,
+                                    boxShadow: 'none',
+                                },
+                            }}
+                        >
+                            {t('common.detailsEdit')}
                         </Button>
                     </Box>
+
                 </Box>
             </Popup>
         </Marker>
     );
 };
+
+// ── Reusable label/value row ──
+const PopupRow = ({ label, value }: { label: string; value: string | number }) => (
+    <Stack
+        direction="row"
+        justifyContent="space-between"
+        alignItems="center"
+        sx={{ py: 0.4 }}
+    >
+        <Typography sx={{ fontSize: '0.8rem', color: '#555' }}>{label}</Typography>
+        <Typography sx={{ fontSize: '0.8rem', fontWeight: 600, color: '#111' }}>{value}</Typography>
+    </Stack>
+);
 
 export default PuulaaniMarker;

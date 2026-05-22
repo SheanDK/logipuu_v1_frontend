@@ -2,7 +2,7 @@
 'use client';
 
 import React, { useEffect, useMemo } from 'react';
-import { Box, Stack, Typography } from '@mui/material';
+import { Box, Divider, Stack, Typography } from '@mui/material';
 import { useTheme, alpha } from '@mui/material/styles';
 import L, { LatLngTuple, LeafletMouseEvent } from 'leaflet';
 import 'leaflet/dist/leaflet.css';
@@ -297,6 +297,19 @@ const LocationController = ({ driverLocation, followUser, onManualPanOrZoomActio
     return null;
 };
 
+const ProfessionalPopup = ({ title, customer, t }: { title: string, customer: string, t: any }) => (
+    <Box sx={{ p: 0.5, minWidth: '150px' }}>
+        <Typography variant="subtitle2" sx={{ fontWeight: 'bold', color: '#a38f6d', mb: 0.5 }}>
+            {title}
+        </Typography>
+        <Divider sx={{ mb: 1, borderColor: 'divider' }} />
+        <Typography variant="caption" sx={{ display: 'block', color: 'text.secondary' }}>
+            {t('popup.clientLabel', 'Customer')}:
+            <strong style={{ color: 'inherit', marginLeft: '4px' }}>{customer}</strong>
+        </Typography>
+    </Box>
+);
+
 export default function TripMap({
     legs, puulaanit, purkupaikat, driverLocation,
     focusedTripId, onFocusCompleteAction, onMarkerClickAction,
@@ -418,36 +431,28 @@ export default function TripMap({
                     />
                 </LayersControl.BaseLayer>
 
-                const InfoRow = ({label, value}: {label: string; value: string | number }) => (
-                <Stack direction="row" justifyContent="space-between" sx={{ my: 0.2 }}>
-                    <Typography variant="caption" color="text.secondary" sx={{ mr: 1 }}>{label}:</Typography>
-                    <Typography variant="caption" fontWeight="bold">{value}</Typography>
-                </Stack>
-                );
-
-                // --- Markers inside LayersControl ---
+                {/* --- Overlays --- */}
                 <LayersControl.Overlay checked={markerFilters.showPuulaanit} name={t('layers.puulaanit', 'Timber Sites')}>
                     <LayerGroup>
-                        {puulaanit.filter(trip => !activePuulaaniIds.has(trip.kuormaId)).map((trip: any, index) => (
+                        {puulaanit.map((trip: any, index) => (
                             trip.originCoords && (
                                 <Marker
                                     key={`puulaani-layer-${trip.kuormaId || index}`}
                                     position={[trip.originCoords.lat, trip.originCoords.lng]}
-                                    icon={focusedTripId === trip.kuormaId ? createHighlightedPuulaaniIcon(trip.color, markerScale) : createDynamicPuulaaniIcon(trip.color, markerScale)}
+                                    icon={
+                                        focusedTripId === trip.kuormaId
+                                            ? createHighlightedPuulaaniIcon(trip.color, markerScale)
+                                            : createDynamicPuulaaniIcon(trip.color, markerScale)
+                                    }
                                     eventHandlers={{ click: (e) => onMarkerClickAction(trip.kuormaId, e) }}
-                                    zIndexOffset={50}
+                                    zIndexOffset={50} // General markers
                                 >
                                     <Popup>
-                                        <Box sx={{ minWidth: 200, p: 0.5 }}>
-                                            <Typography variant="subtitle2" fontWeight="bold" sx={{ color: '#a38f6d', mb: 1, borderBottom: '1px solid #eee' }}>{trip.name}</Typography>
-                                            <InfoRow label={t('popup.clientLabel', 'Client')} value={trip.customer?.clientName || 'N/A'} />
-                                            <InfoRow label={t('stats.total', 'Total')} value={`${f2(trip.totalVolume)} m³`} />
-                                            <InfoRow label={t('stats.rem', 'Rem.')} value={`${f2(trip.remainingVolume)} m³`} />
-                                            <InfoRow label={t('status', 'Status')} value={trip.isActive ? 'Active' : 'Inactive'} />
-                                            <Button size="small" variant="outlined" fullWidth sx={{ mt: 1, borderColor: '#a38f6d', color: '#a38f6d', fontSize: '0.7rem' }} onClick={(e) => { e.preventDefault(); onMarkerClickAction(trip.kuormaId, e as any); }}>
-                                                {t('buttons.detailsEdit', 'DETAILS / EDIT')}
-                                            </Button>
-                                        </Box>
+                                        <ProfessionalPopup
+                                            title={trip.originName}
+                                            customer={trip.customer?.clientName || t('unknownClient', 'Unknown Client')}
+                                            t={t}
+                                        />
                                     </Popup>
                                 </Marker>
                             )
@@ -455,88 +460,124 @@ export default function TripMap({
                     </LayerGroup>
                 </LayersControl.Overlay>
 
-                {/* --- Markers for active trip's route --- */}
-                {legs.map((leg, index) => (
-                    <React.Fragment key={`leg-${leg.kuormaId}`}>
-                        {leg.originCoords && (
-                            <Marker position={[leg.originCoords.lat, leg.originCoords.lng]} icon={createPickupIcon(index)}>
-                                <Popup>
-                                    <Box sx={{ minWidth: 150, p: 0.5 }}>
-                                        <Typography variant="subtitle2" fontWeight="bold" sx={{ color: '#d32f2f' }}>{t('pickup', { index: index + 1 })}</Typography>
-                                        <Typography variant="body2">{leg.originName}</Typography>
-                                    </Box>
-                                </Popup>
-                            </Marker>
-                        )}
-                        {leg.destinationCoords && (
-                            <Marker position={[leg.destinationCoords.lat, leg.destinationCoords.lng]} icon={createPurkupaikkaIcon(markerScale)}>
-                                <Popup>
-                                    <Box sx={{ minWidth: 150, p: 0.5 }}>
-                                        <Typography variant="subtitle2" fontWeight="bold" sx={{ color: '#2e7d32' }}>{t('destination')}</Typography>
-                                        <Typography variant="body2">{leg.destinationName}</Typography>
-                                    </Box>
-                                </Popup>
-                            </Marker>
-                        )}
-                    </React.Fragment>
-                ))}
+                <LayersControl.Overlay checked={markerFilters.showPurkupaikat} name={t('layers.purkupaikat', 'Drop-off Sites')}>
+                    <LayerGroup>
+                        {purkupaikat.map((trip) => (
+                            trip.originCoords && (
+                                <Marker
+                                    key={`purkupaikka-${trip.kuormaId}`}
+                                    position={[trip.originCoords.lat, trip.originCoords.lng]}
+                                    icon={createPurkupaikkaIcon(markerScale)}
+
+                                >
+                                    <Popup>{trip.originName}</Popup>
+                                </Marker>
+                            )
+                        ))}
+                    </LayerGroup>
+                </LayersControl.Overlay>
+            </LayersControl>
+
+            {/* Markers for the active trip's route */}
+            {legs.map((leg, index) => (
+                <React.Fragment key={`leg-${leg.kuormaId}`}>
+                    {leg.originCoords && (
+                        <Marker
+                            position={[leg.originCoords.lat, leg.originCoords.lng]}
+                            icon={createPickupIcon(index)}
+                        >
+                            <Popup>
+                                <b>{t('pickup', { index: index + 1 })}</b>
+                                <br />
+                                {leg.originName}
+                            </Popup>
+                        </Marker>
+                    )}
+                    {leg.destinationCoords && (
+                        <Marker
+                            position={[leg.destinationCoords.lat, leg.destinationCoords.lng]}
+                            icon={createPurkupaikkaIcon(markerScale)}
+                        >
+                            <Popup>
+                                <b>{t('destination')}</b>
+                                <br />
+                                {leg.destinationName}
+                            </Popup>
+                        </Marker>
+                    )}
+                </React.Fragment>
+            ))}
 
 
 
-                {/* Driver Live Location Marker with Scaling */}
-                {driverLocation && (
-                    <Marker
-                        position={[driverLocation.lat, driverLocation.lng]}
-                        icon={createDriverIcon(markerScale)} // Scale යොදන ලදී
-                    >
-                        <Popup>{t('yourLocation')}</Popup>
-                    </Marker>
-                )}
+            {/* Driver Live Location Marker with Scaling */}
+            {driverLocation && (
+                <Marker
+                    position={[driverLocation.lat, driverLocation.lng]}
+                    icon={createDriverIcon(markerScale)} // Scale යොදන ලදී
+                >
+                    <Popup>{t('yourLocation')}</Popup>
+                </Marker>
+            )}
 
-                <MapFocusController trips={puulaanit} focusedTripId={focusedTripId} onFocusCompleteAction={onFocusCompleteAction} />
-                <LayerControlEventHandler onFilterChange={handleFilterEvent as any} />
-                <LocationController
-                    driverLocation={driverLocation}
-                    followUser={followUser}
-                    onManualPanOrZoomAction={onManualPanOrZoomAction}
-                />
+            <MapFocusController trips={puulaanit} focusedTripId={focusedTripId} onFocusCompleteAction={onFocusCompleteAction} />
+            <LayerControlEventHandler onFilterChange={handleFilterEvent as any} />
+            <LocationController
+                driverLocation={driverLocation}
+                followUser={followUser}
+                onManualPanOrZoomAction={onManualPanOrZoomAction}
+            />
 
-                {/* Dark mode styling for map controls */}
-                <GlobalStyles styles={(theme) => ({
-                    '.leaflet-dark .leaflet-control-layers': {
-                        backgroundColor: theme.palette.background.paper,
-                        color: theme.palette.text.primary,
-                        border: `1px solid ${alpha(theme.palette.divider, 0.6)}`,
-                        boxShadow: theme.shadows[4],
-                    },
-                    '.leaflet-dark .leaflet-control-layers-expanded': {
-                        backgroundColor: theme.palette.background.paper,
-                        color: theme.palette.text.primary,
-                    },
-                    '.leaflet-dark .leaflet-control-layers-list label': {
-                        color: theme.palette.text.primary,
-                    },
-                    '.leaflet-dark .leaflet-control-layers-separator': {
-                        borderTop: `1px solid ${alpha(theme.palette.divider, 0.6)}`,
-                    },
-                    '.leaflet-dark .leaflet-control-layers-selector': {
-                        accentColor: theme.palette.primary.main,
-                    },
-                    '.leaflet-dark .leaflet-control-layers-toggle': {
-                        filter: 'invert(1) hue-rotate(180deg) brightness(0.85)',
-                        backgroundColor: theme.palette.background.paper,
-                        border: `1px solid ${alpha(theme.palette.divider, 0.6)}`,
-                        boxShadow: theme.shadows[2],
-                    },
-                    '.leaflet-dark .leaflet-bar a, .leaflet-dark .leaflet-bar a:hover': {
-                        backgroundColor: theme.palette.background.paper,
-                        color: theme.palette.text.primary,
-                        borderBottom: `1px solid ${alpha(theme.palette.divider, 0.6)}`,
-                    },
-                    '.leaflet-dark .leaflet-bar a:hover': {
-                        backgroundColor: alpha(theme.palette.action.hover, 0.35),
-                    },
-                })} />
+            {/* Dark mode styling for map controls */}
+            <GlobalStyles styles={(theme) => ({
+                '.leaflet-dark .leaflet-control-layers': {
+                    backgroundColor: theme.palette.background.paper,
+                    color: theme.palette.text.primary,
+                    border: `1px solid ${alpha(theme.palette.divider, 0.6)}`,
+                    boxShadow: theme.shadows[4],
+                },
+                '.leaflet-dark .leaflet-control-layers-expanded': {
+                    backgroundColor: theme.palette.background.paper,
+                    color: theme.palette.text.primary,
+                },
+                '.leaflet-dark .leaflet-control-layers-list label': {
+                    color: theme.palette.text.primary,
+                },
+                '.leaflet-dark .leaflet-control-layers-separator': {
+                    borderTop: `1px solid ${alpha(theme.palette.divider, 0.6)}`,
+                },
+                '.leaflet-dark .leaflet-control-layers-selector': {
+                    accentColor: theme.palette.primary.main,
+                },
+                '.leaflet-dark .leaflet-control-layers-toggle': {
+                    filter: 'invert(1) hue-rotate(180deg) brightness(0.85)',
+                    backgroundColor: theme.palette.background.paper,
+                    border: `1px solid ${alpha(theme.palette.divider, 0.6)}`,
+                    boxShadow: theme.shadows[2],
+                },
+                '.leaflet-dark .leaflet-bar a, .leaflet-dark .leaflet-bar a:hover': {
+                    backgroundColor: theme.palette.background.paper,
+                    color: theme.palette.text.primary,
+                    borderBottom: `1px solid ${alpha(theme.palette.divider, 0.6)}`,
+                },
+                '.leaflet-dark .leaflet-bar a:hover': {
+                    backgroundColor: alpha(theme.palette.action.hover, 0.35),
+                },
+                '.leaflet-popup-content-wrapper': {
+                    borderRadius: '12px !important',
+                    boxShadow: '0 8px 24px rgba(0,0,0,0.15) !important',
+                    padding: '2px !important',
+                    backgroundColor: theme.palette.background.paper + ' !important',
+                    color: theme.palette.text.primary + ' !important'
+                },
+                '.leaflet-popup-content': {
+                    margin: '8px !important',
+                    fontFamily: theme.typography.fontFamily,
+                },
+                '.leaflet-popup-tip': {
+                    background: theme.palette.background.paper + ' !important',
+                }
+            })} />
         </MapContainer>
     );
 }

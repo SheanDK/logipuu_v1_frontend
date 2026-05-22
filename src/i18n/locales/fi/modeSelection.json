@@ -5,18 +5,18 @@
         "ariaList": "Saatavilla olevat työtilat",
         "timber": {
             "title": "Puulaanikuormat",
-            "subtitle": "(Puulaani)",
-            "aria": "Valitse Puulaanikuormatila"
+            "subtitle": "",
+            "aria": "Valitse puutavarakuormatila"
         },
         "consignment": {
-            "title": "Rahtikuljetukset",
-            "subtitle": "(Rahtikirja)",
+            "title": "Rahtikuormat",
+            "subtitle": "",
             "aria": "Valitse rahtikuljetustila"
         },
         "chip": {
             "title": "Tuotekuormat",
-            "subtitle": "(Hakekuljetus)",
-            "aria": "Valitse hakekuormien tila"
+            "subtitle": "",
+            "aria": "Valitse tuotekuormien tila"
         }
     }
 }
