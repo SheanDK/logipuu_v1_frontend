@@ -1,7 +1,7 @@
 {
   "title": {
-    "edit": "Muokkaa Puulaanin tietoja",
-    "create": "Viimeistele uusi Puulaani (Vaihe 2)"
+    "edit": "Muokkaa tietoja",
+    "create": "Viimeistele uusi (Vaihe 2)"
   },
   "sections": {
     "primaryDetails": "Perustiedot",
@@ -23,8 +23,8 @@
     "ready": "Valmis"
   },
   "actions": {
-    "update": "Päivitä Puulaani",
-    "create": "Luo Puulaani"
+    "update": "Päivitä",
+    "create": "Luo"
   },
   "errors": {
     "nameRequired": "Nimi on pakollinen",

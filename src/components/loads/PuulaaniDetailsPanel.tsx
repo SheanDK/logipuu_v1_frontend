@@ -24,6 +24,7 @@ interface PuulaaniDetailsPanelProps {
     onDeleteLoadAction: (load: any) => void;
     onStartTripAction: (load: any) => void;
     activeLoadId: number | null;
+    activeOrderNo?: string | null;
     hasActiveTrip: boolean;
     isOffline: boolean;
     totalAssignedLoadsCount: number;
@@ -37,7 +38,9 @@ export default function PuulaaniDetailsPanel({
     onCloseAction, onCreateLoadAction,
     onEditLoadAction, onSaveAction,
     onDeleteLoadAction, onStartTripAction,
-    activeLoadId, hasActiveTrip,
+    activeLoadId,
+    activeOrderNo,
+    hasActiveTrip,
     isOffline,
     totalAssignedLoadsCount
 }: PuulaaniDetailsPanelProps) {
@@ -309,7 +312,13 @@ export default function PuulaaniDetailsPanel({
                                                                     size="small"
                                                                     title={t('loads.actions.start')}
                                                                     color="success"
-                                                                    onClick={(e) => { e.stopPropagation(); onStartTripAction(load); }}
+                                                                    onClick={(e) => {
+                                                                        e.stopPropagation();
+                                                                        onStartTripAction({
+                                                                            ...load,
+                                                                            ajomaaraysNro: load.ajomaaraysNro || activeOrderNo
+                                                                        });
+                                                                    }}
                                                                 >
                                                                     <PlayCircleOutlineIcon />
                                                                 </IconButton>

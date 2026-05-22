@@ -420,7 +420,8 @@ export default function TimberDashboard({ onBackAction }: TimberDashboardProps) 
         const currentPuulaaniId = selectedPuulaaniDetails?.puulaani.puulaaniId;
         const driverId = user.driverNumericId;
         const vehicleId = Number(selectedVehicleId);
-        const drivingOrderNo = activeTrip?.ajomaaraysNro || null;
+        const drivingOrderNo = activeTrip?.ajomaaraysNro
+            ?? `ORD-${user.driverNumericId}-${Date.now()}`;
 
         if (isEdit) {
             try {
@@ -563,6 +564,21 @@ export default function TimberDashboard({ onBackAction }: TimberDashboardProps) 
     }, [setContextActiveTrip]);
 
     const handleStartTrip = async (load: any) => {
+
+        const drivingOrderNo = load.ajomaaraysNro &&
+            load.ajomaaraysNro !== '[default]' &&
+            load.ajomaaraysNro !== 'default'
+            ? load.ajomaaraysNro
+            : null;
+
+        console.log("DEBUG: Driving Order Number found:", drivingOrderNo);
+        const finalOrderNo = drivingOrderNo || `TRIP-${Date.now()}`;
+        setIsUpdatingStatus(true);
+
+        if (!drivingOrderNo) {
+            enqueueSnackbar('Cannot start trip: Driving order number is missing.', { variant: 'error' });
+            return;
+        }
         if (!load.ajomaaraysNro) {
             enqueueSnackbar('Cannot start trip: Load data is missing a driving order number.', { variant: 'error' });
             return;
@@ -570,7 +586,7 @@ export default function TimberDashboard({ onBackAction }: TimberDashboardProps) 
 
         setIsUpdatingStatus(true);
         try {
-            await updateTripStatus(load.ajomaaraysNro, { status: 'In Progress' });
+            await updateTripStatus(finalOrderNo, { status: 'In Progress' });
 
             const tripData = await getActiveTripForDriver();
             if (tripData) {
@@ -821,6 +837,7 @@ export default function TimberDashboard({ onBackAction }: TimberDashboardProps) 
                 onEditLoadAction={handleEditLoad}
                 onDeleteLoadAction={(load) => setLoadToDelete(load)}
                 onStartTripAction={handleStartTrip}
+                activeOrderNo={activeTrip?.ajomaaraysNro}
                 activeLoadId={activeTrip?.legs.find((leg: any) => leg.status !== 'Assigned')?.kuormaId || null}
                 hasActiveTrip={!!activeTrip}
                 isOffline={!navigator.onLine}

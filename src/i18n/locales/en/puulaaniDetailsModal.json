@@ -1,7 +1,7 @@
 {
   "title": {
-    "edit": "Edit Puulaani Information",
-    "create": "Finalize New Puulaani (Step 2)"
+    "edit": "Edit Information",
+    "create": "Finalize New (Step 2)"
   },
   "sections": {
     "primaryDetails": "Primary Details",
@@ -23,8 +23,8 @@
     "ready": "Ready"
   },
   "actions": {
-    "update": "Update Puulaani",
-    "create": "Create Puulaani"
+    "update": "Update ",
+    "create": "Create "
   },
   "errors": {
     "nameRequired": "Name is required",
