@@ -1,22 +1,22 @@
 {
-"mode": {
-"title": "Valitse työtila",
-"subtitle": "Valitse tehtävätyyppi tätä työvuoroa varten.",
-"ariaList": "Saatavilla olevat työtilat",
-"timber": {
-"title": "Puutavarakuormat",
-"subtitle": "(Puulaani)",
-"aria": "Valitse puutavarakuormatila"
-},
-"consignment": {
-"title": "Rahtikuljetukset",
-"subtitle": "(Rahtikirja)",
-"aria": "Valitse rahtikuljetustila"
-},
-"chip": {
-"title": "Hakekuormat",
-"subtitle": "(Hakekuljetus)",
-"aria": "Valitse hakekuormien tila"
-}
-}
+    "mode": {
+        "title": "Valitse työtila",
+        "subtitle": "Valitse tehtävätyyppi tätä työvuoroa varten.",
+        "ariaList": "Saatavilla olevat työtilat",
+        "timber": {
+            "title": "Puulaanikuormat",
+            "subtitle": "(Puulaani)",
+            "aria": "Valitse Puulaanikuormatila"
+        },
+        "consignment": {
+            "title": "Rahtikuljetukset",
+            "subtitle": "(Rahtikirja)",
+            "aria": "Valitse rahtikuljetustila"
+        },
+        "chip": {
+            "title": "Tuotekuormat",
+            "subtitle": "(Hakekuljetus)",
+            "aria": "Valitse hakekuormien tila"
+        }
+    }
 }

@@ -13,7 +13,7 @@
     "close": "Sulje"
   },
   "timber": {
-    "title": "Puutavaralajit",
+    "title": "Tuotelajit",
     "tableAria": "Puutavaralajien taulukko",
     "columns": {
       "type": "Laji",

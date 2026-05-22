@@ -1,5 +1,5 @@
 {
-  "title": "Hakekuormat",
+  "title": "Tuotekuormat",
   "subtitle": "Kuljettajan viikkonäkymä",
   "buttons": {
     "previousWeek": "Edellinen viikko",
@@ -14,7 +14,7 @@
     "scheduledDate": "Ajoitettu päivä",
     "serial": "Sarja",
     "titleId": "Tilausnimi",
-    "titleName": "Nimike",
+    "titleName": "Tuote",
     "orderId": "Tilaus",
     "loadingPoint": "Lähtöpaikka",
     "unloadingPoint": "Purkupaikka",

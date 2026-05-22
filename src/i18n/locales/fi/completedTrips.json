@@ -22,9 +22,9 @@
   "noChip": "Valmiita chip-kuljetuksia ei löytynyt.",
   "ariaTabs": "valmiiden ajojen välilehdet",
   "tabs": {
-    "timber": "Puutavarakuormat",
+    "timber": "Puulaanikuormat",
     "consignments": "Rahtikirja-ajot",
-    "timberWithCount": "Puutavarakuormat ({{count}})",
+    "timberWithCount": "Puulaanikuormat ({{count}})",
     "consignmentsWithCount": "Rahtikirja-ajot ({{count}})",
     "chipWithCount": "Chip-kuljetukset ({{count}})",
     "chip": "Chip-kuljetukset"

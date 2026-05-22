@@ -1,7 +1,7 @@
 {
   "header": {
     "company": "Yritys Oy",
-    "title": "Puulaanin laskutusraportti",
+    "title": "Puulanilaskutusraportti",
     "period": "Ajanjakso: {{start}} - {{end}}"
   },
   "section": {

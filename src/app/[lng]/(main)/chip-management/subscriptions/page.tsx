@@ -49,7 +49,7 @@ const ChipSubscriptionsPage = () => {
     const columns = [
         { id: 'id', label: 'ID', key: 'orderId' },
         { id: 'customer', label: t('subscriptions.table.customer') || 'Customer', key: 'customerName' },
-        { id: 'item', label: t('subscriptions.table.item') || 'Item (Nimike)', key: 'abbreviation' },
+        { id: 'item', label: t('subscriptions.table.item') || 'Item (tuotelaji)', key: 'abbreviation' },
         { id: 'validity', label: t('subscriptions.table.validityPeriod') || 'Validity Period', key: 'startDate' },
         { id: 'qty', label: t('subscriptions.table.targetQty') || 'Target Qty', key: 'targetQty' },
         { id: 'info', label: t('subscriptions.table.furtherInfo') || 'Further Information', key: 'notes' },
