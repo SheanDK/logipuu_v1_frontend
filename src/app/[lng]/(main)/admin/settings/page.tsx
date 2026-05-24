@@ -6,7 +6,7 @@ import {
     Box, Typography, Paper, CircularProgress, Alert,
     Tabs, Tab, Select, MenuItem, FormControl, InputLabel,
     AlertColor, Card, CardContent, CardHeader, SelectChangeEvent,
-    ToggleButtonGroup, ToggleButton, Divider, Stack, Slider, Tooltip
+    ToggleButtonGroup, ToggleButton, Stack, Slider, Tooltip
 } from '@mui/material';
 import LocationOnIcon from '@mui/icons-material/LocationOn';
 import ForestIcon from '@mui/icons-material/Forest';

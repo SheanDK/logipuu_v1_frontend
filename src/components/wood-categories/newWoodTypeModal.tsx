@@ -42,9 +42,9 @@ export default function NewWoodTypeModal({
             .string()
             .optional()
             .transform(v => {
-              if (typeof v !== 'string') return undefined;          
+              if (typeof v !== 'string') return undefined;
               const trimmed = v.trim();
-              return trimmed.length ? trimmed : undefined;           
+              return trimmed.length ? trimmed : undefined;
             }),
           active: yup.boolean().required(),
         })
@@ -83,7 +83,7 @@ export default function NewWoodTypeModal({
     await onCreatedAction(values);
     // Reset handled by useEffect on next open or manual reset here if needed
     if (!initialData) {
-        reset({ name: '', description: '', active: true });
+      reset({ name: '', description: '', active: true });
     }
   };
 
@@ -91,7 +91,7 @@ export default function NewWoodTypeModal({
     <Dialog open={open} onClose={onCloseAction} maxWidth="sm" fullWidth>
       {/* Dynamic Title */}
       <DialogTitle>
-        {initialData ? t('newWoodTypeModal:titleEdit', { defaultValue: 'Edit Wood Type' }) : t('newWoodTypeModal:title')}
+        {initialData ? t('newWoodTypeModal:titleEdit') : t('newWoodTypeModal:title')}
       </DialogTitle>
       <DialogContent dividers>
         <Box sx={{ display: 'grid', gap: 2, mt: 1 }}>

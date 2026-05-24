@@ -263,7 +263,7 @@ const PlanningPage = () => {
                 const plan = vehiclesData.find(p => p.kalustoNro === regV.kalustoNro);
                 return {
                     ...regV,
-                    groupName: regV.planning_group || regV.planningGroup || 'General',
+                    groupName: regV.planning_group || regV.planningGroup || t('common.general', 'General'),
                     loads: plan?.loads || []
                 };
             });
@@ -272,7 +272,7 @@ const PlanningPage = () => {
     const groupedVehicles = useMemo(() => {
         const paginatedList = filteredVehicleList.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage);
         const grouped = paginatedList.reduce((acc: any, v: any) => {
-            const group = v.groupName || 'General';
+            const group = v.groupName || t('common.general', 'General');
             if (!acc[group]) acc[group] = [];
             acc[group].push(v);
             return acc;
@@ -317,7 +317,7 @@ const PlanningPage = () => {
             fetchData(true);
         } catch (err: any) {
             console.error("Drop error", err);
-            const msg = err.response?.data?.error || err.message || "Operation failed";
+            const msg = err.response?.data?.error || err.message || t('error.operationFailed', 'Operation failed');
             enqueueSnackbar(msg, { variant: 'error' });
         }
     };
@@ -513,7 +513,7 @@ const PlanningPage = () => {
                                                                 <Typography sx={{ fontSize: '9px', fontWeight: '900', lineHeight: 1.1 }}>{(load.abbreviation || 'CHIP').toUpperCase()}</Typography>
                                                                 {(load.transferStatus === 'PENDING' || load.transfer_status === 'PENDING') && (
                                                                     <Typography sx={{ fontSize: '7px', fontWeight: '900', color: '#ff9800', bgcolor: alpha('#ff9800', 0.1), px: 0.4, borderRadius: '2px', textTransform: 'uppercase' }}>
-                                                                        Pending
+                                                                        {t('common.pending', 'Pending')}
                                                                     </Typography>
                                                                 )}
                                                             </Box>

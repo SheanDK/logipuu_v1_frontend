@@ -26,6 +26,7 @@
         "editTitle": "Edit Title",
         "summaryTitle": "Title Summary & Confirmation",
         "titleName": "Title Name",
+        "areaName": "Area Name",
         "abbr": "Abbr.",
         "active": "Active",
         "customer": "Customer",
@@ -284,7 +285,7 @@
         "table": {
             "id": "ID",
             "customer": "Customer",
-            "item": "Item (tuotelaji)",
+            "item": "Item (Nimike)",
             "validityPeriod": "Validity Period",
             "targetQty": "Target Qty",
             "status": "Status",
@@ -357,5 +358,10 @@
         "UNLOADED": "UNLOADED",
         "hours": "Hours",
         "info": "Info"
+    },
+    "common": {
+        "pending": "Pending",
+        "general": "General",
+        "error.operationFailed": "Operation failed"
     }
 }

@@ -17,11 +17,23 @@
     "closeAria": "Sulje"
   },
   "validation": {
-    "name": { "required": "Kohteen nimi on pakollinen" },
-    "client": { "required": "Asiakas on pakollinen" },
-    "date": { "required": "Päivämäärä on pakollinen" },
-    "location": { "selectOnMap": "Valitse sijainti kartalta" },
-    "latitude": { "required": "Leveysaste on pakollinen" },
-    "longitude": { "required": "Pituusaste on pakollinen" }
+    "name": {
+      "required": "Kohteen nimi on pakollinen"
+    },
+    "client": {
+      "required": "Asiakas on pakollinen"
+    },
+    "date": {
+      "required": "Päivämäärä on pakollinen"
+    },
+    "location": {
+      "selectOnMap": "Valitse sijainti kartalta"
+    },
+    "latitude": {
+      "required": "Leveysaste on pakollinen"
+    },
+    "longitude": {
+      "required": "Pituusaste on pakollinen"
+    }
   }
 }

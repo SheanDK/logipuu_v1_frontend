@@ -29,7 +29,7 @@
     "nameMax": "Client Name must not exceed 50 characters",
     "emailInvalid": "Enter a valid email.",
     "emailMax": "Email must not exceed 100 characters.",
-    "colorRequired": "Target Color is required for Puulaani clients.",
+    "colorRequired": "Target Color is required for Timberstack Clients.",
     "colorInvalid": "Must be a valid 6-digit hex color.",
     "colorExists": "This color is already in use.",
     "oneTypeRequired": "At least one client type must be selected.",

@@ -314,6 +314,7 @@ export default function PuulaaniDetailsPanel({
                                                                     color="success"
                                                                     onClick={(e) => {
                                                                         e.stopPropagation();
+                                                                        // load object එකට ajomaaraysNro inject කරන්න
                                                                         onStartTripAction({
                                                                             ...load,
                                                                             ajomaaraysNro: load.ajomaaraysNro || activeOrderNo

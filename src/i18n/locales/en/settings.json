@@ -8,7 +8,7 @@
   },
   "alerts": {
     "defaultMapUpdated": "Default map view updated.",
-    "puulaaniIconChanged": "Puulaani marker icon changed.",
+    "puulaaniIconChanged": "Timber marker icon changed.",
     "dropoffIconChanged": "Drop-off marker icon changed."
   },
   "map": {
@@ -25,7 +25,7 @@
     }
   },
   "puulaani": {
-    "title": "Puulaani Marker Icon",
+    "title": "Timber Marker Icon",
     "subheader": "Select the default icon and size for Timber Stacks.",
     "iconPreview": "Icon Preview",
     "selectIcon": "Select Icon",
@@ -38,7 +38,7 @@
       "pinDrop": "Drop Pin"
     },
     "aria": {
-      "group": "puulaani icon selection",
+      "group": "Timber icon selection",
       "sizeSlider": "icon-size-slider"
     }
   },

@@ -8,7 +8,10 @@
     "freightKm": "Kuljetus (km)",
     "hours": "Tunnit",
     "pcs": "Kpl",
-    "additionalInfo": "Lisätiedot"
+    "additionalInfo": "Lisätiedot",
+    "tons": "Tonnit",
+    "waiting": "Odotus",
+    "drivingOrderNo": "Ajomääräys nro"
   },
   "actions": {
     "cancel": "Peruuta",

@@ -12,5 +12,11 @@
   "customer": "Asiakas",
   "vehicle": "Ajoneuvo",
   "driver": "Kuljettaja",
-  "dateFormat": "DD.MM.YYYY"
+  "dateFormat": "DD.MM.YYYY",
+  "waybill": "Rahtikirja",
+  "loadingSite": "Lastauspaikka",
+  "unloadingSite": "Purkupaikka",
+  "status": "Tila",
+  "loadType": "Kuorman tyyppi",
+  "totalM3": "Kokonaistilavuus m³"
 }

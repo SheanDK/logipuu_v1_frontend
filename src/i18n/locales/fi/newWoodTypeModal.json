@@ -1,5 +1,6 @@
 {
   "title": "Tee Uusi Puutavara",
+  "titleEdit": "Muokkaa Puutavaraa",
   "fields": {
     "name": "Puutavara Nimi *",
     "description": "Lisätiedot",

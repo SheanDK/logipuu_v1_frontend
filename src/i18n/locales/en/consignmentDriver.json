@@ -12,5 +12,11 @@
   "customer": "Customer",
   "vehicle": "Vehicle",
   "driver": "Driver",
-  "dateFormat": "DD MMM YYYY"
+  "dateFormat": "DD MMM YYYY",
+  "waybill": "Waybill",
+  "loadingSite": "Loading Site",
+  "unloadingSite": "Unloading Site",
+  "status": "Status",
+  "loadType": "Load Type",
+  "totalM3": "Total m3"
 }

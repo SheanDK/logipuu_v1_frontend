@@ -8,7 +8,10 @@
     "freightKm": "Freight (km)",
     "hours": "Hours",
     "pcs": "Pcs",
-    "additionalInfo": "Additional Information"
+    "additionalInfo": "Additional Information",
+    "drivingOrderNo": "Driving Order No",
+    "tons": "Tons",
+    "waiting": "Waiting"
   },
   "actions": {
     "cancel": "Cancel",

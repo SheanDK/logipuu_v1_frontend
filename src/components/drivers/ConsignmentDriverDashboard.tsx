@@ -64,7 +64,7 @@ export default function ConsignmentDriverDashboard({ onBackAction, onNavigateToF
             },
             {
                 field: 'waybillCount',
-                headerName: t('waybills', { ns: 'consignmentDriver', defaultValue: 'Waybills' }),
+                headerName: t('waybill', { ns: 'consignmentDriver' }),
                 width: 120, // Fixed width
                 align: 'center',
                 headerAlign: 'center',
@@ -80,7 +80,7 @@ export default function ConsignmentDriverDashboard({ onBackAction, onNavigateToF
             },
             {
                 field: 'totalM3',
-                headerName: t('totalM3', { ns: 'consignmentDriver', defaultValue: 'Total m3' }),
+                headerName: t('totalM3', { ns: 'consignmentDriver' }),
                 width: 150, // Fixed width
                 align: 'right',
                 headerAlign: 'right',

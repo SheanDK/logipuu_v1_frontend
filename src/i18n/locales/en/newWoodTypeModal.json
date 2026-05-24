@@ -1,5 +1,6 @@
 {
   "title": "Create New Wood Type",
+  "titleEdit": "Edit Wood Type",
   "fields": {
     "name": "Wood Type Name *",
     "description": "Details",

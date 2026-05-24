@@ -4,8 +4,8 @@
   },
   "loading": "Loading…",
   "header": {
-    "label": "PUULAANI DETAILS",
-    "unknown": "Unknown Puulaani"
+    "label": "TIMBER STACK DETAILS",
+    "unknown": "Unknown Timber Stack"
   },
   "actions": {
     "saveChanges": "Save Changes",

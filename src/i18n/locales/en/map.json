@@ -13,8 +13,6 @@
     "unloadingSites": "Unloading Sites",
     "otherMarkers": "Other Markers",
     "vehicles": "Vehicles"
-    
-
   },
   "types": {
     "timberStack": "Timber stack",
@@ -23,7 +21,7 @@
   },
   "messages": {
     "locationUpdated": "{{client}} - {{name}} location updated.",
-    "stackSaved": "Puulaani saved successfully.",
+    "stackSaved": "Stack saved successfully.",
     "otherMarkerUpdated": "Other marker updated successfully.",
     "otherMarkerCreated": "Other marker created successfully.",
     "alreadyUnlocked": "Another marker is already unlocked.",
