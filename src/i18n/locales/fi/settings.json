@@ -69,17 +69,17 @@
     }
   },
   "chipMarker": {
-    "title": "Chip Marker & Path",
-    "subheader": "Configure Wood Chip transport visuals",
-    "preview": "PREVIEW",
-    "selectIconType": "SELECT ICON TYPE",
-    "iconSize": "ICON SIZE",
-    "pathOpacity": "PATH OPACITY",
+    "title": "Hakkeet ja reitit",
+    "subheader": "Aseta hakkeiden kuljetusten ulkoasu",
+    "preview": "ESIKATSELU",
+    "selectIconType": "VALITSE IKONI",
+    "iconSize": "IKONIN KOKO",
+    "pathOpacity": "REITIN OPASITE",
     "icons": {
-      "category": "General",
-      "grain": "Grain/Bio",
-      "hub": "Hub/Station",
-      "business": "Plant/Factory"
+      "category": "Yleinen",
+      "grain": "Biohake",
+      "hub": "Asema/keskus",
+      "business": "Tehdas"
     }
   }
 }
