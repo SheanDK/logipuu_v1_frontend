@@ -55,10 +55,10 @@ export const LayoutProvider = ({ children }: { children: ReactNode }) => {
 
     // Icon States
     const [puulaaniIcon, setPuulaaniIcon] = useState<PuulaaniIconType>('LocationOn');
-    const [puulaaniIconSize, setPuulaaniIconSize] = useState<number>(30);
+    const [puulaaniIconSize, setPuulaaniIconSize] = useState<number>(34);
     const [dropoffIcon, setDropoffIcon] = useState<DropoffIconType>('Warehouse');
-    const [dropoffIconSize, setDropoffIconSize] = useState<number>(22);
-    const [otherMarkerIconSize, setOtherMarkerIconSize] = useState<number>(22);
+    const [dropoffIconSize, setDropoffIconSize] = useState<number>(26);
+    const [otherMarkerIconSize, setOtherMarkerIconSize] = useState<number>(26);
 
     // NEW: Chip Transport States
     const [chipIcon, setChipIcon] = useState<ChipIconType>('Category');
