@@ -270,12 +270,12 @@ export default function AppSettingsPage() {
                             </Stack>
                         </SettingCard>
 
-                        <SettingCard title="Chip Marker & Path" subheader="Configure Wood Chip transport visuals">
+                        <SettingCard title={t('chipMarker.title')} subheader={t('chipMarker.subheader')}>
                             <Stack direction="row" spacing={3} alignItems="center" sx={{ flexGrow: 1 }}>
 
                                 <Box textAlign="center" sx={{ p: 2, borderRight: '1px solid', borderColor: 'divider', minWidth: '120px' }}>
                                     <Typography variant="caption" sx={{ fontWeight: 'bold', display: 'block', mb: 2 }}>
-                                        PREVIEW
+                                        {t('chipMarker.preview')}
                                     </Typography>
                                     <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '80px' }}>
                                         <Box sx={{
@@ -301,7 +301,7 @@ export default function AppSettingsPage() {
                                 {/* 2. CONTROLS */}
                                 <Box flexGrow={1}>
                                     <Typography variant="caption" sx={{ fontWeight: 800, color: 'text.secondary', display: 'block', mb: 1 }}>
-                                        SELECT ICON TYPE
+                                        {t('chipMarker.selectIconType')}
                                     </Typography>
                                     <ToggleButtonGroup
                                         value={chipIcon}
@@ -310,14 +310,14 @@ export default function AppSettingsPage() {
                                         size="small"
                                         sx={{ mb: 2 }}
                                     >
-                                        <ToggleButton value="Category"><Tooltip title="General"><CategoryIcon /></Tooltip></ToggleButton>
-                                        <ToggleButton value="Grain"><Tooltip title="Grain/Bio"><GrainIcon /></Tooltip></ToggleButton>
-                                        <ToggleButton value="Hub"><Tooltip title="Hub/Station"><HubIcon /></Tooltip></ToggleButton>
-                                        <ToggleButton value="Business"><Tooltip title="Plant/Factory"><BusinessIcon /></Tooltip></ToggleButton>
+                                        <ToggleButton value="Category"><Tooltip title={t('chipMarker.icons.category')}><CategoryIcon /></Tooltip></ToggleButton>
+                                        <ToggleButton value="Grain"><Tooltip title={t('chipMarker.icons.grain')}><GrainIcon /></Tooltip></ToggleButton>
+                                        <ToggleButton value="Hub"><Tooltip title={t('chipMarker.icons.hub')}><HubIcon /></Tooltip></ToggleButton>
+                                        <ToggleButton value="Business"><Tooltip title={t('chipMarker.icons.business')}><BusinessIcon /></Tooltip></ToggleButton>
                                     </ToggleButtonGroup>
 
                                     <Typography variant="caption" sx={{ fontWeight: 800, color: 'text.secondary', display: 'block', mb: 0.5 }}>
-                                        ICON SIZE: {chipIconSize}px
+                                        {t('chipMarker.iconSize')}: {chipIconSize}px
                                     </Typography>
                                     <Slider
                                         value={chipIconSize}
@@ -327,7 +327,7 @@ export default function AppSettingsPage() {
                                     />
 
                                     <Typography variant="caption" sx={{ fontWeight: 800, color: 'text.secondary', display: 'block', mt: 1.5, mb: 0.5 }}>
-                                        PATH OPACITY: {Math.round(chipPathOpacity * 100)}%
+                                        {t('chipMarker.pathOpacity')}: {Math.round(chipPathOpacity * 100)}%
                                     </Typography>
                                     <Slider
                                         value={chipPathOpacity * 100}
