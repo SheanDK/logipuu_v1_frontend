@@ -164,11 +164,32 @@ const PopupRow = ({ label, value }: { label: string; value: string | number }) =
     <Stack
         direction="row"
         justifyContent="space-between"
-        alignItems="center"
-        sx={{ py: 0.4 }}
+        alignItems="flex-start"
+        spacing={2}
+        sx={{ py: 0.4, width: '100%' }}
     >
-        <Typography sx={{ fontSize: '0.8rem', color: '#555' }}>{label}</Typography>
-        <Typography sx={{ fontSize: '0.8rem', fontWeight: 600, color: '#111' }}>{value}</Typography>
+        <Typography
+            sx={{
+                fontSize: '0.8rem',
+                color: '#555',
+                flexShrink: 0,
+                width: '75px'
+            }}
+        >
+            {label}
+        </Typography>
+        <Typography
+            sx={{
+                fontSize: '0.8rem',
+                fontWeight: 600,
+                color: '#111',
+                textAlign: 'right',
+                wordBreak: 'break-word',
+                flexGrow: 1
+            }}
+        >
+            {value}
+        </Typography>
     </Stack>
 );
 
