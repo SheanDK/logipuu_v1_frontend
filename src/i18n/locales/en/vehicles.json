@@ -3,7 +3,8 @@
   "subtitle": "Manage your vehicles and their information.",
   "noPermission": "You do not have permission to view this page.",
   "buttons": {
-    "addVehicle": "Add New Vehicle"
+    "addVehicle": "Add New Vehicle",
+    "vehicleGrouping": "Vehicle Grouping"
   },
   "columns": {
     "vehicleNo": "Vehicle No",
@@ -32,7 +33,5 @@
     "title": "Delete Vehicle",
     "message": "Are you sure you want to delete vehicle \"{{registrationNo}}\"? This action cannot be undone."
   },
-  "common": {
-    "general": "General"
-  }
+  "general": "General"
 }

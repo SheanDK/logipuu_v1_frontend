@@ -3,7 +3,8 @@
   "subtitle": "Hallitse ajoneuvojasi ja niiden tietoja.",
   "noPermission": "Sinulla ei ole oikeutta tarkastella tätä sivua.",
   "buttons": {
-    "addVehicle": "Lisää ajoneuvo"
+    "addVehicle": "Lisää ajoneuvo",
+    "vehicleGrouping": "Ajoneuvojen ryhmittely"
   },
   "columns": {
     "vehicleNo": "Kalustonro",
@@ -31,7 +32,5 @@
     "title": "Poista ajoneuvo",
     "message": "Haluatko varmasti poistaa ajoneuvon \"{{registrationNo}}\"? Toimintoa ei voi perua."
   },
-  "common": {
-    "general": "Yleinen"
-  }
+  "general": "Yleinen"
 }

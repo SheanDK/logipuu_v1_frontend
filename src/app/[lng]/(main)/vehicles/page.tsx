@@ -1,7 +1,8 @@
-// src/app/[lng]/(main)/vehicles/page.tsx
+// frontend/src/app/[lng]/(main)/vehicles/page.tsx
 'use client';
 
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import { useParams } from 'next/navigation'; // 🚀 1. Added useParams to get active language
 import {
     Box, Button, Typography, Paper, CircularProgress, Alert,
     AlertColor, Chip, Stack, IconButton, Divider, alpha, useTheme,
@@ -32,9 +33,13 @@ import dayjs from 'dayjs';
 
 export default function VehiclesPage() {
     const { user } = useAuth();
-    const { t } = useTranslation(['vehicles', 'common', 'chip-management']);
+    const { t } = useTranslation(['vehicles', 'common']);
     const theme = useTheme();
     const isDarkMode = theme.palette.mode === 'dark';
+
+    // 🚀 2. Active language parameter එක ලබා ගැනීම
+    const params = useParams();
+    const lng = params?.lng as string;
 
     const [vehicles, setVehicles] = useState<any[]>([]);
     const [isLoading, setIsLoading] = useState(true);
@@ -93,7 +98,7 @@ export default function VehiclesPage() {
                 registrationNo: v.rekNro,
                 nextInspectionDate: v.katsastus_aik || v.katsastusAik || v.nextInspectionDate,
                 isActive: v.aktiivinen,
-                planning_group: v.planningGroup || v.planning_group || t('common:general')
+                planning_group: v.planningGroup || v.planning_group || 'General'
             }));
             setVehicles(mappedData);
         } catch (err: any) {
@@ -108,7 +113,7 @@ export default function VehiclesPage() {
     // --- Grouping Logic ---
     const groupedVehicles = useMemo(() => {
         const grouped = vehicles.reduce((acc: any, v: any) => {
-            const group = v.planning_group || t('common:general');
+            const group = v.planning_group || 'General';
             if (!acc[group]) acc[group] = [];
             acc[group].push(v);
             return acc;
@@ -178,7 +183,7 @@ export default function VehiclesPage() {
                         onClick={() => setGroupModalOpen(true)}
                         sx={{ borderColor: '#a38f6d', color: '#a38f6d', fontWeight: 'bold' }}
                     >
-                        {t('chip-management:planning.common.buttons.vehicleGrouping')}
+                        {t('buttons.vehicleGrouping')}
                     </Button>
                     {canCreate && (
                         <Button variant="contained" startIcon={<AddIcon />} onClick={() => { setEditingVehicle(null); setIsModalOpen(true); }} sx={{ bgcolor: '#a38f6d' }}>
@@ -222,7 +227,11 @@ export default function VehiclesPage() {
                                     {col.label}
                                 </Typography>
                                 {sortConfig.key === col.key && (
-                                    sortConfig.direction === 'asc' ? <ArrowUpwardIcon sx={{ fontSize: 14, ml: 0.5 }} /> : <ArrowDownwardIcon sx={{ fontSize: 14, ml: 0.5 }} />
+                                    sortConfig.direction === 'asc' ? (
+                                        <ArrowUpwardIcon sx={{ fontSize: 14, ml: 0.5 }} />
+                                    ) : (
+                                        <ArrowDownwardIcon sx={{ fontSize: 14, ml: 0.5 }} />
+                                    )
                                 )}
                             </Box>
                             <IconButton size="small" onClick={(e) => handleMenuOpen(e, col)} sx={{ ml: 0.5 }}>
@@ -241,6 +250,14 @@ export default function VehiclesPage() {
 
                 {Object.entries(groupedVehicles).map(([groupName, groupVehicles]: [string, any]) => {
                     const isExpanded = expandedGroups.includes(groupName);
+
+                    // 🚀 FIX: Fallback සහිත ආරක්ෂිත පරිවර්තන පද්ධතිය
+                    const rawTranslation = t('vehicles:general') || t('general');
+                    const isKeyFallback = !rawTranslation || rawTranslation === 'general' || rawTranslation === 'vehicles:general';
+                    const displayGroupName = groupName.toLowerCase() === 'general'
+                        ? (isKeyFallback ? (lng === 'fi' ? 'Yleinen' : 'General') : rawTranslation)
+                        : groupName;
+
                     return (
                         <Box key={groupName}>
                             {/* Folder Header Row */}
@@ -255,7 +272,7 @@ export default function VehiclesPage() {
                                 {isExpanded ? <ExpandMoreIcon fontSize="small" /> : <ChevronRightIcon fontSize="small" />}
                                 <FolderIcon sx={{ color: '#a38f6d', mx: 1.5, fontSize: 20 }} />
                                 <Typography variant="subtitle2" sx={{ fontWeight: '800', color: '#a38f6d' }}>
-                                    {groupName.toUpperCase()} ({groupVehicles.length})
+                                    {displayGroupName.toUpperCase()} ({groupVehicles.length})
                                 </Typography>
                             </Box>
 
@@ -268,7 +285,7 @@ export default function VehiclesPage() {
                                             <LocalShippingIcon sx={{ color: v.aktiivinen ? '#a38f6d' : '#ccc', fontSize: 18 }} />
                                             <Box sx={{ overflow: 'hidden' }}>
                                                 <Typography variant="body2" fontWeight="700" noWrap>{v.rekNro}</Typography>
-                                                <Typography variant="caption" color="textSecondary" sx={{ fontSize: '9px' }}>#{v.kalustoNro} | {v.planning_group}</Typography>
+                                                <Typography variant="caption" color="textSecondary" sx={{ fontSize: '9px' }}>#{v.kalustoNro} | {displayGroupName}</Typography>
                                             </Box>
                                         </Box>
                                     )}
@@ -282,8 +299,8 @@ export default function VehiclesPage() {
                                     )}
 
                                     {!hiddenColumns.includes('status') && (
-                                        <Box sx={{ width: '15%', textAlign: 'center' }}>
-                                            <Chip label={v.aktiivinen ? 'Active' : 'Inactive'} color={v.aktiivinen ? 'success' : 'default'} size="small" variant="outlined" sx={{ fontWeight: 'bold', fontSize: '10px', height: '20px' }} />
+                                        <Box sx={{ width: '15%', textAlign: 'left' }}>
+                                            <Chip label={v.aktiivinen ? t('status.active') : t('status.inactive')} color={v.aktiivinen ? 'success' : 'default'} size="small" variant="outlined" sx={{ fontWeight: 'bold', fontSize: '10px', height: '20px' }} />
                                         </Box>
                                     )}
 

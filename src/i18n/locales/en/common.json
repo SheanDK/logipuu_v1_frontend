@@ -42,5 +42,6 @@
   },
   "formats": {
     "date": "MM/DD/YYYY"
-  }
+  },
+  "general": "General"
 }
