@@ -31,5 +31,8 @@
   "confirmDelete": {
     "title": "Delete Vehicle",
     "message": "Are you sure you want to delete vehicle \"{{registrationNo}}\"? This action cannot be undone."
+  },
+  "common": {
+    "general": "General"
   }
 }

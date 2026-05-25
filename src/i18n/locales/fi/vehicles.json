@@ -30,5 +30,8 @@
   "confirmDelete": {
     "title": "Poista ajoneuvo",
     "message": "Haluatko varmasti poistaa ajoneuvon \"{{registrationNo}}\"? Toimintoa ei voi perua."
+  },
+  "common": {
+    "general": "Yleinen"
   }
 }

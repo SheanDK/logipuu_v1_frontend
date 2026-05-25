@@ -93,7 +93,7 @@ export default function VehiclesPage() {
                 registrationNo: v.rekNro,
                 nextInspectionDate: v.katsastus_aik || v.katsastusAik || v.nextInspectionDate,
                 isActive: v.aktiivinen,
-                planning_group: v.planningGroup || v.planning_group || 'General'
+                planning_group: v.planningGroup || v.planning_group || t('common:general')
             }));
             setVehicles(mappedData);
         } catch (err: any) {
@@ -108,7 +108,7 @@ export default function VehiclesPage() {
     // --- Grouping Logic ---
     const groupedVehicles = useMemo(() => {
         const grouped = vehicles.reduce((acc: any, v: any) => {
-            const group = v.planning_group || 'General';
+            const group = v.planning_group || t('common:general');
             if (!acc[group]) acc[group] = [];
             acc[group].push(v);
             return acc;
