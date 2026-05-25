@@ -49,9 +49,9 @@
     "SENT": "Lähetetty"
   },
   "messages": {
-    "noLoadsThisWeek": "Tällä viikolla ei ole hakekuormia.",
-    "loading": "Ladataan hakekuormia...",
-    "loadFailed": "Hakekuormien lataus epäonnistui.",
+    "noLoadsThisWeek": "Tällä viikolla ei ole tuotekuormia.",
+    "loading": "Ladataan tuotekuormia...",
+    "loadFailed": "Tuotekuormien lataus epäonnistui.",
     "sendRequiresRequiredInfo": "Täytä kaikki vaaditut tiedot ja merkitse kuorma puretuksi ennen lähetystä."
   }
 }
