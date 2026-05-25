@@ -7,6 +7,15 @@
       "active": "Aktiiviset"
     },
     "client": "Asiakas",
-    "vehicle": "Ajoneuvo"
+    "vehicle": "Ajoneuvo",
+    "markerType": {
+      "title": "Näytä:",
+      "puulaani": "Puulaani",
+      "purkupaikka": "Purkupaikka",
+      "chipTransport": "Hakkeenkuljetukset",
+      "TimberStands": "Hakkuualueet",
+      "LoadingSites": "Metsäkohteet",
+      "status": "Tila"
+    }
   }
 }

@@ -7,6 +7,15 @@
       "active": "Active"
     },
     "client": "Customer",
-    "vehicle": "Vehicle"
+    "vehicle": "Vehicle",
+    "markerType": {
+      "title": "Show:",
+      "puulaani": "Timber Stacks",
+      "purkupaikka": "Drop-offs",
+      "chipTransport": "Chip Transports",
+      "TimberStands": "TimberStands",
+      "LoadingSites": "LoadingSites",
+      "status": "Status"
+    }
   }
 }

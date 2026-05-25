@@ -62,7 +62,7 @@ const TimberStackFilterBar: React.FC<TimberStackFilterBarProps> = ({
                             color: 'text.primary',
                             flexShrink: 0
                         }}>
-                        {t('filters.status.title', 'Status:')}
+                        {t('filters.markerType.status')}
                     </Typography>
                     <ToggleButtonGroup
                         value={filters.status || 'active'}
@@ -71,8 +71,8 @@ const TimberStackFilterBar: React.FC<TimberStackFilterBarProps> = ({
                         size="small"
                         disabled={isLoading}
                     >
-                        <ToggleButton value="all">{t('filters.status.all', 'All')}</ToggleButton>
-                        <ToggleButton value="active">{t('filters.status.active', 'Active')}</ToggleButton>
+                        <ToggleButton value="all">{t('filters.status.all')}</ToggleButton>
+                        <ToggleButton value="active">{t('filters.status.active')}</ToggleButton>
                     </ToggleButtonGroup>
                 </Stack>
 
