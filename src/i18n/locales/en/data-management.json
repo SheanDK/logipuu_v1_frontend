@@ -1,0 +1,94 @@
+{
+    "title": "Enterprise Data Management Center",
+    "subtitle": "Securely backup databases or restore system data via structured CSV files.",
+    "accessDenied": "Access Denied.",
+    "tabs": {
+        "export": "Export Data (Backup)",
+        "import": "Import Data (Restore)"
+    },
+    "messages": {
+        "downloadTemplateFailed": "Failed to download CSV template.",
+        "passwordRequired": "Password is required for verification.",
+        "exportSuccess": "Backup CSV generated and downloaded successfully!",
+        "exportFailed": "Export failed. Please verify your password.",
+        "validationFailed": "Validation failed: {{count}} rows contain errors. Please edit cells in the table below to resolve.",
+        "validationComplete": "Validation complete: No errors found. Ready to commit transaction.",
+        "dryRunError": "Database Dry Run Error: {{error}}",
+        "transactionRolledBack": "Transaction rolled back due to error.",
+        "dryRunResult": "Dry Run Result: {{validCount}} Valid Rows, {{invalidCount}} Invalid Rows."
+    },
+    "exportTab": {
+        "title": "Database Backup Center",
+        "subtitle": "Select any module and authorize with your password to download a clean CSV backup file.",
+        "selectModule": "Select Target Data Module",
+        "modules": {
+            "vehicles": "└─>Vehicles",
+            "drivers": "└─>Drivers",
+            "users": "└─>System Users",
+            "chip_loads": "└─>Chip Loads",
+            "timber_loads": "└─>Timber / Puulaani Loads",
+            "consignment_loads": "└─>Consignments"
+        },
+        "passwordLabel": "Enter Password to Authenticate",
+        "generateBtn": "GENERATE BACKUP FILE"
+    },
+    "importTab": {
+        "stepper": {
+            "upload": "Upload CSV",
+            "map": "Map Columns",
+            "dryRun": "Dry Run & Edit",
+            "commit": "Commit"
+        },
+        "step0": {
+            "selectModule": "Select Target Data Module (Follow Order to Avoid Errors)",
+            "selectModuleHelper": "* Note: Always import Step 1 before Step 2, and so on, to maintain data integrity.",
+            "moduleGroups": {
+                "step1": "STEP 1: CORE MASTER DATA",
+                "drivers": "  └─> Drivers ",
+                "vehicles": "  └─> Vehicles ",
+                "step2": "STEP 2: LOCATIONS",
+                "timber_loads_locations": "  └─> Unloading Sites & Stacks ",
+                "step3": "STEP 3: USER ACCOUNTS",
+                "users": "  └─> System Users ",
+                "step4": "STEP 4: PLANNING & TEMPLATES",
+                "chip_titles": "  └─> Chip Route Templates",
+                "chip_orders": "  └─> Chip Subscriptions",
+                "step5": "STEP 5: TRIPS & BILLING",
+                "timber_loads": "  └─> Timber Loads / Trips",
+                "chip_loads": "  └─> Chip Loads / Trips",
+                "consignment_loads": "  └─> Consignments / Waybills"
+            },
+            "downloadTemplateBtn": "DOWNLOAD BLANK CSV TEMPLATE",
+            "conflictStrategy": "Conflict Resolution Strategy",
+            "strategyOverwrite": "Overwrite existing records (UPSERT)",
+            "strategySkip": "Skip duplicates (Keep existing records)",
+            "dragDrop": "Drag & Drop or Click to Upload your CSV file"
+        },
+        "step1": {
+            "title": "Map CSV Columns to System Fields",
+            "systemPrefix": "System: ",
+            "skipColumn": "-- Skip Column --",
+            "backBtn": "BACK",
+            "generateGridBtn": "GENERATE PREVIEW GRID"
+        },
+        "step2": {
+            "title": "Interactive Spreadsheet Editor",
+            "subtitle": "Double-click any cell to edit details directly before committing to Database.",
+            "errorsDetected": "Errors Detected (Double-click cells above to fix):",
+            "backBtn": "BACK TO MAPPING",
+            "validateBtn": "RUN DRY RUN (VALIDATE)",
+            "proceedBtn": "PROCEED TO COMMIT"
+        },
+        "step3": {
+            "title": "Commit Transaction to Database",
+            "subtitle": "You are about to commit {{count}} rows directly to the production database inside an SQL Transaction. Selected strategy:",
+            "backBtn": "BACK",
+            "commitBtn": "COMMIT TRANSACTION"
+        },
+        "step4": {
+            "title": "Transaction Committed Successfully",
+            "subtitle": "All audits logged correctly. Database tables synced.",
+            "doneBtn": "DONE"
+        }
+    }
+}

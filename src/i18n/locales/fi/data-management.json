@@ -1,0 +1,94 @@
+{
+    "title": "Tiedonhallintakeskus",
+    "subtitle": "Varmuuskopioi tietokannat turvallisesti tai palauta järjestelmän tiedot CSV-tiedostojen avulla.",
+    "accessDenied": "Pääsy evätty.",
+    "tabs": {
+        "export": "Vie tiedot (Varmuuskopio)",
+        "import": "Tuo tiedot (Palauta)"
+    },
+    "messages": {
+        "downloadTemplateFailed": "CSV-mallin lataaminen epäonnistui.",
+        "passwordRequired": "Vahvistukseen vaaditaan salasana.",
+        "exportSuccess": "Varmuuskopio-CSV luotiin ja ladattiin onnistuneesti!",
+        "exportFailed": "Vienti epäonnistui. Tarkista salasanasi.",
+        "validationFailed": "Tarkistus epäonnistui: {{count}} riviä sisältää virheitä. Muokkaa soluja alla olevassa taulukossa ratkaistaksesi ne.",
+        "validationComplete": "Tarkistus valmis: Virheitä ei löytynyt. Valmis viemään tapahtuman kantaan.",
+        "dryRunError": "Tietokannan kuivajonon virhe: {{error}}",
+        "transactionRolledBack": "Tapahtuma peruttiin virheen vuoksi.",
+        "dryRunResult": "Kuivajonon tulos: {{validCount}} kelvollista riviä, {{invalidCount}} virheellistä riviä."
+    },
+    "exportTab": {
+        "title": "Tietokannan varmuuskopiokeskus",
+        "subtitle": "Valitse mikä tahansa moduuli ja valtuuta salasanallasi ladataksesi puhtaan CSV-varmuuskopiotiedoston.",
+        "selectModule": "Valitse kohdemoduuli",
+        "modules": {
+            "vehicles": "└─> Kalusto",
+            "drivers": "└─> Kuljettajat",
+            "users": "└─> Järjestelmän käyttäjät",
+            "chip_loads": "└─> Hakekuormat",
+            "timber_loads": "└─> Puu/Puulaanikuormat",
+            "consignment_loads": "└─> Rahtikirjat"
+        },
+        "passwordLabel": "Kirjoita salasana todentaaksesi",
+        "generateBtn": "LUO VARMUUSKOPIOTIEDOSTO"
+    },
+    "importTab": {
+        "stepper": {
+            "upload": "Lataa CSV",
+            "map": "Kartoita sarakkeet",
+            "dryRun": "Kuivajono ja muokkaus",
+            "commit": "Toteuta"
+        },
+        "step0": {
+            "selectModule": "Valitse kohdemoduuli (Seuraa järjestystä virheiden välttämiseksi)",
+            "selectModuleHelper": "* Huomautus: Tuo aina vaihe 1 ennen vaihetta 2 jne. tietojen eheyden ylläpitämiseksi.",
+            "moduleGroups": {
+                "step1": "VAIHE 1: PERUSTIEDOT",
+                "drivers": "  └─> Kuljettajat ",
+                "vehicles": "  └─> Kalusto ",
+                "step2": "VAIHE 2: SIJAINNIT",
+                "timber_loads_locations": "  └─> Purkupaikat & Puulaanit ",
+                "step3": "VAIHE 3: KÄYTTÄJÄTILIT",
+                "users": "  └─> Järjestelmän käyttäjät ",
+                "step4": "VAIHE 4: SUUNNITTELU JA MALLIT",
+                "chip_titles": "  └─> Hakereittimallit ",
+                "chip_orders": "  └─> Haketilaukset ",
+                "step5": "VAIHE 5: MATKAT JA LASKUTUS",
+                "timber_loads": "  └─> Puukuormat / Matkat ",
+                "chip_loads": "  └─> Hakekuormat / Matkat ",
+                "consignment_loads": "  └─> Rahtikirjat "
+            },
+            "downloadTemplateBtn": "LATAA TYHJÄ CSV-MALLI",
+            "conflictStrategy": "Konfliktinratkaisustrategia",
+            "strategyOverwrite": "Korvaa olemassa olevat tietueet (UPSERT)",
+            "strategySkip": "Ohita kaksoiskappaleet (Säilytä olemassa olevat tietueet)",
+            "dragDrop": "Vedä ja pudota tai napsauta ladataksesi CSV-tiedostosi"
+        },
+        "step1": {
+            "title": "Kartoita CSV-sarakkeet järjestelmän kenttiin",
+            "systemPrefix": "Järjestelmä: ",
+            "skipColumn": "-- Ohita sarake --",
+            "backBtn": "TAKAISIN",
+            "generateGridBtn": "LUO ESIPKATSELUTAULUKKO"
+        },
+        "step2": {
+            "title": "Interaktiivinen taulukkoeditori",
+            "subtitle": "Kaksoisnapsauta mitä tahansa solua muokataksesi tietoja suoraan ennen tietokantaan viemistä.",
+            "errorsDetected": "Virheitä havaittu (Kaksoisnapsauta soluja yllä korjataksesi):",
+            "backBtn": "TAKAISIN KARTTOIHIN",
+            "validateBtn": "SUORITA KUIVAJONO (TARKISTA)",
+            "proceedBtn": "JATKA TOTEUTUKSEEN"
+        },
+        "step3": {
+            "title": "Toteuta tapahtuma tietokantaan",
+            "subtitle": "Olet aikeissa viedä {{count}} riviä suoraan tuotantotietokantaan SQL-tapahtuman sisällä. Valittu strategia:",
+            "backBtn": "TAKAISIN",
+            "commitBtn": "TOTEUTA TAPAHTUMA"
+        },
+        "step4": {
+            "title": "Tapahtuma toteutettu onnistuneesti",
+            "subtitle": "Kaikki auditoinnit kirjattu oikein. Tietokannan taulut synkronoitu.",
+            "doneBtn": "VALMIS"
+        }
+    }
+}
