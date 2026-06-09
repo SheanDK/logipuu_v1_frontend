@@ -1,4 +1,4 @@
-//frontend/src/app/(main)/layout.tsx
+// frontend/src/app/(main)/layout.tsx
 'use client';
 
 import React, { ReactNode, useEffect, useState } from 'react';
@@ -18,12 +18,19 @@ import AppNavbar from '../../../components/layout/AppNavbar';
 import AppSidebar from '../../../components/layout/AppSidebar';
 import SelectVehicleModal from '@/components/drivers/SelectVehicleModal';
 
+// Import the Floating Chat Widget to render globally
+import { FloatingChatWidget } from '@/components/chat/FloatingChatWidget';
+
 const drawerWidth = 240;
 
 function LayoutRenderer({ children }: { children: ReactNode }) {
     const { navLayout } = useLayout();
     const { isVehicleSelectionRequired, selectVehicle, isInitialized } = useDriverSession();
     const [vehicleList, setVehicleList] = useState<IVehicleBasicInfo[]>([]);
+
+    // 🚀 NEW: Get auth state and check if user is a driver
+    const { user } = useAuth();
+    const isDriver = user?.roles?.includes('Kuljettaja');
 
     useEffect(() => {
         if (isInitialized && isVehicleSelectionRequired) {
@@ -66,6 +73,9 @@ function LayoutRenderer({ children }: { children: ReactNode }) {
                 vehicles={vehicleList}
                 onVehicleSelectAction={selectVehicle}
             />
+
+            {/* 🚀 FIXED: Mount the Floating Chat Bubble ONLY for authenticated drivers */}
+            {isDriver && <FloatingChatWidget />}
         </Box>
     );
 }

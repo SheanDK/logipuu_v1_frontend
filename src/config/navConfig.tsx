@@ -24,6 +24,7 @@ import CalendarMonthIcon from '@mui/icons-material/CalendarMonth';
 import CalculateIcon from '@mui/icons-material/Calculate';
 import AssignmentLateIcon from '@mui/icons-material/AssignmentLate';
 import SettingsBackupRestoreIcon from '@mui/icons-material/SettingsBackupRestore';
+import ForumIcon from '@mui/icons-material/Forum';
 
 
 export interface NavItemConfig {
@@ -104,7 +105,14 @@ export const officeNavigationItems: NavItemConfig[] = [
             { text: 'Drivers', tKey: 'drivers', icon: <PeopleIcon />, path: '/drivers', permission: 'drivers_view' },
             { text: 'Vehicles', tKey: 'vehicles', icon: <DirectionsCarIcon />, path: '/vehicles', permission: 'vehicles_view' },
             { text: 'Wood Categories', tKey: 'woodCategories', icon: <ForestIcon />, path: '/wood-categories', permission: 'wood categories_view' },
-            { text: 'Data Management Center', tKey: 'dataManagement', icon: <SettingsBackupRestoreIcon />, path: '/data-management', permission: 'data management_view', roles: ['Superuser', 'Admin'] }
+            { text: 'Data Management Center', tKey: 'dataManagement', icon: <SettingsBackupRestoreIcon />, path: '/data-management', permission: 'data management_view', roles: ['Superuser', 'Admin'] },
+            {
+                text: 'Live Chat Support',
+                tKey: 'chat',
+                icon: <ForumIcon sx={{ color: '#a38f6d' }} />,
+                path: '/chat',
+                roles: ['Superuser', 'Admin', 'Office', 'Ajojärjestelijä']
+            },
         ]
     },
     {

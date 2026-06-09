@@ -43,5 +43,13 @@
   "formats": {
     "date": "MM/DD/YYYY"
   },
-  "general": "General"
+  "chat": {
+    "title": "Live Chat Support",
+    "supportAgent": "Support Agent",
+    "supportSubtitle": "Office Team",
+    "supportEmptyState": "Say hello to the office team!",
+    "messages": "Messages",
+    "noMessages": "No messages",
+    "selectDriver": "Select a driver contact to start chatting."
+  }
 }

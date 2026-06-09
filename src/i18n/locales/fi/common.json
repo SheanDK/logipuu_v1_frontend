@@ -42,5 +42,14 @@
   },
   "formats": {
     "date": "DD.MM.YYYY"
+  },
+  "chat": {
+    "title": "Tuki Chat",
+    "supportAgent": "LogiPuu-tiimi",
+    "supportSubtitle": "Pohjanmaa-keskus",
+    "supportEmptyState": "Tervehdys LogiPuu-tiimille!",
+    "messages": "Viestit",
+    "noMessages": "Ei viestejä",
+    "selectDriver": "Valitse kuljettajakontakti aloittaaksesi keskustelun."
   }
 }
