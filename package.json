@@ -24,6 +24,7 @@
     "@mui/types": "^7.4.4",
     "@mui/x-data-grid": "^8.19.0",
     "@mui/x-date-pickers": "^8.10.2",
+    "@vercel/speed-insights": "^2.0.0",
     "axios": "^1.10.0",
     "camelcase-keys": "^10.0.1",
     "date-fns": "^4.1.0",
