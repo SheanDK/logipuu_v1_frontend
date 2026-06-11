@@ -12,7 +12,7 @@ export const countryMapSettings: MapSettings[] = [
         key: 'finland',
         name: 'Finland',
         center: [62.2426, 25.7473], // Center of Finland (Jyväskylä)
-        zoom: 7,
+        zoom: 8,
     },
     {
         key: 'sweden',
