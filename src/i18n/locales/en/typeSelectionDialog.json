@@ -8,6 +8,10 @@
         "title": "New Unloading Site",
         "description": "Add a new drop-off location for timber."
     },
+    "chipTitle": {
+        "title": "Create Title",
+        "description": "Create a new chip title."
+    },
     "other": {
         "title": "New Other Marker",
         "description": "Place a generic marker on the map."

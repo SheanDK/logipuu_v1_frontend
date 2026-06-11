@@ -12,7 +12,8 @@
     "customer": "Asiakas",
     "newSiteName": "Uuden purkupaikan nimi",
     "latitude": "Leveysaste",
-    "longitude": "Pituusaste"
+    "longitude": "Pituusaste",
+    "noLocationSelected": "Paikkaa ei ole valittu. Valitse paikka napsauttamalla karttaa."
   },
   "tooltips": {
     "visibleOnMap": "Näkyy kartalla",

@@ -12,7 +12,8 @@
     "customer": "Customer",
     "newSiteName": "New Site Name",
     "latitude": "Latitude",
-    "longitude": "Longitude"
+    "longitude": "Longitude",
+    "noLocationSelected": "No location selected. Click the map to set one."
   },
   "tooltips": {
     "visibleOnMap": "Visible on map",
