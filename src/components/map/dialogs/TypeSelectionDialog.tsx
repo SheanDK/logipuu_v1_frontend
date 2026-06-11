@@ -2,22 +2,23 @@
 'use client'
 
 import React from 'react';
-import { 
-    Dialog, 
-    DialogTitle, 
-    DialogContent, 
-    Button, 
-    Box, 
-    Stack, 
-    Typography,
-    IconButton 
+import {
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  Button,
+  Box,
+  Stack,
+  Typography,
+  IconButton
 } from '@mui/material';
 import { MarkerType } from '../../../types';
 
 // Import suitable icons from Material-UI
-import ForestIcon from '@mui/icons-material/Forest'; // Icon for Puulaani (timber stack)
-import LocalShippingIcon from '@mui/icons-material/LocalShipping'; // Icon for Unloading Site
-import PlaceIcon from '@mui/icons-material/Place'; // Generic icon for "Other"
+import ForestIcon from '@mui/icons-material/Forest';
+import LocalShippingIcon from '@mui/icons-material/LocalShipping';
+import WarehouseIcon from '@mui/icons-material/Warehouse';
+import PlaceIcon from '@mui/icons-material/Place';
 import CloseIcon from '@mui/icons-material/Close';
 import { useTranslation } from '@/i18n/useTranslation';
 
@@ -28,21 +29,27 @@ interface TypeSelectionDialogProps {
 }
 
 const TypeSelectionDialog: React.FC<TypeSelectionDialogProps> = ({ open, onCancelAction, onTypeSelect }) => {
-  
-  const { t } = useTranslation(['typeSelectionDialog', 'common']) 
+
+  const { t } = useTranslation(['typeSelectionDialog', 'common'])
 
   const selectionOptions = [
     {
       type: 'Puulaani' as MarkerType,
-      title:  t('puulaani.title'),
-      description:  t('puulaani.description'),
+      title: t('puulaani.title'),
+      description: t('puulaani.description'),
       icon: <ForestIcon sx={{ fontSize: 40, color: 'primary.main' }} />
+    },
+    {
+      type: 'ChipTitle' as MarkerType,
+      title: t('chipTitle.title'),
+      description: t('chipTitle.description'),
+      icon: <LocalShippingIcon sx={{ fontSize: 40, color: 'primary.main' }} />
     },
     {
       type: 'Purkupaikka' as MarkerType,
       title: t('purkupaikka.title'),
       description: t('purkupaikka.description'),
-      icon: <LocalShippingIcon sx={{ fontSize: 40, color: 'primary.main' }} />
+      icon: <WarehouseIcon sx={{ fontSize: 40, color: 'primary.main' }} />
     },
     {
       type: 'Muu merkki' as MarkerType,
@@ -53,10 +60,10 @@ const TypeSelectionDialog: React.FC<TypeSelectionDialogProps> = ({ open, onCance
   ];
 
   return (
-    <Dialog 
-        open={open} 
-        onClose={onCancelAction} 
-        PaperProps={{ sx: { width: '100%', maxWidth: '450px' } }}
+    <Dialog
+      open={open}
+      onClose={onCancelAction}
+      PaperProps={{ sx: { width: '100%', maxWidth: '450px' } }}
     >
       <DialogTitle sx={{ m: 0, p: 2, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <Typography variant="h6" component="div">
@@ -72,7 +79,7 @@ const TypeSelectionDialog: React.FC<TypeSelectionDialogProps> = ({ open, onCance
           <CloseIcon />
         </IconButton>
       </DialogTitle>
-      
+
       <DialogContent dividers>
         <Stack spacing={2} sx={{ pt: 1 }}>
           {selectionOptions.map((option) => (

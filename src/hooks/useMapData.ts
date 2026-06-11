@@ -4,22 +4,23 @@
 import { useState, useEffect, useCallback } from 'react';
 import {
     IMapFilterState, IMapTimberStack, IMapDropoffLocation, IMapOtherMarker,
-    IClientBasicInfo, IVehicleBasicInfo, IBackendPuulaani, IBackendPurkupaikkaResponse, 
-    IBackendOtherMarker, IMapTrip // Import the new IMapTrip type
+    IClientBasicInfo, IVehicleBasicInfo, IBackendPuulaani, IBackendPurkupaikkaResponse,
+    IBackendOtherMarker, IMapTrip
 } from '../types';
 import { fetchAllTimberStacks } from '../services/timberStackService';
 import { fetchAllDropoffLocations } from '../services/unloadingSiteService';
 import { fetchAllOtherMarkers } from '../services/otherInfoService';
 import { fetchClientsListApi } from '../services/clientService';
 import { fetchVehiclesListApi } from '../services/vehicleService';
-import { fetchActiveTripsForMap } from '../services/loadService'; // Import the new service function
+import { fetchActiveTripsForMap } from '../services/loadService';
+import { chipTitleService } from '@/services/chipTitleService';
 
 // Define the shape of the data state object
 interface IDataState {
     timberStacks: IMapTimberStack[];
     dropoffLocations: IMapDropoffLocation[];
     otherMarkers: IMapOtherMarker[];
-    activeTrips: IMapTrip[]; // Add activeTrips to the state
+    activeTrips: IMapTrip[];
 }
 
 interface MapDataResult {
@@ -37,15 +38,14 @@ interface MapDataResult {
 export const useMapData = (filters: IMapFilterState): MapDataResult => {
     const [isLoading, setIsLoading] = useState(true);
     const [mapError, setMapError] = useState<string | null>(null);
-    
-    // Use a single state object for all map data
+
     const [data, setData] = useState<IDataState>({
         timberStacks: [],
         dropoffLocations: [],
         otherMarkers: [],
-        activeTrips: [], // Initialize activeTrips as an empty array
+        activeTrips: [],
     });
-    
+
     const [clientList, setClientList] = useState<IClientBasicInfo[]>([]);
     const [vehicleList, setVehicleList] = useState<IVehicleBasicInfo[]>([]);
 
@@ -53,37 +53,47 @@ export const useMapData = (filters: IMapFilterState): MapDataResult => {
         setIsLoading(true);
         setMapError(null);
         try {
-            // --- THIS IS THE FIX (PART 1) ---
-            // Add the new fetchActiveTripsForMap call to Promise.all
-            const [stackData, clientData, vehicleData, dropoffData, otherMarkerData, tripData] = await Promise.all([
+            // 🚀 2. Fetch chip titles alongside other data
+            const [stackData, clientData, vehicleData, dropoffData, otherMarkerData, tripData, chipTitles] = await Promise.all([
                 fetchAllTimberStacks(filters),
                 fetchClientsListApi(),
                 fetchVehiclesListApi(),
                 fetchAllDropoffLocations(),
                 fetchAllOtherMarkers(),
-                fetchActiveTripsForMap(), // Fetch active trips
+                fetchActiveTripsForMap(),
+                chipTitleService.getAll()
             ]);
-            
+
+            const chipLoadingPointIds = new Set(chipTitles.map((t: any) => Number(t.loadingPointId || t.loading_point_id)));
+            const chipUnloadingPointIds = new Set(chipTitles.map((t: any) => Number(t.unloadingPointId || t.unloading_point_id)));
+
             setClientList(clientData);
             setVehicleList(vehicleData);
 
-            const transformedStacks = stackData.map((s: IBackendPuulaani): IMapTimberStack => ({
-                id: s.puulaaniId,
-                clientId: s.asiakasId,
-                name: s.nimi,
-                clientName: s.asiakkaanNimi || 'Unknown',
-                clientColor: s.kohteenVari || null,
-                latitude: s.sijaintiLat!,
-                longitude: s.sijaintiLong!,
-                totalVolume: Number(s.kok) || 0,
-                remainingVolume: Number(s.jaljella) || 0,
-                isActive: s.aktiivinen,
-                isCompleted: s.valmis,
-                date: s.pvm,
-                dispatchOrderNo: s.ajomaaraysnro,
-                additionalInfo: s.lisatiedot
-            }));
-            
+            // 🚀 3. Filter out timber stacks that are actually Chip Loading points
+            const transformedStacks = stackData
+                .filter((s: IBackendPuulaani) => {
+                    const isChip = chipLoadingPointIds.has(Number(s.puulaaniId));
+                    return !isChip;
+                })
+                .map((s: IBackendPuulaani): IMapTimberStack => ({
+                    id: s.puulaaniId,
+                    clientId: s.asiakasId,
+                    name: s.nimi,
+                    clientName: s.asiakkaanNimi || 'Unknown',
+                    clientColor: s.kohteenVari || null,
+                    latitude: s.sijaintiLat!,
+                    longitude: s.sijaintiLong!,
+                    totalVolume: Number(s.kok) || 0,
+                    remainingVolume: Number(s.jaljella) || 0,
+                    isActive: s.aktiivinen,
+                    isCompleted: s.valmis,
+                    date: s.pvm,
+                    dispatchOrderNo: s.ajomaaraysnro,
+                    additionalInfo: s.lisatiedot
+                }));
+
+            // 🚀 4. Add isChipDestination flag to dropoff locations
             const transformedDropoffs = dropoffData.map((d: IBackendPurkupaikkaResponse): IMapDropoffLocation => ({
                 id: d.purkupaikkaId,
                 clientId: d.asiakasId,
@@ -92,19 +102,20 @@ export const useMapData = (filters: IMapFilterState): MapDataResult => {
                 latitude: d.sijaintiLat!,
                 longitude: d.sijaintiLong!,
                 isVisibleOnMap: d.isVisibleOnMap,
+                isChipDestination: chipUnloadingPointIds.has(Number(d.purkupaikkaId))
             }));
-            
+
             const transformedOtherMarkers = otherMarkerData.map((o: IBackendOtherMarker): IMapOtherMarker => ({
                 id: o.muutietoId, name: o.nimi, iconType: o.tyyppi, color: o.vari,
                 additionalInfo: o.lisatieto, latitude: o.sijaintiLat!, longitude: o.sijaintiLong!,
             }));
 
-            // Set the entire data object at once
-             setData({
+            setData({
                 timberStacks: transformedStacks,
                 dropoffLocations: transformedDropoffs,
                 otherMarkers: transformedOtherMarkers,
-                activeTrips: tripData, // Add the fetched trip data to the state
+                activeTrips: tripData,
+
             });
 
         } catch (err: any) {

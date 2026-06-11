@@ -7,7 +7,7 @@ import {
     FormControl, InputLabel, Select, MenuItem, Grid, CircularProgress, Alert,
     Stack, Typography, IconButton, Paper, Divider, List, ListItem, ListItemText, ListItemSecondaryAction, Tooltip, Switch, DialogActions
 } from '@mui/material';
-import { useForm, Controller, SubmitHandler, FieldValues } from 'react-hook-form';
+import { useForm, Controller, SubmitHandler, FieldValues, useFormContext } from 'react-hook-form';
 import * as yup from 'yup';
 import { yupResolver } from '@hookform/resolvers/yup';
 import CloseIcon from '@mui/icons-material/Close';
@@ -15,6 +15,10 @@ import DeleteIcon from '@mui/icons-material/Delete';
 import EditIcon from '@mui/icons-material/Edit';
 import SaveIcon from '@mui/icons-material/Save';
 import CancelIcon from '@mui/icons-material/Cancel';
+import MyLocationIcon from '@mui/icons-material/MyLocation';
+import { MapContainer, TileLayer, Marker, useMapEvents } from 'react-leaflet';
+import L from 'leaflet';
+import 'leaflet/dist/leaflet.css';
 
 import ConfirmationDialog from '@/components/common/ConfirmationDialog';
 import { IClientBasicInfo, ICreatePurkupaikkaDto, IBackendPurkupaikkaResponse, IMapDropoffLocation } from '@/types';
@@ -24,12 +28,12 @@ import { useTranslation } from '@/i18n/useTranslation';
 
 interface PurkupaikkaFormModalProps {
     open: boolean;
-    // --- FIX: Correctly type the function to accept the boolean ---
     onCloseAction: (didChange: boolean) => void;
     clientList: IClientBasicInfo[];
     onDataChangeAction: () => void;
     initialCoords: { lat: number, lng: number } | null;
     siteToEdit: IMapDropoffLocation | null;
+    showEmbeddedMap?: boolean;
 }
 
 type AddSiteFormData = {
@@ -39,8 +43,14 @@ type AddSiteFormData = {
 };
 
 
+// Sub-component: handles map click events to place a pin
+function MapClickHandler({ onMapClick }: { onMapClick: (latlng: L.LatLng) => void }) {
+    useMapEvents({ click: (e) => onMapClick(e.latlng) });
+    return null;
+}
+
 export default function PurkupaikkaFormModal({
-    open, onCloseAction, clientList, onDataChangeAction, initialCoords, siteToEdit
+    open, onCloseAction, clientList, onDataChangeAction, initialCoords, siteToEdit, showEmbeddedMap = false
 }: PurkupaikkaFormModalProps) {
     const [selectedClientId, setSelectedClientId] = useState<string | null>(null);
     const [sitesForClient, setSitesForClient] = useState<IBackendPurkupaikkaResponse[]>([]);
@@ -51,6 +61,8 @@ export default function PurkupaikkaFormModal({
     const [editingSiteName, setEditingSiteName] = useState<string>('');
 
     const [hasChanges, setHasChanges] = useState(false);
+    const [mapPin, setMapPin] = useState<L.LatLng | null>(null);
+    const [mapCenter] = useState<[number, number]>([62.2426, 25.7473]);
 
     const { successMessage, errorMessage, setSuccessMessage, setErrorMessage } = useMessage();
     const isEditMode = useMemo(() => !!siteToEdit, [siteToEdit]);
@@ -70,7 +82,7 @@ export default function PurkupaikkaFormModal({
             .required(t('errors.longitudeRequired')),
     }), [t]);
 
-    const { control, handleSubmit, reset, formState: { errors } } = useForm<AddSiteFormData>({
+    const { control, handleSubmit, reset, setValue, formState: { errors } } = useForm<AddSiteFormData>({
         resolver: yupResolver(addSchema) as any,
         defaultValues: { name: '', latitude: undefined, longitude: undefined },
     });
@@ -200,7 +212,8 @@ export default function PurkupaikkaFormModal({
 
     return (
         <>
-            <Dialog open={open} onClose={() => onCloseAction(hasChanges)} maxWidth="sm" fullWidth>
+            {/* Leaflet icon fix for SSR */}
+            <Dialog open={open} onClose={() => onCloseAction(hasChanges)} maxWidth={showEmbeddedMap ? 'md' : 'sm'} fullWidth>
                 <DialogTitle sx={{ m: 0, p: 2, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                     <Typography variant="h6" component="div">
                         {isEditMode ? t('title.edit') : t('title.create')}
@@ -267,19 +280,70 @@ export default function PurkupaikkaFormModal({
                                             <Typography variant="overline" color="text.secondary" gutterBottom>{t('sections.addNewSite')}</Typography>
                                             {errorMessage && <Alert severity="error" sx={{ mb: 2 }}>{errorMessage}</Alert>}
                                             {successMessage && <Alert severity="success" sx={{ mb: 2 }}>{successMessage}</Alert>}
-                                            <Box
-                                                sx={{
+
+                                            {/* Site Name field - always shown */}
+                                            <Controller name="name" control={control} render={({ field }) => (
+                                                <TextField {...field} label={t('fields.newSiteName')} fullWidth required error={!!errors.name} helperText={errors.name?.message} sx={{ mb: 2 }} />
+                                            )} />
+
+                                            {showEmbeddedMap ? (
+                                                /* MAP MODE: show embedded Leaflet map for pin selection */
+                                                <Box>
+                                                    <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
+                                                        📍 {t('fields.clickMapToSetLocation', 'Click on the map to set the location')}
+                                                    </Typography>
+                                                    <Box sx={{ height: 300, borderRadius: 1, overflow: 'hidden', border: '1px solid #ddd', mb: 1 }}>
+                                                        <MapContainer
+                                                            center={mapPin ? [mapPin.lat, mapPin.lng] : mapCenter}
+                                                            zoom={13}
+                                                            style={{ height: '100%', width: '100%' }}
+                                                        >
+                                                            <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
+                                                            <MapClickHandler
+                                                                onMapClick={(latlng) => {
+                                                                    setMapPin(latlng);
+                                                                    setValue('latitude', latlng.lat);
+                                                                    setValue('longitude', latlng.lng);
+                                                                }}
+                                                            />
+                                                            {mapPin && (
+                                                                <Marker
+                                                                    position={mapPin}
+                                                                    icon={L.icon({
+                                                                        iconUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon.png',
+                                                                        shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png',
+                                                                        iconSize: [25, 41], iconAnchor: [12, 41]
+                                                                    })}
+                                                                />
+                                                            )}
+                                                        </MapContainer>
+                                                    </Box>
+                                                    {mapPin ? (
+                                                        <Typography variant="caption" color="text.secondary">
+                                                            <MyLocationIcon sx={{ fontSize: 12, mr: 0.5 }} />
+                                                            Lat: {mapPin.lat.toFixed(5)}, Lng: {mapPin.lng.toFixed(5)}
+                                                        </Typography>
+                                                    ) : (
+                                                        <Typography variant="caption" color="warning.main">
+                                                            {t('fields.noLocationSelected')}
+                                                        </Typography>
+                                                    )}
+                                                    <Controller name="latitude" control={control} render={({ field }) => <input type="hidden" {...field} value={field.value ?? ''} />} />
+                                                    <Controller name="longitude" control={control} render={({ field }) => <input type="hidden" {...field} value={field.value ?? ''} />} />
+                                                </Box>
+                                            ) : (
+                                                <Box sx={{
                                                     display: 'grid',
                                                     gap: 2,
                                                     alignItems: 'center',
-                                                    gridTemplateColumns: { xs: '1fr', sm: '5fr 3.5fr 3.5fr' },
-                                                }}
-                                            >
-                                                <Box><Controller name="name" control={control} render={({ field }) => (<TextField {...field} label={t('fields.newSiteName')} fullWidth required error={!!errors.name} helperText={errors.name?.message} />)} /></Box>
-                                                <Box><Controller name="latitude" control={control} render={({ field }) => (<TextField {...field} value={field.value ?? ''} label={t('fields.latitude')} type="number" fullWidth required error={!!errors.latitude} helperText={errors.latitude?.message} />)} /></Box>
-                                                <Box><Controller name="longitude" control={control} render={({ field }) => (<TextField {...field} value={field.value ?? ''} label={t('fields.longitude')} type="number" fullWidth required error={!!errors.longitude} helperText={errors.longitude?.message} />)} /></Box>
-                                            </Box>
-                                            <Button type="submit" variant="contained" fullWidth disabled={isSaving} sx={{ mt: 2, backgroundColor: '#A98E71', '&:hover': { backgroundColor: '#8E735B' } }}>
+                                                    gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr' },
+                                                }}>
+                                                    <Box><Controller name="latitude" control={control} render={({ field }) => (<TextField {...field} value={field.value ?? ''} label={t('fields.latitude')} type="number" fullWidth required error={!!errors.latitude} helperText={errors.latitude?.message} />)} /></Box>
+                                                    <Box><Controller name="longitude" control={control} render={({ field }) => (<TextField {...field} value={field.value ?? ''} label={t('fields.longitude')} type="number" fullWidth required error={!!errors.longitude} helperText={errors.longitude?.message} />)} /></Box>
+                                                </Box>
+                                            )}
+
+                                            <Button type="submit" variant="contained" fullWidth disabled={isSaving || (showEmbeddedMap && !mapPin)} sx={{ mt: 2, backgroundColor: '#A98E71', '&:hover': { backgroundColor: '#8E735B' } }}>
                                                 {isSaving ? <CircularProgress size={24} color="inherit" /> : t('actions.addToList')}
                                             </Button>
                                         </Box>

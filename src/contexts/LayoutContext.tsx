@@ -5,10 +5,9 @@ import React, { createContext, useContext, useState, useEffect, ReactNode, useMe
 import { PaletteMode } from '@mui/material';
 import { MapSettings, countryMapSettings, DEFAULT_MAP_SETTING_KEY } from '../config/mapConfig';
 
-// --- TYPES DEFINITION ---
+// TYPES DEFINITIONS
 export type PuulaaniIconType = 'LocationOn' | 'Forest' | 'Room' | 'FmdGood' | 'PinDrop';
 export type DropoffIconType = 'Warehouse' | 'Factory' | 'LocalShipping' | 'Business';
-// NEW: Chip Icon Types
 export type ChipIconType = 'Category' | 'Grain' | 'Hub' | 'Business';
 
 interface LayoutState {
@@ -21,7 +20,6 @@ interface LayoutState {
     dropoffIcon: DropoffIconType;
     dropoffIconSize: number;
     otherMarkerIconSize: number;
-    // NEW: Chip Transport States
     chipIcon: ChipIconType;
     chipIconSize: number;
     chipPathOpacity: number;
@@ -38,7 +36,6 @@ interface LayoutContextType extends LayoutState {
     setDropoffIcon: (iconName: DropoffIconType) => void;
     setDropoffIconSize: (size: number) => void;
     setOtherMarkerIconSize: (size: number) => void;
-    // NEW: Setters for Chips
     setChipIcon: (iconName: ChipIconType) => void;
     setChipIconSize: (size: number) => void;
     setChipPathOpacity: (opacity: number) => void;
@@ -60,7 +57,7 @@ export const LayoutProvider = ({ children }: { children: ReactNode }) => {
     const [dropoffIconSize, setDropoffIconSize] = useState<number>(30);
     const [otherMarkerIconSize, setOtherMarkerIconSize] = useState<number>(26);
 
-    // NEW: Chip Transport States
+    // Chip Transport States
     const [chipIcon, setChipIcon] = useState<ChipIconType>('Category');
     const [chipIconSize, setChipIconSize] = useState<number>(32);
     const [chipPathOpacity, setChipPathOpacity] = useState<number>(0.5);
@@ -93,7 +90,6 @@ export const LayoutProvider = ({ children }: { children: ReactNode }) => {
         const storedOtherMarkerIconSize = load('otherMarkerIconSize');
         if (storedOtherMarkerIconSize) setOtherMarkerIconSize(Number(storedOtherMarkerIconSize));
 
-        // NEW: Load Chip Settings
         const storedChipIcon = load('chipIcon') as ChipIconType | null;
         if (storedChipIcon) setChipIcon(storedChipIcon);
 
@@ -113,8 +109,6 @@ export const LayoutProvider = ({ children }: { children: ReactNode }) => {
     useEffect(() => { localStorage.setItem('dropoffIcon', dropoffIcon); }, [dropoffIcon]);
     useEffect(() => { localStorage.setItem('dropoffIconSize', String(dropoffIconSize)); }, [dropoffIconSize]);
     useEffect(() => { localStorage.setItem('otherMarkerIconSize', String(otherMarkerIconSize)); }, [otherMarkerIconSize]);
-
-    // NEW: Persist Chip Settings
     useEffect(() => { localStorage.setItem('chipIcon', chipIcon); }, [chipIcon]);
     useEffect(() => { localStorage.setItem('chipIconSize', String(chipIconSize)); }, [chipIconSize]);
     useEffect(() => { localStorage.setItem('chipPathOpacity', String(chipPathOpacity)); }, [chipPathOpacity]);
@@ -132,7 +126,6 @@ export const LayoutProvider = ({ children }: { children: ReactNode }) => {
     const handleSetDropoffIconSize = (size: number) => setDropoffIconSize(size);
     const handleSetOtherMarkerIconSize = (size: number) => setOtherMarkerIconSize(size);
 
-    // NEW: Chip Handlers
     const handleSetChipIcon = (iconName: ChipIconType) => setChipIcon(iconName);
     const handleSetChipIconSize = (size: number) => setChipIconSize(size);
     const handleSetChipPathOpacity = (opacity: number) => setChipPathOpacity(opacity);
@@ -147,7 +140,6 @@ export const LayoutProvider = ({ children }: { children: ReactNode }) => {
             value={{
                 themeMode, navLayout, mobileDrawerOpen, mapSettings,
                 puulaaniIcon, puulaaniIconSize, dropoffIcon, dropoffIconSize, otherMarkerIconSize,
-                // NEW
                 chipIcon, chipIconSize, chipPathOpacity,
 
                 toggleThemeMode, toggleNavLayout, toggleMobileDrawer,
@@ -157,7 +149,6 @@ export const LayoutProvider = ({ children }: { children: ReactNode }) => {
                 setDropoffIcon: handleSetDropoffIcon,
                 setDropoffIconSize: handleSetDropoffIconSize,
                 setOtherMarkerIconSize: handleSetOtherMarkerIconSize,
-                // NEW Setters
                 setChipIcon: handleSetChipIcon,
                 setChipIconSize: handleSetChipIconSize,
                 setChipPathOpacity: handleSetChipPathOpacity

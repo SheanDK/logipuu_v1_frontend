@@ -23,6 +23,7 @@ import { useMessage } from '@/utils/useMessage';
 import { fetchTimberStackFullDetails, updateTimberStackFull, fetchAllWoodTypes, createTimberStack } from '@/services/timberStackService';
 import { fetchAllDropoffLocations } from '@/services/unloadingSiteService';
 import { fetchVehiclesListApi } from '@/services/vehicleService';
+import PurkupaikkaFormModal from './PurkupaikkaFormModal';
 
 import AutoSelect from '../lists/AutoSelect';
 import { AddWoodEntry } from '../lists/AddWoodEntry';
@@ -36,7 +37,6 @@ interface PuulaaniDetailsModalProps {
     onSaveSuccessAction: () => void;
     initialData: IMapTimberStack | Partial<PendingPuulaaniData> | null;
     clientList: IClientBasicInfo[];
-    // --- 2. Add the new prop ---
     showMap?: boolean;
 }
 
@@ -57,6 +57,7 @@ export default function PuulaaniDetailsModal({
     const [vehicleList, setVehicleList] = useState<IVehicleBasicInfo[]>([]);
     const [woodTypeList, setWoodTypeList] = useState<IPuutavaraItem[]>([]);
     const [dropoffLocationList, setDropoffLocationList] = useState<IMapDropoffLocation[]>([]);
+    const [showNewDropoffModal, setShowNewDropoffModal] = useState(false);
     const { errorMessage, setErrorMessage } = useMessage();
 
     const { t } = useTranslation(['puulaaniDetailsModal', 'common']);
@@ -106,7 +107,6 @@ export default function PuulaaniDetailsModal({
         setIsLoading(true);
         setError(null);
         try {
-            // Fetch common dropdown data
             const [woodTypes, dropoffs, vehicles] = await Promise.all([
                 fetchAllWoodTypes(),
                 fetchAllDropoffLocations(),
@@ -121,15 +121,13 @@ export default function PuulaaniDetailsModal({
                 clientName: d.clientName || 'N/A',
                 latitude: d.sijaintiLat!,
                 longitude: d.sijaintiLong!,
-                isVisibleOnMap: d.isVisibleOnMap
+                isVisibleOnMap: d.isVisibleOnMap,
+                isChipDestination: false
             })));
 
-            // Handle Edit Mode
             if (isEditMode && initialData && 'id' in initialData) {
                 const details = await fetchTimberStackFullDetails(initialData.id);
 
-                // --- THIS IS THE FIX ---
-                // Prepare the data structure that the 'reset' function expects.
                 const formDataForReset = {
                     name: details.puulaani.nimi,
                     date: details.puulaani.pvm ? dayjs(details.puulaani.pvm) : null,
@@ -157,7 +155,6 @@ export default function PuulaaniDetailsModal({
                 reset(formDataForReset);
 
 
-                // Handle Create Mode (from a map click with pending data)
             } else if (!isEditMode && initialData) {
                 reset({
                     name: initialData.name || '',
@@ -185,46 +182,40 @@ export default function PuulaaniDetailsModal({
     };
 
     const handleAddWoodEntry = (data: IAddTimberStackWoodEntryFormData) => {
-        setErrorMessage(''); // Clear any previous error messages
+        setErrorMessage('');
 
         const newWoodTypeId = Number(data.woodTypeId!);
         const newDropoffLocationId = Number(data.dropoffLocationId!);
         const volumeToAdd = Number(data.volume);
 
-        // Find the index of an existing entry with the same combination
         const existingEntryIndex = woodEntryFields.findIndex(item =>
             Number(item.woodTypeId) === newWoodTypeId &&
             Number(item.dropoffLocationId) === newDropoffLocationId
         );
 
         if (existingEntryIndex !== -1) {
-            // --- ENTRY EXISTS: UPDATE THE EXISTING ROW ---
             const existingEntry = woodEntryFields[existingEntryIndex];
 
             const newTotalVolume = (Number(existingEntry.totalVolume) || 0) + volumeToAdd;
             const existingFetchedVolume = Number(existingEntry.fetchedVolume) || 0;
 
-            // Create the updated entry object
             const updatedEntry = {
-                ...existingEntry, // Keep all other properties like id, puutavaraId etc.
+                ...existingEntry,
                 totalVolume: newTotalVolume,
-                fetchedVolume: existingFetchedVolume, // Fetched volume doesn't change when adding more total volume
+                fetchedVolume: existingFetchedVolume,
                 remainingVolume: newTotalVolume - existingFetchedVolume,
                 valmis: false
             };
-
-            // Use the 'update' function from useFieldArray to replace the entry at the found index
             update(existingEntryIndex, updatedEntry);
 
         } else {
-            // --- ENTRY DOES NOT EXIST: ADD A NEW ROW ---
             append({
-                id: Date.now(), // Temporary unique ID for React key
-                puutavaraId: 0, // This is a new item, not yet in DB
+                id: Date.now(),
+                puutavaraId: 0,
                 woodTypeId: newWoodTypeId,
                 dropoffLocationId: newDropoffLocationId,
                 totalVolume: volumeToAdd,
-                fetchedVolume: 0, // A new entry always starts with 0 fetched
+                fetchedVolume: 0,
                 remainingVolume: volumeToAdd,
                 valmis: false
             });
@@ -234,20 +225,17 @@ export default function PuulaaniDetailsModal({
     const handleUpdateWoodEntry = (index: number, newValues: { totalVolume: number, fetchedVolume: number }) => {
         const currentEntry = woodEntryFields[index];
         const { totalVolume, fetchedVolume } = newValues;
-
-        // Server-side validation is primary, but a client-side check is good UX.
         if (fetchedVolume > totalVolume) {
             setErrorMessage(t('errors.retrievedGtCubes'));
             return;
         }
-        setErrorMessage(''); // Clear error if validation passes
+        setErrorMessage('');
 
-        // Perform a single, atomic update using the 'update' function from useFieldArray
         update(index, {
             ...currentEntry,
             totalVolume: totalVolume,
             fetchedVolume: fetchedVolume,
-            remainingVolume: totalVolume - fetchedVolume // Recalculate remaining volume
+            remainingVolume: totalVolume - fetchedVolume
         });
     };
 
@@ -315,147 +303,167 @@ export default function PuulaaniDetailsModal({
     };
 
     return (
+        <>
+            <LocalizationProvider dateAdapter={AdapterDayjs}>
+                <Dialog open={open} onClose={onCloseAction} fullWidth maxWidth="md">
+                    <DialogTitle sx={{ m: 0, p: 2, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <Typography variant="h6" component="div">
+                            {isEditMode ? t('title.edit') : t('title.create')}
+                        </Typography>
+                        <IconButton aria-label="close" onClick={onCloseAction} sx={{ color: (theme) => theme.palette.grey[500] }}>
+                            <CloseIcon />
+                        </IconButton>
+                    </DialogTitle>
+                    <FormProvider {...methods}>
+                        <Box component="form" id="details-form" onSubmit={handleSubmit(onSave as SubmitHandler<FieldValues>)}>
+                            <DialogContent dividers sx={{ p: { xs: 2, sm: 3 } }}>
+                                {isLoading ? (
+                                    <Box sx={{ display: 'flex', justifyContent: 'center', p: 5 }}><CircularProgress /></Box>
+                                ) : error ? (
+                                    <Alert severity="error">{error}</Alert>
+                                ) : (
+                                    <Stack spacing={3}>
+                                        {/* Section 1: Primary Details */}
+                                        <Paper variant="outlined" sx={{ p: 2.5 }}>
+                                            <Typography variant="overline" color="text.secondary" gutterBottom>{t('sections.primaryDetails')}</Typography>
 
-        <LocalizationProvider dateAdapter={AdapterDayjs}>
-            <Dialog open={open} onClose={onCloseAction} fullWidth maxWidth="md">
-                <DialogTitle sx={{ m: 0, p: 2, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <Typography variant="h6" component="div">
-                        {isEditMode ? t('title.edit') : t('title.create')}
-                    </Typography>
-                    <IconButton aria-label="close" onClick={onCloseAction} sx={{ color: (theme) => theme.palette.grey[500] }}>
-                        <CloseIcon />
-                    </IconButton>
-                </DialogTitle>
-                <FormProvider {...methods}>
-                    <Box component="form" id="details-form" onSubmit={handleSubmit(onSave as SubmitHandler<FieldValues>)}>
-                        <DialogContent dividers sx={{ p: { xs: 2, sm: 3 } }}>
-                            {isLoading ? (
-                                <Box sx={{ display: 'flex', justifyContent: 'center', p: 5 }}><CircularProgress /></Box>
-                            ) : error ? (
-                                <Alert severity="error">{error}</Alert>
-                            ) : (
-                                // --- THIS IS THE NEW LAYOUT STRUCTURE ---
-                                <Stack spacing={3}>
-                                    {/* Section 1: Primary Details */}
-                                    <Paper variant="outlined" sx={{ p: 2.5 }}>
-                                        <Typography variant="overline" color="text.secondary" gutterBottom>{t('sections.primaryDetails')}</Typography>
+                                            {isEditMode ? (
+                                                <Stack spacing={2} sx={{ mt: 1 }}>
+                                                    <Controller name="name" control={control} render={({ field }) => <TextField {...field} label={t('fields.nameOfProperty')} fullWidth size="small" />} />
+                                                    <TextField label={t('fields.customer')} value={(initialData as IMapTimberStack)?.clientName || ''} fullWidth size="small" disabled variant="filled" />
+                                                    <Controller name="date" control={control} render={({ field }) => <DatePicker {...field} label={t('fields.date')} value={field.value || null} format={t('common:formats.date', { defaultValue: 'DD.MM.YYYY' })} slotProps={{ textField: { size: 'small', fullWidth: true } }} />} />
+                                                    <Controller name="dispatchOrderNo" control={control} render={({ field }) => <TextField {...field} value={field.value ?? ''} label={t('fields.drivingOrderNo')} fullWidth size="small" />} />
+                                                    <Controller name="kilometers" control={control} render={({ field }) => <TextField {...field} value={field.value ?? ''} type="number" label={t('fields.tripTotalKm')} fullWidth size="small" />} />
+                                                </Stack>
+                                            ) : (
+                                                <Stack spacing={2} sx={{ mt: 1 }}>
+                                                    <TextField label={t('fields.objectName')} value={initialData?.name || ''} fullWidth size="small" disabled variant="filled" />
+                                                    <TextField label={t('fields.customer')} value={clientList.find(c => String(c.id) === String(initialData?.clientId))?.name || ''} fullWidth size="small" disabled variant="filled" />
+                                                </Stack>
+                                            )}
+                                        </Paper>
 
-                                        {isEditMode ? (
-                                            <Stack spacing={2} sx={{ mt: 1 }}>
-                                                <Controller name="name" control={control} render={({ field }) => <TextField {...field} label={t('fields.nameOfProperty')} fullWidth size="small" />} />
-                                                <TextField label={t('fields.customer')} value={(initialData as IMapTimberStack)?.clientName || ''} fullWidth size="small" disabled variant="filled" />
-                                                <Controller name="date" control={control} render={({ field }) => <DatePicker {...field} label={t('fields.date')} value={field.value || null} format={t('common:formats.date', { defaultValue: 'DD.MM.YYYY' })} slotProps={{ textField: { size: 'small', fullWidth: true } }} />} />
-                                                <Controller name="dispatchOrderNo" control={control} render={({ field }) => <TextField {...field} value={field.value ?? ''} label={t('fields.drivingOrderNo')} fullWidth size="small" />} />
-                                                <Controller name="kilometers" control={control} render={({ field }) => <TextField {...field} value={field.value ?? ''} type="number" label={t('fields.tripTotalKm')} fullWidth size="small" />} />
-                                            </Stack>
-                                        ) : (
-                                            <Stack spacing={2} sx={{ mt: 1 }}>
-                                                <TextField label={t('fields.objectName')} value={initialData?.name || ''} fullWidth size="small" disabled variant="filled" />
-                                                <TextField label={t('fields.customer')} value={clientList.find(c => String(c.id) === String(initialData?.clientId))?.name || ''} fullWidth size="small" disabled variant="filled" />
-                                            </Stack>
+                                        {/* Section 2: Location Map (Conditionally Rendered) */}
+                                        {showMap && (
+                                            <Paper variant="outlined" sx={{ p: 2.5 }}>
+                                                <Typography variant="overline" color="text.secondary" gutterBottom>{t('sections.location')}</Typography>
+                                                <Box sx={{ mt: 1 }}>
+                                                    <LocationPicker
+                                                        initialLat={latValue}
+                                                        initialLng={lngValue}
+                                                        onLocationChange={handleLocationChange}
+                                                        label={t('fields.updateLocationHint')}
+                                                    />
+                                                </Box>
+                                            </Paper>
                                         )}
-                                    </Paper>
 
-                                    {/* Section 2: Location Map (Conditionally Rendered) */}
-                                    {showMap && (
+                                        {/* Section 3: Vehicle Assignment (Only in Edit Mode) */}
+                                        {isEditMode && (
+                                            <Paper variant="outlined" sx={{ p: 2.5 }}>
+                                                <Typography variant="overline" color="text.secondary" gutterBottom>{t('sections.vehicleAssignment')}</Typography>
+                                                <Controller name="selectedAutoIds" control={control} render={({ field }) =>
+                                                    <AutoSelect
+                                                        selectedAutoIds={(field.value as number[] | undefined) || []}
+                                                        onSelectionChangeAction={field.onChange}
+                                                        vehicleList={vehicleList}
+                                                    />
+                                                } />
+                                            </Paper>
+                                        )}
+
+                                        {/* Section 4: Timber Logs */}
                                         <Paper variant="outlined" sx={{ p: 2.5 }}>
-                                            <Typography variant="overline" color="text.secondary" gutterBottom>{t('sections.location')}</Typography>
-                                            <Box sx={{ mt: 1 }}>
-                                                <LocationPicker
-                                                    initialLat={latValue}
-                                                    initialLng={lngValue}
-                                                    onLocationChange={handleLocationChange}
-                                                    label={t('fields.updateLocationHint')}
-                                                />
-                                            </Box>
+                                            <Typography variant="overline" color="text.secondary" gutterBottom>{t('sections.timberLogs')}</Typography>
+                                            <AddWoodEntry
+                                                onAddAction={handleAddWoodEntry}
+                                                woodTypeList={woodTypeList}
+                                                dropoffLocationList={dropoffLocationList}
+                                                onAddNewUnloadingSite={() => setShowNewDropoffModal(true)}
+                                            />
+                                            <WoodEntryList
+                                                entries={woodEntryFields}
+                                                onFieldChangeAction={handleUpdateWoodEntry}
+                                                onDeleteAction={(index) => remove(index)}
+                                                woodTypeList={woodTypeList}
+                                                dropoffLocationList={dropoffLocationList}
+                                                isEditMode={true}
+                                            />
                                         </Paper>
-                                    )}
 
-                                    {/* Section 3: Vehicle Assignment (Only in Edit Mode) */}
-                                    {isEditMode && (
+                                        {/* Section 5: Status & Info */}
                                         <Paper variant="outlined" sx={{ p: 2.5 }}>
-                                            <Typography variant="overline" color="text.secondary" gutterBottom>{t('sections.vehicleAssignment')}</Typography>
-                                            <Controller name="selectedAutoIds" control={control} render={({ field }) =>
-                                                <AutoSelect
-                                                    // --- FIX: Use type assertion and fallback array ---
-                                                    // This ensures the value is ALWAYS a number array, even if field.value is undefined/null.
-                                                    selectedAutoIds={(field.value as number[] | undefined) || []}
-                                                    onSelectionChangeAction={field.onChange}
-                                                    vehicleList={vehicleList}
-                                                />
-                                            } />
+                                            <Typography variant="overline" color="text.secondary" gutterBottom>{t('sections.statusInfo')}</Typography>
+                                            <Stack spacing={2}>
+                                                <Box>
+                                                    <FormControlLabel control={<Controller name="isActive" control={control} render={({ field }) =>
+                                                        <Checkbox
+                                                            {...field}
+                                                            checked={!!field.value}
+                                                            onChange={(e) => {
+                                                                const checked = e.target.checked;
+                                                                if (checked) {
+                                                                    setValue("isCompleted", false);
+
+                                                                }
+                                                                field.onChange(checked);
+                                                            }}
+                                                        />} />} label={t('fields.active')} />
+                                                    <FormControlLabel control={<Controller name="isCompleted" control={control} render={({ field }) =>
+                                                        <Checkbox
+                                                            {...field}
+                                                            checked={!!field.value}
+                                                            onChange={(e) => {
+                                                                const checked = e.target.checked;
+
+                                                                if (checked) {
+                                                                    setValue("isActive", false);
+                                                                }
+                                                                field.onChange(checked);
+                                                            }}
+                                                        />} />} label={t('fields.ready')} />
+                                                </Box>
+                                                <Controller name="additionalInfo" control={control} render={({ field }) => <TextField {...field} value={field.value ?? ''} label={t('fields.additionalInfo')} multiline rows={3} fullWidth size="small" />} />
+                                            </Stack>
                                         </Paper>
-                                    )}
-
-                                    {/* Section 4: Timber Logs */}
-                                    <Paper variant="outlined" sx={{ p: 2.5 }}>
-                                        <Typography variant="overline" color="text.secondary" gutterBottom>{t('sections.timberLogs')}</Typography>
-                                        <AddWoodEntry
-                                            onAddAction={handleAddWoodEntry}
-                                            woodTypeList={woodTypeList}
-                                            dropoffLocationList={dropoffLocationList}
-                                        />
-                                        <WoodEntryList
-                                            entries={woodEntryFields}
-                                            onFieldChangeAction={handleUpdateWoodEntry}
-                                            onDeleteAction={(index) => remove(index)}
-                                            woodTypeList={woodTypeList}
-                                            dropoffLocationList={dropoffLocationList}
-                                            isEditMode={true}
-                                        />
-                                    </Paper>
-
-                                    {/* Section 5: Status & Info */}
-                                    <Paper variant="outlined" sx={{ p: 2.5 }}>
-                                        <Typography variant="overline" color="text.secondary" gutterBottom>{t('sections.statusInfo')}</Typography>
-                                        <Stack spacing={2}>
-                                            <Box>
-                                                <FormControlLabel control={<Controller name="isActive" control={control} render={({ field }) =>
-                                                    <Checkbox
-                                                        {...field}
-                                                        checked={!!field.value}
-                                                        onChange={(e) => {
-                                                            const checked = e.target.checked;
-                                                            if (checked) {
-                                                                setValue("isCompleted", false);
-
-                                                            }
-                                                            field.onChange(checked);
-                                                        }}
-                                                    />} />} label={t('fields.active')} />
-                                                <FormControlLabel control={<Controller name="isCompleted" control={control} render={({ field }) =>
-                                                    <Checkbox
-                                                        {...field}
-                                                        checked={!!field.value}
-                                                        onChange={(e) => {
-                                                            const checked = e.target.checked;
-
-                                                            if (checked) {
-                                                                setValue("isActive", false);
-                                                            }
-                                                            field.onChange(checked);
-                                                        }}
-                                                    />} />} label={t('fields.ready')} />
-                                            </Box>
-                                            <Controller name="additionalInfo" control={control} render={({ field }) => <TextField {...field} value={field.value ?? ''} label={t('fields.additionalInfo')} multiline rows={3} fullWidth size="small" />} />
-                                        </Stack>
-                                    </Paper>
-                                </Stack>
-                            )}
-                            {errorMessage && <Alert severity="error" sx={{ mt: 2 }}>{errorMessage}</Alert>}
-                        </DialogContent>
-                        <DialogActions sx={{ p: 2, borderTop: '1px solid', borderColor: 'divider' }}>
-                            <Button onClick={onCloseAction}>{t('common:buttons.cancel')}</Button>
-                            <Button type="submit" form="details-form" variant="contained" disabled={isSaving || isLoading || (isEditMode && !isDirty)}>
-                                {isSaving ? <CircularProgress size={24} color="inherit" /> : (isEditMode ? t('actions.update') : t('actions.create'))}
-                            </Button>
-                        </DialogActions>
-                    </Box>
-                </FormProvider>
-            </Dialog>
-        </LocalizationProvider>
+                                    </Stack>
+                                )}
+                                {errorMessage && <Alert severity="error" sx={{ mt: 2 }}>{errorMessage}</Alert>}
+                            </DialogContent>
+                            <DialogActions sx={{ p: 2, borderTop: '1px solid', borderColor: 'divider' }}>
+                                <Button onClick={onCloseAction}>{t('common:buttons.cancel')}</Button>
+                                <Button type="submit" form="details-form" variant="contained" disabled={isSaving || isLoading || (isEditMode && !isDirty)}>
+                                    {isSaving ? <CircularProgress size={24} color="inherit" /> : (isEditMode ? t('actions.update') : t('actions.create'))}
+                                </Button>
+                            </DialogActions>
+                        </Box>
+                    </FormProvider>
+                </Dialog>
+            </LocalizationProvider>
+            <PurkupaikkaFormModal
+                open={showNewDropoffModal}
+                onCloseAction={async (didChange) => {
+                    setShowNewDropoffModal(false);
+                    if (didChange) {
+                        const dropoffs = await fetchAllDropoffLocations();
+                        setDropoffLocationList(dropoffs.map(d => ({
+                            id: d.purkupaikkaId,
+                            name: d.purkupaikka,
+                            clientId: d.asiakasId,
+                            clientName: d.clientName || 'N/A',
+                            latitude: d.sijaintiLat!,
+                            longitude: d.sijaintiLong!,
+                            isVisibleOnMap: d.isVisibleOnMap,
+                            isChipDestination: false
+                        })));
+                    }
+                }}
+                clientList={clientList}
+                onDataChangeAction={() => { }}
+                initialCoords={null}
+                siteToEdit={null}
+                showEmbeddedMap={true}
+            /></>
     );
 }
 
-//onUpdateEntryAction
-//onDeleteEntryAction

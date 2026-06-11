@@ -90,7 +90,7 @@ const ChipMarker = ({ marker }: { marker: any }) => {
                 </Popup>
             </Marker>
 
-            <Marker
+            {/* <Marker
                 key={`dest-${marker.id}-${chipIcon}-${chipIconSize}`}
                 position={destPos}
                 icon={createPointedIcon(themeColor, false)}
@@ -99,7 +99,7 @@ const ChipMarker = ({ marker }: { marker: any }) => {
                     <Typography variant="subtitle2" fontWeight="bold" sx={{ color: themeColor }}>{marker.abbreviation}</Typography>
                     <Typography variant="body2">{marker.destName}</Typography>
                 </Popup>
-            </Marker>
+            </Marker> */}
 
             <Polyline positions={[originPos, destPos]} pathOptions={{ color: themeColor, weight: 2, dashArray: '8, 12', opacity: chipPathOpacity }} />
         </>

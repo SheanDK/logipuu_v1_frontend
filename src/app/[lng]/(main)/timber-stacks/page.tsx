@@ -40,6 +40,7 @@ const PuulaaniDetailsModal = dynamic(() => import('../../../../components/map/di
 const ConfirmationDialog = dynamic(() => import('../../../../components/common/ConfirmationDialog'), { ssr: false });
 const PurkupaikkaFormModal = dynamic(() => import('../../../../components/map/dialogs/PurkupaikkaFormModal'), { ssr: false });
 const OtherMarkerFormModal = dynamic(() => import('../../../../components/map/dialogs/OtherMarkerFormModal'), { ssr: false });
+const ChipTitleModal = dynamic(() => import('../../../../components/chip-order/ChipTitleModal'), { ssr: false });
 
 
 if (typeof window !== 'undefined') {
@@ -53,17 +54,16 @@ if (typeof window !== 'undefined') {
 }
 
 const AnimationController = ({ center, zoom }: { center: [number, number]; zoom: number }) => {
-    const map: Map = useMap(); // Get the map instance
+    const map: Map = useMap();
 
     useEffect(() => {
-        // This effect runs only once when the component mounts
         map.flyTo(center, zoom, {
             animate: true,
-            duration: 1.5 // Animation duration in seconds
+            duration: 1.5
         });
-    }, [center, zoom, map]); // Dependencies ensure this re-runs if mapSettings change
+    }, [center, zoom, map]);
 
-    return null; // This component does not render anything
+    return null;
 };
 
 
@@ -81,7 +81,6 @@ export default function TimberStacksPage() {
         markerTypes: ['puulaani', 'purkupaikka', 'chip-transport'],
     });
 
-    // useMapData is not aware of markerTypes, so we pass only what it needs
     const apiFilters = useMemo(() => ({
         status: filters.status,
         clientId: filters.clientId,
@@ -95,7 +94,7 @@ export default function TimberStacksPage() {
     const [isSaving, setIsSaving] = useState(false);
     const [snackbar, setSnackbar] = useState<{ open: boolean, message: string, severity: AlertColor }>({ open: false, message: '', severity: 'info' });
     const [vehicleLocations] = useState<Record<string, IVehicleLocation>>({});
-    const [activeModal, setActiveModal] = useState<'none' | 'type' | 'puulaani-details' | 'puulaani-finalize' | 'purkupaikka' | 'other-marker'>('none');
+    const [activeModal, setActiveModal] = useState<'none' | 'type' | 'puulaani-details' | 'puulaani-finalize' | 'purkupaikka' | 'other-marker' | 'chip-title'>('none');
     const [pendingCoords, setPendingCoords] = useState<[number, number] | null>(null);
     const [pendingPuulaani, setPendingPuulaani] = useState<Partial<PendingPuulaaniData>>({});
     const [modalError, setModalError] = useState<string | null>(null);
@@ -128,7 +127,7 @@ export default function TimberStacksPage() {
             status: (searchParams.get('status') as 'all' | 'active') || 'active',
             clientId: searchParams.get('clientId') || null,
             vehicleId: searchParams.get('vehicleId') || null,
-            markerTypes: (markerTypesFromUrl as ('puulaani' | 'purkupaikka')[] | undefined) || ['puulaani', 'purkupaikka'],
+            markerTypes: (markerTypesFromUrl as ('puulaani' | 'purkupaikka' | 'chip-transport')[] | undefined) || ['puulaani', 'purkupaikka', 'chip-transport'],
         });
     }, [searchParams]);
 
@@ -203,21 +202,19 @@ export default function TimberStacksPage() {
         setIsSaving(true);
         const { type, item } = deleteConfirmation;
         try {
-            let successMessageKey = ''; // Variable to hold the correct translation key
+            let successMessageKey = '';
 
             if (type === 'Puulaani') {
                 await deactivateTimberStack(item.id);
-                successMessageKey = 'messages.archived'; // Use 'archived' for soft-delete
+                successMessageKey = 'messages.archived';
             } else if (type === 'Purkupaikka') {
                 await deleteDropoffLocation(item.id);
-                successMessageKey = 'messages.deleted'; // Use 'deleted' for hard-delete
+                successMessageKey = 'messages.deleted';
             } else if (type === 'Muu merkki') {
                 await deleteOtherMarker(item.id);
-                successMessageKey = 'messages.deleted'; // Use 'deleted' for hard-delete
+                successMessageKey = 'messages.deleted';
             }
 
-            // --- THE FIX IS HERE ---
-            // Use the determined key to show the correct snackbar message.
             setSnackbar({
                 open: true,
                 message: t(successMessageKey, { type: typeLabel(type), name: item.name }),
@@ -261,6 +258,8 @@ export default function TimberStacksPage() {
             setActiveModal('purkupaikka');
         } else if (type === 'Muu merkki') {
             setActiveModal('other-marker');
+        } else if (type === 'ChipTitle') {
+            setActiveModal('chip-title');
         }
     };
 
@@ -452,7 +451,9 @@ export default function TimberStacksPage() {
 
                         <LayersControl.Overlay checked name={t('layers.vehicles')}>
                             <FeatureGroup>
-                                {Object.values(vehicleLocations).map(vehicle => <VehicleMarker key={`vehicle-${vehicle.id}`} vehicle={vehicle} />)}
+                                {Object.values(vehicleLocations).map(vehicle =>
+                                    <VehicleMarker key={`vehicle-${vehicle.id}`} vehicle={vehicle} />
+                                )}
                             </FeatureGroup>
                         </LayersControl.Overlay>
 
@@ -470,15 +471,80 @@ export default function TimberStacksPage() {
             </Box>
 
             {/* Modals and Dialogs */}
-            {/* The full code for these components is omitted for brevity but should be present in your file */}
-            <TypeSelectionDialog open={activeModal === 'type'} onCancelAction={handleCloseModals} onTypeSelect={handleTypeSelected} />
-            <DetailsDialog open={activeModal === 'puulaani-details'} onCancelAction={handleCloseModals} onNextAction={handleDetailsSubmitted} clientList={clientList} />
-            {activeModal === 'puulaani-finalize' && <PuulaaniDetailsModal open={true} onCloseAction={handleCloseModals} onSaveSuccessAction={handleFinalSaveSuccess} initialData={selectedStackForEditing || pendingPuulaani} clientList={clientList} showMap={false} />}
-            <PurkupaikkaFormModal open={activeModal === 'purkupaikka'} onCloseAction={handleCloseModals} onDataChangeAction={reloadData} clientList={clientList} initialCoords={selectedDropoffForEditing ? null : (pendingCoords ? { lat: pendingCoords[0], lng: pendingCoords[1] } : null)} siteToEdit={selectedDropoffForEditing} />
-            <OtherMarkerFormModal open={activeModal === 'other-marker'} onCloseAction={handleCloseModals} onSaveAction={handleSaveOtherMarker} isSaving={isSaving} error={modalError} initialData={selectedOtherMarkerForEditing} />
-            <ConfirmationDialog open={!!deleteConfirmation} onClose={() => setDeleteConfirmation(null)} onConfirm={confirmDelete} title={t('confirm.delete.title', { type: typeLabel(deleteConfirmation?.type as MarkerType) })} message={t('confirm.delete.message', { name: deleteConfirmation?.item?.name ?? '' })} isConfirming={isSaving} />
-            <ConfirmationDialog open={!!moveConfirmation} onClose={() => setMoveConfirmation(null)} onConfirm={confirmMove} title={t('confirm.unlock.title')} message={t('confirm.unlock.message', { name: moveConfirmation?.name ?? '' })} confirmButtonText={t('confirm.unlock.confirmBtn')} />
-            <Snackbar open={snackbar.open} autoHideDuration={6000} onClose={() => setSnackbar({ ...snackbar, open: false })} anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}><Alert onClose={() => setSnackbar({ ...snackbar, open: false })} severity={snackbar.severity} sx={{ width: '100%' }}>{snackbar.message}</Alert></Snackbar>
+            <TypeSelectionDialog
+                open={activeModal === 'type'}
+                onCancelAction={handleCloseModals}
+                onTypeSelect={handleTypeSelected}
+            />
+            <DetailsDialog
+                open={activeModal === 'puulaani-details'}
+                onCancelAction={handleCloseModals}
+                onNextAction={handleDetailsSubmitted}
+                clientList={clientList}
+            />
+            {activeModal === 'puulaani-finalize' &&
+                <PuulaaniDetailsModal
+                    open={true}
+                    onCloseAction={handleCloseModals}
+                    onSaveSuccessAction={handleFinalSaveSuccess}
+                    initialData={selectedStackForEditing || pendingPuulaani}
+                    clientList={clientList}
+                    showMap={false}
+                />}
+            <PurkupaikkaFormModal
+                open={activeModal === 'purkupaikka'}
+                onCloseAction={handleCloseModals}
+                onDataChangeAction={reloadData}
+                clientList={clientList}
+                initialCoords={selectedDropoffForEditing ? null : (pendingCoords ? { lat: pendingCoords[0], lng: pendingCoords[1] } : null)}
+                siteToEdit={selectedDropoffForEditing}
+            />
+            <OtherMarkerFormModal
+                open={activeModal === 'other-marker'}
+                onCloseAction={handleCloseModals}
+                onSaveAction={handleSaveOtherMarker}
+                isSaving={isSaving}
+                error={modalError}
+                initialData={selectedOtherMarkerForEditing}
+            />
+            {activeModal === 'chip-title' &&
+                <ChipTitleModal
+                    open={true}
+                    onClose={handleCloseModals}
+                    onSuccess={() => { reloadData(); apiClient.get('/chip-planning/map-data').then(res => setChipMarkers(res.data)); }}
+                    titleData={null}
+                    initialCoords={pendingCoords ? [pendingCoords[0], pendingCoords[1]] : undefined}
+                />}
+            <ConfirmationDialog
+                open={!!deleteConfirmation}
+                onClose={() => setDeleteConfirmation(null)}
+                onConfirm={confirmDelete}
+                title={t('confirm.delete.title', { type: typeLabel(deleteConfirmation?.type as MarkerType) })}
+                message={t('confirm.delete.message', { name: deleteConfirmation?.item?.name ?? '' })}
+                isConfirming={isSaving}
+            />
+            <ConfirmationDialog
+                open={!!moveConfirmation}
+                onClose={() => setMoveConfirmation(null)}
+                onConfirm={confirmMove}
+                title={t('confirm.unlock.title')}
+                message={t('confirm.unlock.message', { name: moveConfirmation?.name ?? '' })}
+                confirmButtonText={t('confirm.unlock.confirmBtn')}
+            />
+            <Snackbar
+                open={snackbar.open}
+                autoHideDuration={6000}
+                onClose={() => setSnackbar({ ...snackbar, open: false })}
+                anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+            >
+                <Alert
+                    onClose={() => setSnackbar({ ...snackbar, open: false })}
+                    severity={snackbar.severity}
+                    sx={{ width: '100%' }}
+                >
+                    {snackbar.message}
+                </Alert>
+            </Snackbar>
         </Box>
     );
 }

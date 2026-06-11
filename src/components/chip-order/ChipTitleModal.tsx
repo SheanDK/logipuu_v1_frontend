@@ -20,7 +20,7 @@ import type { IBackendClient, IBackendPuulaani, IBackendPurkupaikkaResponse, ICh
 import NewAreaModal from './NewAreaModal';
 
 // Chip Title Modal Component
-const ChipTitleModal = ({ open, onClose, onSuccess, titleData }: any) => {
+const ChipTitleModal = ({ open, onClose, onSuccess, titleData, initialCoords }: any) => {
     const { t } = useTranslation(['chip-management', 'common']);
     const { showNotification } = useNotification();
     const theme = useTheme();
@@ -103,7 +103,9 @@ const ChipTitleModal = ({ open, onClose, onSuccess, titleData }: any) => {
                 });
             } else {
                 setFormData({
-                    title_id: '', title_number: '', customer_id: '', loading_point_id: '', unloading_point_id: '',
+                    title_id: '', title_number: '', customer_id: '',
+                    loading_point_id: initialCoords ? 'NEW_FROM_MAP' : '',
+                    unloading_point_id: '',
                     product_number: '', title_name: '', abbreviation: '', invoicing_basis: 'Tons',
                     driver_instructions: '', req_pcs: false, req_m3: false, req_ton: false, req_hr: false,
                     req_waiting: false, req_km: false, req_details: false, req_details_info: '',
@@ -112,7 +114,7 @@ const ChipTitleModal = ({ open, onClose, onSuccess, titleData }: any) => {
             }
             loadData();
         }
-    }, [open, titleData, loadData]);
+    }, [open, titleData, loadData, initialCoords]);
 
     // Handle quick area save
     const handleQuickAreaSave = async (data: any) => {
@@ -131,15 +133,39 @@ const ChipTitleModal = ({ open, onClose, onSuccess, titleData }: any) => {
 
     // Handle form submission
     const handleSave = async () => {
-        const payload = {
-            ...formData,
-            customer_id: Number(formData.customer_id),
-            loading_point_id: Number(formData.loading_point_id),
-            unloading_point_id: Number(formData.unloading_point_id),
-            product_number: Number(formData.product_number),
-        };
-
         try {
+            let finalLoadingPointId = formData.loading_point_id;
+
+            if (finalLoadingPointId === 'NEW_FROM_MAP' && initialCoords) {
+                if (!formData.customer_id) {
+                    showNotification(t('chip-management:notifications.customerRequired', 'Customer is required'), 'error');
+                    return;
+                }
+                if (!formData.title_name) {
+                    showNotification(t('chip-management:notifications.titleNameRequired', 'Title Name is required'), 'error');
+                    return;
+                }
+                const res = await apiClient.post('/locations/quick-puulaani', {
+                    name: formData.title_name,
+                    customer_ids: [formData.customer_id],
+                    lat: initialCoords[0],
+                    lng: initialCoords[1]
+                });
+                if (res.data && res.data.id) {
+                    finalLoadingPointId = String(res.data.id);
+                } else {
+                    throw new Error("Failed to create Puulaani.");
+                }
+            }
+
+            const payload = {
+                ...formData,
+                customer_id: Number(formData.customer_id),
+                loading_point_id: Number(finalLoadingPointId),
+                unloading_point_id: Number(formData.unloading_point_id),
+                product_number: Number(formData.product_number),
+            };
+
             if (titleData) {
                 await chipTitleService.update(titleData.title_id || titleData.titleId, payload);
                 showNotification(t('common:notifications.updateSuccess'), "success");
@@ -149,7 +175,10 @@ const ChipTitleModal = ({ open, onClose, onSuccess, titleData }: any) => {
             }
             onSuccess();
             onClose();
-        } catch (error: any) { showNotification(t('common:notifications.error'), "error"); }
+        } catch (error: any) {
+            console.error(error);
+            showNotification(t('common:notifications.error'), "error");
+        }
     };
 
     // Summary box component
@@ -190,19 +219,21 @@ const ChipTitleModal = ({ open, onClose, onSuccess, titleData }: any) => {
                         <Stack direction="row" spacing={2}>
                             <Autocomplete
                                 fullWidth size="small" sx={{ flex: 1 }}
-                                options={origins}
+                                options={initialCoords ? [{ nimi: `Lat: ${initialCoords[0].toFixed(5)}, Lng: ${initialCoords[1].toFixed(5)}`, puulaaniId: 'NEW_FROM_MAP' } as any] : origins}
                                 getOptionLabel={(o) => o.nimi || ''}
                                 filterOptions={(options, params) => {
+                                    if (initialCoords) return options;
                                     const filtered = options.filter(o => (o.nimi || '').toLowerCase().includes(params.inputValue.toLowerCase()));
                                     return [{ nimi: `+ ${t('chip-management:modal.newArea')}`, puulaaniId: 'NEW' } as any, ...filtered];
                                 }}
+                                disabled={!!initialCoords}
                                 isOptionEqualToValue={(option, value) => String(option.puulaaniId) === String(value.puulaaniId)}
                                 renderOption={(props, option) => {
                                     const { key, ...op } = props;
                                     const isNew = String(option.puulaaniId) === 'NEW';
                                     return <Box component="li" key={option.puulaaniId} {...op} sx={{ fontWeight: isNew ? 'bold' : 'normal', color: isNew ? theme.palette.success.main : 'inherit' }}>{option.nimi}</Box>;
                                 }}
-                                value={origins.find(o => String(o.puulaaniId) === String(formData.loading_point_id)) || null}
+                                value={initialCoords ? { nimi: `Lat: ${initialCoords[0].toFixed(5)}, Lng: ${initialCoords[1].toFixed(5)}`, puulaaniId: 'NEW_FROM_MAP' } as any : (origins.find(o => String(o.puulaaniId) === String(formData.loading_point_id)) || null)}
                                 onChange={(_, v: any) => String(v?.puulaaniId) === 'NEW' ? setNewAreaModal({ open: true, type: 'Loading' }) : setFormData({ ...formData, loading_point_id: v ? String(v.puulaaniId) : '' })}
                                 renderInput={(params) => <TextField {...params} label={`${t('chip-management:modal.loadingPoint')} *`} />}
                             />

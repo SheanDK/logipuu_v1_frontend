@@ -4,7 +4,7 @@ import { useEffect, useState, useRef } from 'react';
 import { io, Socket } from 'socket.io-client';
 import { useAuth } from '../contexts/AuthContext';
 
-// 🚀 SHARED SINGLETON STORAGE: Keeps a single stable socket active across all pages/hooks [1]
+// Single stable socket active across all pages/hooks
 let sharedSocket: Socket | null = null;
 let sharedToken: string | null = null;
 
@@ -42,7 +42,7 @@ const useSocket = (vehicleId?: string | number | null): UseSocketReturn => {
             return;
         }
 
-        // 2. 🚀 STABILITY FIX: If a stable shared socket already exists with the same token, reuse it! [1]
+        // 2. If a stable shared socket already exists with the same token, reuse it!
         if (sharedSocket?.connected && sharedToken === token) {
             setIsConnected(true);
             setSocketState(sharedSocket);
@@ -57,13 +57,13 @@ const useSocket = (vehicleId?: string | number | null): UseSocketReturn => {
 
         const socketUrl = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:5000';
 
-        console.log('🔌 Connecting shared socket to:', socketUrl); // Debug
+        console.log('🔌 Connecting shared socket to:', socketUrl);
 
         const socketInstance = io(socketUrl, {
             auth: { token: token, vehicleId: vehicleId },
             transports: ['websocket', 'polling'],
             reconnection: true,
-            reconnectionAttempts: 5,        // 🚀 infinite reconnect නෙවෙයි
+            reconnectionAttempts: 5,
             reconnectionDelay: 2000,
         });
 
@@ -74,7 +74,6 @@ const useSocket = (vehicleId?: string | number | null): UseSocketReturn => {
         });
 
         socketInstance.on('connect_error', (err) => {
-            // 🚀 Connect error log කරන්න - debug සඳහා
             console.error('❌ Shared Socket connect error:', err.message);
         });
 
@@ -96,15 +95,11 @@ const useSocket = (vehicleId?: string | number | null): UseSocketReturn => {
         socketInstance.on('newNotification', (data: any) => {
             console.log('📡 Notification received:', data);
         });
-
-        // Save to singleton storage
         sharedSocket = socketInstance;
         sharedToken = token;
         setSocketState(socketInstance);
 
         return () => {
-            // 🚀 STABILITY FIX: Do not disconnect on simple page re-renders/unmounts
-            // This keeps the socket alive when navigating between pages!
         };
     }, [isAuthenticated, token, vehicleId, logout, setForceLogout]);
 

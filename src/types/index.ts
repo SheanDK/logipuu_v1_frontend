@@ -838,7 +838,7 @@ export interface PuulaaniFormData {
 // =============================================================================
 // SECTION 4: LOCATION, MAP & MISC TYPES
 // =============================================================================
-export type MarkerType = 'Puulaani' | 'Purkupaikka' | 'Muu merkki' | 'Chip transport';
+export type MarkerType = 'Puulaani' | 'Purkupaikka' | 'ChipTitle' | 'Muu merkki' | 'Chip transport';
 export interface IMapDropoffLocation {
     id: number;
     clientId: number | null;
@@ -847,6 +847,7 @@ export interface IMapDropoffLocation {
     latitude: number;
     longitude: number;
     isVisibleOnMap: boolean;
+    isChipDestination: boolean;
 }
 
 export interface IMapTrip {

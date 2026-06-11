@@ -2,7 +2,7 @@
 'use client';
 
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
-import { useParams } from 'next/navigation'; // 🚀 1. Added useParams to get active language
+import { useParams } from 'next/navigation';
 import {
     Box, Button, Typography, Paper, CircularProgress, Alert,
     AlertColor, Chip, Stack, IconButton, Divider, alpha, useTheme,
