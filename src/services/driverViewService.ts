@@ -25,9 +25,11 @@ export const getDriverMapData = async (vehicleId: string): Promise<DriverMapData
     }
 };
 
-export const getActiveTripForDriver = async (): Promise<any | null> => {
+export const getActiveTripForDriver = async (vehicleId?: string | number | null): Promise<any | null> => {
     try {
-        const response = await apiClient.get('/driver/active-trip');
+        const response = await apiClient.get('/driver/active-trip', {
+            params: vehicleId ? { vehicleId } : undefined
+        });
         return response.data;
     } catch (error) {
         console.error("SERVICE ERROR: Failed to fetch active trip for driver", error);

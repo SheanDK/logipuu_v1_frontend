@@ -1,4 +1,4 @@
-﻿// frontend/src/components/drivers/TimberDashboard.tsx
+// frontend/src/components/drivers/TimberDashboard.tsx
 'use client';
 
 import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
@@ -475,7 +475,7 @@ export default function TimberDashboard({ onBackAction }: TimberDashboardProps) 
         setLoadToEdit(null);
 
         try {
-            const updatedTripData = await getActiveTripForDriver();
+            const updatedTripData = await getActiveTripForDriver(selectedVehicleId);
             if (updatedTripData && updatedTripData.legs.length > 0) {
                 setActiveTrip(updatedTripData);
             }
@@ -519,7 +519,7 @@ export default function TimberDashboard({ onBackAction }: TimberDashboardProps) 
             setLoadToDelete(null);
 
             // --- FIX 1: Fetch the updated active trip data ---
-            const updatedTripData = await getActiveTripForDriver();
+            const updatedTripData = await getActiveTripForDriver(selectedVehicleId);
 
             // 2. Update the main active trip state
             if (updatedTripData && updatedTripData.legs.length > 0) {
@@ -551,7 +551,7 @@ export default function TimberDashboard({ onBackAction }: TimberDashboardProps) 
     useEffect(() => {
         const checkForActiveTrip = async () => {
             try {
-                const tripData = await getActiveTripForDriver();
+                const tripData = await getActiveTripForDriver(selectedVehicleId);
                 if (tripData && tripData.legs.length > 0) {
                     setActiveTrip(tripData);
                     setContextActiveTrip(tripData.ajomaaraysNro || String(tripData.legs[0].kuormaId));
@@ -561,7 +561,7 @@ export default function TimberDashboard({ onBackAction }: TimberDashboardProps) 
             }
         };
         checkForActiveTrip();
-    }, [setContextActiveTrip]);
+    }, [setContextActiveTrip, selectedVehicleId]);
 
     const handleStartTrip = async (load: any) => {
 
@@ -588,7 +588,7 @@ export default function TimberDashboard({ onBackAction }: TimberDashboardProps) 
         try {
             await updateTripStatus(finalOrderNo, { status: 'In Progress' });
 
-            const tripData = await getActiveTripForDriver();
+            const tripData = await getActiveTripForDriver(selectedVehicleId);
             if (tripData) {
                 setActiveTrip(tripData);
                 setContextActiveTrip(tripData.ajomaaraysNro || String(tripData.legs[0].kuormaId));
@@ -612,7 +612,7 @@ export default function TimberDashboard({ onBackAction }: TimberDashboardProps) 
         setIsUpdatingStatus(true);
         try {
             await updateTripStatus(activeTrip.ajomaaraysNro, { status: newStatus });
-            const updatedTripData = await getActiveTripForDriver();
+            const updatedTripData = await getActiveTripForDriver(selectedVehicleId);
 
             if (newStatus === 'Completed' || !updatedTripData) {
                 setActiveTrip(null);
