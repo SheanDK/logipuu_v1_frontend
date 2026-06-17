@@ -11,6 +11,7 @@ import { DriverSessionProvider } from '@/contexts/DriverSessionContext';
 import { SettingsProvider } from '@/contexts/SettingsContext';
 import ConnectivityBoundary from '@/components/providers/ConnectivityBoundary';
 import DriverOfflineBootstrap from '@/components/providers/DriverOfflineBootstrap';
+import { SpeedInsights } from '@vercel/speed-insights/next';
 
 
 import I18nProvider from '@/components/providers/I18nProvider';
@@ -47,6 +48,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             </SettingsProvider>
           </AppRouterCacheProvider>
         </I18nProvider>
+        <SpeedInsights />
       </body>
     </html>
   );
